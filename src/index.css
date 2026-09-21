@@ -1,31 +1,81 @@
 @import 'tailwindcss';
 
-@theme {
-  --font-sans: Manrope, system-ui, sans-serif;
-  --font-display: Fraunces, Georgia, serif;
-  --color-ink: #0f3d3e;
-  --color-ink-soft: #2a5556;
-  --color-paper: #f2efe6;
-  --color-paper-deep: #e4ddd0;
-  --color-foam: #c8e6e0;
-  --color-record: #e23d3d;
-  --color-ok: #1f7a4c;
-  --color-line: rgb(15 61 62 / 0.14);
-  --shadow-deck: 0 18px 50px rgb(15 61 62 / 0.12);
-}
-
-/* Legacy CSS variables still referenced by a few utilities / shadows. */
-:root {
+/* Runtime theme tokens (switched via html.light / html.dark). */
+:root,
+html.light {
+  color-scheme: light;
   --ink: #0f3d3e;
   --ink-soft: #2a5556;
+  --on-ink: #f4f1ea;
   --paper: #f2efe6;
   --paper-deep: #e4ddd0;
   --foam: #c8e6e0;
+  --surface: #ffffff;
   --record: #e23d3d;
+  --record-soft: #fff5f5;
+  --record-deep: #d32f2f;
   --record-glow: rgba(226, 61, 61, 0.35);
   --ok: #1f7a4c;
-  --line: rgba(15, 61, 62, 0.14);
-  --shadow: 0 18px 50px rgba(15, 61, 62, 0.12);
+  --line: rgb(15 61 62 / 0.14);
+  --shadow: 0 18px 50px rgb(15 61 62 / 0.12);
+  --highlight: rgb(255 255 255 / 0.7);
+  --page-glow-a: #c8e6e0;
+  --page-glow-b: #f7d9b8;
+  --page-base-start: #f7f4ec;
+  --page-base-end: #ebe4d7;
+  --deck-fill: color-mix(in srgb, white 72%, transparent);
+  --deck-sheen: linear-gradient(
+    135deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.35) 100%
+  );
+}
+
+html.dark {
+  color-scheme: dark;
+  --ink: #e4f0ef;
+  --ink-soft: #9db8b7;
+  --on-ink: #0c1a1b;
+  --paper: #0f1c1d;
+  --paper-deep: #0a1415;
+  --foam: #1a3f3c;
+  --surface: #1a2e2f;
+  --record: #f05555;
+  --record-soft: #3a1c1c;
+  --record-deep: #ff7a7a;
+  --record-glow: rgba(240, 85, 85, 0.4);
+  --ok: #3dba78;
+  --line: rgb(200 230 224 / 0.16);
+  --shadow: 0 18px 50px rgb(0 0 0 / 0.45);
+  --highlight: rgb(255 255 255 / 0.08);
+  --page-glow-a: #163533;
+  --page-glow-b: #2a2218;
+  --page-base-start: #0c1617;
+  --page-base-end: #122022;
+  --deck-fill: color-mix(in srgb, #1a2e2f 82%, transparent);
+  --deck-sheen: linear-gradient(
+    135deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.06) 100%
+  );
+}
+
+@theme inline {
+  --font-sans: Manrope, system-ui, sans-serif;
+  --font-display: Fraunces, Georgia, serif;
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-on-ink: var(--on-ink);
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-foam: var(--foam);
+  --color-surface: var(--surface);
+  --color-record: var(--record);
+  --color-record-soft: var(--record-soft);
+  --color-record-deep: var(--record-deep);
+  --color-ok: var(--ok);
+  --color-line: var(--line);
+  --shadow-deck: var(--shadow);
 }
 
 @layer base {
@@ -47,11 +97,27 @@
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
-    color: var(--color-ink);
+    color: var(--ink);
     background:
-      radial-gradient(1200px 700px at 12% -10%, var(--color-foam), transparent 55%),
-      radial-gradient(900px 600px at 100% 0%, #f7d9b8, transparent 50%),
-      linear-gradient(165deg, #f7f4ec 0%, var(--color-paper) 45%, #ebe4d7 100%);
+      radial-gradient(
+        1200px 700px at 12% -10%,
+        var(--page-glow-a),
+        transparent 55%
+      ),
+      radial-gradient(
+        900px 600px at 100% 0%,
+        var(--page-glow-b),
+        transparent 50%
+      ),
+      linear-gradient(
+        165deg,
+        var(--page-base-start) 0%,
+        var(--paper) 45%,
+        var(--page-base-end) 100%
+      );
+    transition:
+      color 180ms ease,
+      background 180ms ease;
   }
 
   #root {
@@ -94,18 +160,18 @@
     box-shadow:
       0 0 0 0 var(--record-glow),
       0 10px 28px var(--record-glow),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      inset 0 1px 0 var(--highlight);
   }
   70% {
     box-shadow:
       0 0 0 14px transparent,
       0 10px 28px var(--record-glow),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      inset 0 1px 0 var(--highlight);
   }
   100% {
     box-shadow:
       0 0 0 0 var(--record-glow),
       0 10px 28px var(--record-glow),
-      inset 0 1px 0 rgba(255, 255, 255, 0.8);
+      inset 0 1px 0 var(--highlight);
   }
 }

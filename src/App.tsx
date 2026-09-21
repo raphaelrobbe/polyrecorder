@@ -47,17 +47,19 @@ export function App() {
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
   }, [])
 
+  const onMainView = view === 'main'
+
   return (
     <main className="flex w-[min(440px,100%)] flex-col gap-7 animate-rise">
       <Brand />
 
       <Deck>
-        {view === 'main' ? <DeckMain /> : null}
+        {onMainView ? <DeckMain /> : null}
         {view === 'settings' ? <SettingsPanel /> : null}
         {view === 'help' ? <HelpPanel /> : null}
       </Deck>
 
-      <MarkingHelp />
+      {onMainView ? <MarkingHelp /> : null}
       <ModeRow />
       <Hint>{hint}</Hint>
     </main>

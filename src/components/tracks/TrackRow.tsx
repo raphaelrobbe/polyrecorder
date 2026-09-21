@@ -104,7 +104,7 @@ export function TrackRow({
       />
       <div
         className={cn(
-          'col-start-3 row-start-1 flex w-full min-w-0 items-center gap-[0.4rem] rounded-[14px] border border-transparent bg-[rgba(15,61,62,0.04)] box-border py-[0.45rem] pr-[0.45rem] pl-[0.55rem]',
+          'col-start-3 row-start-1 flex w-full min-w-0 items-center gap-[0.4rem] rounded-[14px] border border-transparent bg-ink/4 box-border py-[0.45rem] pr-[0.45rem] pl-[0.55rem]',
           calageMode && 'items-start',
           !isEnabled && 'opacity-55',
         )}

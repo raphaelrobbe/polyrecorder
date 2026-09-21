@@ -16,7 +16,7 @@ export function SettingsDevices({
   return (
     <div
       className={cn(
-        'mt-[0.35rem] flex flex-col gap-4 border-t border-[rgba(15,61,62,0.12)] pt-[0.85rem]',
+        'mt-[0.35rem] flex flex-col gap-4 border-t border-ink/12 pt-[0.85rem]',
         className,
       )}
     >
@@ -108,11 +108,11 @@ export function SettingsSelect({ className, ...props }: SettingsSelectProps) {
   return (
     <select
       className={cn(
-        'm-0 w-full appearance-none rounded-[10px] border-[1.5px] border-line bg-white py-[0.55rem] pr-8 pl-[0.7rem]',
+        'm-0 w-full appearance-none rounded-[10px] border-[1.5px] border-line bg-surface py-[0.55rem] pr-8 pl-[0.7rem]',
         'bg-[linear-gradient(45deg,transparent_50%,var(--color-ink-soft)_50%),linear-gradient(135deg,var(--color-ink-soft)_50%,transparent_50%)]',
         'bg-size-[5px_5px,5px_5px] bg-position-[calc(100%-14px)_50%,calc(100%-9px)_50%] bg-no-repeat',
         'font-[inherit] text-[0.88rem] font-semibold text-ink',
-        'focus:border-[rgba(15,61,62,0.35)] focus:outline-none focus:shadow-[0_0_0_3px_rgba(15,61,62,0.08)]',
+        'focus:border-ink/35 focus:outline-none focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--ink)_8%,transparent)]',
         className,
       )}
       {...props}
@@ -134,7 +134,7 @@ export function SettingsNote({
   return (
     <p
       className={cn(
-        'mt-[0.35rem] mb-0 rounded-xl border border-[rgba(15,61,62,0.1)] bg-[rgba(15,61,62,0.04)] px-[0.8rem] py-[0.7rem] text-[0.8rem] leading-[1.4] text-ink-soft',
+        'mt-[0.35rem] mb-0 rounded-xl border border-ink/10 bg-ink/4 px-[0.8rem] py-[0.7rem] text-[0.8rem] leading-[1.4] text-ink-soft',
         className,
       )}
       hidden={hidden}

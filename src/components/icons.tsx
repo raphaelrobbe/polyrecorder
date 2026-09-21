@@ -103,6 +103,28 @@ export function IconSettings(props: Omit<IconProps, 'children'>) {
   )
 }
 
+export function IconSun(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="currentColor"
+        d="M12 7.5a4.5 4.5 0 1 1 0 9 4.5 4.5 0 0 1 0-9zm0-5.5h1.5v3H12V2zm0 16.5h1.5V22H12v-3.5zM4.22 4.22l1.06-1.06 2.12 2.12-1.06 1.06L4.22 4.22zm12.38 12.38 1.06-1.06 2.12 2.12-1.06 1.06-2.12-2.12zM2 11.25h3v1.5H2v-1.5zm17 0h3v1.5h-3v-1.5zM4.22 19.78l2.12-2.12 1.06 1.06-2.12 2.12-1.06-1.06zm12.38-12.38 2.12-2.12 1.06 1.06-2.12 2.12-1.06-1.06z"
+      />
+    </Icon>
+  )
+}
+
+export function IconMoon(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="currentColor"
+        d="M12.7 2.1a9.5 9.5 0 1 0 9.2 12.7A8 8 0 0 1 12.7 2.1z"
+      />
+    </Icon>
+  )
+}
+
 export function IconHelp({ className }: { className?: string }) {
   return (
     <span

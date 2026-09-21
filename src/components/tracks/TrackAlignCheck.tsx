@@ -75,11 +75,11 @@ export function TrackAlignCheck({
       />
       <span
         className={cn(
-          'relative block size-full rounded border-2 border-[rgba(15,61,62,0.35)] bg-white shadow-[inset_0_1px_2px_rgba(15,61,62,0.06)] transition-[background,border-color,box-shadow] duration-140 ease-in-out',
-          'peer-focus-visible:shadow-[0_0_0_3px_rgba(15,61,62,0.15)]',
+          'relative block size-full rounded border-2 border-ink/35 bg-surface shadow-[inset_0_1px_2px_color-mix(in_srgb,var(--ink)_6%,transparent)] transition-[background,border-color,box-shadow] duration-140 ease-in-out',
+          'peer-focus-visible:shadow-[0_0_0_3px_color-mix(in_srgb,var(--ink)_15%,transparent)]',
           'peer-disabled:opacity-40',
           checked && !indeterminate && 'border-ink bg-ink',
-          indeterminate && 'border-ink bg-[rgba(15,61,62,0.12)]',
+          indeterminate && 'border-ink bg-ink/12',
         )}
         aria-hidden="true"
       >

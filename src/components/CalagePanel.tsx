@@ -42,7 +42,7 @@ export function CalagePanel({ className }: CalagePanelProps) {
     <div
       ref={panelRef}
       className={cn(
-        'relative mt-[1.1rem] mb-1 rounded-2xl border border-line bg-[rgba(15,61,62,0.03)] px-[0.95rem] py-[0.85rem]',
+        'relative mt-[1.1rem] mb-1 rounded-2xl border border-line bg-ink/3 px-[0.95rem] py-[0.85rem]',
         className,
       )}
     >
@@ -53,7 +53,7 @@ export function CalagePanel({ className }: CalagePanelProps) {
           </span>
           <Button
             variant="round"
-            className="h-[1.35rem] w-[1.35rem] border-[rgba(15,61,62,0.28)] text-[0.78rem] font-bold text-ink-soft hover:enabled:border-[rgba(15,61,62,0.4)] hover:enabled:bg-[rgba(15,61,62,0.08)] hover:enabled:text-ink aria-expanded:border-[rgba(15,61,62,0.4)] aria-expanded:bg-[rgba(15,61,62,0.08)] aria-expanded:text-ink"
+            className="h-[1.35rem] w-[1.35rem] border-ink/28 text-[0.78rem] font-bold text-ink-soft hover:enabled:border-ink/40 hover:enabled:bg-ink/8 hover:enabled:text-ink aria-expanded:border-ink/40 aria-expanded:bg-ink/8 aria-expanded:text-ink"
             aria-expanded={calageTipOpen}
             aria-controls="calage-info-tip"
             title="À propos de la gestion du calage"
@@ -86,7 +86,7 @@ export function CalagePanel({ className }: CalagePanelProps) {
         </div>
       </div>
       <p
-        className="mt-[0.7rem] mb-0 rounded-xl bg-[rgba(15,61,62,0.06)] px-[0.8rem] py-[0.7rem] text-[0.8rem] leading-[1.4] text-ink-soft"
+        className="mt-[0.7rem] mb-0 rounded-xl bg-ink/6 px-[0.8rem] py-[0.7rem] text-[0.8rem] leading-[1.4] text-ink-soft"
         id="calage-info-tip"
         hidden={!calageTipOpen}
       >

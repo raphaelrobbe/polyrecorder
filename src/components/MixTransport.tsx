@@ -57,8 +57,8 @@ export function MixTransport({ className }: MixTransportProps) {
         className={cn(
           'h-[3.6rem] w-[3.6rem] [&_svg]:size-[1.45rem]',
           playing
-            ? 'border-line bg-transparent text-ink hover:enabled:border-ink hover:enabled:bg-ink hover:enabled:text-[#f4f1ea]'
-            : 'border-0 bg-ink text-[#f4f1ea] hover:enabled:bg-[#0a2e2f] hover:enabled:text-[#f4f1ea]',
+            ? 'border-line bg-transparent text-ink hover:enabled:border-ink hover:enabled:bg-ink hover:enabled:text-on-ink'
+            : 'border-0 bg-ink text-on-ink hover:enabled:bg-ink/90 hover:enabled:text-on-ink',
         )}
         icon={isPausedOrIdle ? <IconPlay /> : <IconPause />}
         disabled={tracks.length === 0}
@@ -69,7 +69,7 @@ export function MixTransport({ className }: MixTransportProps) {
       />
       <Button
         variant="round"
-        className="h-[2.75rem] w-[2.75rem] shrink-0 bg-white shadow-none aria-busy:opacity-55 [&_svg]:size-[1.15rem]"
+        className="h-[2.75rem] w-[2.75rem] shrink-0 bg-surface shadow-none aria-busy:opacity-55 [&_svg]:size-[1.15rem]"
         icon={<IconDownload />}
         disabled={!canDownload}
         aria-busy={mixExporting}

@@ -19,7 +19,7 @@ export function TrackDragHandle({
       type={type}
       className={cn(
         'col-start-1 row-start-1 grid h-[1.9rem] w-[1.35rem] place-items-center rounded-md border-0 bg-transparent p-0 text-ink-soft opacity-70 touch-none cursor-grab',
-        'hover:bg-[rgba(15,61,62,0.06)] hover:text-ink hover:opacity-100',
+        'hover:bg-ink/6 hover:text-ink hover:opacity-100',
         'active:cursor-grabbing',
         className,
       )}

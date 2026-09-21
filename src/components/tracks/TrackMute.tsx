@@ -65,7 +65,7 @@ export function TrackMute({
       <span
         className={cn(
           'grid size-full place-items-center rounded-md',
-          'peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-[rgba(15,61,62,0.25)]',
+          'peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-ink/25',
           'peer-disabled:opacity-35',
         )}
         aria-hidden="true"

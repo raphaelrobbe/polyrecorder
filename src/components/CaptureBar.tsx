@@ -37,7 +37,7 @@ export function CaptureBar({ className }: CaptureBarProps) {
       )}
     >
       <div
-        className="relative col-[1/3] min-w-0 h-[0.7rem] overflow-hidden rounded-full bg-[rgba(15,61,62,0.1)]"
+        className="relative col-[1/3] min-w-0 h-[0.7rem] overflow-hidden rounded-full bg-ink/10"
         hidden={!recording}
         aria-hidden={!recording}
       >
@@ -59,7 +59,7 @@ export function CaptureBar({ className }: CaptureBarProps) {
       >
         <Button
           variant="transport"
-          className="h-[3.45rem] w-[3.45rem] border-[rgba(15,61,62,0.28)] bg-white text-ink hover:enabled:border-[rgba(15,61,62,0.45)] hover:enabled:bg-[rgba(15,61,62,0.06)] [&_svg]:size-[1.35rem] [&_svg]:translate-x-px"
+          className="h-[3.45rem] w-[3.45rem] border-ink/28 bg-surface text-ink hover:enabled:border-ink/45 hover:enabled:bg-ink/6 [&_svg]:size-[1.35rem] [&_svg]:translate-x-px"
           icon={<IconNext />}
           hidden={!recording}
           disabled={!recording}
@@ -73,7 +73,7 @@ export function CaptureBar({ className }: CaptureBarProps) {
         />
         <Button
           variant="transport"
-          className="h-[2.75rem] w-[2.75rem] border-transparent bg-transparent text-ink-soft shadow-none hover:enabled:translate-y-0 hover:enabled:border-transparent hover:enabled:bg-[rgba(15,61,62,0.06)] hover:enabled:text-ink hover:enabled:shadow-none active:enabled:scale-[0.96] [&_svg]:size-[1.2rem]"
+          className="h-[2.75rem] w-[2.75rem] border-transparent bg-transparent text-ink-soft shadow-none hover:enabled:translate-y-0 hover:enabled:border-transparent hover:enabled:bg-ink/6 hover:enabled:text-ink hover:enabled:shadow-none active:enabled:scale-[0.96] [&_svg]:size-[1.2rem]"
           icon={<IconDiscard />}
           hidden={!recording}
           disabled={!recording}
@@ -87,7 +87,7 @@ export function CaptureBar({ className }: CaptureBarProps) {
         />
         <Button
           variant="transport"
-          className="border-[rgba(226,61,61,0.55)] bg-white text-record shadow-[0_10px_28px_var(--record-glow),inset_0_1px_0_rgba(255,255,255,0.8)] hover:enabled:border-record hover:enabled:bg-[#fff5f5] hover:enabled:text-[#d32f2f] [&_svg]:size-[1.7rem]"
+          className="border-record/55 bg-surface text-record shadow-[0_10px_28px_var(--record-glow),inset_0_1px_0_var(--highlight)] hover:enabled:border-record hover:enabled:bg-record-soft hover:enabled:text-record-deep [&_svg]:size-[1.7rem]"
           icon={<IconRecord />}
           hidden={recording}
           disabled={recording}
@@ -100,8 +100,8 @@ export function CaptureBar({ className }: CaptureBarProps) {
           className={cn(
             '[&_svg]:size-[1.7rem]',
             recording
-              ? 'animate-throb border-[rgba(226,61,61,0.55)] bg-white text-record hover:enabled:border-record hover:enabled:bg-[#fff5f5] hover:enabled:text-[#d32f2f]'
-              : 'border-[rgba(15,61,62,0.35)] bg-white text-ink hover:enabled:border-[rgba(15,61,62,0.5)] hover:enabled:bg-[rgba(15,61,62,0.06)]',
+              ? 'animate-throb border-record/55 bg-surface text-record hover:enabled:border-record hover:enabled:bg-record-soft hover:enabled:text-record-deep'
+              : 'border-ink/35 bg-surface text-ink hover:enabled:border-ink/50 hover:enabled:bg-ink/6',
           )}
           icon={<IconStop />}
           hidden={!recording}

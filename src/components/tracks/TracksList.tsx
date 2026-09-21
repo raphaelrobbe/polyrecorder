@@ -174,7 +174,7 @@ export function TracksList({ className }: TracksListProps) {
           {mixClockText}
         </p>
         <div
-          className="relative mb-[0.85rem] h-[0.55rem] cursor-pointer touch-none rounded-full bg-[rgba(15,61,62,0.1)] after:pointer-events-none after:absolute after:top-1/2 after:left-[var(--seek-thumb,0%)] after:h-[0.7rem] after:w-[0.7rem] after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-full after:border-2 after:border-[#f4f1ea] after:bg-ink after:opacity-0 after:shadow-[0_1px_3px_rgba(15,61,62,0.2)] after:content-[''] hover:after:opacity-100 focus-visible:after:opacity-100"
+          className="relative mb-[0.85rem] h-[0.55rem] cursor-pointer touch-none rounded-full bg-ink/10 after:pointer-events-none after:absolute after:top-1/2 after:left-[var(--seek-thumb,0%)] after:h-[0.7rem] after:w-[0.7rem] after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-full after:border-2 after:border-paper after:bg-ink after:opacity-0 after:shadow-[0_1px_3px_color-mix(in_srgb,var(--ink)_20%,transparent)] after:content-[''] hover:after:opacity-100 focus-visible:after:opacity-100"
           data-mix-seek
           role="slider"
           tabIndex={0}

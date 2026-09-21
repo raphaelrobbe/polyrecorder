@@ -1,5 +1,7 @@
 import { useEffect } from 'react'
 import { prefersHeadphonesHint } from '../lib/audio/runtime'
+import { useTheme } from '../hooks/useTheme'
+import type { ThemePreference } from '../lib/theme'
 import {
   applyInputMonitorSelection,
   applySinkMonitorSelection,
@@ -37,6 +39,7 @@ export function SettingsPanel({ className }: SettingsPanelProps) {
   const sinkPlaybackId = useSessionStore((s) => s.sinkPlaybackId)
   const inputMonitorId = useSessionStore((s) => s.inputMonitorId)
   const inputOverrideNote = useSessionStore((s) => s.inputOverrideNote)
+  const { preference, setPreference } = useTheme()
 
   const showMobileNote = prefersHeadphonesHint()
   const showDesktopDevices = !showMobileNote
@@ -63,6 +66,20 @@ export function SettingsPanel({ className }: SettingsPanelProps) {
       bodyClassName="flex max-w-[36rem] flex-col gap-[0.85rem]"
       closeAriaLabel="Fermer les paramètres"
     >
+      <SettingsDeviceField label="Apparence">
+        <SettingsSelect
+          aria-label="Thème d'apparence"
+          value={preference}
+          onChange={(event) => {
+            setPreference(event.target.value as ThemePreference)
+          }}
+        >
+          <option value="system">Automatique (navigateur)</option>
+          <option value="light">Clair</option>
+          <option value="dark">Sombre</option>
+        </SettingsSelect>
+      </SettingsDeviceField>
+
       <CheckboxOption
         checked={autoplayAfterStop}
         onCheckedChange={setAutoplayAfterStop}

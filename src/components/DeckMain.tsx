@@ -29,7 +29,7 @@ export function DeckMain({ className }: DeckMainProps) {
           type="text"
           className={cn(
             'col-start-2 justify-self-center w-[min(100%,22rem)] min-w-0 border-0 bg-transparent font-[inherit] font-bold text-[1.35rem] leading-[1.25] text-center py-[0.2rem] px-[0.45rem] rounded-[10px] [font-synthesis:style]',
-            'hover:bg-[rgba(15,61,62,0.06)] focus:bg-[rgba(15,61,62,0.06)] focus:outline-none focus:shadow-[inset_0_0_0_1px_rgba(15,61,62,0.18)]',
+            'hover:bg-ink/6 focus:bg-ink/6 focus:outline-none focus:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ink)_18%,transparent)]',
             defaultName
               ? 'text-ink-soft italic font-semibold'
               : 'text-ink',

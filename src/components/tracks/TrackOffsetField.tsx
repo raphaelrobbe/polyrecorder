@@ -27,8 +27,8 @@ export function TrackOffsetField({
         type="text"
         className={cn(
           'm-0 w-[2.6rem] min-w-0 rounded-[5px] border-0 bg-transparent px-[0.1rem] py-[0.12rem] text-center text-[0.72rem] font-bold tabular-nums text-ink-soft',
-          'hover:bg-[rgba(15,61,62,0.06)] hover:text-ink',
-          'focus:bg-[rgba(15,61,62,0.06)] focus:text-ink focus:shadow-[inset_0_0_0_1px_rgba(15,61,62,0.18)] focus:outline-none',
+          'hover:bg-ink/6 hover:text-ink',
+          'focus:bg-ink/6 focus:text-ink focus:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ink)_18%,transparent)] focus:outline-none',
           className,
         )}
         {...props}

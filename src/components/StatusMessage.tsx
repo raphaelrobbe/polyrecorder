@@ -11,7 +11,7 @@ export function ErrorBanner({ children, className, hidden }: ErrorBannerProps) {
   return (
     <p
       className={cn(
-        'relative mt-4 rounded-[14px] bg-[rgba(226,61,61,0.1)] px-[0.95rem] py-[0.8rem] text-[0.9rem] font-medium text-[#9b1f1f]',
+        'relative mt-4 rounded-[14px] bg-record/10 px-[0.95rem] py-[0.8rem] text-[0.9rem] font-medium text-record-deep',
         className,
       )}
       hidden={hidden}

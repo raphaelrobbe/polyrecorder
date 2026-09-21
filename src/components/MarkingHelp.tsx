@@ -12,13 +12,13 @@ export function MarkingHelp({ className }: MarkingHelpProps) {
   return (
     <div
       className={cn(
-        'relative mt-[0.35rem] overflow-hidden rounded-[18px] border border-[rgba(15,61,62,0.16)] bg-transparent p-0 text-[0.82rem] leading-[1.4] text-ink-soft',
+        'relative mt-[0.35rem] overflow-hidden rounded-[18px] border border-ink/16 bg-transparent p-0 text-[0.82rem] leading-[1.4] text-ink-soft',
         className,
       )}
     >
       <button
         type="button"
-        className="group flex w-full cursor-pointer items-center justify-between gap-3 rounded-none border-0 bg-transparent px-[1.05rem] py-[0.85rem] text-left font-[inherit] text-inherit hover:bg-[rgba(15,61,62,0.05)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(15,61,62,0.35)] focus-visible:-outline-offset-2"
+        className="group flex w-full cursor-pointer items-center justify-between gap-3 rounded-none border-0 bg-transparent px-[1.05rem] py-[0.85rem] text-left font-[inherit] text-inherit hover:bg-ink/5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:-outline-offset-2"
         data-marking-accordion
         aria-expanded={markingOpen}
         aria-controls="marking-help-panel"
@@ -63,7 +63,11 @@ export function MarkingHelp({ className }: MarkingHelpProps) {
             cliquer sur le bouton rouge « Stop » à la fin de la dernière voix
           </li>
         </ul>
-        <p className="mt-[0.85rem] mb-0 rounded-xl border border-[rgba(15,61,62,0.1)] bg-[rgba(15,61,62,0.06)] px-[0.8rem] py-[0.7rem] text-[0.8rem] leading-[1.4] text-ink-soft">
+        <p className="mt-[0.85rem] mb-0 rounded-xl border border-ink/22 bg-foam px-[0.8rem] py-[0.7rem] text-[0.84rem] font-semibold leading-[1.4] text-ink shadow-[inset_0_0_0_1px_var(--highlight)]">
+          Conseils : enregistrez-vous dans un environnement silencieux, si
+          possible avec un casque ou une oreillette, surtout sur mobile&nbsp;!
+        </p>
+        <p className="mt-[0.85rem] mb-0 rounded-xl border border-ink/10 bg-ink/6 px-[0.8rem] py-[0.7rem] text-[0.8rem] leading-[1.4] text-ink-soft">
           Les navigateurs et le matériel audio introduisent une latence (casque,
           micro, buffer). Sans repères communs, les prises se décalent. Les
           quatre marquages de la piste de référence et les «&nbsp;3-4&nbsp;» des
