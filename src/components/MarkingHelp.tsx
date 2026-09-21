@@ -35,7 +35,7 @@ export function MarkingHelp() {
         data-marking-panel
         hidden={!markingOpen}
       >
-        <ul className="marking-help-steps">
+        <ul className="marking-help-steps list-disc list-outside pl-[1.15rem]">
           <li>cliquer sur le bouton rouge « Enregistrer »</li>
           <li>
             à haute voix et de manière régulière, dire 1-2-3-4 (ou quoi que ce
