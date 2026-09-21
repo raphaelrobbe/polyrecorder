@@ -35,7 +35,8 @@ app.innerHTML = `
           type="text"
           class="session-title"
           data-session-title
-          value="Ma polyphonie"
+          value=""
+          placeholder="Donne-moi un nom"
           maxlength="60"
           aria-label="Titre de l'enregistrement"
           spellcheck="false"
@@ -454,8 +455,7 @@ function getSessionTitle(): string {
 }
 
 function normalizeSessionTitleInput() {
-  const next = getSessionTitle().slice(0, 60)
-  els.sessionTitle.value = next
+  els.sessionTitle.value = els.sessionTitle.value.trim().slice(0, 60)
 }
 
 function sanitizeFilenamePart(value: string): string {
@@ -491,6 +491,10 @@ function escapeHtml(value: string): string {
 
 function defaultTrackName(index: number): string {
   return `Piste ${index}`
+}
+
+function isDefaultTrackName(name: string): boolean {
+  return /^Piste \d+$/.test(name.trim())
 }
 
 function getMixDurationMs(): number {
@@ -1163,7 +1167,7 @@ function renderTracks() {
           <div class="track-main-body">
             <input
               type="text"
-              class="track-name"
+              class="track-name${isDefaultTrackName(track.name) ? ' is-default-name' : ''}"
               data-rename-track="${track.id}"
               value="${escapeHtml(track.name)}"
               aria-label="Nom de la piste"
@@ -1219,10 +1223,15 @@ function setUi() {
   if (state === 'idle') {
     els.hint.textContent = ''
   } else if (state === 'recording') {
-    els.hint.textContent =
-      tracks.length === 0
-        ? ''
-        : 'Casque recommandé. Monitoring compensé pour la latence audio.'
+    if (tracks.length === 0) {
+      els.hint.textContent = ''
+    } else if (prefersHeadphonesHint()) {
+      els.hint.textContent =
+        'Casque conseillé : sans casque, le micro peut reprendre le son des haut-parleurs et fausser le calage.'
+    } else {
+      els.hint.textContent =
+        'Casque conseillé. Monitoring compensé pour la latence audio.'
+    }
   } else {
     els.hint.textContent = 'Écoute en cours.'
   }
@@ -1437,6 +1446,58 @@ async function evaluateReferenceBeat(): Promise<void> {
 }
 
 /**
+ * Pick the peak pair that best matches reference beats 3 and 4.
+ * Avoids latching onto speaker-bleed "1-2" when monitoring is audible to the mic.
+ */
+function findTakeThreeFourPeaks(
+  peaks: number[],
+  refThree: number,
+  refFour: number,
+): [number, number] | null {
+  if (peaks.length < 2) return null
+
+  const expectedGap = refFour - refThree
+  if (!(expectedGap > 0)) {
+    return [peaks[0]!, peaks[1]!]
+  }
+
+  let best: { three: number; four: number; score: number } | null = null
+
+  for (let i = 0; i < peaks.length - 1; i++) {
+    for (let j = i + 1; j < peaks.length; j++) {
+      const three = peaks[i]!
+      const four = peaks[j]!
+      const gap = four - three
+      if (!(gap > 0)) continue
+
+      const gapError = Math.abs(gap - expectedGap) / expectedGap
+      // Reject pairs whose spacing is far from the reference 3–4 interval.
+      if (gapError > 0.4) continue
+
+      // Prefer pairs near the expected absolute times (overdub punch-in ≈ mix t0).
+      const timeError =
+        (Math.abs(three - refThree) + Math.abs(four - refFour)) /
+        (2 * expectedGap)
+      const score = gapError * 2 + timeError
+      if (!best || score < best.score) {
+        best = { three, four, score }
+      }
+    }
+  }
+
+  if (best) return [best.three, best.four]
+  // Fallback: earliest two strong peaks.
+  return [peaks[0]!, peaks[1]!]
+}
+
+function prefersHeadphonesHint(): boolean {
+  return (
+    window.matchMedia('(pointer: coarse)').matches ||
+    /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  )
+}
+
+/**
  * Align later takes on track 1 using shared "3-4" counts.
  * Track 1 must contain 1-2-3-4; later tracks should contain 3-4 in sync with what was heard.
  */
@@ -1467,15 +1528,16 @@ async function autoAlignTracksFromCounts(): Promise<void> {
     if (!autoAlignTrackIds.has(track.id)) continue
 
     const buffer = await decodeTrack(track)
-    const peaks = findVolumePeaks(buffer, 2)
-    if (peaks.length < 2) {
+    // Collect several onsets so we can skip speaker-bleed "1-2".
+    const peaks = findVolumePeaks(buffer, 8)
+    const pair = findTakeThreeFourPeaks(peaks, refThree, refFour)
+    if (!pair) {
       throw new Error(
         `${track.name} : ${peaks.length}/2 attaques trouvées. Fais 2 sons nets pour « 3 4 » (voix ou claquements).`,
       )
     }
 
-    const takeThree = peaks[0]!
-    const takeFour = peaks[1]!
+    const [takeThree, takeFour] = pair
 
     // mixTime = peakSec + offsetMs/1000  (see scheduleTrackSource)
     // Want take peaks to land on reference 3 and 4.
@@ -2501,13 +2563,17 @@ els.tracks.addEventListener('focusout', (event) => {
   const track = tracks.find((item) => item.id === id)
   if (!track || !Number.isFinite(id)) return
   const next = target.value.trim() || defaultTrackName(tracks.indexOf(track) + 1)
-  if (track.name === next) {
-    target.value = track.name
-    return
-  }
   track.name = next.slice(0, 40)
   target.value = track.name
+  target.classList.toggle('is-default-name', isDefaultTrackName(track.name))
   updateSkewWarning()
+})
+
+els.tracks.addEventListener('input', (event) => {
+  const target = event.target
+  if (!(target instanceof HTMLInputElement)) return
+  if (!target.matches('[data-rename-track]')) return
+  target.classList.toggle('is-default-name', isDefaultTrackName(target.value))
 })
 
 els.tracks.addEventListener('change', (event) => {
