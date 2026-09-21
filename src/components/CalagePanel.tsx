@@ -21,7 +21,7 @@ export function CalagePanel({ className }: CalagePanelProps) {
   const trimLabel =
     latencyTrimMs === 0
       ? `${total} ms`
-      : `${total} ms (correctif ${formatSignedMs(latencyTrimMs)})`
+      : `${total} ms (${formatSignedMs(latencyTrimMs)})`
 
   useEffect(() => {
     if (!calageTipOpen) return
@@ -39,54 +39,48 @@ export function CalagePanel({ className }: CalagePanelProps) {
   if (!calageMode) return null
 
   return (
-    <div
-      ref={panelRef}
-      className={cn(
-        'relative mt-[1.1rem] mb-1 rounded-2xl border border-line bg-ink/3 px-[0.95rem] py-[0.85rem]',
-        className,
-      )}
-    >
-      <div className="flex flex-wrap items-center justify-between gap-[0.65rem]">
-        <div className="inline-flex items-center gap-[0.4rem]">
-          <span className="text-[0.78rem] font-bold tracking-[0.08em] uppercase text-ink-soft">
-            Avance de lecture
-          </span>
-          <Button
-            variant="round"
-            className="h-[1.35rem] w-[1.35rem] border-ink/28 text-[0.78rem] font-bold text-ink-soft hover:enabled:border-ink/40 hover:enabled:bg-ink/8 hover:enabled:text-ink aria-expanded:border-ink/40 aria-expanded:bg-ink/8 aria-expanded:text-ink"
-            aria-expanded={calageTipOpen}
-            aria-controls="calage-info-tip"
-            title="À propos de la gestion du calage"
-            onClick={(event) => {
-              event.stopPropagation()
-              patch({ calageTipOpen: !calageTipOpen })
-            }}
-          >
-            ?
-          </Button>
-        </div>
-        <div className="inline-flex items-center gap-[0.4rem]">
+    <div ref={panelRef} className={cn('relative mt-[0.85rem] mb-0.5', className)}>
+      <div className="flex flex-nowrap items-center gap-[0.4rem] max-sm:gap-[0.3rem]">
+        <span className="shrink-0 text-[0.84rem] font-semibold text-ink-soft max-sm:text-[0.78rem]">
+          Avance de lecture
+        </span>
+        <Button
+          variant="round"
+          className="h-[1.25rem] w-[1.25rem] shrink-0 border-ink/22 text-[0.72rem] font-bold text-ink-soft hover:enabled:border-ink/35 hover:enabled:bg-ink/6 hover:enabled:text-ink aria-expanded:border-ink/35 aria-expanded:bg-ink/6 aria-expanded:text-ink max-sm:h-[1.15rem] max-sm:w-[1.15rem] max-sm:text-[0.68rem]"
+          aria-expanded={calageTipOpen}
+          aria-controls="calage-info-tip"
+          title="À propos de l'avance de lecture"
+          onClick={(event) => {
+            event.stopPropagation()
+            patch({ calageTipOpen: !calageTipOpen })
+          }}
+        >
+          ?
+        </Button>
+        <div className="ml-auto inline-flex min-w-0 items-center gap-[0.35rem] max-sm:gap-[0.22rem]">
           <Button
             variant="trim"
+            className="px-[0.55rem] py-[0.32rem] text-[0.78rem] max-sm:px-[0.4rem] max-sm:py-[0.24rem] max-sm:text-[0.72rem]"
             title="Démarrer le monitoring un peu plus tôt (−5 ms)"
             onClick={() => updateLatencyTrim(latencyTrimMs - 5)}
           >
-            −5 ms
+            −5&nbsp;ms
           </Button>
-          <span className="min-w-[9.5rem] text-center text-[0.82rem] font-bold tabular-nums">
+          <span className="min-w-0 max-w-[8.5rem] truncate text-center text-[0.84rem] font-semibold tabular-nums text-ink max-sm:max-w-[7.5rem] max-sm:text-[0.76rem]">
             {trimLabel}
           </span>
           <Button
             variant="trim"
+            className="px-[0.55rem] py-[0.32rem] text-[0.78rem] max-sm:px-[0.4rem] max-sm:py-[0.24rem] max-sm:text-[0.72rem]"
             title="Démarrer le monitoring un peu plus tard (+5 ms)"
             onClick={() => updateLatencyTrim(latencyTrimMs + 5)}
           >
-            +5 ms
+            +5&nbsp;ms
           </Button>
         </div>
       </div>
       <p
-        className="mt-[0.7rem] mb-0 rounded-xl bg-ink/6 px-[0.8rem] py-[0.7rem] text-[0.8rem] leading-[1.4] text-ink-soft"
+        className="mt-[0.55rem] mb-0 text-[0.78rem] leading-[1.4] text-ink-soft max-sm:text-[0.72rem]"
         id="calage-info-tip"
         hidden={!calageTipOpen}
       >
