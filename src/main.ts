@@ -1,4 +1,5 @@
 import './style.css'
+import { encodeAudioBufferToMp3 } from './mp3-encode'
 
 type AppState = 'idle' | 'recording' | 'playing'
 
@@ -25,15 +26,20 @@ app.innerHTML = `
   <main class="stage">
     <header class="brand">
       <h1>PolyRecorder</h1>
-      <p>Enregistre, superpose, écoute.</p>
+      <p>Enregistre, superpose, écoute, télécharge.</p>
     </header>
 
     <section class="deck" aria-label="Enregistreur">
       <div class="status">
-        <div class="status-label">
-          <span class="pulse" data-pulse aria-hidden="true"></span>
-          <span data-status>Prêt</span>
-        </div>
+        <input
+          type="text"
+          class="session-title"
+          data-session-title
+          value="Ma polyphonie"
+          maxlength="60"
+          aria-label="Titre de l'enregistrement"
+          spellcheck="false"
+        />
         <div class="timer" data-timer>00:00</div>
       </div>
 
@@ -51,6 +57,19 @@ app.innerHTML = `
           >
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
               <path fill="currentColor" d="M5.5 5.5v13l9.5-6.5-9.5-6.5zm11 0h2.5v13H16.5V5.5z"/>
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="btn btn-transport btn-discard"
+            data-discard
+            hidden
+            disabled
+            aria-label="Annuler la prise et recommencer"
+            title="Annuler la prise et recommencer"
+          >
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path fill="currentColor" d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM6 9h2v9H6V9zm1 12c-.6 0-1-.4-1-1l1-11h10l1 11c0 .6-.4 1-1 1H7z"/>
             </svg>
           </button>
           <button
@@ -74,47 +93,18 @@ app.innerHTML = `
             title="Stop"
           >
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-              <rect x="7" y="7" width="10" height="10" rx="1.75" fill="currentColor"/>
+              <rect x="5" y="5" width="14" height="14" rx="2" fill="currentColor"/>
             </svg>
           </button>
         </div>
       </div>
 
-      <div class="calage" data-calage hidden>
-        <div class="calage-top">
-          <div class="calage-heading">
-            <span class="calage-title">Calage monitoring</span>
-            <button
-              type="button"
-              class="btn-info"
-              data-calage-info
-              aria-expanded="false"
-              aria-controls="calage-info-tip"
-              title="À propos du calage monitoring"
-            >
-              ?
-            </button>
-          </div>
-          <div class="calage-controls">
-            <button type="button" class="btn btn-trim" data-trim-delta="-5" title="Démarrer le monitoring un peu plus tôt (−5 ms)">
-              −5 ms
-            </button>
-            <span class="calage-value" data-trim-value>…</span>
-            <button type="button" class="btn btn-trim" data-trim-delta="5" title="Démarrer le monitoring un peu plus tard (+5 ms)">
-              +5 ms
-            </button>
-          </div>
-        </div>
-        <p class="calage-tip" id="calage-info-tip" data-calage-tip hidden>
-          Pendant « Piste suivante », les prises déjà faites sont rejouées dans le casque avec un peu de latence matérielle.
-          PolyRecorder démarre cette écoute un peu plus tôt pour que ta nouvelle voix tombe au bon endroit sur la timeline.
-          Les boutons ±5&nbsp;ms ajustent ce correctif si le monitoring te paraît encore en retard ou en avance
-          (réglage mémorisé sur cet appareil). Ce n’est pas le calage auto des pistes (marquages 3–4) : celui-ci sert uniquement pendant l’enregistrement.
-        </p>
-      </div>
+      <label class="autoplay-option" data-autoplay-wrap hidden>
+        <input type="checkbox" data-autoplay-after-stop checked />
+        <span>Lire automatiquement après la fin de l'enregistrement</span>
+      </label>
 
       <div class="tracks" data-tracks-panel hidden>
-        <p class="ref-peaks" data-ref-peaks hidden></p>
         <div class="mix-transport">
           <button type="button" class="btn btn-restart" data-restart-mix disabled aria-label="Revenir au début" title="Revenir au début">
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -129,7 +119,29 @@ app.innerHTML = `
               <path d="M7 5h4v14H7zm6 0h4v14h-4z" fill="currentColor"/>
             </svg>
           </button>
-          <span class="mix-transport-balance" aria-hidden="true"></span>
+          <div class="mix-export">
+            <button
+              type="button"
+              class="btn btn-download"
+              data-download-mix
+              disabled
+              aria-label="Télécharger le mix (MP3)"
+              title="Télécharger le mix des pistes sélectionnées (MP3)"
+            >
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M11 4h2v8.2l2.6-2.6 1.4 1.4L12 16l-5-5 1.4-1.4L11 12.2V4zM5 18h14v2H5v-2z"/>
+              </svg>
+            </button>
+            <label
+              class="export-option"
+              data-skip-count-in-wrap
+              hidden
+              title="Couper le début du MP3 juste après le « 4 » (n’affecte pas la lecture)"
+            >
+              <input type="checkbox" data-skip-count-in checked />
+              <span>Sans le 1-2-3-4</span>
+            </label>
+          </div>
         </div>
         <p class="mix-clock" data-mix-clock>00:00.00</p>
         <div
@@ -145,6 +157,7 @@ app.innerHTML = `
           <div class="mix-seek-fill" data-mix-seek-fill></div>
         </div>
         <div class="tracks-master-row">
+          <span class="tracks-master-drag" aria-hidden="true"></span>
           <label class="track-mute" title="Activer / couper toutes les pistes">
             <input type="checkbox" data-select-all aria-label="Activer toutes les pistes" />
             <span class="track-mute-icon" aria-hidden="true">
@@ -175,6 +188,40 @@ app.innerHTML = `
 
       <p class="error" data-error hidden></p>
 
+      <div class="calage" data-calage hidden>
+        <div class="calage-top">
+          <div class="calage-heading">
+            <span class="calage-title">Gestion du calage</span>
+            <button
+              type="button"
+              class="btn-info"
+              data-calage-info
+              aria-expanded="false"
+              aria-controls="calage-info-tip"
+              title="À propos de la gestion du calage"
+            >
+              ?
+            </button>
+          </div>
+          <div class="calage-controls">
+            <button type="button" class="btn btn-trim" data-trim-delta="-5" title="Démarrer le monitoring un peu plus tôt (−5 ms)">
+              −5 ms
+            </button>
+            <span class="calage-value" data-trim-value>…</span>
+            <button type="button" class="btn btn-trim" data-trim-delta="5" title="Démarrer le monitoring un peu plus tard (+5 ms)">
+              +5 ms
+            </button>
+          </div>
+        </div>
+        <p class="ref-peaks" data-ref-peaks hidden></p>
+        <p class="calage-tip" id="calage-info-tip" data-calage-tip hidden>
+          Pendant « Piste suivante », les prises déjà faites sont rejouées dans le casque avec un peu de latence matérielle.
+          PolyRecorder démarre cette écoute un peu plus tôt pour que ta nouvelle voix tombe au bon endroit sur la timeline.
+          Les boutons ±5&nbsp;ms ajustent ce correctif si le monitoring te paraît encore en retard ou en avance
+          (réglage mémorisé sur cet appareil). Ce n’est pas le calage auto des pistes (marquages 3–4) : celui-ci sert uniquement pendant l’enregistrement.
+        </p>
+      </div>
+
       <p class="marking-help" data-marking-help>
         Piste 1 : quatre marquages (« 1 2 3 4 » ou 4 claquements).<br />
         Pistes suivantes : marquage synchronisé sur les 3ème et 4ème.
@@ -193,19 +240,24 @@ app.innerHTML = `
 `
 
 const els = {
-  status: app.querySelector<HTMLElement>('[data-status]')!,
-  pulse: app.querySelector<HTMLElement>('[data-pulse]')!,
+  sessionTitle: app.querySelector<HTMLInputElement>('[data-session-title]')!,
   timer: app.querySelector<HTMLElement>('[data-timer]')!,
   meter: app.querySelector<HTMLElement>('[data-meter]')!,
   controls: app.querySelector<HTMLElement>('[data-controls]')!,
   record: app.querySelector<HTMLButtonElement>('[data-record]')!,
   next: app.querySelector<HTMLButtonElement>('[data-next]')!,
+  discard: app.querySelector<HTMLButtonElement>('[data-discard]')!,
   stop: app.querySelector<HTMLButtonElement>('[data-stop]')!,
   tracksPanel: app.querySelector<HTMLElement>('[data-tracks-panel]')!,
   tracks: app.querySelector<HTMLUListElement>('[data-tracks]')!,
   selectAll: app.querySelector<HTMLInputElement>('[data-select-all]')!,
   playMix: app.querySelector<HTMLButtonElement>('[data-play-mix]')!,
   restartMix: app.querySelector<HTMLButtonElement>('[data-restart-mix]')!,
+  downloadMix: app.querySelector<HTMLButtonElement>('[data-download-mix]')!,
+  skipCountInWrap: app.querySelector<HTMLElement>('[data-skip-count-in-wrap]')!,
+  skipCountIn: app.querySelector<HTMLInputElement>('[data-skip-count-in]')!,
+  autoplayWrap: app.querySelector<HTMLElement>('[data-autoplay-wrap]')!,
+  autoplayAfterStop: app.querySelector<HTMLInputElement>('[data-autoplay-after-stop]')!,
   playIcon: app.querySelector<SVGElement>('.icon-play')!,
   pauseIcon: app.querySelector<SVGElement>('.icon-pause')!,
   mixClock: app.querySelector<HTMLElement>('[data-mix-clock]')!,
@@ -255,6 +307,8 @@ let bufferCache = new Map<number, AudioBuffer>()
 let playingTrackIds = new Set<number>()
 let enabledTrackIds = new Set<number>()
 let autoAlignTrackIds = new Set<number>()
+/** Track used as sync reference for auto-align (independent of display order). */
+let referenceTrackId: number | null = null
 let trackGains = new Map<number, GainNode>()
 let calageMode = false
 let mixListenActive = false
@@ -279,10 +333,25 @@ let latencyTrimMs = loadLatencyTrimMs()
 let lastReportedLatencyMs = Math.round(DEFAULT_MONITOR_LATENCY_S * 1000)
 let skewWarningDismissedKey = ''
 let refPeaksLabel = ''
+/** 4th count-in peak time (seconds) in the reference track buffer. */
+let refPeakFourSec: number | null = null
 let trackAlignDetails = new Map<number, { delta3Ms: number; delta4Ms: number }>()
 /** Remembered mix playhead when playback is stopped. */
 let mixSeekMs = 0
 let seekDragActive = false
+let dragTrackId: number | null = null
+let touchReorder: {
+  pointerId: number
+  trackId: number
+  startY: number
+  active: boolean
+} | null = null
+let mixExporting = false
+const SKIP_COUNT_IN_PAD_S = 0.1
+const TOUCH_REORDER_THRESHOLD_PX = 10
+
+const TOUCH_REORDER_EXCLUDE =
+  'input, textarea, select, button:not(.track-drag), .track-mute, .track-check, .track-name, .track-nudge, [data-delete-track], [data-nudge-track], [data-auto-align-track], [data-toggle-track]'
 
 function loadLatencyTrimMs(): number {
   try {
@@ -334,6 +403,43 @@ function formatCentis(ms: number): string {
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(c).padStart(2, '0')}`
 }
 
+function defaultSessionTitle(): string {
+  return 'Ma polyphonie'
+}
+
+function getSessionTitle(): string {
+  const value = els.sessionTitle.value.trim()
+  return value || defaultSessionTitle()
+}
+
+function normalizeSessionTitleInput() {
+  const next = getSessionTitle().slice(0, 60)
+  els.sessionTitle.value = next
+}
+
+function sanitizeFilenamePart(value: string): string {
+  const cleaned = value
+    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/[. ]+$/g, '')
+  return cleaned
+}
+
+function filenameFromSessionTitle(): string {
+  return sanitizeFilenamePart(getSessionTitle()) || defaultSessionTitle()
+}
+
+function downloadFilenameForSelection(selected: Track[]): string {
+  const title = filenameFromSessionTitle()
+  if (selected.length === 1) {
+    const trackPart =
+      sanitizeFilenamePart(selected[0]!.name).replace(/\s+/g, '-') || 'piste'
+    return `${title}_${trackPart}.mp3`
+  }
+  return `${title}.mp3`
+}
+
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -357,6 +463,20 @@ function getMixDurationMs(): number {
   return max
 }
 
+function getMaxTrackDurationMs(): number {
+  let max = 0
+  for (const track of tracks) {
+    max = Math.max(max, track.durationMs)
+  }
+  return max
+}
+
+/** Top-right timer: live while recording, otherwise longest track. */
+function updateSessionTimer() {
+  if (state === 'recording' || timerId !== null) return
+  els.timer.textContent = formatTime(getMaxTrackDurationMs())
+}
+
 function setError(message: string | null) {
   if (!message) {
     els.error.hidden = true
@@ -365,6 +485,12 @@ function setError(message: string | null) {
   }
   els.error.hidden = false
   els.error.textContent = message
+}
+
+function clearRefPeaks() {
+  refPeaksLabel = ''
+  refPeakFourSec = null
+  updateRefPeaksDisplay()
 }
 
 function updateRefPeaksDisplay() {
@@ -384,8 +510,10 @@ function setCalageMode(on: boolean) {
   calageMode = on
   els.calageMode.checked = on
   els.calagePanel.hidden = !on
+  els.autoplayWrap.hidden = !on
   els.alignHeader.hidden = !on || tracks.length < 2
   els.alignNudgeSpacer.hidden = !on || tracks.length < 2
+  els.skipCountInWrap.hidden = !on || tracks.length === 0
   els.openAdvanced.hidden = on
   if (!on) setCalageTipOpen(false)
   updateRefPeaksDisplay()
@@ -394,7 +522,40 @@ function setCalageMode(on: boolean) {
 }
 
 function alignableTracks(): Track[] {
-  return tracks.slice(1)
+  return tracks.filter((track) => track.id !== referenceTrackId)
+}
+
+function getReferenceTrack(): Track | null {
+  if (referenceTrackId == null) return tracks[0] ?? null
+  return tracks.find((track) => track.id === referenceTrackId) ?? tracks[0] ?? null
+}
+
+function syncReferenceTrackRules() {
+  if (tracks.length === 0) {
+    referenceTrackId = null
+    trackAlignDetails.clear()
+    clearRefPeaks()
+    return
+  }
+
+  const previousReferenceId = referenceTrackId
+  if (
+    referenceTrackId == null ||
+    !tracks.some((track) => track.id === referenceTrackId)
+  ) {
+    referenceTrackId = tracks[0]!.id
+  }
+
+  if (previousReferenceId != null && previousReferenceId !== referenceTrackId) {
+    clearRefPeaks()
+  }
+
+  autoAlignTrackIds.delete(referenceTrackId)
+  trackAlignDetails.delete(referenceTrackId)
+  if (tracks.length < 2) {
+    trackAlignDetails.clear()
+  }
+  updateRefPeaksDisplay()
 }
 
 function pickMimeType(): string {
@@ -534,7 +695,7 @@ function stopTimer(): number {
     window.clearInterval(timerId)
     timerId = null
   }
-  els.timer.textContent = formatTime(elapsed)
+  updateSessionTimer()
   return elapsed
 }
 
@@ -674,7 +835,10 @@ function skewFingerprint(
 function updateSkewWarning() {
   const skewed = tracks
     .map((track, index) => ({ track, index }))
-    .filter(({ track, index }) => index > 0 && Math.abs(track.offsetMs) > OFFSET_WARN_MS)
+    .filter(
+      ({ track }) =>
+        track.id !== referenceTrackId && Math.abs(track.offsetMs) > OFFSET_WARN_MS,
+    )
 
   if (skewed.length === 0) {
     els.skewWarning.hidden = true
@@ -726,17 +890,111 @@ function updateMixButtons() {
   els.playIcon.toggleAttribute('hidden', !isPausedOrIdle)
   els.pauseIcon.toggleAttribute('hidden', isPausedOrIdle)
   els.restartMix.disabled = tracks.length === 0
+  els.downloadMix.disabled =
+    mixExporting || selectedTracks().filter((track) => track.blob.size > 0).length === 0
+  els.downloadMix.setAttribute(
+    'aria-busy',
+    mixExporting ? 'true' : 'false',
+  )
+  els.skipCountInWrap.hidden = !calageMode || tracks.length === 0
 
   updateSkewWarning()
+}
+
+function reorderTrack(fromId: number, beforeId: number | null) {
+  const from = tracks.findIndex((track) => track.id === fromId)
+  if (from < 0) return
+
+  let to =
+    beforeId == null
+      ? tracks.length
+      : tracks.findIndex((track) => track.id === beforeId)
+  if (to < 0) return
+  if (from === to || from + 1 === to) return
+
+  const [moved] = tracks.splice(from, 1)
+  if (!moved) return
+  if (to > from) to -= 1
+  tracks.splice(to, 0, moved)
+
+  syncReferenceTrackRules()
+  if (playingTrackIds.size > 0 || mixListenActive) {
+    stopPlayback({ resetSeek: false })
+  }
+  renderTracks()
+}
+
+function clearDragState() {
+  dragTrackId = null
+  touchReorder = null
+  for (const row of els.tracks.querySelectorAll('.track-row')) {
+    row.classList.remove(
+      'is-dragging',
+      'drag-over',
+      'drag-over-before',
+      'drag-over-after',
+    )
+  }
+}
+
+function updateDragOverFromPoint(clientY: number) {
+  if (dragTrackId == null) return
+
+  let targetRow: HTMLElement | null = null
+  for (const row of els.tracks.querySelectorAll<HTMLElement>('.track-row')) {
+    const id = Number(row.dataset.trackId)
+    if (id === dragTrackId) continue
+    const rect = row.getBoundingClientRect()
+    if (clientY >= rect.top && clientY <= rect.bottom) {
+      targetRow = row
+      break
+    }
+  }
+
+  for (const item of els.tracks.querySelectorAll('.track-row')) {
+    item.classList.remove('drag-over', 'drag-over-before', 'drag-over-after')
+  }
+  if (!targetRow) return
+
+  const rect = targetRow.getBoundingClientRect()
+  const before = clientY < rect.top + rect.height / 2
+  targetRow.classList.add('drag-over')
+  targetRow.classList.toggle('drag-over-before', before)
+  targetRow.classList.toggle('drag-over-after', !before)
+}
+
+function commitDragOverFromPoint(clientY: number) {
+  if (dragTrackId == null) return
+  const fromId = dragTrackId
+
+  let targetRow: HTMLElement | null = null
+  for (const row of els.tracks.querySelectorAll<HTMLElement>('.track-row')) {
+    const id = Number(row.dataset.trackId)
+    if (id === fromId) continue
+    const rect = row.getBoundingClientRect()
+    if (clientY >= rect.top && clientY <= rect.bottom) {
+      targetRow = row
+      break
+    }
+  }
+
+  clearDragState()
+  if (!targetRow) return
+
+  const targetId = Number(targetRow.dataset.trackId)
+  if (!Number.isFinite(targetId) || targetId === fromId) return
+
+  const rect = targetRow.getBoundingClientRect()
+  const before = clientY < rect.top + rect.height / 2
+  reorderTrack(fromId, before ? targetId : nextTrackIdAfter(targetId))
 }
 
 function renderTracks() {
   if (tracks.length === 0) {
     els.tracksPanel.hidden = true
     els.tracks.innerHTML = ''
-    refPeaksLabel = ''
     trackAlignDetails.clear()
-    updateRefPeaksDisplay()
+    clearRefPeaks()
     updateMixButtons()
     return
   }
@@ -744,11 +1002,11 @@ function renderTracks() {
   els.tracksPanel.hidden = false
   updateRefPeaksDisplay()
   els.tracks.innerHTML = tracks
-    .map((track, index) => {
+    .map((track) => {
       const isEnabled = enabledTrackIds.has(track.id)
       const autoAlign = autoAlignTrackIds.has(track.id)
       const clock = formatCentis(getTrackPositionMs(track.id))
-      const isReference = index === 0
+      const isReference = track.id === referenceTrackId
       const alignDetail = trackAlignDetails.get(track.id)
       const alignDetailText =
         alignDetail && !isReference
@@ -758,7 +1016,7 @@ function renderTracks() {
         ? `
         ${
           isReference
-            ? `<span class="track-check-spacer" aria-hidden="true"></span>`
+            ? `<span class="track-check-spacer track-ref-badge" title="Piste de référence (marquages 1–2–3–4)" aria-label="Référence">réf.</span>`
             : `<label class="track-check track-check-align" title="Calage auto">
           <input
             type="checkbox"
@@ -794,7 +1052,19 @@ function renderTracks() {
         `
         : ''
       return `
-      <li class="track-row${calageMode ? ' is-advanced' : ''}${isEnabled ? '' : ' is-muted'}">
+      <li class="track-row${calageMode ? ' is-advanced' : ''}${isEnabled ? '' : ' is-muted'}" data-track-id="${track.id}">
+        <button
+          type="button"
+          class="track-drag"
+          draggable="true"
+          data-drag-track="${track.id}"
+          aria-label="Réordonner ${escapeHtml(track.name)}"
+          title="Glisser pour réordonner"
+        >
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path fill="currentColor" d="M9 7h2v2H9V7zm4 0h2v2h-2V7zM9 11h2v2H9v-2zm4 0h2v2h-2v-2zm-4 4h2v2H9v-2zm4 0h2v2h-2v-2z"/>
+          </svg>
+        </button>
         <label class="track-mute" title="${isEnabled ? 'Audible' : 'Muet'}">
           <input
             type="checkbox"
@@ -821,13 +1091,13 @@ function renderTracks() {
               aria-label="Nom de la piste"
               maxlength="40"
             />
-            <span class="track-meta">
+            <span class="track-meta"${calageMode ? '' : ' hidden'}>
               ${
                 calageMode
-                  ? `<small class="track-clock" data-track-clock="${track.id}">${clock}</small>`
+                  ? `<small class="track-clock" data-track-clock="${track.id}">${clock}</small>
+              <small class="track-duration">${formatTime(track.durationMs)}</small>`
                   : ''
               }
-              <small class="track-duration">${formatTime(track.durationMs)}</small>
             </span>
           </div>
           <button
@@ -847,39 +1117,37 @@ function renderTracks() {
     .join('')
   updateMixButtons()
   updateClockDisplays()
+  updateSessionTimer()
 }
 
 function setUi() {
   const recording = state === 'recording'
 
-  els.pulse.classList.toggle('live', recording)
   els.controls.classList.toggle('recording', recording)
   els.record.hidden = recording
   els.record.disabled = recording
   els.next.hidden = !recording
+  els.discard.hidden = !recording
   els.stop.hidden = !recording
   els.next.disabled = !recording
+  els.discard.disabled = !recording
   els.stop.disabled = !recording
+  els.stop.classList.toggle('is-recording', recording)
 
   if (state === 'idle') {
-    els.status.textContent = 'Prêt'
     els.hint.textContent = ''
   } else if (state === 'recording') {
     const layer = tracks.length
-    els.status.textContent =
-      layer === 0
-        ? 'Enregistrement · piste 1'
-        : `Enregistrement · piste ${layer + 1}`
     els.hint.textContent =
       layer === 0
         ? 'Piste suivante : rejoue cette prise et enregistre la suivante en même temps.'
         : 'Casque recommandé. Monitoring compensé pour la latence audio.'
   } else {
-    els.status.textContent = 'Lecture…'
     els.hint.textContent = 'Écoute en cours.'
   }
 
   updateMixButtons()
+  updateSessionTimer()
 }
 
 function stopRecorderToBlob(
@@ -1019,7 +1287,7 @@ async function autoAlignTracksFromCounts(): Promise<void> {
     throw new Error('Il faut au moins deux pistes pour caler.')
   }
 
-  const reference = tracks[0]
+  const reference = getReferenceTrack()
   if (!reference) {
     throw new Error('Piste de référence manquante.')
   }
@@ -1028,25 +1296,25 @@ async function autoAlignTracksFromCounts(): Promise<void> {
   const refPeaks = findVolumePeaks(refBuffer, 4)
   if (refPeaks.length < 4) {
     throw new Error(
-      `Piste 1 : ${refPeaks.length}/4 attaques trouvées. Fais 4 sons bien espacés (voix ou claquements).`,
+      `${reference.name} : ${refPeaks.length}/4 attaques trouvées. Fais 4 sons bien espacés (voix ou claquements).`,
     )
   }
 
   const refThree = refPeaks[2]!
   const refFour = refPeaks[3]!
-  refPeaksLabel = `Réf. pics 3–4 : ${formatCentis(refThree * 1000)} / ${formatCentis(refFour * 1000)}`
+  refPeakFourSec = refFour
+  refPeaksLabel = `Réf. pics 3–4 (${reference.name}) : ${formatCentis(refThree * 1000)} / ${formatCentis(refFour * 1000)}`
   updateRefPeaksDisplay()
 
-  for (let index = 1; index < tracks.length; index++) {
-    const track = tracks[index]
-    if (!track) continue
+  for (const track of tracks) {
+    if (track.id === reference.id) continue
     if (!autoAlignTrackIds.has(track.id)) continue
 
     const buffer = await decodeTrack(track)
     const peaks = findVolumePeaks(buffer, 2)
     if (peaks.length < 2) {
       throw new Error(
-        `Piste ${index + 1} : ${peaks.length}/2 attaques trouvées. Fais 2 sons nets pour « 3 4 » (voix ou claquements).`,
+        `${track.name} : ${peaks.length}/2 attaques trouvées. Fais 2 sons nets pour « 3 4 » (voix ou claquements).`,
       )
     }
 
@@ -1072,9 +1340,9 @@ async function autoAlignTracksFromCounts(): Promise<void> {
 
 async function maybeAutoAlignAfterTake(): Promise<void> {
   if (tracks.length < 2) return
-  const hasTargets = tracks
-    .slice(1)
-    .some((track) => autoAlignTrackIds.has(track.id))
+  const hasTargets = alignableTracks().some((track) =>
+    autoAlignTrackIds.has(track.id),
+  )
   if (!hasTargets) return
   try {
     await autoAlignTracksFromCounts()
@@ -1085,6 +1353,147 @@ async function maybeAutoAlignAfterTake(): Promise<void> {
         ? `Calage auto reporté : ${error.message}`
         : 'Calage auto reporté.',
     )
+  }
+}
+
+async function renderSelectedMixBuffer(): Promise<AudioBuffer> {
+  const selected = selectedTracks().filter((track) => track.blob.size > 0)
+  if (selected.length === 0) {
+    throw new Error('Aucune piste sélectionnée à exporter.')
+  }
+
+  // Ensure a live context exists so decodeAudioData is available.
+  await ensureAudioContext()
+  const decoded = await Promise.all(
+    selected.map(async (track) => ({
+      track,
+      buffer: await decodeTrack(track),
+    })),
+  )
+
+  const sampleRate = Math.max(
+    44100,
+    ...decoded.map(({ buffer }) => buffer.sampleRate),
+  )
+
+  let durationS = 0
+  for (const { track, buffer } of decoded) {
+    const delayS = Math.max(0, track.offsetMs) / 1000
+    const skipS = Math.max(0, -track.offsetMs) / 1000
+    durationS = Math.max(durationS, delayS + Math.max(0, buffer.duration - skipS))
+  }
+
+  const length = Math.max(1, Math.ceil(durationS * sampleRate) + sampleRate)
+  const offline = new OfflineAudioContext(2, length, sampleRate)
+  const master = offline.createGain()
+  // Match live mix headroom.
+  master.gain.value = 0.85
+  master.connect(offline.destination)
+
+  for (const { track, buffer } of decoded) {
+    const source = offline.createBufferSource()
+    source.buffer = buffer
+    source.connect(master)
+    const delayS = Math.max(0, track.offsetMs) / 1000
+    const skipS = Math.max(0, -track.offsetMs) / 1000
+    const playable = Math.max(0, buffer.duration - skipS)
+    if (playable <= 0) continue
+    source.start(delayS, skipS, playable)
+  }
+
+  return offline.startRendering()
+}
+
+function trimAudioBufferFrom(buffer: AudioBuffer, startS: number): AudioBuffer {
+  const startSample = Math.min(
+    buffer.length,
+    Math.max(0, Math.floor(startS * buffer.sampleRate)),
+  )
+  const length = Math.max(1, buffer.length - startSample)
+  if (startSample === 0) return buffer
+
+  const trimmed = new AudioBuffer({
+    length,
+    numberOfChannels: buffer.numberOfChannels,
+    sampleRate: buffer.sampleRate,
+  })
+  for (let channel = 0; channel < buffer.numberOfChannels; channel++) {
+    trimmed.copyToChannel(buffer.getChannelData(channel).subarray(startSample), channel)
+  }
+  return trimmed
+}
+
+/** Mix-timeline time (seconds) just after the reference "4", with a short pad. */
+async function getSkipCountInStartS(): Promise<number> {
+  const reference = getReferenceTrack()
+  if (!reference) {
+    throw new Error('Piste de référence manquante.')
+  }
+
+  let fourSec = refPeakFourSec
+  if (fourSec == null) {
+    const buffer = await decodeTrack(reference)
+    const peaks = findVolumePeaks(buffer, 4)
+    if (peaks.length < 4) {
+      throw new Error(
+        `${reference.name} : ${peaks.length}/4 attaques trouvées. Fais 4 sons bien espacés pour couper le 1-2-3-4.`,
+      )
+    }
+    const refThree = peaks[2]!
+    fourSec = peaks[3]!
+    refPeakFourSec = fourSec
+    refPeaksLabel = `Réf. pics 3–4 (${reference.name}) : ${formatCentis(refThree * 1000)} / ${formatCentis(fourSec * 1000)}`
+    updateRefPeaksDisplay()
+  }
+
+  // mixTime = peakSec + offsetMs/1000 (same as scheduleTrackSource)
+  return fourSec + reference.offsetMs / 1000 + SKIP_COUNT_IN_PAD_S
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = filename
+  anchor.rel = 'noopener'
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  window.setTimeout(() => URL.revokeObjectURL(url), 2000)
+}
+
+async function downloadSelectedMix() {
+  if (mixExporting) return
+  const selected = selectedTracks().filter((track) => track.blob.size > 0)
+  if (selected.length === 0) {
+    setError('Sélectionne au moins une piste à exporter.')
+    return
+  }
+
+  mixExporting = true
+  updateMixButtons()
+  setError(null)
+
+  try {
+    let mixed = await renderSelectedMixBuffer()
+    if (els.skipCountIn.checked) {
+      const cutS = await getSkipCountInStartS()
+      if (cutS >= mixed.duration - 0.05) {
+        throw new Error('Le « 4 » est trop près de la fin : rien à exporter après le décompte.')
+      }
+      mixed = trimAudioBufferFrom(mixed, cutS)
+    }
+    const mp3 = await encodeAudioBufferToMp3(mixed, 192)
+    downloadBlob(mp3, downloadFilenameForSelection(selected))
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : 'Export MP3 impossible.',
+    )
+  } finally {
+    mixExporting = false
+    updateMixButtons()
   }
 }
 
@@ -1479,13 +1888,62 @@ async function finalizeCurrentTake(): Promise<Track> {
   }
   tracks.push(track)
   enabledTrackIds.add(track.id)
-  // Reference track (first) is never auto-aligned; later takes are by default.
-  if (tracks.length > 1) {
+  // First saved take becomes the sync reference (never auto-aligned).
+  if (referenceTrackId == null) {
+    referenceTrackId = track.id
+  } else {
     autoAlignTrackIds.add(track.id)
   }
   renderTracks()
   await maybeAutoAlignAfterTake()
   return track
+}
+
+async function abortCurrentTake(): Promise<void> {
+  discardPendingRecording()
+  stopPlayback({ resetSeek: true })
+  stopMeterNodes()
+  stopTimer()
+  pendingTakeOffsetMs = 0
+  mixSeekMs = 0
+  updateSeekBar(0)
+
+  const recording = activeRecording
+  activeRecording = null
+  if (!recording || recording.recorder.state === 'inactive') return
+
+  try {
+    await stopRecorderToBlob(recording)
+  } catch {
+    // Discarded take — ignore stop errors.
+  }
+}
+
+/** Throw away the in-progress take and punch in again from mix t0. */
+async function discardAndRetake() {
+  if (state !== 'recording') return
+  els.next.disabled = true
+  els.discard.disabled = true
+  els.stop.disabled = true
+
+  try {
+    await abortCurrentTake()
+    if (tracks.length > 0) {
+      await beginOverdubRecording(tracks.slice())
+    } else {
+      await beginRecording({ offsetMs: 0 })
+    }
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : 'Impossible de recommencer la prise.',
+    )
+    stopMeterNodes()
+    stopTimer()
+    state = 'idle'
+    setUi()
+  }
 }
 
 async function startSession() {
@@ -1512,6 +1970,7 @@ async function startSession() {
 async function nextTrack() {
   if (state !== 'recording') return
   els.next.disabled = true
+  els.discard.disabled = true
   els.stop.disabled = true
 
   try {
@@ -1537,13 +1996,30 @@ async function nextTrack() {
 
 async function stopSession() {
   els.next.disabled = true
+  els.discard.disabled = true
   els.stop.disabled = true
   discardPendingRecording()
   stopPlayback({ resetSeek: true })
 
+  const elapsedMs = startedAt > 0 ? performance.now() - startedAt : 0
+  const keepTake = elapsedMs >= 1000
+  const shouldAutoplay = els.autoplayAfterStop.checked
+
   try {
     if (activeRecording && activeRecording.recorder.state !== 'inactive') {
-      await finalizeCurrentTake()
+      if (keepTake) {
+        await finalizeCurrentTake()
+      } else {
+        const recording = activeRecording
+        activeRecording = null
+        pendingTakeOffsetMs = 0
+        stopTimer()
+        try {
+          await stopRecorderToBlob(recording)
+        } catch {
+          // Too short to keep — discard quietly.
+        }
+      }
     }
   } catch (error) {
     setError(
@@ -1565,14 +2041,24 @@ async function stopSession() {
     await closeAudioContext()
     mixSeekMs = 0
     state = 'idle'
+    startedAt = 0
     setUi()
-    els.timer.textContent = '00:00'
+    updateSessionTimer()
     els.mixClock.textContent = '00:00.00'
     updateSeekBar(0)
-    els.hint.textContent =
-      tracks.length > 0
-        ? `${tracks.length} piste${tracks.length > 1 ? 's' : ''} capturée${tracks.length > 1 ? 's' : ''}.`
-        : ''
+    els.hint.textContent = ''
+  }
+
+  if (shouldAutoplay && tracks.length > 0) {
+    setError(null)
+    void playTracks(tracks, {
+      awaitEnd: true,
+      asMix: true,
+      applyOffsets: true,
+      startAtMs: 0,
+    }).catch((error) => {
+      setError(error instanceof Error ? error.message : 'Lecture impossible.')
+    })
   }
 }
 
@@ -1581,6 +2067,9 @@ els.record.addEventListener('click', () => {
 })
 els.next.addEventListener('click', () => {
   void nextTrack()
+})
+els.discard.addEventListener('click', () => {
+  void discardAndRetake()
 })
 els.stop.addEventListener('click', () => {
   void stopSession()
@@ -1724,6 +2213,10 @@ els.restartMix.addEventListener('click', () => {
   })()
 })
 
+els.downloadMix.addEventListener('click', () => {
+  void downloadSelectedMix()
+})
+
 function seekRatioFromPointer(clientX: number): number {
   const rect = els.mixSeek.getBoundingClientRect()
   if (rect.width <= 0) return 0
@@ -1786,6 +2279,17 @@ els.mixSeek.addEventListener('pointerup', (event) => {
   void seekMixTo(mixSeekMs)
 })
 
+els.sessionTitle.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') {
+    event.preventDefault()
+    els.sessionTitle.blur()
+  }
+})
+
+els.sessionTitle.addEventListener('focusout', () => {
+  normalizeSessionTitleInput()
+})
+
 els.mixSeek.addEventListener('pointercancel', () => {
   seekDragActive = false
 })
@@ -1836,8 +2340,7 @@ els.tracks.addEventListener('change', (event) => {
   if (target.matches('[data-auto-align-track]')) {
     const id = Number(target.dataset.autoAlignTrack)
     const track = tracks.find((item) => item.id === id)
-    const trackIndex = tracks.findIndex((item) => item.id === id)
-    if (!track || trackIndex < 1 || !Number.isFinite(id)) return
+    if (!track || track.id === referenceTrackId || !Number.isFinite(id)) return
 
     if (target.checked) {
       autoAlignTrackIds.add(id)
@@ -1864,12 +2367,124 @@ els.tracks.addEventListener('change', (event) => {
   }
 })
 
+els.tracks.addEventListener('dragstart', (event) => {
+  const target = event.target
+  if (!(target instanceof Element)) return
+  const handle = target.closest<HTMLElement>('[data-drag-track]')
+  if (!handle || !(event instanceof DragEvent) || !event.dataTransfer) return
+
+  const id = Number(handle.dataset.dragTrack)
+  if (!Number.isFinite(id)) return
+  touchReorder = null
+  dragTrackId = id
+  event.dataTransfer.effectAllowed = 'move'
+  event.dataTransfer.setData('text/plain', String(id))
+
+  const row = handle.closest('.track-row')
+  row?.classList.add('is-dragging')
+})
+
+els.tracks.addEventListener('dragend', () => {
+  clearDragState()
+})
+
+els.tracks.addEventListener('dragover', (event) => {
+  if (dragTrackId == null || !(event instanceof DragEvent)) return
+  event.preventDefault()
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+  updateDragOverFromPoint(event.clientY)
+})
+
+els.tracks.addEventListener('dragleave', (event) => {
+  const target = event.target
+  if (!(target instanceof Element)) return
+  const row = target.closest('.track-row')
+  if (!row) return
+  const related = event.relatedTarget
+  if (related instanceof Node && row.contains(related)) return
+  row.classList.remove('drag-over', 'drag-over-before', 'drag-over-after')
+})
+
+els.tracks.addEventListener('drop', (event) => {
+  if (dragTrackId == null || !(event instanceof DragEvent)) return
+  event.preventDefault()
+  commitDragOverFromPoint(event.clientY)
+})
+
+els.tracks.addEventListener('pointerdown', (event) => {
+  if (event.pointerType === 'mouse') return
+  if (!(event.target instanceof Element)) return
+  if (event.target.closest(TOUCH_REORDER_EXCLUDE)) return
+
+  const row = event.target.closest<HTMLElement>('.track-row')
+  if (!row) return
+  const id = Number(row.dataset.trackId)
+  if (!Number.isFinite(id)) return
+
+  touchReorder = {
+    pointerId: event.pointerId,
+    trackId: id,
+    startY: event.clientY,
+    active: false,
+  }
+})
+
+els.tracks.addEventListener(
+  'pointermove',
+  (event) => {
+    if (!touchReorder || touchReorder.pointerId !== event.pointerId) return
+
+    const dy = event.clientY - touchReorder.startY
+    if (!touchReorder.active) {
+      if (Math.abs(dy) < TOUCH_REORDER_THRESHOLD_PX) return
+      touchReorder.active = true
+      dragTrackId = touchReorder.trackId
+      const row = els.tracks.querySelector<HTMLElement>(
+        `.track-row[data-track-id="${touchReorder.trackId}"]`,
+      )
+      row?.classList.add('is-dragging')
+      try {
+        row?.setPointerCapture(event.pointerId)
+      } catch {
+        // Ignore capture failures on older browsers.
+      }
+    }
+
+    event.preventDefault()
+    updateDragOverFromPoint(event.clientY)
+  },
+  { passive: false },
+)
+
+function endTouchReorder(event: PointerEvent) {
+  if (!touchReorder || touchReorder.pointerId !== event.pointerId) return
+  const wasActive = touchReorder.active
+  const clientY = event.clientY
+  if (wasActive) {
+    commitDragOverFromPoint(clientY)
+  } else {
+    touchReorder = null
+  }
+}
+
+els.tracks.addEventListener('pointerup', endTouchReorder)
+els.tracks.addEventListener('pointercancel', () => {
+  if (!touchReorder) return
+  clearDragState()
+})
+
+function nextTrackIdAfter(trackId: number): number | null {
+  const index = tracks.findIndex((track) => track.id === trackId)
+  if (index < 0) return null
+  return tracks[index + 1]?.id ?? null
+}
+
 els.tracks.addEventListener('click', (event) => {
   const target = event.target
   if (!(target instanceof Element)) return
   if (
     target.closest(
-      '[data-toggle-track], .track-mute, .track-check, .track-name, [data-auto-align-track], [data-select-all], [data-align-all]',
+      '[data-toggle-track], .track-mute, .track-check, .track-name, .track-drag, [data-auto-align-track], [data-select-all], [data-align-all]',
     )
   ) {
     return
@@ -1899,14 +2514,7 @@ els.tracks.addEventListener('click', (event) => {
       trackPlayheads.delete(removed.id)
     }
     // The new first track becomes the reference: never auto-aligned.
-    if (tracks[0]) {
-      autoAlignTrackIds.delete(tracks[0].id)
-      trackAlignDetails.delete(tracks[0].id)
-    }
-    if (tracks.length < 2) {
-      refPeaksLabel = ''
-      trackAlignDetails.clear()
-    }
+    syncReferenceTrackRules()
     renderTracks()
     return
   }
