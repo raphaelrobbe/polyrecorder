@@ -1100,7 +1100,10 @@ function renderTracks() {
               }
             </span>
           </div>
-          <button
+          ${
+            isReference
+              ? ''
+              : `<button
             type="button"
             class="btn btn-trash"
             data-delete-track="${track.id}"
@@ -1108,7 +1111,8 @@ function renderTracks() {
             title="Supprimer"
           >
             ×
-          </button>
+          </button>`
+          }
         </div>
         ${calageControls}
       </li>
@@ -2497,6 +2501,7 @@ els.tracks.addEventListener('click', (event) => {
     const index = tracks.findIndex((item) => item.id === id)
     if (index < 0) return
     const track = tracks[index]!
+    if (track.id === referenceTrackId) return
     const ok = window.confirm(`Supprimer « ${track.name} » ?`)
     if (!ok) return
 
