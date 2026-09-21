@@ -255,8 +255,8 @@ body {
 
 .btn-deck-icon {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  top: 0.35rem;
+  right: 0.35rem;
   z-index: 2;
   width: 2.9rem;
   height: 2.9rem;
@@ -1253,13 +1253,15 @@ body {
 }
 
 .ref-peaks {
-  margin: 0.7rem 0 0;
+  margin: 0.55rem 0 0.15rem;
   text-align: left;
   font-size: 0.78rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   color: var(--ink-soft);
   letter-spacing: 0.01em;
+  line-height: 1.45;
+  white-space: pre-line;
 }
 
 .ref-peaks[hidden] {

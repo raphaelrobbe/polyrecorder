@@ -137,7 +137,7 @@ app.innerHTML = `
       </div>
 
       <div class="tracks" data-tracks-panel hidden>
-        <p class="mix-clock" data-mix-clock>00:00.00</p>
+        <p class="mix-clock" data-mix-clock>00:00.000</p>
         <div
           class="mix-seek"
           data-mix-seek
@@ -150,6 +150,7 @@ app.innerHTML = `
         >
           <div class="mix-seek-fill" data-mix-seek-fill></div>
         </div>
+        <p class="ref-peaks" data-ref-peaks hidden></p>
         <div class="tracks-master-row">
           <span class="tracks-master-drag" aria-hidden="true"></span>
           <label class="track-mute" title="Activer / couper toutes les pistes">
@@ -217,7 +218,6 @@ app.innerHTML = `
             </button>
           </div>
         </div>
-        <p class="ref-peaks" data-ref-peaks hidden></p>
         <p class="calage-tip" id="calage-info-tip" data-calage-tip hidden>
           Pendant « Piste suivante », les prises déjà faites sont rejouées dans le casque avec un peu de latence matérielle.
           PolyRecorder démarre cette écoute un peu plus tôt pour que ta nouvelle voix tombe au bon endroit sur la timeline.
@@ -291,12 +291,16 @@ app.innerHTML = `
                 Ce navigateur ne permet pas de choisir la sortie audio depuis la page.
                 Branche un casque pour le monitoring, ou change la sortie dans les réglages du système.
               </p>
+              <p class="settings-note" data-audio-route-note hidden>
+                Sur téléphone ou tablette, la sortie est gérée par le système (haut-parleur, filaire, Bluetooth).
+                Un choix forcé depuis la page peut couper le son : PolyRecorder utilise donc la sortie par défaut.
+              </p>
             </div>
 
             <div class="settings-devices-section">
               <h4 class="settings-devices-subtitle">Enregistrement</h4>
               <p class="settings-group-hint">
-                Micro utilisé pour capturer les prises. Les libellés apparaissent après l’autorisation d’accès.
+                Micro utilisé pour capturer les prises. Les libellés du navigateur peuvent différer du nom Bluetooth habituel.
               </p>
               <div class="settings-devices-cols settings-devices-cols--single">
                 <label class="settings-device-col" data-input-monitor-wrap>
@@ -308,6 +312,12 @@ app.innerHTML = `
                   ></select>
                 </label>
               </div>
+              <p class="settings-note" data-audio-route-note hidden>
+                Si un casque Bluetooth est connecté, le téléphone impose souvent son micro
+                quel que soit le choix dans la liste. Pour le micro intégré : déconnecte le casque
+                dans les réglages Bluetooth, ou choisis «&nbsp;Par défaut (système)&nbsp;» après l’avoir débranché.
+              </p>
+              <p class="settings-note" data-input-override-note hidden></p>
             </div>
           </div>
         </div>
@@ -490,6 +500,8 @@ const els = {
   sinkSelects: app.querySelector<HTMLElement>('[data-sink-selects]')!,
   sinkUnsupported: app.querySelector<HTMLElement>('[data-sink-unsupported]')!,
   sinkEarpieceNote: app.querySelector<HTMLElement>('[data-sink-earpiece-note]')!,
+  audioRouteNotes: app.querySelectorAll<HTMLElement>('[data-audio-route-note]'),
+  inputOverrideNote: app.querySelector<HTMLElement>('[data-input-override-note]')!,
   inputMonitor: app.querySelector<HTMLSelectElement>('[data-input-monitor]')!,
   playIcon: app.querySelector<SVGElement>('.icon-play')!,
   pauseIcon: app.querySelector<SVGElement>('.icon-pause')!,
@@ -664,11 +676,20 @@ function supportsAudioSinkSelect(): boolean {
   )
 }
 
+/**
+ * Custom output routing is unreliable on phones/tablets (Bluetooth often
+ * silences Web Audio). Keep system default there even if setSinkId exists.
+ */
+function allowsAudioSinkSelect(): boolean {
+  return supportsAudioSinkSelect() && !prefersHeadphonesHint()
+}
+
 function currentAudioSinkMode(): AudioSinkMode {
   return state === 'recording' ? 'monitor' : 'playback'
 }
 
 function sinkIdForMode(mode: AudioSinkMode): string {
+  if (!allowsAudioSinkSelect()) return ''
   return mode === 'monitor' ? sinkMonitorId : sinkPlaybackId
 }
 
@@ -690,10 +711,25 @@ async function applyAudioSink(mode: AudioSinkMode = currentAudioSinkMode()) {
   }
 }
 
-function updateSinkSettingsUi(supported: boolean) {
-  els.sinkUnsupported.hidden = supported
-  els.sinkSelects.hidden = !supported
+function updateSinkSettingsUi(apiSupported: boolean) {
+  const selectable = apiSupported && allowsAudioSinkSelect()
+  els.sinkUnsupported.hidden = selectable || prefersHeadphonesHint()
+  els.sinkSelects.hidden = !selectable
   els.sinkEarpieceNote.hidden = !prefersHeadphonesHint()
+  const showRouteNote = prefersHeadphonesHint()
+  for (const note of els.audioRouteNotes) {
+    note.hidden = !showRouteNote
+  }
+}
+
+function setInputOverrideNote(message: string | null) {
+  if (!message) {
+    els.inputOverrideNote.hidden = true
+    els.inputOverrideNote.textContent = ''
+    return
+  }
+  els.inputOverrideNote.hidden = false
+  els.inputOverrideNote.textContent = message
 }
 
 function fillDeviceSelect(
@@ -727,9 +763,39 @@ function fillDeviceSelect(
   select.value = hasPrevious ? previous : ''
 }
 
+/** Ask for mic access once so enumerateDevices can expose labels. */
+async function unlockAudioDeviceLabels() {
+  try {
+    const devices = await navigator.mediaDevices.enumerateDevices()
+    const inputs = devices.filter((device) => device.kind === 'audioinput')
+    if (inputs.some((device) => device.label.trim())) return
+  } catch {
+    // continue and try getUserMedia
+  }
+
+  // Don't disturb an in-progress capture.
+  if (mediaStream || state === 'recording') return
+
+  try {
+    const probe = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        autoGainControl: false,
+      },
+    })
+    for (const track of probe.getTracks()) track.stop()
+  } catch {
+    // Permission denied or unavailable — lists stay unlabeled.
+  }
+}
+
 async function refreshAudioDeviceOptions() {
-  const sinkSupported = supportsAudioSinkSelect()
-  updateSinkSettingsUi(sinkSupported)
+  await unlockAudioDeviceLabels()
+
+  const apiSupported = supportsAudioSinkSelect()
+  const sinkSelectable = allowsAudioSinkSelect()
+  updateSinkSettingsUi(apiSupported)
 
   let outputs: MediaDeviceInfo[] = []
   let inputs: MediaDeviceInfo[] = []
@@ -743,7 +809,7 @@ async function refreshAudioDeviceOptions() {
     inputs = []
   }
 
-  if (sinkSupported) {
+  if (sinkSelectable) {
     fillDeviceSelect(els.sinkMonitor, outputs, sinkMonitorId, 'Sortie')
     fillDeviceSelect(els.sinkPlayback, outputs, sinkPlaybackId, 'Sortie')
 
@@ -803,11 +869,21 @@ function formatTime(ms: number): string {
 }
 
 function formatCentis(ms: number): string {
-  const cs = Math.max(0, Math.floor(ms / 10))
-  const m = Math.floor(cs / 6000)
-  const s = Math.floor((cs % 6000) / 100)
-  const c = cs % 100
-  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(c).padStart(2, '0')}`
+  const totalMs = Math.max(0, Math.floor(ms))
+  const m = Math.floor(totalMs / 60_000)
+  const s = Math.floor((totalMs % 60_000) / 1000)
+  const millis = totalMs % 1000
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}.${String(millis).padStart(3, '0')}`
+}
+
+/** Like formatCentis, but omit minutes when they are zero (e.g. 00.420). */
+function formatCentisCompact(ms: number): string {
+  const totalMs = Math.max(0, Math.floor(ms))
+  const m = Math.floor(totalMs / 60_000)
+  const s = Math.floor((totalMs % 60_000) / 1000)
+  const millis = totalMs % 1000
+  const sec = `${String(s).padStart(2, '0')}.${String(millis).padStart(3, '0')}`
+  return m === 0 ? sec : `${m}:${sec}`
 }
 
 function defaultSessionTitle(): string {
@@ -941,16 +1017,41 @@ function setCalageMode(on: boolean) {
   updateRefPeaksDisplay()
   renderTracks()
   updateMixButtons()
+  if (on && tracks.length > 0) void evaluateReferenceBeat()
 }
 
 type DeckView = 'main' | 'settings' | 'help'
 
-function setDeckView(view: DeckView) {
-  const prev = !els.deckSettings.hidden
-    ? 'settings'
-    : !els.deckHelp.hidden
-      ? 'help'
-      : 'main'
+type DeckHistoryState = { polyrecorderDeck: DeckView }
+
+function isDeckView(value: unknown): value is DeckView {
+  return value === 'main' || value === 'settings' || value === 'help'
+}
+
+function currentDeckView(): DeckView {
+  if (!els.deckSettings.hidden) return 'settings'
+  if (!els.deckHelp.hidden) return 'help'
+  return 'main'
+}
+
+function deckViewUrl(view: DeckView): string {
+  const path = `${location.pathname}${location.search}`
+  return view === 'main' ? path : `${path}#${view}`
+}
+
+function deckViewFromUrl(): DeckView {
+  const raw = location.hash.replace(/^#/, '')
+  return isDeckView(raw) ? raw : 'main'
+}
+
+function deckViewFromState(state: unknown): DeckView | null {
+  if (!state || typeof state !== 'object') return null
+  const deck = (state as DeckHistoryState).polyrecorderDeck
+  return isDeckView(deck) ? deck : null
+}
+
+function applyDeckView(view: DeckView) {
+  const prev = currentDeckView()
 
   els.deckMain.hidden = view !== 'main'
   els.deckSettings.hidden = view !== 'settings'
@@ -969,6 +1070,30 @@ function setDeckView(view: DeckView) {
   } else if (prev === 'help') {
     els.openHelp.focus()
   }
+}
+
+/** Navigate to a deck view and push a browser history entry. */
+function navigateDeckView(view: DeckView) {
+  if (currentDeckView() === view) return
+  applyDeckView(view)
+  history.pushState(
+    { polyrecorderDeck: view } satisfies DeckHistoryState,
+    '',
+    deckViewUrl(view),
+  )
+}
+
+function openDeckPanel(view: 'settings' | 'help') {
+  navigateDeckView(view)
+}
+
+/** Échap / croix : retour à l’écran principal en ajoutant une entrée d’historique. */
+function leaveDeckOverlay() {
+  navigateDeckView('main')
+}
+
+function syncDeckViewFromHistory(state: unknown) {
+  applyDeckView(deckViewFromState(state) ?? deckViewFromUrl())
 }
 
 function updateHelpShortcutsVisibility() {
@@ -1070,36 +1195,62 @@ async function ensureMic(): Promise<MediaStream> {
     const liveTrack = mediaStream
       .getAudioTracks()
       .find((track) => track.readyState === 'live')
-    const currentId = liveTrack?.getSettings().deviceId ?? ''
-    const matches =
-      liveTrack &&
-      (wantedId === '' || currentId === '' || currentId === wantedId)
-    if (matches) return mediaStream
+    if (liveTrack) {
+      const currentId = liveTrack.getSettings().deviceId ?? ''
+      // Only reuse when the live track is confirmed to match the selection.
+      // An empty currentId cannot prove a match for a specific deviceId.
+      if (!wantedId) return mediaStream
+      if (currentId && currentId === wantedId) return mediaStream
+    }
     for (const track of mediaStream.getTracks()) track.stop()
     mediaStream = null
   }
 
   // Disable browser voice processing: with monitor playback, echoCancellation
   // and noiseSuppression make the next take metallic and very quiet.
-  const audio: MediaTrackConstraints = {
+  const base: MediaTrackConstraints = {
     echoCancellation: false,
     noiseSuppression: false,
     autoGainControl: false,
     channelCount: 1,
   }
-  if (wantedId) audio.deviceId = { exact: wantedId }
 
-  try {
-    mediaStream = await navigator.mediaDevices.getUserMedia({ audio })
-  } catch (error) {
-    // Exact device may have disappeared; fall back to default.
-    if (wantedId) {
-      delete audio.deviceId
-      mediaStream = await navigator.mediaDevices.getUserMedia({ audio })
-    } else {
-      throw error
+  const open = (audio: MediaTrackConstraints) =>
+    navigator.mediaDevices.getUserMedia({ audio })
+
+  if (wantedId) {
+    try {
+      mediaStream = await open({ ...base, deviceId: { exact: wantedId } })
+    } catch {
+      try {
+        mediaStream = await open({ ...base, deviceId: { ideal: wantedId } })
+      } catch {
+        mediaStream = await open(base)
+      }
     }
+  } else {
+    mediaStream = await open(base)
   }
+
+  const liveTrack = mediaStream
+    .getAudioTracks()
+    .find((track) => track.readyState === 'live')
+  const actualId = liveTrack?.getSettings().deviceId ?? ''
+  const actualLabel = liveTrack?.label?.trim() || ''
+
+  if (wantedId && actualId && actualId !== wantedId) {
+    setInputOverrideNote(
+      actualLabel
+        ? `Le système a ouvert « ${actualLabel} » à la place du micro choisi (souvent le cas avec un casque Bluetooth).`
+        : 'Le système a ouvert un autre micro que celui choisi (souvent le cas avec un casque Bluetooth).',
+    )
+  } else if (wantedId && !actualId) {
+    // Mobile browsers sometimes omit deviceId in getSettings(); can't verify.
+    setInputOverrideNote(null)
+  } else {
+    setInputOverrideNote(null)
+  }
+
   void refreshAudioDeviceOptions()
   return mediaStream
 }
@@ -1845,16 +1996,24 @@ function assessCountInBeat(peaks: number[]): BeatAssessment {
 }
 
 function applyReferencePeaksLabel(reference: Track, peaks: number[]) {
-  if (peaks.length < 4) {
+  if (peaks.length === 0) {
     refPeakFourSec = null
     refPeaksLabel = ''
     updateRefPeaksDisplay()
     return
   }
-  const refThree = peaks[2]!
-  const refFour = peaks[3]!
-  refPeakFourSec = refFour
-  refPeaksLabel = `Réf. pics 3–4 (${reference.name}) : ${formatCentis(refThree * 1000)} / ${formatCentis(refFour * 1000)}`
+
+  refPeakFourSec = peaks.length >= 4 ? peaks[3]! : null
+  const times = peaks.map((peak) => formatCentisCompact(peak * 1000)).join(' · ')
+
+  if (peaks.length >= 4) {
+    const gapsMs = [1, 2, 3].map((index) =>
+      Math.round((peaks[index]! - peaks[index - 1]!) * 1000),
+    )
+    refPeaksLabel = `1-2-3-4 (${reference.name}) : ${times}\nécarts ${gapsMs.join(' / ')} ms`
+  } else {
+    refPeaksLabel = `Attaques (${reference.name}) : ${times} (${peaks.length}/4)`
+  }
   updateRefPeaksDisplay()
 }
 
@@ -2112,11 +2271,8 @@ async function getSkipCountInStartS(): Promise<number> {
         `${reference.name} : ${peaks.length}/4 attaques trouvées. Fais 4 sons bien espacés pour supprimer le 1-2-3-4.`,
       )
     }
-    const refThree = peaks[2]!
+    applyReferencePeaksLabel(reference, peaks)
     fourSec = peaks[3]!
-    refPeakFourSec = fourSec
-    refPeaksLabel = `Réf. pics 3–4 (${reference.name}) : ${formatCentis(refThree * 1000)} / ${formatCentis(fourSec * 1000)}`
-    updateRefPeaksDisplay()
   }
 
   // mixTime = peakSec + offsetMs/1000 (same as scheduleTrackSource)
@@ -2499,7 +2655,7 @@ async function beginOverdubRecording(monitor: Track[]): Promise<void> {
       }
       renderTracks()
       updateMixButtons()
-      els.mixClock.textContent = '00:00.00'
+      els.mixClock.textContent = '00:00.000'
     }
   }
   renderTracks()
@@ -2741,7 +2897,7 @@ async function stopSession() {
     sessionStopping = false
     setUi()
     updateSessionTimer()
-    els.mixClock.textContent = '00:00.00'
+    els.mixClock.textContent = '00:00.000'
     updateSeekBar(0)
     els.hint.textContent = ''
   }
@@ -2865,11 +3021,11 @@ els.calageMode.addEventListener('change', () => {
 })
 
 els.openSettings.addEventListener('click', () => {
-  setDeckView('settings')
+  openDeckPanel('settings')
 })
 
 els.closeSettings.addEventListener('click', () => {
-  setDeckView('main')
+  leaveDeckOverlay()
 })
 
 els.sinkMonitor.addEventListener('change', () => {
@@ -2887,8 +3043,13 @@ els.sinkPlayback.addEventListener('change', () => {
 els.inputMonitor.addEventListener('change', () => {
   inputMonitorId = els.inputMonitor.value
   saveSinkId(INPUT_MONITOR_KEY, inputMonitorId)
-  // Apply on next take; don't tear down an in-progress recording.
-  if (state !== 'recording' && mediaStream) releaseMic()
+  setInputOverrideNote(null)
+  // Apply on next take while recording; otherwise reopen to verify the route.
+  if (state === 'recording') return
+  releaseMic()
+  void ensureMic().catch(() => {
+    // Next record will surface the error.
+  })
 })
 
 if (navigator.mediaDevices?.addEventListener) {
@@ -2898,11 +3059,11 @@ if (navigator.mediaDevices?.addEventListener) {
 }
 
 els.openHelp.addEventListener('click', () => {
-  setDeckView('help')
+  openDeckPanel('help')
 })
 
 els.closeHelp.addEventListener('click', () => {
-  setDeckView('main')
+  leaveDeckOverlay()
 })
 
 function setCalageTipOpen(open: boolean) {
@@ -3498,7 +3659,7 @@ window.addEventListener('keydown', (event) => {
   if (overlayOpen) {
     if (event.key === 'Escape') {
       event.preventDefault()
-      setDeckView('main')
+      leaveDeckOverlay()
     }
     return
   }
@@ -3549,6 +3710,20 @@ applyKeyboardShortcutTooltips()
 updateHelpShortcutsVisibility()
 updateSinkSettingsUi(supportsAudioSinkSelect())
 void refreshAudioDeviceOptions()
+
+{
+  const initialDeck = deckViewFromUrl()
+  applyDeckView(initialDeck)
+  history.replaceState(
+    { polyrecorderDeck: initialDeck } satisfies DeckHistoryState,
+    '',
+    deckViewUrl(initialDeck),
+  )
+}
+
+window.addEventListener('popstate', (event) => {
+  syncDeckViewFromHistory(event.state)
+})
 
 setUi()
 updateCalageDisplay()
