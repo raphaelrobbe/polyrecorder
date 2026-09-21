@@ -244,14 +244,72 @@ app.innerHTML = `
             <input type="checkbox" data-autoplay-after-stop checked />
             <span>Lire automatiquement après la fin de l'enregistrement</span>
           </label>
-          <label
-            class="autoplay-option"
-            data-skip-count-in-wrap
-            title="La lecture et le MP3 commencent juste après le « 4 »"
-          >
-            <input type="checkbox" data-skip-count-in checked />
-            <span>Supprimer le 1-2-3-4 à la lecture et au téléchargement du mp3</span>
-          </label>
+          <div class="settings-skip-count" data-skip-count-in-wrap>
+            <span class="settings-skip-count-title">Supprimer le 1-2-3-4</span>
+            <div class="settings-skip-count-options">
+              <label class="autoplay-option" title="La lecture commence juste après le « 4 »">
+                <input type="checkbox" data-skip-count-in-playback checked />
+                <span>à la lecture</span>
+              </label>
+              <label class="autoplay-option" title="Le MP3 commence juste après le « 4 »">
+                <input type="checkbox" data-skip-count-in-download checked />
+                <span>au téléchargement du mp3</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-devices">
+            <h3 class="settings-devices-title">Périphériques audio</h3>
+
+            <div class="settings-devices-section" data-sink-settings>
+              <h4 class="settings-devices-subtitle">Lecture</h4>
+              <p class="settings-group-hint">
+                Pour éviter que le micro reprenne le son lu : utilise un casque.
+                <span data-sink-earpiece-note hidden>
+                  L’écouteur d’oreille n’est en général pas sélectionnable depuis le navigateur.
+                </span>
+              </p>
+              <div class="settings-devices-cols" data-sink-selects>
+                <label class="settings-device-col" data-sink-monitor-wrap>
+                  <span class="settings-device-col-title">pendant l'enregistrement</span>
+                  <select
+                    class="settings-select"
+                    data-sink-monitor
+                    aria-label="Sortie pendant l'enregistrement"
+                  ></select>
+                </label>
+                <label class="settings-device-col" data-sink-playback-wrap>
+                  <span class="settings-device-col-title">en lecture</span>
+                  <select
+                    class="settings-select"
+                    data-sink-playback
+                    aria-label="Sortie en lecture"
+                  ></select>
+                </label>
+              </div>
+              <p class="settings-note" data-sink-unsupported hidden>
+                Ce navigateur ne permet pas de choisir la sortie audio depuis la page.
+                Branche un casque pour le monitoring, ou change la sortie dans les réglages du système.
+              </p>
+            </div>
+
+            <div class="settings-devices-section">
+              <h4 class="settings-devices-subtitle">Enregistrement</h4>
+              <p class="settings-group-hint">
+                Micro utilisé pour capturer les prises. Les libellés apparaissent après l’autorisation d’accès.
+              </p>
+              <div class="settings-devices-cols settings-devices-cols--single">
+                <label class="settings-device-col" data-input-monitor-wrap>
+                  <span class="settings-device-col-title">pendant l'enregistrement</span>
+                  <select
+                    class="settings-select"
+                    data-input-monitor
+                    aria-label="Micro pendant l'enregistrement"
+                  ></select>
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -268,6 +326,30 @@ app.innerHTML = `
         </button>
         <h2 class="settings-title">Aide</h2>
         <div class="help-sections">
+          <section class="help-section">
+            <h3 class="help-section-title">Personnalisation</h3>
+            <p class="help-text">
+              Le nom du projet se modifie en haut, en cliquant sur le titre<span data-help-f2-hint hidden> (ou avec F2)</span>.
+              Le nom de chaque piste se modifie aussi en cliquant dessus dans la liste.
+            </p>
+            <p class="help-text">
+              Ces noms servent au fichier MP3 téléchargé : le titre du projet, et — si toutes les pistes ne sont pas sélectionnées — les noms des pistes exportées, par exemple
+              «&nbsp;Ma polyphonie_Basses 1 - Basses 2.mp3&nbsp;».
+            </p>
+          </section>
+          <section class="help-section">
+            <h3 class="help-section-title">Synchronisation</h3>
+            <p class="help-text">
+              Pour caler les pistes entre elles, la première (référence) doit commencer par quatre marquages nets et réguliers
+              (1-2-3-4, ou tout signal audible en 4 temps). Les pistes suivantes ne reprennent que les 3ème et 4ème temps, puis la voix.
+              PolyRecorder s’en sert pour mesurer et corriger automatiquement le décalage dû à la latence audio.
+            </p>
+            <p class="help-text">
+              Des bruits parasites peuvent empêcher la reconnaissance du 1-2-3-4. Dans ce cas, mieux vaut recommencer l’enregistrement de zéro pour repartir sur une bonne piste de référence :
+              sinon tout devra être calé à la main. Idem pour le 3-4 des pistes suivantes : un marquage peu clair ou noyé dans le bruit
+              fausse le calage auto de cette prise.
+            </p>
+          </section>
           <section class="help-section" data-help-shortcuts hidden>
             <h3 class="help-section-title">Raccourcis clavier</h3>
             <table class="help-shortcuts-table">
@@ -387,7 +469,8 @@ const els = {
   downloadMix: app.querySelector<HTMLButtonElement>('[data-download-mix]')!,
   mixTransport: app.querySelector<HTMLElement>('[data-mix-transport]')!,
   skipCountInWrap: app.querySelector<HTMLElement>('[data-skip-count-in-wrap]')!,
-  skipCountIn: app.querySelector<HTMLInputElement>('[data-skip-count-in]')!,
+  skipCountInPlayback: app.querySelector<HTMLInputElement>('[data-skip-count-in-playback]')!,
+  skipCountInDownload: app.querySelector<HTMLInputElement>('[data-skip-count-in-download]')!,
   deckMain: app.querySelector<HTMLElement>('[data-deck-main]')!,
   deckSettings: app.querySelector<HTMLElement>('[data-deck-settings]')!,
   deckHelp: app.querySelector<HTMLElement>('[data-deck-help]')!,
@@ -396,9 +479,18 @@ const els = {
   openHelp: app.querySelector<HTMLButtonElement>('[data-open-help]')!,
   closeHelp: app.querySelector<HTMLButtonElement>('[data-close-help]')!,
   helpShortcuts: app.querySelector<HTMLElement>('[data-help-shortcuts]')!,
+  helpF2Hint: app.querySelector<HTMLElement>('[data-help-f2-hint]')!,
   deck: app.querySelector<HTMLElement>('[data-deck]')!,
   autoplayWrap: app.querySelector<HTMLElement>('[data-autoplay-wrap]')!,
   autoplayAfterStop: app.querySelector<HTMLInputElement>('[data-autoplay-after-stop]')!,
+  sinkMonitor: app.querySelector<HTMLSelectElement>('[data-sink-monitor]')!,
+  sinkPlayback: app.querySelector<HTMLSelectElement>('[data-sink-playback]')!,
+  sinkMonitorWrap: app.querySelector<HTMLElement>('[data-sink-monitor-wrap]')!,
+  sinkPlaybackWrap: app.querySelector<HTMLElement>('[data-sink-playback-wrap]')!,
+  sinkSelects: app.querySelector<HTMLElement>('[data-sink-selects]')!,
+  sinkUnsupported: app.querySelector<HTMLElement>('[data-sink-unsupported]')!,
+  sinkEarpieceNote: app.querySelector<HTMLElement>('[data-sink-earpiece-note]')!,
+  inputMonitor: app.querySelector<HTMLSelectElement>('[data-input-monitor]')!,
   playIcon: app.querySelector<SVGElement>('.icon-play')!,
   pauseIcon: app.querySelector<SVGElement>('.icon-pause')!,
   mixClock: app.querySelector<HTMLElement>('[data-mix-clock]')!,
@@ -430,9 +522,18 @@ const MIX_LOOKAHEAD_S = 0.12
 /** Fallback when the browser reports no output latency (seconds). */
 const DEFAULT_MONITOR_LATENCY_S = 0.045
 const LATENCY_TRIM_KEY = 'polyrecorder.latencyTrimMs'
+const SINK_MONITOR_KEY = 'polyrecorder.sinkMonitor'
+const SINK_PLAYBACK_KEY = 'polyrecorder.sinkPlayback'
+const INPUT_MONITOR_KEY = 'polyrecorder.inputMonitor'
 const OFFSET_WARN_MS = 300
 const MAX_RECORDING_MS = 5 * 60 * 1000
 
+type AudioSinkMode = 'monitor' | 'playback'
+
+type AudioContextWithSink = AudioContext & {
+  setSinkId: (sinkId: string) => Promise<void>
+  readonly sinkId?: string
+}
 let state: AppState = 'idle'
 let sessionStopping = false
 let mediaStream: MediaStream | null = null
@@ -481,6 +582,9 @@ let pendingRecording: {
   onData: (event: BlobEvent) => void
 } | null = null
 let latencyTrimMs = loadLatencyTrimMs()
+let sinkMonitorId = loadSinkId(SINK_MONITOR_KEY)
+let sinkPlaybackId = loadSinkId(SINK_PLAYBACK_KEY)
+let inputMonitorId = loadSinkId(INPUT_MONITOR_KEY)
 let lastReportedLatencyMs = Math.round(DEFAULT_MONITOR_LATENCY_S * 1000)
 let skewWarningDismissedKey = ''
 let refPeaksLabel = ''
@@ -511,7 +615,7 @@ const TOUCH_REORDER_THRESHOLD_PX = 10
 const BEAT_GAP_MAX_RATIO = 1.2
 
 const TOUCH_REORDER_EXCLUDE =
-  'input, textarea, select, button:not(.track-drag), .track-mute, .track-check, .track-name, .track-nudge, [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-toggle-track]'
+  'input, textarea, select, button:not(.track-drag), .track-mute, .track-check, .track-name, .track-nudge, .track-offset, [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-toggle-track]'
 
 function loadLatencyTrimMs(): number {
   try {
@@ -535,10 +639,152 @@ function saveLatencyTrimMs(value: number) {
   updateCalageDisplay()
 }
 
+function loadSinkId(key: string): string {
+  try {
+    return localStorage.getItem(key) ?? ''
+  } catch {
+    return ''
+  }
+}
+
+function saveSinkId(key: string, value: string) {
+  try {
+    if (value) localStorage.setItem(key, value)
+    else localStorage.removeItem(key)
+  } catch {
+    // ignore quota / private mode
+  }
+}
+
+function supportsAudioSinkSelect(): boolean {
+  return (
+    typeof AudioContext !== 'undefined' &&
+    typeof (AudioContext.prototype as AudioContextWithSink).setSinkId ===
+      'function'
+  )
+}
+
+function currentAudioSinkMode(): AudioSinkMode {
+  return state === 'recording' ? 'monitor' : 'playback'
+}
+
+function sinkIdForMode(mode: AudioSinkMode): string {
+  return mode === 'monitor' ? sinkMonitorId : sinkPlaybackId
+}
+
+async function applyAudioSink(mode: AudioSinkMode = currentAudioSinkMode()) {
+  if (!supportsAudioSinkSelect() || !audioContext) return
+  const ctx = audioContext as AudioContextWithSink
+  const sinkId = sinkIdForMode(mode)
+  try {
+    await ctx.setSinkId(sinkId)
+  } catch {
+    // Device may have disappeared; fall back to default.
+    if (sinkId) {
+      try {
+        await ctx.setSinkId('')
+      } catch {
+        // ignore
+      }
+    }
+  }
+}
+
+function updateSinkSettingsUi(supported: boolean) {
+  els.sinkUnsupported.hidden = supported
+  els.sinkSelects.hidden = !supported
+  els.sinkEarpieceNote.hidden = !prefersHeadphonesHint()
+}
+
+function fillDeviceSelect(
+  select: HTMLSelectElement,
+  devices: MediaDeviceInfo[],
+  selectedId: string,
+  fallbackLabel: string,
+) {
+  const previous = selectedId
+  select.replaceChildren()
+  const defaultOption = document.createElement('option')
+  defaultOption.value = ''
+  defaultOption.textContent = 'Par défaut (système)'
+  select.append(defaultOption)
+
+  for (const device of devices) {
+    // Skip Chromium's duplicate "default" entry; we already expose "".
+    if (device.deviceId === 'default' || device.deviceId === 'communications') {
+      continue
+    }
+    const option = document.createElement('option')
+    option.value = device.deviceId
+    option.textContent =
+      device.label?.trim() || `${fallbackLabel} ${device.deviceId.slice(0, 6)}…`
+    select.append(option)
+  }
+
+  const hasPrevious =
+    previous === '' ||
+    Array.from(select.options).some((option) => option.value === previous)
+  select.value = hasPrevious ? previous : ''
+}
+
+async function refreshAudioDeviceOptions() {
+  const sinkSupported = supportsAudioSinkSelect()
+  updateSinkSettingsUi(sinkSupported)
+
+  let outputs: MediaDeviceInfo[] = []
+  let inputs: MediaDeviceInfo[] = []
+  try {
+    // Labels are often empty until a media permission has been granted.
+    const devices = await navigator.mediaDevices.enumerateDevices()
+    outputs = devices.filter((device) => device.kind === 'audiooutput')
+    inputs = devices.filter((device) => device.kind === 'audioinput')
+  } catch {
+    outputs = []
+    inputs = []
+  }
+
+  if (sinkSupported) {
+    fillDeviceSelect(els.sinkMonitor, outputs, sinkMonitorId, 'Sortie')
+    fillDeviceSelect(els.sinkPlayback, outputs, sinkPlaybackId, 'Sortie')
+
+    if (els.sinkMonitor.value !== sinkMonitorId) {
+      sinkMonitorId = els.sinkMonitor.value
+      saveSinkId(SINK_MONITOR_KEY, sinkMonitorId)
+    }
+    if (els.sinkPlayback.value !== sinkPlaybackId) {
+      sinkPlaybackId = els.sinkPlayback.value
+      saveSinkId(SINK_PLAYBACK_KEY, sinkPlaybackId)
+    }
+  }
+
+  fillDeviceSelect(els.inputMonitor, inputs, inputMonitorId, 'Micro')
+
+  if (els.inputMonitor.value !== inputMonitorId) {
+    inputMonitorId = els.inputMonitor.value
+    saveSinkId(INPUT_MONITOR_KEY, inputMonitorId)
+  }
+}
+
 function formatSignedMs(ms: number): string {
   const rounded = Math.round(ms)
   if (rounded > 0) return `+${rounded} ms`
   return `${rounded} ms`
+}
+
+function parseOffsetMsInput(raw: string): number | null {
+  const cleaned = raw.trim().replace(/\s*ms$/i, '').replace(/\s+/g, '')
+  if (!cleaned || cleaned === '+' || cleaned === '-') return null
+  const value = Number(cleaned)
+  if (!Number.isFinite(value)) return null
+  return Math.round(Math.max(-120_000, Math.min(120_000, value)))
+}
+
+function applyManualTrackOffset(track: Track, offsetMs: number) {
+  const wasListening = mixListenActive || playingTrackIds.size > 0
+  if (wasListening) stopPlayback({ resetSeek: false })
+  track.offsetMs = offsetMs
+  autoAlignTrackIds.delete(track.id)
+  trackAlignDetails.delete(track.id)
 }
 
 function updateCalageDisplay() {
@@ -598,12 +844,14 @@ function filenameFromSessionTitle(): string {
 
 function downloadFilenameForSelection(selected: Track[]): string {
   const title = filenameFromSessionTitle()
-  if (selected.length === 1) {
-    const trackPart =
-      sanitizeFilenamePart(selected[0]!.name).replace(/\s+/g, '-') || 'piste'
-    return `${title}_${trackPart}.mp3`
+  // Full mix (or empty): just the session title.
+  if (selected.length === 0 || selected.length === tracks.length) {
+    return `${title}.mp3`
   }
-  return `${title}.mp3`
+  const trackParts = selected
+    .map((track) => sanitizeFilenamePart(track.name) || 'piste')
+    .join(' - ')
+  return `${title}_${trackParts}.mp3`
 }
 
 function escapeHtml(value: string): string {
@@ -711,6 +959,7 @@ function setDeckView(view: DeckView) {
   els.deck.classList.toggle('is-help', view === 'help')
 
   if (view === 'settings') {
+    void refreshAudioDeviceOptions()
     els.closeSettings.focus()
   } else if (view === 'help') {
     updateHelpShortcutsVisibility()
@@ -724,6 +973,7 @@ function setDeckView(view: DeckView) {
 
 function updateHelpShortcutsVisibility() {
   els.helpShortcuts.hidden = !keyboardHintsEnabled
+  els.helpF2Hint.hidden = !keyboardHintsEnabled
 }
 
 function alignableTracks(): Track[] {
@@ -781,6 +1031,7 @@ async function ensureAudioContext(): Promise<AudioContext> {
   if (audioContext.state === 'suspended' && !mixPaused) {
     await audioContext.resume()
   }
+  await applyAudioSink()
   return audioContext
 }
 
@@ -814,23 +1065,50 @@ async function closeAudioContext() {
 }
 
 async function ensureMic(): Promise<MediaStream> {
+  const wantedId = inputMonitorId
   if (mediaStream) {
-    const live = mediaStream.getAudioTracks().some((track) => track.readyState === 'live')
-    if (live) return mediaStream
+    const liveTrack = mediaStream
+      .getAudioTracks()
+      .find((track) => track.readyState === 'live')
+    const currentId = liveTrack?.getSettings().deviceId ?? ''
+    const matches =
+      liveTrack &&
+      (wantedId === '' || currentId === '' || currentId === wantedId)
+    if (matches) return mediaStream
+    for (const track of mediaStream.getTracks()) track.stop()
     mediaStream = null
   }
 
   // Disable browser voice processing: with monitor playback, echoCancellation
   // and noiseSuppression make the next take metallic and very quiet.
-  mediaStream = await navigator.mediaDevices.getUserMedia({
-    audio: {
-      echoCancellation: false,
-      noiseSuppression: false,
-      autoGainControl: false,
-      channelCount: 1,
-    },
-  })
+  const audio: MediaTrackConstraints = {
+    echoCancellation: false,
+    noiseSuppression: false,
+    autoGainControl: false,
+    channelCount: 1,
+  }
+  if (wantedId) audio.deviceId = { exact: wantedId }
+
+  try {
+    mediaStream = await navigator.mediaDevices.getUserMedia({ audio })
+  } catch (error) {
+    // Exact device may have disappeared; fall back to default.
+    if (wantedId) {
+      delete audio.deviceId
+      mediaStream = await navigator.mediaDevices.getUserMedia({ audio })
+    } else {
+      throw error
+    }
+  }
+  void refreshAudioDeviceOptions()
   return mediaStream
+}
+
+function releaseMic() {
+  stopMeterNodes()
+  if (!mediaStream) return
+  for (const track of mediaStream.getTracks()) track.stop()
+  mediaStream = null
 }
 
 function stopMeterNodes() {
@@ -1285,7 +1563,18 @@ function renderTracks() {
           >
             −
           </button>
-          <small class="track-offset" data-track-offset="${track.id}">${formatSignedMs(track.offsetMs)}</small>
+          <label class="track-offset-wrap">
+            <input
+              type="text"
+              class="track-offset"
+              data-offset-track="${track.id}"
+              value="${Math.round(track.offsetMs)}"
+              inputmode="numeric"
+              aria-label="Calage de ${escapeHtml(track.name)} en millisecondes"
+              spellcheck="false"
+            />
+            <span class="track-offset-unit" aria-hidden="true">ms</span>
+          </label>
           <button
             type="button"
             class="btn btn-nudge"
@@ -1838,7 +2127,7 @@ async function getSkipCountInStartS(): Promise<number> {
 async function applySkipCountInStartMs(startAtMs: number): Promise<number> {
   const clamped = Math.max(0, startAtMs)
   // Keep explicit seeks (incl. into the count-in); only rewrite a start-from-0.
-  if (!els.skipCountIn.checked || clamped > 0) return clamped
+  if (!els.skipCountInPlayback.checked || clamped > 0) return clamped
   try {
     const cutMs = (await getSkipCountInStartS()) * 1000
     return Math.max(clamped, cutMs)
@@ -1873,7 +2162,7 @@ async function downloadSelectedMix() {
 
   try {
     let mixed = await renderSelectedMixBuffer()
-    if (els.skipCountIn.checked) {
+    if (els.skipCountInDownload.checked) {
       const cutS = await getSkipCountInStartS()
       if (cutS >= mixed.duration - 0.05) {
         throw new Error('Le « 4 » est trop près de la fin : rien à exporter après le décompte.')
@@ -2114,6 +2403,7 @@ async function beginRecording(options?: { offsetMs?: number; timerFromPerf?: num
   await startMeter(stream)
   startTimer(options?.timerFromPerf ?? performance.now())
   state = 'recording'
+  void applyAudioSink('monitor')
   setUi()
 }
 
@@ -2127,6 +2417,7 @@ async function beginOverdubRecording(monitor: Track[]): Promise<void> {
   const stream = await ensureMic()
   const recording = createRecording(stream)
   const ctx = await ensureAudioContext()
+  await applyAudioSink('monitor')
 
   // Decode before scheduling so start times stay tight.
   const decoded =
@@ -2498,6 +2789,8 @@ els.alignAll.addEventListener('change', () => {
   const alignable = alignableTracks()
 
   if (!els.alignAll.checked) {
+    const wasListening = mixListenActive || playingTrackIds.size > 0
+    if (wasListening) stopPlayback({ resetSeek: false })
     for (const track of alignable) {
       autoAlignTrackIds.delete(track.id)
       trackAlignDetails.delete(track.id)
@@ -2578,6 +2871,31 @@ els.openSettings.addEventListener('click', () => {
 els.closeSettings.addEventListener('click', () => {
   setDeckView('main')
 })
+
+els.sinkMonitor.addEventListener('change', () => {
+  sinkMonitorId = els.sinkMonitor.value
+  saveSinkId(SINK_MONITOR_KEY, sinkMonitorId)
+  if (currentAudioSinkMode() === 'monitor') void applyAudioSink('monitor')
+})
+
+els.sinkPlayback.addEventListener('change', () => {
+  sinkPlaybackId = els.sinkPlayback.value
+  saveSinkId(SINK_PLAYBACK_KEY, sinkPlaybackId)
+  if (currentAudioSinkMode() === 'playback') void applyAudioSink('playback')
+})
+
+els.inputMonitor.addEventListener('change', () => {
+  inputMonitorId = els.inputMonitor.value
+  saveSinkId(INPUT_MONITOR_KEY, inputMonitorId)
+  // Apply on next take; don't tear down an in-progress recording.
+  if (state !== 'recording' && mediaStream) releaseMic()
+})
+
+if (navigator.mediaDevices?.addEventListener) {
+  navigator.mediaDevices.addEventListener('devicechange', () => {
+    void refreshAudioDeviceOptions()
+  })
+}
 
 els.openHelp.addEventListener('click', () => {
   setDeckView('help')
@@ -2764,8 +3082,7 @@ els.mixSeek.addEventListener('pointercancel', () => {
 els.tracks.addEventListener('keydown', (event) => {
   const target = event.target
   if (!(target instanceof HTMLInputElement)) return
-  if (!target.matches('[data-rename-track]')) return
-  if (event.key === 'Enter') {
+  if (target.matches('[data-rename-track], [data-offset-track]') && event.key === 'Enter') {
     event.preventDefault()
     target.blur()
   }
@@ -2774,6 +3091,18 @@ els.tracks.addEventListener('keydown', (event) => {
 els.tracks.addEventListener('focusin', (event) => {
   const target = event.target
   if (!(target instanceof HTMLInputElement)) return
+  if (target.matches('[data-offset-track]')) {
+    target.select()
+    target.addEventListener(
+      'mouseup',
+      (mouseupEvent) => {
+        mouseupEvent.preventDefault()
+        target.select()
+      },
+      { once: true },
+    )
+    return
+  }
   if (!target.matches('[data-rename-track]')) return
   if (!isDefaultTrackName(target.value)) return
   target.select()
@@ -2791,6 +3120,23 @@ els.tracks.addEventListener('focusin', (event) => {
 els.tracks.addEventListener('focusout', (event) => {
   const target = event.target
   if (!(target instanceof HTMLInputElement)) return
+
+  if (target.matches('[data-offset-track]')) {
+    const id = Number(target.dataset.offsetTrack)
+    const track = tracks.find((item) => item.id === id)
+    if (!track || !Number.isFinite(id)) return
+    const parsed = parseOffsetMsInput(target.value)
+    const next = parsed ?? Math.round(track.offsetMs)
+    if (next !== track.offsetMs) {
+      applyManualTrackOffset(track, next)
+      renderTracks()
+      updateSkewWarning()
+      return
+    }
+    target.value = String(Math.round(track.offsetMs))
+    return
+  }
+
   if (!target.matches('[data-rename-track]')) return
   const id = Number(target.dataset.renameTrack)
   const track = tracks.find((item) => item.id === id)
@@ -2851,6 +3197,8 @@ els.tracks.addEventListener('change', (event) => {
     autoAlignTrackIds.delete(id)
     trackAlignDetails.delete(id)
     track.offsetMs = 0
+    const wasListening = mixListenActive || playingTrackIds.size > 0
+    if (wasListening) stopPlayback({ resetSeek: false })
     renderTracks()
   }
 })
@@ -2972,7 +3320,7 @@ els.tracks.addEventListener('click', (event) => {
   if (!(target instanceof Element)) return
   if (
     target.closest(
-      '[data-toggle-track], .track-mute, .track-check, .track-name, .track-drag, [data-auto-align-track], [data-select-all], [data-align-all], [data-delete-all-tracks]',
+      '[data-toggle-track], .track-mute, .track-check, .track-name, .track-offset, .track-offset-wrap, .track-drag, [data-offset-track], [data-auto-align-track], [data-select-all], [data-align-all], [data-delete-all-tracks]',
     )
   ) {
     return
@@ -3024,6 +3372,7 @@ els.tracks.addEventListener('click', (event) => {
     autoAlignTrackIds.delete(id)
     trackAlignDetails.delete(id)
     renderTracks()
+    updateSkewWarning()
   }
 })
 
@@ -3198,6 +3547,8 @@ window.addEventListener('keydown', (event) => {
 
 applyKeyboardShortcutTooltips()
 updateHelpShortcutsVisibility()
+updateSinkSettingsUi(supportsAudioSinkSelect())
+void refreshAudioDeviceOptions()
 
 setUi()
 updateCalageDisplay()
