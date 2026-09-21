@@ -341,6 +341,14 @@ body {
   gap: 0.45rem;
 }
 
+.settings-devices-section + .settings-devices-section {
+  margin-top: 0.55rem;
+}
+
+[data-devices-desktop][hidden] {
+  display: none !important;
+}
+
 .settings-devices-subtitle {
   margin: 0;
   font-size: 0.84rem;
@@ -356,7 +364,6 @@ body {
 
 .settings-devices-cols--single {
   grid-template-columns: 1fr;
-  max-width: calc(50% - 0.5rem);
 }
 
 .settings-devices-cols[hidden] {
@@ -379,10 +386,6 @@ body {
 @media (max-width: 480px) {
   .settings-devices-cols {
     grid-template-columns: 1fr;
-  }
-
-  .settings-devices-cols--single {
-    max-width: none;
   }
 }
 

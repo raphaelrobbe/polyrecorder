@@ -261,62 +261,58 @@ app.innerHTML = `
           <div class="settings-devices">
             <h3 class="settings-devices-title">Périphériques audio</h3>
 
-            <div class="settings-devices-section" data-sink-settings>
-              <h4 class="settings-devices-subtitle">Lecture</h4>
-              <p class="settings-group-hint">
-                Pour éviter que le micro reprenne le son lu : utilise un casque.
-                <span data-sink-earpiece-note hidden>
-                  L’écouteur d’oreille n’est en général pas sélectionnable depuis le navigateur.
-                </span>
-              </p>
-              <div class="settings-devices-cols" data-sink-selects>
-                <label class="settings-device-col" data-sink-monitor-wrap>
-                  <span class="settings-device-col-title">pendant l'enregistrement</span>
-                  <select
-                    class="settings-select"
-                    data-sink-monitor
-                    aria-label="Sortie pendant l'enregistrement"
-                  ></select>
-                </label>
-                <label class="settings-device-col" data-sink-playback-wrap>
-                  <span class="settings-device-col-title">en lecture</span>
-                  <select
-                    class="settings-select"
-                    data-sink-playback
-                    aria-label="Sortie en lecture"
-                  ></select>
-                </label>
-              </div>
-              <p class="settings-note" data-sink-unsupported hidden>
-                Ce navigateur ne permet pas de choisir la sortie audio depuis la page.
-                Branche un casque pour le monitoring, ou change la sortie dans les réglages du système.
-              </p>
-              <p class="settings-note" data-sink-mobile-note hidden>
-                Sur téléphone ou tablette, certains choix de sortie (surtout Bluetooth) peuvent couper le son Web Audio.
-                Si tu n’entends plus rien, reviens à «&nbsp;Par défaut (système)&nbsp;».
-              </p>
-            </div>
+            <p class="settings-note" data-devices-mobile-note hidden>
+              Sur téléphone ou tablette, choisir une entrée ou une sortie depuis le navigateur
+              pose plus de problèmes que ça n’en résout (casque Bluetooth mal détecté, son coupé, micro imposé par le système…).
+              Branche plutôt un casque : le téléphone gère la route audio.
+            </p>
 
-            <div class="settings-devices-section">
-              <h4 class="settings-devices-subtitle">Enregistrement</h4>
-              <p class="settings-group-hint">
-                Micro utilisé pour capturer les prises. Les libellés du navigateur peuvent différer du nom Bluetooth habituel.
-              </p>
-              <div class="settings-devices-cols settings-devices-cols--single" data-input-selects>
-                <label class="settings-device-col" data-input-monitor-wrap>
-                  <span class="settings-device-col-title">pendant l'enregistrement</span>
-                  <select
-                    class="settings-select"
-                    data-input-monitor
-                    aria-label="Micro pendant l'enregistrement"
-                  ></select>
-                </label>
+            <div data-devices-desktop>
+              <div class="settings-devices-section" data-sink-settings>
+                <h4 class="settings-devices-subtitle">Lecture</h4>
+                <p class="settings-group-hint">
+                  Pour éviter que le micro reprenne le son lu : utilise un casque.
+                </p>
+                <div class="settings-devices-cols" data-sink-selects>
+                  <label class="settings-device-col" data-sink-monitor-wrap>
+                    <span class="settings-device-col-title">pendant l'enregistrement</span>
+                    <select
+                      class="settings-select"
+                      data-sink-monitor
+                      aria-label="Sortie pendant l'enregistrement"
+                    ></select>
+                  </label>
+                  <label class="settings-device-col" data-sink-playback-wrap>
+                    <span class="settings-device-col-title">en lecture</span>
+                    <select
+                      class="settings-select"
+                      data-sink-playback
+                      aria-label="Sortie en lecture"
+                    ></select>
+                  </label>
+                </div>
+                <p class="settings-note" data-sink-unsupported hidden>
+                  Ce navigateur ne permet pas de choisir la sortie audio depuis la page.
+                  Branche un casque pour le monitoring, ou change la sortie dans les réglages du système.
+                </p>
               </div>
-              <p class="settings-note" data-input-mobile-note hidden>
-                Sur téléphone ou tablette, l’entrée micro est laissée au système (haut-parleur, filaire, Bluetooth).
-                PolyRecorder n’offre pas de choix d’entrée ici : connecte ou déconnecte le casque dans les réglages de l’appareil.
-              </p>
-              <p class="settings-note" data-input-override-note hidden></p>
+
+              <div class="settings-devices-section">
+                <h4 class="settings-devices-subtitle">Enregistrement</h4>
+                <p class="settings-group-hint">
+                  Micro utilisé pour capturer les prises. Les libellés apparaissent après l’autorisation d’accès.
+                </p>
+                <div class="settings-devices-cols settings-devices-cols--single">
+                  <label class="settings-device-col" data-input-monitor-wrap>
+                    <select
+                      class="settings-select"
+                      data-input-monitor
+                      aria-label="Micro pendant l'enregistrement"
+                    ></select>
+                  </label>
+                </div>
+                <p class="settings-note" data-input-override-note hidden></p>
+              </div>
             </div>
           </div>
         </div>
@@ -498,10 +494,8 @@ const els = {
   sinkPlaybackWrap: app.querySelector<HTMLElement>('[data-sink-playback-wrap]')!,
   sinkSelects: app.querySelector<HTMLElement>('[data-sink-selects]')!,
   sinkUnsupported: app.querySelector<HTMLElement>('[data-sink-unsupported]')!,
-  sinkEarpieceNote: app.querySelector<HTMLElement>('[data-sink-earpiece-note]')!,
-  sinkMobileNote: app.querySelector<HTMLElement>('[data-sink-mobile-note]')!,
-  inputSelects: app.querySelector<HTMLElement>('[data-input-selects]')!,
-  inputMobileNote: app.querySelector<HTMLElement>('[data-input-mobile-note]')!,
+  devicesDesktop: app.querySelector<HTMLElement>('[data-devices-desktop]')!,
+  devicesMobileNote: app.querySelector<HTMLElement>('[data-devices-mobile-note]')!,
   inputOverrideNote: app.querySelector<HTMLElement>('[data-input-override-note]')!,
   inputMonitor: app.querySelector<HTMLSelectElement>('[data-input-monitor]')!,
   playIcon: app.querySelector<SVGElement>('.icon-play')!,
@@ -678,17 +672,15 @@ function supportsAudioSinkSelect(): boolean {
 }
 
 /**
- * Experiment: allow output selection wherever setSinkId exists, including mobile.
+ * Device pickers are desktop-only: on phones/tablets, browser I/O selection
+ * is unreliable (missing Bluetooth, silent playback, OS-forced mic).
  */
-function allowsAudioSinkSelect(): boolean {
-  return supportsAudioSinkSelect()
+function allowsAudioDeviceSelect(): boolean {
+  return !prefersHeadphonesHint()
 }
 
-/**
- * Experiment: on phones/tablets, leave the mic to the OS (no input picker).
- */
-function allowsAudioInputSelect(): boolean {
-  return !prefersHeadphonesHint()
+function allowsAudioSinkSelect(): boolean {
+  return supportsAudioSinkSelect() && allowsAudioDeviceSelect()
 }
 
 function currentAudioSinkMode(): AudioSinkMode {
@@ -701,7 +693,7 @@ function sinkIdForMode(mode: AudioSinkMode): string {
 }
 
 function inputIdForCapture(): string {
-  return allowsAudioInputSelect() ? inputMonitorId : ''
+  return allowsAudioDeviceSelect() ? inputMonitorId : ''
 }
 
 async function applyAudioSink(mode: AudioSinkMode = currentAudioSinkMode()) {
@@ -723,15 +715,17 @@ async function applyAudioSink(mode: AudioSinkMode = currentAudioSinkMode()) {
 }
 
 function updateDeviceSettingsUi(apiSupported: boolean) {
+  const mobile = !allowsAudioDeviceSelect()
+  els.devicesMobileNote.hidden = !mobile
+  els.devicesDesktop.hidden = mobile
+  if (mobile) {
+    setInputOverrideNote(null)
+    return
+  }
+
   const sinkSelectable = apiSupported && allowsAudioSinkSelect()
-  const inputSelectable = allowsAudioInputSelect()
   els.sinkUnsupported.hidden = sinkSelectable
   els.sinkSelects.hidden = !sinkSelectable
-  els.sinkEarpieceNote.hidden = !prefersHeadphonesHint()
-  els.sinkMobileNote.hidden = !(prefersHeadphonesHint() && sinkSelectable)
-  els.inputSelects.hidden = !inputSelectable
-  els.inputMobileNote.hidden = inputSelectable
-  if (!inputSelectable) setInputOverrideNote(null)
 }
 
 function setInputOverrideNote(message: string | null) {
@@ -803,12 +797,14 @@ async function unlockAudioDeviceLabels() {
 }
 
 async function refreshAudioDeviceOptions() {
+  const apiSupported = supportsAudioSinkSelect()
+  const deviceSelectable = allowsAudioDeviceSelect()
+  updateDeviceSettingsUi(apiSupported)
+  if (!deviceSelectable) return
+
   await unlockAudioDeviceLabels()
 
-  const apiSupported = supportsAudioSinkSelect()
   const sinkSelectable = allowsAudioSinkSelect()
-  const inputSelectable = allowsAudioInputSelect()
-  updateDeviceSettingsUi(apiSupported)
 
   let outputs: MediaDeviceInfo[] = []
   let inputs: MediaDeviceInfo[] = []
@@ -836,13 +832,11 @@ async function refreshAudioDeviceOptions() {
     }
   }
 
-  if (inputSelectable) {
-    fillDeviceSelect(els.inputMonitor, inputs, inputMonitorId, 'Micro')
+  fillDeviceSelect(els.inputMonitor, inputs, inputMonitorId, 'Micro')
 
-    if (els.inputMonitor.value !== inputMonitorId) {
-      inputMonitorId = els.inputMonitor.value
-      saveSinkId(INPUT_MONITOR_KEY, inputMonitorId)
-    }
+  if (els.inputMonitor.value !== inputMonitorId) {
+    inputMonitorId = els.inputMonitor.value
+    saveSinkId(INPUT_MONITOR_KEY, inputMonitorId)
   }
 }
 
