@@ -722,14 +722,6 @@ function setDeckView(view: DeckView) {
   }
 }
 
-function setSettingsOpen(open: boolean) {
-  setDeckView(open ? 'settings' : 'main')
-}
-
-function setHelpOpen(open: boolean) {
-  setDeckView(open ? 'help' : 'main')
-}
-
 function updateHelpShortcutsVisibility() {
   els.helpShortcuts.hidden = !keyboardHintsEnabled
 }
