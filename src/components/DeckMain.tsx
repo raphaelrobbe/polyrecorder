@@ -1,12 +1,18 @@
 import { isDefaultSessionTitle } from '../lib/format'
 import { normalizeAndSetSessionTitle } from '../lib/sessionActions'
+import { cn } from '../lib/utils'
 import { withShortcut } from '../hooks/useKeyboardShortcuts'
 import { useSessionStore } from '../store/sessionStore'
 import { CaptureBar } from './CaptureBar'
 import { CalagePanel } from './CalagePanel'
-import { TracksList } from './TracksList'
+import { ErrorBanner } from './StatusMessage'
+import { TracksList } from './tracks/TracksList'
 
-export function DeckMain() {
+type DeckMainProps = {
+  className?: string
+}
+
+export function DeckMain({ className }: DeckMainProps) {
   const sessionTitle = useSessionStore((s) => s.sessionTitle)
   const setSessionTitle = useSessionStore((s) => s.setSessionTitle)
   const timerText = useSessionStore((s) => s.timerText)
@@ -14,12 +20,20 @@ export function DeckMain() {
   const error = useSessionStore((s) => s.error)
   const keyboardHintsEnabled = useSessionStore((s) => s.keyboardHintsEnabled)
 
+  const defaultName = isDefaultSessionTitle(sessionTitle)
+
   return (
-    <div className="deck-main" data-deck-main>
-      <div className="status">
+    <div className={cn(className)}>
+      <div className="relative mb-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
         <input
           type="text"
-          className={`session-title${isDefaultSessionTitle(sessionTitle) ? ' is-default-name' : ''}`}
+          className={cn(
+            'col-start-2 justify-self-center w-[min(100%,22rem)] min-w-0 border-0 bg-transparent font-[inherit] font-bold text-[1.35rem] leading-[1.25] text-center py-[0.2rem] px-[0.45rem] rounded-[10px] [font-synthesis:style]',
+            'hover:bg-[rgba(15,61,62,0.06)] focus:bg-[rgba(15,61,62,0.06)] focus:outline-none focus:shadow-[inset_0_0_0_1px_rgba(15,61,62,0.18)]',
+            defaultName
+              ? 'text-ink-soft italic font-semibold'
+              : 'text-ink',
+          )}
           data-session-title
           value={sessionTitle}
           maxLength={60}
@@ -54,7 +68,11 @@ export function DeckMain() {
             normalizeAndSetSessionTitle(event.currentTarget.value)
           }}
         />
-        <div className="timer" data-timer hidden={!recordingTimerVisible}>
+        <div
+          className="col-start-3 justify-self-end tabular-nums font-semibold tracking-[0.04em] text-ink-soft"
+          data-timer
+          hidden={!recordingTimerVisible}
+        >
           {timerText}
         </div>
       </div>
@@ -62,9 +80,7 @@ export function DeckMain() {
       <CaptureBar />
       <TracksList />
 
-      <p className="error" data-error hidden={!error}>
-        {error}
-      </p>
+      <ErrorBanner hidden={!error}>{error}</ErrorBanner>
 
       <CalagePanel />
     </div>

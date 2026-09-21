@@ -1,29 +1,23 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { withShortcut } from '../hooks/useKeyboardShortcuts'
+import { cn } from '../lib/utils'
 import { useDeckStore } from '../store/deckStore'
 import { useSessionStore } from '../store/sessionStore'
 
 type DeckOverlayPanelProps = {
   title: string
-  /** Wrapper class: `deck-settings` or `deck-help`. */
-  className: string
-  /** Body wrapper class: `settings-options` or `help-sections`. */
-  bodyClassName: string
   closeAriaLabel: string
-  /** e.g. `data-deck-settings` / `data-deck-help` for parity with legacy selectors. */
-  panelDataAttr: 'data-deck-settings' | 'data-deck-help'
-  closeDataAttr: 'data-close-settings' | 'data-close-help'
+  className?: string
+  bodyClassName?: string
   children: ReactNode
 }
 
-/** Shared shell for Paramètres / Aide (close button, title, scrollable body). */
+/** Shared shell for Paramètres / Aide (close button, title, body). */
 export function DeckOverlayPanel({
   title,
+  closeAriaLabel,
   className,
   bodyClassName,
-  closeAriaLabel,
-  panelDataAttr,
-  closeDataAttr,
   children,
 }: DeckOverlayPanelProps) {
   const leaveDeckOverlay = useDeckStore((s) => s.leaveDeckOverlay)
@@ -35,12 +29,16 @@ export function DeckOverlayPanel({
   }, [])
 
   return (
-    <div className={className} {...{ [panelDataAttr]: true }}>
+    <div
+      className={cn(
+        'relative min-h-[11rem] px-1 pb-2 pt-[0.35rem]',
+        className,
+      )}
+    >
       <button
         ref={closeRef}
         type="button"
-        className="btn-deck-icon btn-close-panel"
-        {...{ [closeDataAttr]: true }}
+        className="absolute top-[0.35rem] right-[0.35rem] z-[2] grid h-[2.9rem] w-[2.9rem] place-items-center rounded-[14px] border-0 bg-transparent p-0 text-[2.15rem] font-normal leading-none text-ink-soft cursor-pointer transition-[background,color] duration-[160ms] ease-in-out hover:bg-[rgba(15,61,62,0.08)] hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-[rgba(15,61,62,0.35)] focus-visible:outline-offset-2"
         aria-label={closeAriaLabel}
         title={withShortcut('Fermer', 'Échap', keyboardHintsEnabled)}
         data-title-base="Fermer"
@@ -48,8 +46,10 @@ export function DeckOverlayPanel({
       >
         ×
       </button>
-      <h2 className="settings-title">{title}</h2>
-      <div className={bodyClassName}>{children}</div>
+      <h2 className="font-display mr-[2.8rem] mb-[1.15rem] mt-0 text-[1.45rem] font-bold tracking-[-0.02em] text-ink">
+        {title}
+      </h2>
+      <div className={cn(bodyClassName)}>{children}</div>
     </div>
   )
 }

@@ -1,28 +1,34 @@
+import { prefersHeadphonesHint } from '../lib/audio/runtime'
 import { useSessionStore } from '../store/sessionStore'
 import { DeckOverlayPanel } from './DeckOverlayPanel'
 import { HelpSection, HelpText } from './HelpSection'
+import {
+  HelpShortcutRow,
+  HelpShortcutsCategory,
+  HelpShortcutsTable,
+} from './HelpShortcuts'
 
-export function HelpPanel() {
+type HelpPanelProps = {
+  className?: string
+}
+
+export function HelpPanel({ className }: HelpPanelProps) {
   const keyboardHintsEnabled = useSessionStore((s) => s.keyboardHintsEnabled)
+  // Aide : hors mobile, afficher même si la 1re touche n’a pas encore activé les hints
+  const showShortcuts = !prefersHeadphonesHint() || keyboardHintsEnabled
 
   return (
     <DeckOverlayPanel
       title="Aide"
-      className="deck-help"
-      bodyClassName="help-sections"
+      className={className}
+      bodyClassName="flex flex-col gap-5"
       closeAriaLabel="Fermer l'aide"
-      panelDataAttr="data-deck-help"
-      closeDataAttr="data-close-help"
     >
       <HelpSection title="Personnalisation">
         <HelpText>
           Le nom du projet se modifie en haut, en cliquant sur le titre
-          <span data-help-f2-hint hidden={!keyboardHintsEnabled}>
-            {' '}
-            (ou avec F2)
-          </span>
-          . Le nom de chaque piste se modifie aussi en cliquant dessus dans la
-          liste.
+          <span hidden={!showShortcuts}> (ou avec F2)</span>. Le nom de chaque
+          piste se modifie aussi en cliquant dessus dans la liste.
         </HelpText>
         <HelpText>
           Ces noms servent au fichier MP3 téléchargé : le titre du projet, et —
@@ -49,59 +55,21 @@ export function HelpPanel() {
         </HelpText>
       </HelpSection>
 
-      <HelpSection
-        title="Raccourcis clavier"
-        dataAttr="help-shortcuts"
-        hidden={!keyboardHintsEnabled}
-      >
-        <table className="help-shortcuts-table">
-          <tbody>
-            <tr className="help-shortcuts-category">
-              <td colSpan={2}>Enregistrement</td>
-            </tr>
-            <tr>
-              <td>E / R</td>
-              <td>Enregistrer</td>
-            </tr>
-            <tr>
-              <td>S / N</td>
-              <td>Piste suivante</td>
-            </tr>
-            <tr>
-              <td>Suppr</td>
-              <td>Annuler la prise</td>
-            </tr>
-            <tr>
-              <td>Entrée</td>
-              <td>Stop</td>
-            </tr>
-            <tr className="help-shortcuts-category">
-              <td colSpan={2}>Lecture</td>
-            </tr>
-            <tr>
-              <td>Espace</td>
-              <td>Play / Pause</td>
-            </tr>
-            <tr className="help-shortcuts-category">
-              <td colSpan={2}>Téléchargement</td>
-            </tr>
-            <tr>
-              <td>T / D</td>
-              <td>Télécharger le MP3</td>
-            </tr>
-            <tr className="help-shortcuts-category">
-              <td colSpan={2}>Général</td>
-            </tr>
-            <tr>
-              <td>F2</td>
-              <td>Éditer le titre</td>
-            </tr>
-            <tr>
-              <td>Échap</td>
-              <td>Fermer Aide / Paramètres</td>
-            </tr>
-          </tbody>
-        </table>
+      <HelpSection title="Raccourcis clavier" hidden={!showShortcuts}>
+        <HelpShortcutsTable>
+          <HelpShortcutsCategory>Enregistrement</HelpShortcutsCategory>
+          <HelpShortcutRow keys="E / R" action="Enregistrer" />
+          <HelpShortcutRow keys="S / N" action="Piste suivante" />
+          <HelpShortcutRow keys="Suppr" action="Annuler la prise" />
+          <HelpShortcutRow keys="Entrée" action="Stop" />
+          <HelpShortcutsCategory>Lecture</HelpShortcutsCategory>
+          <HelpShortcutRow keys="Espace" action="Play / Pause" />
+          <HelpShortcutsCategory>Téléchargement</HelpShortcutsCategory>
+          <HelpShortcutRow keys="T / D" action="Télécharger le MP3" />
+          <HelpShortcutsCategory>Général</HelpShortcutsCategory>
+          <HelpShortcutRow keys="F2" action="Éditer le titre" />
+          <HelpShortcutRow keys="Échap" action="Fermer Aide / Paramètres" />
+        </HelpShortcutsTable>
       </HelpSection>
     </DeckOverlayPanel>
   )

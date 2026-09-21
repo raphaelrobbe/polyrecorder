@@ -1,0 +1,33 @@
+import type { ButtonHTMLAttributes } from 'react'
+import { cn } from '../../lib/utils'
+import { IconDragDots } from '../icons'
+
+export type TrackDragHandleProps = ButtonHTMLAttributes<HTMLButtonElement> & {
+  ariaLabel: string
+}
+
+/** Grab handle for track drag-reorder. */
+export function TrackDragHandle({
+  ariaLabel,
+  className,
+  title = 'Glisser pour réordonner',
+  type = 'button',
+  ...props
+}: TrackDragHandleProps) {
+  return (
+    <button
+      type={type}
+      className={cn(
+        'col-start-1 row-start-1 grid h-[1.9rem] w-[1.35rem] place-items-center rounded-md border-0 bg-transparent p-0 text-ink-soft opacity-70 touch-none cursor-grab',
+        'hover:bg-[rgba(15,61,62,0.06)] hover:text-ink hover:opacity-100',
+        'active:cursor-grabbing',
+        className,
+      )}
+      aria-label={ariaLabel}
+      title={title}
+      {...props}
+    >
+      <IconDragDots className="size-[1.35rem]" />
+    </button>
+  )
+}

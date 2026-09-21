@@ -143,9 +143,10 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   skewWarningMessage: null,
   skewWarningShowOpenAdvanced: false,
 
+  // any-* : souris/trackpad présents même si le tactile est le pointeur principal
   keyboardHintsEnabled:
     typeof window !== 'undefined'
-      ? window.matchMedia('(hover: hover) and (pointer: fine)').matches
+      ? window.matchMedia('(any-hover: hover) and (any-pointer: fine)').matches
       : false,
   inputOverrideNote: null,
 

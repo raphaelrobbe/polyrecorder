@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { formatCentis, getMixDurationMs } from '../lib/format'
+import { formatCentis, getMixDurationMs } from '../../lib/format'
 import {
   alignableTracks,
   deleteAllTracks,
@@ -10,17 +10,26 @@ import {
   setAllTracksEnabled,
   setCalageMode,
   setError,
-} from '../lib/sessionActions'
-import { useSessionStore } from '../store/sessionStore'
+} from '../../lib/sessionActions'
+import { cn } from '../../lib/utils'
+import { useSessionStore } from '../../store/sessionStore'
+import { Button } from '../Button'
+import { IconClose } from '../icons'
+import { TrackAlignCheck } from './TrackAlignCheck'
+import { TrackMute } from './TrackMute'
 import { TrackRow } from './TrackRow'
 
 const TOUCH_REORDER_THRESHOLD_PX = 8
 const TOUCH_REORDER_EXCLUDE =
-  'input, textarea, select, button:not(.track-drag), .track-mute, .track-check, .track-name, .track-nudge, .track-offset, [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-toggle-track]'
+  'input, textarea, select, button:not([data-drag-track]), [data-track-mute], [data-track-align], [data-rename-track], [data-track-nudge], [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-toggle-track]'
 
 type DragOverState = { trackId: number; edge: 'before' | 'after' } | null
 
-export function TracksList() {
+type TracksListProps = {
+  className?: string
+}
+
+export function TracksList({ className }: TracksListProps) {
   const tracks = useSessionStore((s) => s.tracks)
   const state = useSessionStore((s) => s.state)
   const calageMode = useSessionStore((s) => s.calageMode)
@@ -58,6 +67,8 @@ export function TracksList() {
   const someAutoAlign = alignable.some((track) =>
     autoAlignTrackIds.includes(track.id),
   )
+  const masterMuteIndeterminate =
+    selectedCount > 0 && selectedCount < tracks.length
 
   const duration = getMixDurationMs(tracks)
   const seekPosition = mixSeekMs
@@ -82,7 +93,7 @@ export function TracksList() {
 
     let targetRow: HTMLElement | null = null
     for (const row of listRef.current.querySelectorAll<HTMLElement>(
-      '.track-row',
+      '[data-track-id]',
     )) {
       const id = Number(row.dataset.trackId)
       if (id === fromId) continue
@@ -114,7 +125,7 @@ export function TracksList() {
 
       let targetRow: HTMLElement | null = null
       for (const row of listRef.current.querySelectorAll<HTMLElement>(
-        '.track-row',
+        '[data-track-id]',
       )) {
         const id = Number(row.dataset.trackId)
         if (id === fromId) continue
@@ -155,12 +166,15 @@ export function TracksList() {
 
   return (
     <>
-      <div className="tracks" data-tracks-panel>
-        <p className="mix-clock" data-mix-clock>
+      <div
+        className={cn('relative mt-5 pt-[0.35rem]', className)}
+        data-tracks-panel
+      >
+        <p className="mb-[0.35rem] mt-0 text-center text-[0.95rem] font-bold tracking-[0.04em] tabular-nums text-ink-soft" data-mix-clock>
           {mixClockText}
         </p>
         <div
-          className="mix-seek"
+          className="relative mb-[0.85rem] h-[0.55rem] cursor-pointer touch-none rounded-full bg-[rgba(15,61,62,0.1)] after:pointer-events-none after:absolute after:top-1/2 after:left-[var(--seek-thumb,0%)] after:h-[0.7rem] after:w-[0.7rem] after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-full after:border-2 after:border-[#f4f1ea] after:bg-ink after:opacity-0 after:shadow-[0_1px_3px_rgba(15,61,62,0.2)] after:content-[''] hover:after:opacity-100 focus-visible:after:opacity-100"
           data-mix-seek
           role="slider"
           tabIndex={0}
@@ -196,53 +210,33 @@ export function TracksList() {
           onPointerCancel={() => setSeekDragActive(false)}
         >
           <div
-            className="mix-seek-fill"
+            className="pointer-events-none absolute inset-y-0 left-0 w-0 rounded-[inherit] bg-ink"
             data-mix-seek-fill
             style={{ width: pct }}
           />
         </div>
-        <p className="ref-peaks" data-ref-peaks hidden={!showRefPeaks}>
+        <p
+          className="mt-[0.55rem] mb-[0.15rem] text-left text-[0.78rem] font-semibold leading-[1.45] tracking-[0.01em] whitespace-pre-line tabular-nums text-ink-soft"
+          data-ref-peaks
+          hidden={!showRefPeaks}
+        >
           {showRefPeaks ? refPeaksLabel : ''}
         </p>
-        <div className="tracks-master-row">
-          <span className="tracks-master-drag" aria-hidden="true" />
-          <label
-            className="track-mute"
+        <div className="mb-[0.45rem] flex min-h-[1.7rem] items-center gap-[0.12rem]">
+          <span className="w-[1.35rem] shrink-0" aria-hidden="true" />
+          <TrackMute
             title="Activer / couper toutes les pistes"
-          >
-            <input
-              type="checkbox"
-              data-select-all
-              aria-label="Activer toutes les pistes"
-              checked={allSelected}
-              ref={(el) => {
-                if (el) {
-                  el.indeterminate =
-                    selectedCount > 0 && selectedCount < tracks.length
-                }
-              }}
-              onChange={(event) => setAllTracksEnabled(event.target.checked)}
-            />
-            <span className="track-mute-icon" aria-hidden="true">
-              <svg className="icon-speaker-on" viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 0 0-2.5-4.03v8.05A4.5 4.5 0 0 0 16.5 12zM14 3.23v2.06a7 7 0 0 1 0 13.42v2.06a9 9 0 0 0 0-17.54z"
-                />
-              </svg>
-              <svg className="icon-speaker-off" viewBox="0 0 24 24">
-                <path
-                  fill="currentColor"
-                  d="M3.63 3.63 2.22 5.04 6.18 9H3v6h4l5 5v-6.96l4.57 4.57A7 7 0 0 1 14 18.7v2.06a9 9 0 0 0 3.33-1.68l2.63 2.63 1.41-1.41L3.63 3.63zM16.5 12c0-.77-.2-1.5-.54-2.14l1.5-1.5A6.9 6.9 0 0 1 18.5 12a6.9 6.9 0 0 1-.8 3.22l1.52 1.52A8.9 8.9 0 0 0 20.5 12c0-2.8-1.28-5.3-3.3-6.93l-1.47 1.47A6.95 6.95 0 0 1 16.5 12zM12 4 9.91 6.09 12 8.18V4z"
-                />
-              </svg>
-            </span>
-          </label>
-          <div className="tracks-master-spacer">
-            <button
-              type="button"
-              className="btn btn-trash btn-trash-all"
-              data-delete-all-tracks
+            ariaLabel="Activer toutes les pistes"
+            checked={allSelected}
+            indeterminate={masterMuteIndeterminate}
+            onCheckedChange={(on) => setAllTracksEnabled(on)}
+            inputProps={{ 'data-select-all': true }}
+          />
+          <div className="flex min-w-0 flex-auto items-center justify-end">
+            <Button
+              variant="trash"
+              className="h-[1.7rem] w-[1.7rem] rounded-lg text-[1.15rem]"
+              icon={<IconClose />}
               aria-label="Supprimer toutes les pistes"
               title="Supprimer toutes les pistes"
               disabled={state === 'recording'}
@@ -256,39 +250,31 @@ export function TracksList() {
                 if (!ok) return
                 deleteAllTracks()
               }}
-            >
-              ×
-            </button>
+            />
           </div>
-          <label
-            className="track-check track-check-align"
-            data-align-header
+          <TrackAlignCheck
             hidden={!calageMode || alignable.length === 0}
             title="Activer / désactiver le calage auto (sauf piste 1)"
-          >
-            <input
-              type="checkbox"
-              data-align-all
-              aria-label="Calage auto sur toutes les pistes"
-              checked={allAutoAlign}
-              disabled={alignable.length === 0 || !calageMode}
-              ref={(el) => {
-                if (el) {
-                  el.indeterminate = someAutoAlign && !allAutoAlign
-                }
-              }}
-              onChange={(event) => setAllAutoAlign(event.target.checked)}
-            />
-            <span className="track-check-box" aria-hidden="true" />
-          </label>
+            ariaLabel="Calage auto sur toutes les pistes"
+            checked={allAutoAlign}
+            indeterminate={someAutoAlign && !allAutoAlign}
+            disabled={alignable.length === 0 || !calageMode}
+            onCheckedChange={(on) => setAllAutoAlign(on)}
+            inputProps={{ 'data-align-all': true }}
+            labelProps={{ 'data-align-header': true }}
+          />
           <span
-            className="tracks-master-nudge"
+            className="w-[7.1rem] shrink-0"
             data-align-nudge-spacer
             hidden={!calageMode || alignable.length === 0}
             aria-hidden="true"
           />
         </div>
         <ul
+          className={cn(
+            'm-0 flex list-none flex-col gap-[0.45rem] p-0',
+            calageMode && 'gap-[0.15rem]',
+          )}
           data-tracks
           ref={listRef}
           onDragStart={(event) => {
@@ -314,7 +300,7 @@ export function TracksList() {
           onDragLeave={(event) => {
             const target = event.target
             if (!(target instanceof Element)) return
-            const row = target.closest('.track-row')
+            const row = target.closest('[data-track-id]')
             if (!row) return
             const related = event.relatedTarget
             if (related instanceof Node && row.contains(related)) return
@@ -333,7 +319,7 @@ export function TracksList() {
             if (event.pointerType === 'mouse') return
             if (!(event.target instanceof Element)) return
             if (event.target.closest(TOUCH_REORDER_EXCLUDE)) return
-            const row = event.target.closest<HTMLElement>('.track-row')
+            const row = event.target.closest<HTMLElement>('[data-track-id]')
             if (!row) return
             const id = Number(row.dataset.trackId)
             if (!Number.isFinite(id)) return
@@ -391,14 +377,14 @@ export function TracksList() {
       </div>
 
       <div
-        className="skew-warning"
+        className="relative mt-4 flex flex-wrap items-center gap-x-3 gap-y-[0.55rem] rounded-[14px] border-[1.5px] border-[rgba(176,110,20,0.35)] bg-[rgba(232,176,72,0.16)] py-[0.85rem] pr-[2.1rem] pl-[0.95rem] text-[0.88rem] leading-[1.35] text-[#6a4508] [&_strong]:font-extrabold [&_strong]:tracking-[0.02em]"
         data-skew-warning
         hidden={!skewWarningMessage}
         title="Un calage auto supérieur à 300 ms indique souvent un problème de sync (marquages peu clairs, latence, etc.). Ouvre le mode calage pour inspecter et ajuster."
       >
         <button
           type="button"
-          className="btn-skew-close"
+          className="absolute top-[0.35rem] right-[0.4rem] h-[1.6rem] w-[1.6rem] cursor-pointer rounded-lg border-0 bg-transparent p-0 text-[1.15rem] leading-none text-[#6a4508] hover:bg-[rgba(176,110,20,0.12)]"
           data-dismiss-skew
           aria-label="Fermer"
           title="Fermer"
@@ -409,17 +395,16 @@ export function TracksList() {
         <strong>Attention</strong>
         <span data-skew-warning-text>{skewWarningMessage}</span>
         {skewWarningShowOpenAdvanced ? (
-          <button
-            type="button"
-            className="btn btn-skew"
-            data-open-advanced
+          <Button
+            variant="default"
+            className="ml-auto border-[1.5px] border-[rgba(176,110,20,0.4)] bg-transparent px-3 py-[0.4rem] text-[0.8rem] text-[#6a4508] hover:enabled:bg-[rgba(176,110,20,0.1)]"
             onClick={() => {
               setError(null)
               setCalageMode(true)
             }}
           >
             Ouvrir le mode calage
-          </button>
+          </Button>
         ) : null}
       </div>
     </>

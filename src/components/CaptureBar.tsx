@@ -4,11 +4,23 @@ import {
   startSession,
   stopSession,
 } from '../lib/sessionActions'
+import { cn } from '../lib/utils'
 import { withShortcut } from '../hooks/useKeyboardShortcuts'
 import { useSessionStore } from '../store/sessionStore'
+import { Button } from './Button'
+import {
+  IconDiscard,
+  IconNext,
+  IconRecord,
+  IconStop,
+} from './icons'
 import { MixTransport } from './MixTransport'
 
-export function CaptureBar() {
+type CaptureBarProps = {
+  className?: string
+}
+
+export function CaptureBar({ className }: CaptureBarProps) {
   const state = useSessionStore((s) => s.state)
   const tracks = useSessionStore((s) => s.tracks)
   const meterLevel = useSessionStore((s) => s.meterLevel)
@@ -19,17 +31,18 @@ export function CaptureBar() {
 
   return (
     <div
-      className={`capture-bar${recordOnly ? ' is-record-only' : ''}`}
-      data-capture-bar
+      className={cn(
+        'relative my-[0.35rem] mb-2 grid min-h-[4.5rem] grid-cols-[1fr_auto_1fr] items-center gap-3',
+        className,
+      )}
     >
       <div
-        className="meter"
-        data-meter-wrap
+        className="relative col-[1/3] min-w-0 h-[0.7rem] overflow-hidden rounded-full bg-[rgba(15,61,62,0.1)]"
         hidden={!recording}
         aria-hidden={!recording}
       >
         <span
-          data-meter
+          className="block h-full w-0 rounded-[inherit] bg-gradient-to-r from-[#2f8f7b] to-record transition-[width] duration-[80ms] ease-linear"
           style={{
             width: `${Math.max(0, Math.min(100, meterLevel))}%`,
           }}
@@ -37,13 +50,17 @@ export function CaptureBar() {
       </div>
       <MixTransport />
       <div
-        className={`capture-actions${recording ? ' recording' : ''}`}
-        data-controls
+        className={cn(
+          'inline-flex shrink-0 items-center justify-end gap-[0.65rem]',
+          recordOnly
+            ? 'col-start-2 justify-self-center'
+            : 'col-start-3 justify-self-end',
+        )}
       >
-        <button
-          type="button"
-          className="btn btn-transport btn-next"
-          data-next
+        <Button
+          variant="transport"
+          className="h-[3.45rem] w-[3.45rem] border-[rgba(15,61,62,0.28)] bg-white text-ink hover:enabled:border-[rgba(15,61,62,0.45)] hover:enabled:bg-[rgba(15,61,62,0.06)] [&_svg]:size-[1.35rem] [&_svg]:translate-x-px"
+          icon={<IconNext />}
           hidden={!recording}
           disabled={!recording}
           aria-label="Piste suivante"
@@ -52,20 +69,12 @@ export function CaptureBar() {
             'S / N',
             keyboardHintsEnabled,
           )}
-          data-title-base="Piste suivante : rejoue cette prise et enregistre la suivante en même temps."
           onClick={() => void nextTrack()}
-        >
-          <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              fill="currentColor"
-              d="M5.5 5.5v13l9.5-6.5-9.5-6.5zm11 0h2.5v13H16.5V5.5z"
-            />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className="btn btn-transport btn-discard"
-          data-discard
+        />
+        <Button
+          variant="transport"
+          className="h-[2.75rem] w-[2.75rem] border-transparent bg-transparent text-ink-soft shadow-none hover:enabled:translate-y-0 hover:enabled:border-transparent hover:enabled:bg-[rgba(15,61,62,0.06)] hover:enabled:text-ink hover:enabled:shadow-none active:enabled:scale-[0.96] [&_svg]:size-[1.2rem]"
+          icon={<IconDiscard />}
           hidden={!recording}
           disabled={!recording}
           aria-label="Annuler la prise et recommencer"
@@ -74,46 +83,33 @@ export function CaptureBar() {
             'Suppr',
             keyboardHintsEnabled,
           )}
-          data-title-base="Annuler la prise et recommencer"
           onClick={() => void discard()}
-        >
-          <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              fill="currentColor"
-              d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM6 9h2v9H6V9zm1 12c-.6 0-1-.4-1-1l1-11h10l1 11c0 .6-.4 1-1 1H7z"
-            />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className="btn btn-transport btn-record"
-          data-record
+        />
+        <Button
+          variant="transport"
+          className="border-[rgba(226,61,61,0.55)] bg-white text-record shadow-[0_10px_28px_var(--record-glow),inset_0_1px_0_rgba(255,255,255,0.8)] hover:enabled:border-record hover:enabled:bg-[#fff5f5] hover:enabled:text-[#d32f2f] [&_svg]:size-[1.7rem]"
+          icon={<IconRecord />}
           hidden={recording}
           disabled={recording}
           aria-label="Enregistrer"
           title={withShortcut('Enregistrer', 'E / R', keyboardHintsEnabled)}
-          data-title-base="Enregistrer"
           onClick={() => void startSession()}
-        >
-          <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="12" cy="12" r="6.5" fill="currentColor" />
-          </svg>
-        </button>
-        <button
-          type="button"
-          className={`btn btn-transport btn-stop${recording ? ' is-recording' : ''}`}
-          data-stop
+        />
+        <Button
+          variant="transport"
+          className={cn(
+            '[&_svg]:size-[1.7rem]',
+            recording
+              ? 'animate-throb border-[rgba(226,61,61,0.55)] bg-white text-record hover:enabled:border-record hover:enabled:bg-[#fff5f5] hover:enabled:text-[#d32f2f]'
+              : 'border-[rgba(15,61,62,0.35)] bg-white text-ink hover:enabled:border-[rgba(15,61,62,0.5)] hover:enabled:bg-[rgba(15,61,62,0.06)]',
+          )}
+          icon={<IconStop />}
           hidden={!recording}
           disabled={!recording}
           aria-label="Stop"
           title={withShortcut('Stop', 'Entrée', keyboardHintsEnabled)}
-          data-title-base="Stop"
           onClick={() => void stopSession()}
-        >
-          <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="5" y="5" width="14" height="14" rx="2" fill="currentColor" />
-          </svg>
-        </button>
+        />
       </div>
     </div>
   )

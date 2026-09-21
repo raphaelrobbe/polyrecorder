@@ -8,8 +8,21 @@ import {
 } from '../lib/sessionActions'
 import { useSessionStore } from '../store/sessionStore'
 import { DeckOverlayPanel } from './DeckOverlayPanel'
+import { CheckboxOption, OptionGroup } from './CheckboxOption'
+import {
+  SettingsDeviceCols,
+  SettingsDeviceField,
+  SettingsDeviceSection,
+  SettingsDevices,
+  SettingsNote,
+  SettingsSelect,
+} from './SettingsDevices'
 
-export function SettingsPanel() {
+type SettingsPanelProps = {
+  className?: string
+}
+
+export function SettingsPanel({ className }: SettingsPanelProps) {
   const autoplayAfterStop = useSessionStore((s) => s.autoplayAfterStop)
   const skipCountInPlayback = useSessionStore((s) => s.skipCountInPlayback)
   const skipCountInDownload = useSessionStore((s) => s.skipCountInDownload)
@@ -46,87 +59,49 @@ export function SettingsPanel() {
   return (
     <DeckOverlayPanel
       title="Paramètres"
-      className="deck-settings"
-      bodyClassName="settings-options"
+      className={className}
+      bodyClassName="flex max-w-[36rem] flex-col gap-[0.85rem]"
       closeAriaLabel="Fermer les paramètres"
-      panelDataAttr="data-deck-settings"
-      closeDataAttr="data-close-settings"
     >
-      <label className="autoplay-option" data-autoplay-wrap>
-        <input
-          type="checkbox"
-          data-autoplay-after-stop
-          checked={autoplayAfterStop}
-          onChange={(event) => setAutoplayAfterStop(event.target.checked)}
-        />
-        <span>Lire automatiquement après la fin de l'enregistrement</span>
-      </label>
-      <div className="settings-skip-count" data-skip-count-in-wrap>
-        <span className="settings-skip-count-title">Supprimer le 1-2-3-4</span>
-        <div className="settings-skip-count-options">
-          <label
-            className="autoplay-option"
-            title="La lecture commence juste après le « 4 »"
-          >
-            <input
-              type="checkbox"
-              data-skip-count-in-playback
-              checked={skipCountInPlayback}
-              onChange={(event) =>
-                setSkipCountInPlayback(event.target.checked)
-              }
-            />
-            <span>à la lecture</span>
-          </label>
-          <label
-            className="autoplay-option"
-            title="Le MP3 commence juste après le « 4 »"
-          >
-            <input
-              type="checkbox"
-              data-skip-count-in-download
-              checked={skipCountInDownload}
-              onChange={(event) =>
-                setSkipCountInDownload(event.target.checked)
-              }
-            />
-            <span>au téléchargement du mp3</span>
-          </label>
-        </div>
-      </div>
-
-      <div className="settings-devices">
-        <h3 className="settings-devices-title">Périphériques audio</h3>
-
-        <p
-          className="settings-note"
-          data-devices-mobile-note
-          hidden={!showMobileNote}
+      <CheckboxOption
+        checked={autoplayAfterStop}
+        onCheckedChange={setAutoplayAfterStop}
+      >
+        Lire automatiquement après la fin de l'enregistrement
+      </CheckboxOption>
+      <OptionGroup title="Supprimer le 1-2-3-4">
+        <CheckboxOption
+          title="La lecture commence juste après le « 4 »"
+          checked={skipCountInPlayback}
+          onCheckedChange={setSkipCountInPlayback}
         >
+          à la lecture
+        </CheckboxOption>
+        <CheckboxOption
+          title="Le MP3 commence juste après le « 4 »"
+          checked={skipCountInDownload}
+          onCheckedChange={setSkipCountInDownload}
+        >
+          au téléchargement du mp3
+        </CheckboxOption>
+      </OptionGroup>
+
+      <SettingsDevices title="Périphériques audio">
+        <SettingsNote hidden={!showMobileNote}>
           Sur téléphone ou tablette, choisir une entrée ou une sortie depuis le
           navigateur pose plus de problèmes que ça n’en résout (casque Bluetooth
           mal détecté, son coupé, micro imposé par le système…). Branche plutôt
           un casque : le téléphone gère la route audio.
-        </p>
+        </SettingsNote>
 
-        <div data-devices-desktop hidden={!showDesktopDevices}>
-          <div className="settings-devices-section" data-sink-settings>
-            <h4 className="settings-devices-subtitle">Lecture</h4>
-            <p className="settings-group-hint">
-              Pour éviter que le micro reprenne le son lu : utilise un casque.
-            </p>
-            <div
-              className="settings-devices-cols"
-              data-sink-selects
-              hidden={!sinkSelectable}
-            >
-              <label className="settings-device-col" data-sink-monitor-wrap>
-                <span className="settings-device-col-title">
-                  pendant l'enregistrement
-                </span>
-                <select
-                  className="settings-select"
-                  data-sink-monitor
+        <div hidden={!showDesktopDevices}>
+          <SettingsDeviceSection
+            title="Lecture"
+            hint="Pour éviter que le micro reprenne le son lu : utilise un casque."
+          >
+            <SettingsDeviceCols columns={2} hidden={!sinkSelectable}>
+              <SettingsDeviceField label="pendant l'enregistrement">
+                <SettingsSelect
                   aria-label="Sortie pendant l'enregistrement"
                   value={sinkMonitorId}
                   onChange={(event) =>
@@ -138,13 +113,10 @@ export function SettingsPanel() {
                       {option.label}
                     </option>
                   ))}
-                </select>
-              </label>
-              <label className="settings-device-col" data-sink-playback-wrap>
-                <span className="settings-device-col-title">en lecture</span>
-                <select
-                  className="settings-select"
-                  data-sink-playback
+                </SettingsSelect>
+              </SettingsDeviceField>
+              <SettingsDeviceField label="en lecture">
+                <SettingsSelect
                   aria-label="Sortie en lecture"
                   value={sinkPlaybackId}
                   onChange={(event) =>
@@ -156,31 +128,23 @@ export function SettingsPanel() {
                       {option.label}
                     </option>
                   ))}
-                </select>
-              </label>
-            </div>
-            <p
-              className="settings-note"
-              data-sink-unsupported
-              hidden={sinkSelectable}
-            >
+                </SettingsSelect>
+              </SettingsDeviceField>
+            </SettingsDeviceCols>
+            <SettingsNote hidden={sinkSelectable}>
               Ce navigateur ne permet pas de choisir la sortie audio depuis la
               page. Branche un casque pour le monitoring, ou change la sortie
               dans les réglages du système.
-            </p>
-          </div>
+            </SettingsNote>
+          </SettingsDeviceSection>
 
-          <div className="settings-devices-section">
-            <h4 className="settings-devices-subtitle">Enregistrement</h4>
-            <p className="settings-group-hint">
-              Micro utilisé pour capturer les prises. Les libellés apparaissent
-              après l’autorisation d’accès.
-            </p>
-            <div className="settings-devices-cols settings-devices-cols--single">
-              <label className="settings-device-col" data-input-monitor-wrap>
-                <select
-                  className="settings-select"
-                  data-input-monitor
+          <SettingsDeviceSection
+            title="Enregistrement"
+            hint="Micro utilisé pour capturer les prises. Les libellés apparaissent après l’autorisation d’accès."
+          >
+            <SettingsDeviceCols columns={1}>
+              <SettingsDeviceField>
+                <SettingsSelect
                   aria-label="Micro pendant l'enregistrement"
                   value={inputMonitorId}
                   disabled={!deviceSelectable && inputOptions.length === 0}
@@ -193,19 +157,15 @@ export function SettingsPanel() {
                       {option.label}
                     </option>
                   ))}
-                </select>
-              </label>
-            </div>
-            <p
-              className="settings-note"
-              data-input-override-note
-              hidden={!inputOverrideNote}
-            >
+                </SettingsSelect>
+              </SettingsDeviceField>
+            </SettingsDeviceCols>
+            <SettingsNote hidden={!inputOverrideNote}>
               {inputOverrideNote}
-            </p>
-          </div>
+            </SettingsNote>
+          </SettingsDeviceSection>
         </div>
-      </div>
+      </SettingsDevices>
     </DeckOverlayPanel>
   )
 }
