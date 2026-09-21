@@ -29,16 +29,18 @@ app.innerHTML = `
       <p>Enregistre, superpose, écoute, télécharge.</p>
     </header>
 
-    <section class="deck" aria-label="Enregistreur">
+    <section class="deck" aria-label="Enregistreur" data-deck>
+      <div class="deck-main" data-deck-main>
       <div class="status">
         <input
           type="text"
-          class="session-title"
+          class="session-title is-default-name"
           data-session-title
-          value=""
-          placeholder="Donne-moi un nom"
+          value="Ma polyphonie"
           maxlength="60"
           aria-label="Titre de l'enregistrement"
+          title="Titre de l'enregistrement"
+          data-title-base="Titre de l'enregistrement"
           spellcheck="false"
         />
         <div class="timer" data-timer hidden>00:00</div>
@@ -52,7 +54,7 @@ app.innerHTML = `
               <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" fill="currentColor"/>
             </svg>
           </button>
-          <button type="button" class="btn btn-play" data-play-mix disabled aria-label="Lecture">
+          <button type="button" class="btn btn-play" data-play-mix disabled aria-label="Lecture" title="Lecture">
             <svg class="icon icon-play" viewBox="0 0 24 24" aria-hidden="true">
               <path d="M8 5v14l11-7z" fill="currentColor"/>
             </svg>
@@ -68,6 +70,7 @@ app.innerHTML = `
               disabled
               aria-label="Télécharger le mix (MP3)"
               title="Télécharger le mix des pistes sélectionnées (MP3)"
+              data-title-base="Télécharger le mix des pistes sélectionnées (MP3)"
             >
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
                 <path fill="currentColor" d="M11 4h2v8.2l2.6-2.6 1.4 1.4L12 16l-5-5 1.4-1.4L11 12.2V4zM5 18h14v2H5v-2z"/>
@@ -84,6 +87,7 @@ app.innerHTML = `
             disabled
             aria-label="Piste suivante"
             title="Piste suivante : rejoue cette prise et enregistre la suivante en même temps."
+            data-title-base="Piste suivante : rejoue cette prise et enregistre la suivante en même temps."
           >
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
               <path fill="currentColor" d="M5.5 5.5v13l9.5-6.5-9.5-6.5zm11 0h2.5v13H16.5V5.5z"/>
@@ -97,6 +101,7 @@ app.innerHTML = `
             disabled
             aria-label="Annuler la prise et recommencer"
             title="Annuler la prise et recommencer"
+            data-title-base="Annuler la prise et recommencer"
           >
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
               <path fill="currentColor" d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM6 9h2v9H6V9zm1 12c-.6 0-1-.4-1-1l1-11h10l1 11c0 .6-.4 1-1 1H7z"/>
@@ -108,6 +113,7 @@ app.innerHTML = `
             data-record
             aria-label="Enregistrer"
             title="Enregistrer"
+            data-title-base="Enregistrer"
           >
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="12" cy="12" r="6.5" fill="currentColor"/>
@@ -121,27 +127,13 @@ app.innerHTML = `
             disabled
             aria-label="Stop"
             title="Stop"
+            data-title-base="Stop"
           >
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
               <rect x="5" y="5" width="14" height="14" rx="2" fill="currentColor"/>
             </svg>
           </button>
         </div>
-      </div>
-
-      <div class="advanced-options" data-advanced-options hidden>
-        <label class="autoplay-option" data-autoplay-wrap>
-          <input type="checkbox" data-autoplay-after-stop checked />
-          <span>Lire automatiquement après la fin de l'enregistrement</span>
-        </label>
-        <label
-          class="autoplay-option"
-          data-skip-count-in-wrap
-          title="Couper le début du MP3 juste après le « 4 » (n’affecte pas la lecture)"
-        >
-          <input type="checkbox" data-skip-count-in checked />
-          <span>Couper le 1-2-3-4 au téléchargement du mp3</span>
-        </label>
       </div>
 
       <div class="tracks" data-tracks-panel hidden>
@@ -171,7 +163,17 @@ app.innerHTML = `
               </svg>
             </span>
           </label>
-          <span class="tracks-master-spacer" aria-hidden="true"></span>
+          <div class="tracks-master-spacer">
+            <button
+              type="button"
+              class="btn btn-trash btn-trash-all"
+              data-delete-all-tracks
+              aria-label="Supprimer toutes les pistes"
+              title="Supprimer toutes les pistes"
+            >
+              ×
+            </button>
+          </div>
           <label class="track-check track-check-align" data-align-header hidden title="Activer / désactiver le calage auto (sauf piste 1)">
             <input type="checkbox" data-align-all aria-label="Calage auto sur toutes les pistes" />
             <span class="track-check-box" aria-hidden="true"></span>
@@ -181,11 +183,11 @@ app.innerHTML = `
         <ul data-tracks></ul>
       </div>
 
-      <div class="skew-warning" data-skew-warning hidden title="Un calage auto supérieur à 300 ms indique souvent un problème de sync (marquages peu clairs, latence, etc.). Ouvre le mode avancé pour inspecter et ajuster.">
+      <div class="skew-warning" data-skew-warning hidden title="Un calage auto supérieur à 300 ms indique souvent un problème de sync (marquages peu clairs, latence, etc.). Ouvre le mode calage pour inspecter et ajuster.">
         <button type="button" class="btn-skew-close" data-dismiss-skew aria-label="Fermer" title="Fermer">×</button>
         <strong>Attention</strong>
         <span data-skew-warning-text></span>
-        <button type="button" class="btn btn-skew" data-open-advanced>Ouvrir le mode avancé</button>
+        <button type="button" class="btn btn-skew" data-open-advanced>Ouvrir le mode calage</button>
       </div>
 
       <p class="error" data-error hidden></p>
@@ -223,38 +225,142 @@ app.innerHTML = `
           (réglage mémorisé sur cet appareil). Ce n’est pas le calage auto des pistes (marquages 3–4) : celui-ci sert uniquement pendant l’enregistrement.
         </p>
       </div>
+      </div>
+
+      <div class="deck-settings" data-deck-settings hidden>
+        <button
+          type="button"
+          class="btn-deck-icon btn-close-panel"
+          data-close-settings
+          aria-label="Fermer les paramètres"
+          title="Fermer"
+          data-title-base="Fermer"
+        >
+          ×
+        </button>
+        <h2 class="settings-title">Paramètres</h2>
+        <div class="settings-options">
+          <label class="autoplay-option" data-autoplay-wrap>
+            <input type="checkbox" data-autoplay-after-stop checked />
+            <span>Lire automatiquement après la fin de l'enregistrement</span>
+          </label>
+          <label
+            class="autoplay-option"
+            data-skip-count-in-wrap
+            title="La lecture et le MP3 commencent juste après le « 4 »"
+          >
+            <input type="checkbox" data-skip-count-in checked />
+            <span>Supprimer le 1-2-3-4 à la lecture et au téléchargement du mp3</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="deck-help" data-deck-help hidden>
+        <button
+          type="button"
+          class="btn-deck-icon btn-close-panel"
+          data-close-help
+          aria-label="Fermer l'aide"
+          title="Fermer"
+          data-title-base="Fermer"
+        >
+          ×
+        </button>
+        <h2 class="settings-title">Aide</h2>
+        <div class="help-sections">
+          <section class="help-section" data-help-shortcuts hidden>
+            <h3 class="help-section-title">Raccourcis clavier</h3>
+            <table class="help-shortcuts-table">
+              <tbody>
+                <tr class="help-shortcuts-category">
+                  <td colspan="2">Enregistrement</td>
+                </tr>
+                <tr><td>E / R</td><td>Enregistrer</td></tr>
+                <tr><td>S / N</td><td>Piste suivante</td></tr>
+                <tr><td>Suppr</td><td>Annuler la prise</td></tr>
+                <tr><td>Entrée</td><td>Stop</td></tr>
+                <tr class="help-shortcuts-category">
+                  <td colspan="2">Lecture</td>
+                </tr>
+                <tr><td>Espace</td><td>Play / Pause</td></tr>
+                <tr class="help-shortcuts-category">
+                  <td colspan="2">Téléchargement</td>
+                </tr>
+                <tr><td>T / D</td><td>Télécharger le MP3</td></tr>
+                <tr class="help-shortcuts-category">
+                  <td colspan="2">Général</td>
+                </tr>
+                <tr><td>F2</td><td>Éditer le titre</td></tr>
+                <tr><td>Échap</td><td>Fermer Aide / Paramètres</td></tr>
+              </tbody>
+            </table>
+          </section>
+        </div>
+      </div>
     </section>
 
     <div class="marking-help" data-marking-help>
-      <div class="marking-help-heading">
-        <span class="marking-help-title">Note importante</span>
-        <button
-          type="button"
-          class="btn-info"
-          data-marking-info
-          aria-expanded="false"
-          aria-controls="marking-info-tip"
-          title="Pourquoi ces marquages ?"
-        >
-          ?
-        </button>
+      <button
+        type="button"
+        class="marking-help-toggle"
+        data-marking-accordion
+        aria-expanded="false"
+        aria-controls="marking-help-panel"
+      >
+        <span class="marking-help-title">Mode d'emploi</span>
+        <svg class="marking-help-chevron" viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="currentColor" d="M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z"/>
+        </svg>
+      </button>
+      <div class="marking-help-panel" id="marking-help-panel" data-marking-panel hidden>
+        <ul class="marking-help-steps">
+          <li>cliquer sur le bouton rouge « Enregistrer »</li>
+          <li>à haute voix et de manière régulière, dire 1-2-3-4 (ou quoi que ce soit d’audible en 4 temps) puis chanter la première voix</li>
+          <li>cliquer sur le bouton « Piste suivante » (chevron vers la droite), on passe directement à l’enregistrement de la deuxième voix</li>
+          <li>ne répéter que les 3ème et 4ème temps à haute voix puis chanter la deuxième voix</li>
+          <li>recommencer pour les voix suivantes</li>
+          <li>cliquer sur le bouton rouge « Stop » à la fin de la dernière voix</li>
+        </ul>
+        <p class="marking-tip">
+          Les navigateurs et le matériel audio introduisent une latence (casque, micro, buffer). Sans repères communs, les prises se décalent.
+          Les quatre marquages de la piste de référence et les «&nbsp;3-4&nbsp;» des pistes suivantes permettent à PolyRecorder de mesurer et corriger ce décalage automatiquement.
+          Des sons nets, espacés et réguliers donnent un meilleur calage ; une battue irrégulière ou peu audible peut fausser la synchronisation.
+        </p>
       </div>
-      <p class="marking-help-text">
-        Pour la synchronisation des pistes, la première piste (référence) doit contenir au début quatre marquages nets et réguliers (1-2-3-4 ou 1-2-1-2 ou 4 claquements…).<br />
-        Toutes les pistes suivantes doivent contenir le marquage des 3ème et 4ème temps (et pas les deux premiers !).
-      </p>
-      <p class="marking-tip" id="marking-info-tip" data-marking-tip hidden>
-        Les navigateurs et le matériel audio introduisent une latence (casque, micro, buffer). Sans repères communs, les prises se décalent.
-        Les quatre marquages de la piste de référence et les «&nbsp;3-4&nbsp;» des pistes suivantes permettent à PolyRecorder de mesurer et corriger ce décalage automatiquement.
-        Des sons nets, espacés et réguliers donnent un meilleur calage ; une battue irrégulière ou peu audible peut fausser la synchronisation.
-      </p>
     </div>
 
     <div class="mode-row">
-      <label class="mode-toggle">
+      <label class="mode-toggle" data-calage-mode-wrap hidden>
         <input type="checkbox" data-calage-mode />
-        <span>Mode avancé</span>
+        <span>Mode calage</span>
       </label>
+      <div class="utility-actions">
+        <button
+          type="button"
+          class="btn-utility"
+          data-open-help
+          aria-label="Aide"
+          title="Aide"
+        >
+          <span class="btn-utility-glyph" aria-hidden="true">?</span>
+          <span>Aide</span>
+        </button>
+        <button
+          type="button"
+          class="btn-utility"
+          data-open-settings
+          aria-label="Paramètres"
+          title="Paramètres"
+        >
+          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M19.14 12.94c.04-.31.06-.63.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.62l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.2 7.2 0 0 0-1.62-.94l-.36-2.54a.5.5 0 0 0-.49-.41h-3.84a.5.5 0 0 0-.49.41l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22L2.74 8.86a.5.5 0 0 0 .12.62l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.62l1.92 3.32a.5.5 0 0 0 .6.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54a.5.5 0 0 0 .49.41h3.84a.5.5 0 0 0 .49-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96a.5.5 0 0 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.62l-2.03-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"
+            />
+          </svg>
+          <span>Paramètres</span>
+        </button>
+      </div>
     </div>
 
     <p class="hint" data-hint></p>
@@ -275,13 +381,22 @@ const els = {
   tracksPanel: app.querySelector<HTMLElement>('[data-tracks-panel]')!,
   tracks: app.querySelector<HTMLUListElement>('[data-tracks]')!,
   selectAll: app.querySelector<HTMLInputElement>('[data-select-all]')!,
+  deleteAllTracks: app.querySelector<HTMLButtonElement>('[data-delete-all-tracks]')!,
   playMix: app.querySelector<HTMLButtonElement>('[data-play-mix]')!,
   restartMix: app.querySelector<HTMLButtonElement>('[data-restart-mix]')!,
   downloadMix: app.querySelector<HTMLButtonElement>('[data-download-mix]')!,
   mixTransport: app.querySelector<HTMLElement>('[data-mix-transport]')!,
   skipCountInWrap: app.querySelector<HTMLElement>('[data-skip-count-in-wrap]')!,
   skipCountIn: app.querySelector<HTMLInputElement>('[data-skip-count-in]')!,
-  advancedOptions: app.querySelector<HTMLElement>('[data-advanced-options]')!,
+  deckMain: app.querySelector<HTMLElement>('[data-deck-main]')!,
+  deckSettings: app.querySelector<HTMLElement>('[data-deck-settings]')!,
+  deckHelp: app.querySelector<HTMLElement>('[data-deck-help]')!,
+  openSettings: app.querySelector<HTMLButtonElement>('[data-open-settings]')!,
+  closeSettings: app.querySelector<HTMLButtonElement>('[data-close-settings]')!,
+  openHelp: app.querySelector<HTMLButtonElement>('[data-open-help]')!,
+  closeHelp: app.querySelector<HTMLButtonElement>('[data-close-help]')!,
+  helpShortcuts: app.querySelector<HTMLElement>('[data-help-shortcuts]')!,
+  deck: app.querySelector<HTMLElement>('[data-deck]')!,
   autoplayWrap: app.querySelector<HTMLElement>('[data-autoplay-wrap]')!,
   autoplayAfterStop: app.querySelector<HTMLInputElement>('[data-autoplay-after-stop]')!,
   playIcon: app.querySelector<SVGElement>('.icon-play')!,
@@ -290,6 +405,7 @@ const els = {
   mixSeek: app.querySelector<HTMLElement>('[data-mix-seek]')!,
   mixSeekFill: app.querySelector<HTMLElement>('[data-mix-seek-fill]')!,
   calageMode: app.querySelector<HTMLInputElement>('[data-calage-mode]')!,
+  calageModeWrap: app.querySelector<HTMLElement>('[data-calage-mode-wrap]')!,
   calagePanel: app.querySelector<HTMLElement>('[data-calage]')!,
   calageInfo: app.querySelector<HTMLButtonElement>('[data-calage-info]')!,
   calageTip: app.querySelector<HTMLElement>('[data-calage-tip]')!,
@@ -303,8 +419,8 @@ const els = {
   dismissSkew: app.querySelector<HTMLButtonElement>('[data-dismiss-skew]')!,
   openAdvanced: app.querySelector<HTMLButtonElement>('[data-open-advanced]')!,
   markingHelp: app.querySelector<HTMLElement>('[data-marking-help]')!,
-  markingInfo: app.querySelector<HTMLButtonElement>('[data-marking-info]')!,
-  markingTip: app.querySelector<HTMLElement>('[data-marking-tip]')!,
+  markingAccordion: app.querySelector<HTMLButtonElement>('[data-marking-accordion]')!,
+  markingPanel: app.querySelector<HTMLElement>('[data-marking-panel]')!,
   error: app.querySelector<HTMLElement>('[data-error]')!,
   hint: app.querySelector<HTMLElement>('[data-hint]')!,
   stage: app.querySelector<HTMLElement>('.stage')!,
@@ -343,6 +459,9 @@ let autoAlignTrackIds = new Set<number>()
 let referenceTrackId: number | null = null
 let trackGains = new Map<number, GainNode>()
 let calageMode = false
+let keyboardHintsEnabled = window.matchMedia(
+  '(hover: hover) and (pointer: fine)',
+).matches
 let mixListenActive = false
 let mixPaused = false
 let playWaiters: Array<() => void> = []
@@ -392,7 +511,7 @@ const TOUCH_REORDER_THRESHOLD_PX = 10
 const BEAT_GAP_MAX_RATIO = 1.2
 
 const TOUCH_REORDER_EXCLUDE =
-  'input, textarea, select, button:not(.track-drag), .track-mute, .track-check, .track-name, .track-nudge, [data-delete-track], [data-nudge-track], [data-auto-align-track], [data-toggle-track]'
+  'input, textarea, select, button:not(.track-drag), .track-mute, .track-check, .track-name, .track-nudge, [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-toggle-track]'
 
 function loadLatencyTrimMs(): number {
   try {
@@ -449,13 +568,19 @@ function defaultSessionTitle(): string {
   return 'Ma polyphonie'
 }
 
+function isDefaultSessionTitle(name: string): boolean {
+  return name.trim() === defaultSessionTitle()
+}
+
 function getSessionTitle(): string {
   const value = els.sessionTitle.value.trim()
   return value || defaultSessionTitle()
 }
 
 function normalizeSessionTitleInput() {
-  els.sessionTitle.value = els.sessionTitle.value.trim().slice(0, 60)
+  const next = els.sessionTitle.value.trim().slice(0, 60) || defaultSessionTitle()
+  els.sessionTitle.value = next
+  els.sessionTitle.classList.toggle('is-default-name', isDefaultSessionTitle(next))
 }
 
 function sanitizeFilenamePart(value: string): string {
@@ -560,17 +685,53 @@ function setCalageMode(on: boolean) {
   calageMode = on
   els.calageMode.checked = on
   els.calagePanel.hidden = true
-  els.advancedOptions.hidden = !on
-  els.autoplayWrap.hidden = !on
   els.alignHeader.hidden = !on || tracks.length < 2
   els.alignNudgeSpacer.hidden = !on || tracks.length < 2
-  els.skipCountInWrap.hidden = !on
   els.openAdvanced.hidden = on
   els.stage.classList.toggle('is-advanced', on)
   if (!on) setCalageTipOpen(false)
   updateRefPeaksDisplay()
   renderTracks()
   updateMixButtons()
+}
+
+type DeckView = 'main' | 'settings' | 'help'
+
+function setDeckView(view: DeckView) {
+  const prev = !els.deckSettings.hidden
+    ? 'settings'
+    : !els.deckHelp.hidden
+      ? 'help'
+      : 'main'
+
+  els.deckMain.hidden = view !== 'main'
+  els.deckSettings.hidden = view !== 'settings'
+  els.deckHelp.hidden = view !== 'help'
+  els.deck.classList.toggle('is-settings', view === 'settings')
+  els.deck.classList.toggle('is-help', view === 'help')
+
+  if (view === 'settings') {
+    els.closeSettings.focus()
+  } else if (view === 'help') {
+    updateHelpShortcutsVisibility()
+    els.closeHelp.focus()
+  } else if (prev === 'settings') {
+    els.openSettings.focus()
+  } else if (prev === 'help') {
+    els.openHelp.focus()
+  }
+}
+
+function setSettingsOpen(open: boolean) {
+  setDeckView(open ? 'settings' : 'main')
+}
+
+function setHelpOpen(open: boolean) {
+  setDeckView(open ? 'help' : 'main')
+}
+
+function updateHelpShortcutsVisibility() {
+  els.helpShortcuts.hidden = !keyboardHintsEnabled
 }
 
 function alignableTracks(): Track[] {
@@ -804,6 +965,13 @@ function updateSeekBar(positionMs = getMixPositionMs()) {
 }
 
 function updateClockDisplays() {
+  // While scrubbing, keep the pointer position — don't fight the live playhead.
+  if (seekDragActive) {
+    els.mixClock.textContent = formatCentis(mixSeekMs)
+    updateSeekBar(mixSeekMs)
+    return
+  }
+
   const positionMs = getMixPositionMs()
   if (mixTimelineStartCtx !== null) mixSeekMs = positionMs
   els.mixClock.textContent = formatCentis(positionMs)
@@ -872,7 +1040,6 @@ function stopPlayback(options?: { resetSeek?: boolean }) {
   }
 
   settlePlayWaiters()
-  renderTracks()
   updateMixButtons()
   els.mixClock.textContent = formatCentis(mixSeekMs)
   updateSeekBar(mixSeekMs)
@@ -934,7 +1101,7 @@ function updateSkewWarning() {
   els.openAdvanced.hidden = calageMode
   els.skewWarningText.textContent = calageMode
     ? `Calage auto élevé sur ${names}.`
-    : `Calage auto élevé sur ${names}. Vérifie le sync en mode avancé.`
+    : `Calage auto élevé sur ${names}. Vérifie le sync en mode calage.`
 }
 
 function updateMixButtons() {
@@ -952,6 +1119,12 @@ function updateMixButtons() {
   els.selectAll.checked = allSelected && tracks.length > 0
   els.selectAll.indeterminate =
     selectedCount > 0 && selectedCount < tracks.length
+  els.deleteAllTracks.disabled = tracks.length === 0 || state === 'recording'
+  els.calageModeWrap.hidden = tracks.length === 0
+  if (tracks.length === 0 && calageMode) {
+    setCalageMode(false)
+    return
+  }
 
   els.alignHeader.hidden = !calageMode || alignable.length === 0
   els.alignNudgeSpacer.hidden = !calageMode || alignable.length === 0
@@ -961,7 +1134,9 @@ function updateMixButtons() {
     alignable.some((track) => autoAlignTrackIds.has(track.id)) && !allAutoAlign
 
   els.playMix.disabled = tracks.length === 0
-  els.playMix.setAttribute('aria-label', isPausedOrIdle ? 'Lecture' : 'Pause')
+  const playLabel = isPausedOrIdle ? 'Lecture' : 'Pause'
+  els.playMix.setAttribute('aria-label', playLabel)
+  els.playMix.title = withShortcutHint(playLabel, 'Espace')
   els.playMix.setAttribute('aria-pressed', isPausedOrIdle ? 'false' : 'true')
   els.playIcon.toggleAttribute('hidden', !isPausedOrIdle)
   els.pauseIcon.toggleAttribute('hidden', isPausedOrIdle)
@@ -972,7 +1147,6 @@ function updateMixButtons() {
     'aria-busy',
     mixExporting ? 'true' : 'false',
   )
-  els.skipCountInWrap.hidden = !calageMode
   els.mixTransport.hidden = state === 'recording' || tracks.length === 0
   els.meterWrap.hidden = state !== 'recording'
   els.captureBar.classList.toggle(
@@ -1424,7 +1598,7 @@ async function evaluateReferenceBeat(): Promise<void> {
     } else if (assessment.reason === 'irregular') {
       referenceBeatWarning = {
         key: `beat:${reference.id}:irregular:${assessment.peaks.map((p) => p.toFixed(3)).join(',')}`,
-        message: `Battue 1-2-3-4 irrégulière sur la piste de référence (${reference.name}).`,
+        message: `Battue 1-2-3-4 irrégulière ou non détectée sur la piste de référence (${reference.name}).`,
         reason: 'irregular',
       }
     } else {
@@ -1654,7 +1828,7 @@ async function getSkipCountInStartS(): Promise<number> {
     const peaks = findVolumePeaks(buffer, 4)
     if (peaks.length < 4) {
       throw new Error(
-        `${reference.name} : ${peaks.length}/4 attaques trouvées. Fais 4 sons bien espacés pour couper le 1-2-3-4.`,
+        `${reference.name} : ${peaks.length}/4 attaques trouvées. Fais 4 sons bien espacés pour supprimer le 1-2-3-4.`,
       )
     }
     const refThree = peaks[2]!
@@ -1666,6 +1840,19 @@ async function getSkipCountInStartS(): Promise<number> {
 
   // mixTime = peakSec + offsetMs/1000 (same as scheduleTrackSource)
   return fourSec + reference.offsetMs / 1000 + SKIP_COUNT_IN_PAD_S
+}
+
+/** Raise a mix start so playback/export begin after the count-in when enabled. */
+async function applySkipCountInStartMs(startAtMs: number): Promise<number> {
+  const clamped = Math.max(0, startAtMs)
+  // Keep explicit seeks (incl. into the count-in); only rewrite a start-from-0.
+  if (!els.skipCountIn.checked || clamped > 0) return clamped
+  try {
+    const cutMs = (await getSkipCountInStartS()) * 1000
+    return Math.max(clamped, cutMs)
+  } catch {
+    return clamped
+  }
 }
 
 function downloadBlob(blob: Blob, filename: string) {
@@ -1783,12 +1970,15 @@ async function playTracks(
     return Promise.reject(new Error('Piste vide, rien à lire.'))
   }
 
-  const startAtMs = Math.max(0, options?.startAtMs ?? 0)
+  let startAtMs = Math.max(0, options?.startAtMs ?? 0)
+  if (asMix) {
+    startAtMs = await applySkipCountInStartMs(startAtMs)
+  }
   stopPlayback({ resetSeek: false })
   mixSeekMs = startAtMs
   mixListenActive = asMix
   updateMixButtons()
-
+  updateClockDisplays()
   const ctx = await ensureAudioContext()
   const applyOffsets = options?.applyOffsets ?? true
   trackGains.clear()
@@ -1825,7 +2015,6 @@ async function playTracks(
     playingTrackIds.add(track.id)
   }
 
-  renderTracks()
   startPlayheadClock()
   updateMixButtons()
   updateClockDisplays()
@@ -2390,26 +2579,40 @@ els.calageMode.addEventListener('change', () => {
   setCalageMode(els.calageMode.checked)
 })
 
+els.openSettings.addEventListener('click', () => {
+  setDeckView('settings')
+})
+
+els.closeSettings.addEventListener('click', () => {
+  setDeckView('main')
+})
+
+els.openHelp.addEventListener('click', () => {
+  setDeckView('help')
+})
+
+els.closeHelp.addEventListener('click', () => {
+  setDeckView('main')
+})
+
 function setCalageTipOpen(open: boolean) {
   els.calageTip.hidden = !open
   els.calageInfo.setAttribute('aria-expanded', open ? 'true' : 'false')
 }
 
-function setMarkingTipOpen(open: boolean) {
-  els.markingTip.hidden = !open
-  els.markingInfo.setAttribute('aria-expanded', open ? 'true' : 'false')
+function setMarkingAccordionOpen(open: boolean) {
+  els.markingPanel.hidden = !open
+  els.markingAccordion.setAttribute('aria-expanded', open ? 'true' : 'false')
+  els.markingHelp.classList.toggle('is-open', open)
 }
 
 els.calageInfo.addEventListener('click', (event) => {
   event.stopPropagation()
-  setMarkingTipOpen(false)
   setCalageTipOpen(Boolean(els.calageTip.hidden))
 })
 
-els.markingInfo.addEventListener('click', (event) => {
-  event.stopPropagation()
-  setCalageTipOpen(false)
-  setMarkingTipOpen(Boolean(els.markingTip.hidden))
+els.markingAccordion.addEventListener('click', () => {
+  setMarkingAccordionOpen(Boolean(els.markingPanel.hidden))
 })
 
 document.addEventListener('click', (event) => {
@@ -2417,9 +2620,6 @@ document.addEventListener('click', (event) => {
   if (!(target instanceof Node)) return
   if (!els.calageTip.hidden && !els.calagePanel.contains(target)) {
     setCalageTipOpen(false)
-  }
-  if (!els.markingTip.hidden && !els.markingHelp.contains(target)) {
-    setMarkingTipOpen(false)
   }
 })
 
@@ -2475,23 +2675,25 @@ function seekRatioFromPointer(clientX: number): number {
 }
 
 async function seekMixTo(ms: number) {
+  if (tracks.length === 0 || state === 'recording') return
+
   const duration = getMixDurationMs()
   const target = Math.max(0, Math.min(duration, ms))
   mixSeekMs = target
   updateClockDisplays()
 
-  const hasPlayback = playbackSources.length > 0 || playingTrackIds.size > 0
-  if (!hasPlayback) return
+  const wasPaused =
+    mixPaused && (playbackSources.length > 0 || playingTrackIds.size > 0)
 
-  const resumePaused = mixPaused
   try {
+    setError(null)
     await playTracks(tracks, {
       awaitEnd: true,
       asMix: true,
       applyOffsets: true,
       startAtMs: target,
     })
-    if (resumePaused && audioContext) {
+    if (wasPaused && audioContext) {
       await audioContext.suspend()
       mixPaused = true
       updateMixButtons()
@@ -2503,9 +2705,11 @@ async function seekMixTo(ms: number) {
 }
 
 els.mixSeek.addEventListener('pointerdown', (event) => {
-  if (tracks.length === 0) return
+  if (tracks.length === 0 || state === 'recording') return
   event.preventDefault()
   seekDragActive = true
+  // Stop the playhead clock fighting the scrub preview.
+  stopPlayheadClock()
   els.mixSeek.setPointerCapture(event.pointerId)
   const duration = getMixDurationMs()
   mixSeekMs = seekRatioFromPointer(event.clientX) * duration
@@ -2537,6 +2741,26 @@ els.sessionTitle.addEventListener('keydown', (event) => {
   }
 })
 
+els.sessionTitle.addEventListener('focusin', () => {
+  if (!isDefaultSessionTitle(els.sessionTitle.value)) return
+  els.sessionTitle.select()
+  els.sessionTitle.addEventListener(
+    'mouseup',
+    (mouseupEvent) => {
+      mouseupEvent.preventDefault()
+      els.sessionTitle.select()
+    },
+    { once: true },
+  )
+})
+
+els.sessionTitle.addEventListener('input', () => {
+  els.sessionTitle.classList.toggle(
+    'is-default-name',
+    isDefaultSessionTitle(els.sessionTitle.value),
+  )
+})
+
 els.sessionTitle.addEventListener('focusout', () => {
   normalizeSessionTitleInput()
 })
@@ -2553,6 +2777,23 @@ els.tracks.addEventListener('keydown', (event) => {
     event.preventDefault()
     target.blur()
   }
+})
+
+els.tracks.addEventListener('focusin', (event) => {
+  const target = event.target
+  if (!(target instanceof HTMLInputElement)) return
+  if (!target.matches('[data-rename-track]')) return
+  if (!isDefaultTrackName(target.value)) return
+  target.select()
+  // Le mouseup du clic de focus replace le caret et annule select().
+  target.addEventListener(
+    'mouseup',
+    (mouseupEvent) => {
+      mouseupEvent.preventDefault()
+      target.select()
+    },
+    { once: true },
+  )
 })
 
 els.tracks.addEventListener('focusout', (event) => {
@@ -2739,7 +2980,7 @@ els.tracks.addEventListener('click', (event) => {
   if (!(target instanceof Element)) return
   if (
     target.closest(
-      '[data-toggle-track], .track-mute, .track-check, .track-name, .track-drag, [data-auto-align-track], [data-select-all], [data-align-all]',
+      '[data-toggle-track], .track-mute, .track-check, .track-name, .track-drag, [data-auto-align-track], [data-select-all], [data-align-all], [data-delete-all-tracks]',
     )
   ) {
     return
@@ -2794,6 +3035,36 @@ els.tracks.addEventListener('click', (event) => {
   }
 })
 
+els.deleteAllTracks.addEventListener('click', () => {
+  if (tracks.length === 0 || state === 'recording') return
+  const count = tracks.length
+  const ok = window.confirm(
+    count === 1
+      ? `Supprimer la piste « ${tracks[0]!.name} » ?`
+      : `Supprimer les ${count} pistes ? Elles seront définitivement perdues.`,
+  )
+  if (!ok) return
+
+  if (playingTrackIds.size > 0 || mixListenActive) {
+    stopPlayback({ resetSeek: true })
+  }
+
+  for (const track of tracks) {
+    URL.revokeObjectURL(track.url)
+  }
+  tracks.length = 0
+  bufferCache.clear()
+  enabledTrackIds.clear()
+  autoAlignTrackIds.clear()
+  trackAlignDetails.clear()
+  trackGains.clear()
+  trackPlayheads.clear()
+  playingTrackIds.clear()
+  syncReferenceTrackRules()
+  renderTracks()
+  updateSessionTimer()
+})
+
 app.querySelectorAll<HTMLButtonElement>('[data-trim-delta]').forEach((button) => {
   button.addEventListener('click', () => {
     const delta = Number(button.dataset.trimDelta)
@@ -2810,6 +3081,131 @@ window.addEventListener('beforeunload', () => {
   }
   for (const track of tracks) URL.revokeObjectURL(track.url)
 })
+
+function withShortcutHint(label: string, shortcut: string): string {
+  return keyboardHintsEnabled ? `${label} (${shortcut})` : label
+}
+
+function applyKeyboardShortcutTooltips() {
+  const entries: Array<[HTMLElement, string]> = [
+    [els.closeSettings, 'Échap'],
+    [els.closeHelp, 'Échap'],
+    [els.record, 'E / R'],
+    [els.next, 'S / N'],
+    [els.downloadMix, 'T / D'],
+    [els.stop, 'Entrée'],
+    [els.discard, 'Suppr'],
+    [els.sessionTitle, 'F2'],
+  ]
+  for (const [el, shortcut] of entries) {
+    const base = el.dataset.titleBase ?? el.getAttribute('title') ?? ''
+    if (!base) continue
+    el.title = withShortcutHint(base, shortcut)
+  }
+  const playLabel =
+    els.playMix.getAttribute('aria-label') === 'Pause' ? 'Pause' : 'Lecture'
+  els.playMix.title = withShortcutHint(playLabel, 'Espace')
+}
+
+function isEditableKeyboardTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof Element)) return false
+  if (target instanceof HTMLElement && target.isContentEditable) return true
+  return Boolean(
+    target.closest('input, textarea, select, [contenteditable="true"]'),
+  )
+}
+
+function triggerControl(button: HTMLButtonElement): boolean {
+  if (button.disabled || button.hidden) return false
+  if (
+    typeof button.checkVisibility === 'function' &&
+    !button.checkVisibility({
+      checkOpacity: true,
+      checkVisibilityCSS: true,
+    })
+  ) {
+    return false
+  }
+  button.click()
+  return true
+}
+
+function enableKeyboardHintsFromDevice() {
+  if (keyboardHintsEnabled) return
+  keyboardHintsEnabled = true
+  applyKeyboardShortcutTooltips()
+  updateHelpShortcutsVisibility()
+}
+
+window.addEventListener('keydown', (event) => {
+  if (event.ctrlKey || event.metaKey || event.altKey) return
+
+  // First real key press ⇒ show shortcut hints (hybrids / clavier Bluetooth).
+  if (
+    !keyboardHintsEnabled &&
+    (event.key.length === 1 ||
+      event.key === 'Escape' ||
+      event.key === 'Enter' ||
+      event.key === ' ' ||
+      event.key === 'F2' ||
+      event.key === 'Delete')
+  ) {
+    enableKeyboardHintsFromDevice()
+  }
+
+  const overlayOpen = !els.deckSettings.hidden || !els.deckHelp.hidden
+  if (overlayOpen) {
+    if (event.key === 'Escape') {
+      event.preventDefault()
+      setDeckView('main')
+    }
+    return
+  }
+
+  if (event.key === 'F2') {
+    event.preventDefault()
+    els.sessionTitle.focus()
+    if (isDefaultSessionTitle(els.sessionTitle.value)) els.sessionTitle.select()
+    return
+  }
+
+  if (isEditableKeyboardTarget(event.target)) return
+
+  if (event.key === ' ' || event.code === 'Space') {
+    if (triggerControl(els.playMix)) event.preventDefault()
+    return
+  }
+
+  if (state === 'recording') {
+    if (event.key === 'Enter') {
+      if (triggerControl(els.stop)) event.preventDefault()
+      return
+    }
+    if (event.key === 'Delete') {
+      if (triggerControl(els.discard)) event.preventDefault()
+      return
+    }
+    const key = event.key.toLowerCase()
+    if (key === 's' || key === 'n') {
+      if (triggerControl(els.next)) event.preventDefault()
+      return
+    }
+    return
+  }
+
+  const key = event.key.toLowerCase()
+  if (key === 'e' || key === 'r') {
+    if (triggerControl(els.record)) event.preventDefault()
+    return
+  }
+  if (key === 'd' || key === 't') {
+    if (triggerControl(els.downloadMix)) event.preventDefault()
+    return
+  }
+})
+
+applyKeyboardShortcutTooltips()
+updateHelpShortcutsVisibility()
 
 setUi()
 updateCalageDisplay()
