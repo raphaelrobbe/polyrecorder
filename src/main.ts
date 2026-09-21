@@ -40,11 +40,40 @@ app.innerHTML = `
           aria-label="Titre de l'enregistrement"
           spellcheck="false"
         />
-        <div class="timer" data-timer>00:00</div>
+        <div class="timer" data-timer hidden>00:00</div>
       </div>
 
-      <div class="capture-bar">
-        <div class="meter" aria-hidden="true"><span data-meter></span></div>
+      <div class="capture-bar" data-capture-bar>
+        <div class="meter" data-meter-wrap hidden aria-hidden="true"><span data-meter></span></div>
+        <div class="mix-transport" data-mix-transport hidden>
+          <button type="button" class="btn btn-restart" data-restart-mix disabled aria-label="Revenir au début" title="Revenir au début">
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" fill="currentColor"/>
+            </svg>
+          </button>
+          <button type="button" class="btn btn-play" data-play-mix disabled aria-label="Lecture">
+            <svg class="icon icon-play" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M8 5v14l11-7z" fill="currentColor"/>
+            </svg>
+            <svg class="icon icon-pause" viewBox="0 0 24 24" aria-hidden="true" hidden>
+              <path d="M7 5h4v14H7zm6 0h4v14h-4z" fill="currentColor"/>
+            </svg>
+          </button>
+          <div class="mix-export">
+            <button
+              type="button"
+              class="btn btn-download"
+              data-download-mix
+              disabled
+              aria-label="Télécharger le mix (MP3)"
+              title="Télécharger le mix des pistes sélectionnées (MP3)"
+            >
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
+                <path fill="currentColor" d="M11 4h2v8.2l2.6-2.6 1.4 1.4L12 16l-5-5 1.4-1.4L11 12.2V4zM5 18h14v2H5v-2z"/>
+              </svg>
+            </button>
+          </div>
+        </div>
         <div class="capture-actions" data-controls>
           <button
             type="button"
@@ -53,7 +82,7 @@ app.innerHTML = `
             hidden
             disabled
             aria-label="Piste suivante"
-            title="Piste suivante"
+            title="Piste suivante : rejoue cette prise et enregistre la suivante en même temps."
           >
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
               <path fill="currentColor" d="M5.5 5.5v13l9.5-6.5-9.5-6.5zm11 0h2.5v13H16.5V5.5z"/>
@@ -99,50 +128,22 @@ app.innerHTML = `
         </div>
       </div>
 
-      <label class="autoplay-option" data-autoplay-wrap hidden>
-        <input type="checkbox" data-autoplay-after-stop checked />
-        <span>Lire automatiquement après la fin de l'enregistrement</span>
-      </label>
+      <div class="advanced-options" data-advanced-options hidden>
+        <label class="autoplay-option" data-autoplay-wrap>
+          <input type="checkbox" data-autoplay-after-stop checked />
+          <span>Lire automatiquement après la fin de l'enregistrement</span>
+        </label>
+        <label
+          class="autoplay-option"
+          data-skip-count-in-wrap
+          title="Couper le début du MP3 juste après le « 4 » (n’affecte pas la lecture)"
+        >
+          <input type="checkbox" data-skip-count-in checked />
+          <span>Couper le 1-2-3-4 au téléchargement du mp3</span>
+        </label>
+      </div>
 
       <div class="tracks" data-tracks-panel hidden>
-        <div class="mix-transport">
-          <button type="button" class="btn btn-restart" data-restart-mix disabled aria-label="Revenir au début" title="Revenir au début">
-            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M6 6h2v12H6zm3.5 6 8.5 6V6z" fill="currentColor"/>
-            </svg>
-          </button>
-          <button type="button" class="btn btn-play" data-play-mix disabled aria-label="Lecture">
-            <svg class="icon icon-play" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M8 5v14l11-7z" fill="currentColor"/>
-            </svg>
-            <svg class="icon icon-pause" viewBox="0 0 24 24" aria-hidden="true" hidden>
-              <path d="M7 5h4v14H7zm6 0h4v14h-4z" fill="currentColor"/>
-            </svg>
-          </button>
-          <div class="mix-export">
-            <button
-              type="button"
-              class="btn btn-download"
-              data-download-mix
-              disabled
-              aria-label="Télécharger le mix (MP3)"
-              title="Télécharger le mix des pistes sélectionnées (MP3)"
-            >
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
-                <path fill="currentColor" d="M11 4h2v8.2l2.6-2.6 1.4 1.4L12 16l-5-5 1.4-1.4L11 12.2V4zM5 18h14v2H5v-2z"/>
-              </svg>
-            </button>
-            <label
-              class="export-option"
-              data-skip-count-in-wrap
-              hidden
-              title="Couper le début du MP3 juste après le « 4 » (n’affecte pas la lecture)"
-            >
-              <input type="checkbox" data-skip-count-in checked />
-              <span>Sans le 1-2-3-4</span>
-            </label>
-          </div>
-        </div>
         <p class="mix-clock" data-mix-clock>00:00.00</p>
         <div
           class="mix-seek"
@@ -221,19 +222,39 @@ app.innerHTML = `
           (réglage mémorisé sur cet appareil). Ce n’est pas le calage auto des pistes (marquages 3–4) : celui-ci sert uniquement pendant l’enregistrement.
         </p>
       </div>
-
-      <p class="marking-help" data-marking-help>
-        Piste 1 : quatre marquages (« 1 2 3 4 » ou 4 claquements).<br />
-        Pistes suivantes : marquage synchronisé sur les 3ème et 4ème.
-      </p>
-
-      <div class="mode-row">
-        <label class="mode-toggle">
-          <input type="checkbox" data-calage-mode />
-          <span>Mode avancé</span>
-        </label>
-      </div>
     </section>
+
+    <div class="marking-help" data-marking-help>
+      <div class="marking-help-heading">
+        <span class="marking-help-title">Note importante</span>
+        <button
+          type="button"
+          class="btn-info"
+          data-marking-info
+          aria-expanded="false"
+          aria-controls="marking-info-tip"
+          title="Pourquoi ces marquages ?"
+        >
+          ?
+        </button>
+      </div>
+      <p class="marking-help-text">
+        Pour la synchronisation des pistes, la première piste (référence) doit contenir au début quatre marquages nets et réguliers (1-2-3-4 ou 1-2-1-2 ou 4 claquements…).<br />
+        Toutes les pistes suivantes doivent contenir le marquage des 3ème et 4ème temps (et pas les deux premiers !).
+      </p>
+      <p class="marking-tip" id="marking-info-tip" data-marking-tip hidden>
+        Les navigateurs et le matériel audio introduisent une latence (casque, micro, buffer). Sans repères communs, les prises se décalent.
+        Les quatre marquages de la piste de référence et les «&nbsp;3-4&nbsp;» des pistes suivantes permettent à PolyRecorder de mesurer et corriger ce décalage automatiquement.
+        Des sons nets, espacés et réguliers donnent un meilleur calage ; une battue irrégulière ou peu audible peut fausser la synchronisation.
+      </p>
+    </div>
+
+    <div class="mode-row">
+      <label class="mode-toggle">
+        <input type="checkbox" data-calage-mode />
+        <span>Mode avancé</span>
+      </label>
+    </div>
 
     <p class="hint" data-hint></p>
   </main>
@@ -242,6 +263,8 @@ app.innerHTML = `
 const els = {
   sessionTitle: app.querySelector<HTMLInputElement>('[data-session-title]')!,
   timer: app.querySelector<HTMLElement>('[data-timer]')!,
+  captureBar: app.querySelector<HTMLElement>('[data-capture-bar]')!,
+  meterWrap: app.querySelector<HTMLElement>('[data-meter-wrap]')!,
   meter: app.querySelector<HTMLElement>('[data-meter]')!,
   controls: app.querySelector<HTMLElement>('[data-controls]')!,
   record: app.querySelector<HTMLButtonElement>('[data-record]')!,
@@ -254,8 +277,10 @@ const els = {
   playMix: app.querySelector<HTMLButtonElement>('[data-play-mix]')!,
   restartMix: app.querySelector<HTMLButtonElement>('[data-restart-mix]')!,
   downloadMix: app.querySelector<HTMLButtonElement>('[data-download-mix]')!,
+  mixTransport: app.querySelector<HTMLElement>('[data-mix-transport]')!,
   skipCountInWrap: app.querySelector<HTMLElement>('[data-skip-count-in-wrap]')!,
   skipCountIn: app.querySelector<HTMLInputElement>('[data-skip-count-in]')!,
+  advancedOptions: app.querySelector<HTMLElement>('[data-advanced-options]')!,
   autoplayWrap: app.querySelector<HTMLElement>('[data-autoplay-wrap]')!,
   autoplayAfterStop: app.querySelector<HTMLInputElement>('[data-autoplay-after-stop]')!,
   playIcon: app.querySelector<SVGElement>('.icon-play')!,
@@ -276,8 +301,12 @@ const els = {
   skewWarningText: app.querySelector<HTMLElement>('[data-skew-warning-text]')!,
   dismissSkew: app.querySelector<HTMLButtonElement>('[data-dismiss-skew]')!,
   openAdvanced: app.querySelector<HTMLButtonElement>('[data-open-advanced]')!,
+  markingHelp: app.querySelector<HTMLElement>('[data-marking-help]')!,
+  markingInfo: app.querySelector<HTMLButtonElement>('[data-marking-info]')!,
+  markingTip: app.querySelector<HTMLElement>('[data-marking-tip]')!,
   error: app.querySelector<HTMLElement>('[data-error]')!,
   hint: app.querySelector<HTMLElement>('[data-hint]')!,
+  stage: app.querySelector<HTMLElement>('.stage')!,
 }
 
 const MIX_LOOKAHEAD_S = 0.12
@@ -285,8 +314,10 @@ const MIX_LOOKAHEAD_S = 0.12
 const DEFAULT_MONITOR_LATENCY_S = 0.045
 const LATENCY_TRIM_KEY = 'polyrecorder.latencyTrimMs'
 const OFFSET_WARN_MS = 300
+const MAX_RECORDING_MS = 5 * 60 * 1000
 
 let state: AppState = 'idle'
+let sessionStopping = false
 let mediaStream: MediaStream | null = null
 let activeRecording: {
   recorder: MediaRecorder
@@ -335,6 +366,13 @@ let skewWarningDismissedKey = ''
 let refPeaksLabel = ''
 /** 4th count-in peak time (seconds) in the reference track buffer. */
 let refPeakFourSec: number | null = null
+/** Warning about reference 1-2-3-4 count-in quality. */
+let referenceBeatWarning: {
+  key: string
+  message: string
+  reason: 'missing' | 'irregular' | 'error'
+} | null = null
+let referenceBeatDismissedKey = ''
 let trackAlignDetails = new Map<number, { delta3Ms: number; delta4Ms: number }>()
 /** Remembered mix playhead when playback is stopped. */
 let mixSeekMs = 0
@@ -349,6 +387,8 @@ let touchReorder: {
 let mixExporting = false
 const SKIP_COUNT_IN_PAD_S = 0.1
 const TOUCH_REORDER_THRESHOLD_PX = 10
+/** Largest count-in gap may be at most 20% bigger than the smallest. */
+const BEAT_GAP_MAX_RATIO = 1.2
 
 const TOUCH_REORDER_EXCLUDE =
   'input, textarea, select, button:not(.track-drag), .track-mute, .track-check, .track-name, .track-nudge, [data-delete-track], [data-nudge-track], [data-auto-align-track], [data-toggle-track]'
@@ -383,9 +423,10 @@ function formatSignedMs(ms: number): string {
 
 function updateCalageDisplay() {
   const total = Math.max(0, lastReportedLatencyMs + latencyTrimMs)
-  const trimLabel =
-    latencyTrimMs === 0 ? 'sans correctif' : `correctif ${formatSignedMs(latencyTrimMs)}`
-  els.trimValue.textContent = `${total} ms (${trimLabel})`
+  els.trimValue.textContent =
+    latencyTrimMs === 0
+      ? `${total} ms`
+      : `${total} ms (correctif ${formatSignedMs(latencyTrimMs)})`
 }
 
 function formatTime(ms: number): string {
@@ -471,8 +512,11 @@ function getMaxTrackDurationMs(): number {
   return max
 }
 
-/** Top-right timer: live while recording, otherwise longest track. */
+/** Top-right timer: live while recording, otherwise longest track. Hidden with no tracks. */
 function updateSessionTimer() {
+  const show = state === 'recording' || tracks.length > 0
+  els.timer.hidden = !show
+  if (!show) return
   if (state === 'recording' || timerId !== null) return
   els.timer.textContent = formatTime(getMaxTrackDurationMs())
 }
@@ -490,6 +534,8 @@ function setError(message: string | null) {
 function clearRefPeaks() {
   refPeaksLabel = ''
   refPeakFourSec = null
+  referenceBeatWarning = null
+  referenceBeatDismissedKey = ''
   updateRefPeaksDisplay()
 }
 
@@ -509,12 +555,14 @@ function formatAlignDetail(
 function setCalageMode(on: boolean) {
   calageMode = on
   els.calageMode.checked = on
-  els.calagePanel.hidden = !on
+  els.calagePanel.hidden = true
+  els.advancedOptions.hidden = !on
   els.autoplayWrap.hidden = !on
   els.alignHeader.hidden = !on || tracks.length < 2
   els.alignNudgeSpacer.hidden = !on || tracks.length < 2
-  els.skipCountInWrap.hidden = !on || tracks.length === 0
+  els.skipCountInWrap.hidden = !on
   els.openAdvanced.hidden = on
+  els.stage.classList.toggle('is-advanced', on)
   if (!on) setCalageTipOpen(false)
   updateRefPeaksDisplay()
   renderTracks()
@@ -681,10 +729,23 @@ async function startMeter(stream: MediaStream) {
 
 function startTimer(fromPerf = performance.now()) {
   startedAt = fromPerf
+  els.timer.hidden = false
   els.timer.textContent = '00:00'
   if (timerId !== null) window.clearInterval(timerId)
   timerId = window.setInterval(() => {
-    els.timer.textContent = formatTime(performance.now() - startedAt)
+    const elapsed = performance.now() - startedAt
+    els.timer.textContent = formatTime(elapsed)
+    if (
+      elapsed >= MAX_RECORDING_MS &&
+      state === 'recording' &&
+      !sessionStopping
+    ) {
+      if (timerId !== null) {
+        window.clearInterval(timerId)
+        timerId = null
+      }
+      void stopSession()
+    }
   }, 200)
 }
 
@@ -833,6 +894,17 @@ function skewFingerprint(
 }
 
 function updateSkewWarning() {
+  if (
+    referenceBeatWarning &&
+    referenceBeatWarning.key !== referenceBeatDismissedKey
+  ) {
+    els.skewWarning.hidden = false
+    els.openAdvanced.hidden =
+      calageMode || referenceBeatWarning.reason === 'missing'
+    els.skewWarningText.textContent = referenceBeatWarning.message
+    return
+  }
+
   const skewed = tracks
     .map((track, index) => ({ track, index }))
     .filter(
@@ -896,7 +968,13 @@ function updateMixButtons() {
     'aria-busy',
     mixExporting ? 'true' : 'false',
   )
-  els.skipCountInWrap.hidden = !calageMode || tracks.length === 0
+  els.skipCountInWrap.hidden = !calageMode
+  els.mixTransport.hidden = state === 'recording' || tracks.length === 0
+  els.meterWrap.hidden = state !== 'recording'
+  els.captureBar.classList.toggle(
+    'is-record-only',
+    state !== 'recording' && tracks.length === 0,
+  )
 
   updateSkewWarning()
 }
@@ -1141,10 +1219,9 @@ function setUi() {
   if (state === 'idle') {
     els.hint.textContent = ''
   } else if (state === 'recording') {
-    const layer = tracks.length
     els.hint.textContent =
-      layer === 0
-        ? 'Piste suivante : rejoue cette prise et enregistre la suivante en même temps.'
+      tracks.length === 0
+        ? ''
         : 'Casque recommandé. Monitoring compensé pour la latence audio.'
   } else {
     els.hint.textContent = 'Écoute en cours.'
@@ -1282,6 +1359,83 @@ function findVolumePeaks(
   return chosen.slice(0, count).map((c) => c.sample / sampleRate)
 }
 
+type BeatAssessment =
+  | { ok: true; peaks: number[] }
+  | { ok: false; reason: 'missing' | 'irregular'; peaks: number[] }
+
+/** Validate a 1-2-3-4 count-in: 4 attacks and regular gaps (±20%). */
+function assessCountInBeat(peaks: number[]): BeatAssessment {
+  if (peaks.length < 4) {
+    return { ok: false, reason: 'missing', peaks }
+  }
+
+  const beat = peaks.slice(0, 4)
+  const gaps = [beat[1]! - beat[0]!, beat[2]! - beat[1]!, beat[3]! - beat[2]!]
+  const minGap = Math.min(...gaps)
+  const maxGap = Math.max(...gaps)
+  if (!(minGap > 0) || maxGap > minGap * BEAT_GAP_MAX_RATIO) {
+    return { ok: false, reason: 'irregular', peaks: beat }
+  }
+
+  return { ok: true, peaks: beat }
+}
+
+function applyReferencePeaksLabel(reference: Track, peaks: number[]) {
+  if (peaks.length < 4) {
+    refPeakFourSec = null
+    refPeaksLabel = ''
+    updateRefPeaksDisplay()
+    return
+  }
+  const refThree = peaks[2]!
+  const refFour = peaks[3]!
+  refPeakFourSec = refFour
+  refPeaksLabel = `Réf. pics 3–4 (${reference.name}) : ${formatCentis(refThree * 1000)} / ${formatCentis(refFour * 1000)}`
+  updateRefPeaksDisplay()
+}
+
+async function evaluateReferenceBeat(): Promise<void> {
+  const reference = getReferenceTrack()
+  if (!reference || reference.blob.size === 0) {
+    referenceBeatWarning = null
+    referenceBeatDismissedKey = ''
+    updateSkewWarning()
+    return
+  }
+
+  try {
+    const buffer = await decodeTrack(reference)
+    const peaks = findVolumePeaks(buffer, 4)
+    const assessment = assessCountInBeat(peaks)
+    applyReferencePeaksLabel(reference, assessment.peaks)
+
+    if (assessment.ok) {
+      referenceBeatWarning = null
+      referenceBeatDismissedKey = ''
+    } else if (assessment.reason === 'irregular') {
+      referenceBeatWarning = {
+        key: `beat:${reference.id}:irregular:${assessment.peaks.map((p) => p.toFixed(3)).join(',')}`,
+        message: `Battue 1-2-3-4 irrégulière sur la piste de référence (${reference.name}).`,
+        reason: 'irregular',
+      }
+    } else {
+      referenceBeatWarning = {
+        key: `beat:${reference.id}:missing:${peaks.length}`,
+        message: `Battue 1-2-3-4 non détectée sur « ${reference.name} » (${peaks.length}/4 attaques).`,
+        reason: 'missing',
+      }
+    }
+  } catch {
+    referenceBeatWarning = {
+      key: `beat:${reference.id}:error`,
+      message: `Impossible d'analyser la battue de « ${reference.name} ».`,
+      reason: 'error',
+    }
+  }
+
+  updateSkewWarning()
+}
+
 /**
  * Align later takes on track 1 using shared "3-4" counts.
  * Track 1 must contain 1-2-3-4; later tracks should contain 3-4 in sync with what was heard.
@@ -1306,9 +1460,7 @@ async function autoAlignTracksFromCounts(): Promise<void> {
 
   const refThree = refPeaks[2]!
   const refFour = refPeaks[3]!
-  refPeakFourSec = refFour
-  refPeaksLabel = `Réf. pics 3–4 (${reference.name}) : ${formatCentis(refThree * 1000)} / ${formatCentis(refFour * 1000)}`
-  updateRefPeaksDisplay()
+  applyReferencePeaksLabel(reference, refPeaks)
 
   for (const track of tracks) {
     if (track.id === reference.id) continue
@@ -1893,12 +2045,16 @@ async function finalizeCurrentTake(): Promise<Track> {
   tracks.push(track)
   enabledTrackIds.add(track.id)
   // First saved take becomes the sync reference (never auto-aligned).
-  if (referenceTrackId == null) {
+  const becameReference = referenceTrackId == null
+  if (becameReference) {
     referenceTrackId = track.id
   } else {
     autoAlignTrackIds.add(track.id)
   }
   renderTracks()
+  if (becameReference || track.id === referenceTrackId) {
+    await evaluateReferenceBeat()
+  }
   await maybeAutoAlignAfterTake()
   return track
 }
@@ -1999,6 +2155,8 @@ async function nextTrack() {
 }
 
 async function stopSession() {
+  if (sessionStopping) return
+  sessionStopping = true
   els.next.disabled = true
   els.discard.disabled = true
   els.stop.disabled = true
@@ -2046,6 +2204,7 @@ async function stopSession() {
     mixSeekMs = 0
     state = 'idle'
     startedAt = 0
+    sessionStopping = false
     setUi()
     updateSessionTimer()
     els.mixClock.textContent = '00:00.00'
@@ -2174,28 +2333,54 @@ function setCalageTipOpen(open: boolean) {
   els.calageInfo.setAttribute('aria-expanded', open ? 'true' : 'false')
 }
 
+function setMarkingTipOpen(open: boolean) {
+  els.markingTip.hidden = !open
+  els.markingInfo.setAttribute('aria-expanded', open ? 'true' : 'false')
+}
+
 els.calageInfo.addEventListener('click', (event) => {
   event.stopPropagation()
+  setMarkingTipOpen(false)
   setCalageTipOpen(Boolean(els.calageTip.hidden))
 })
 
+els.markingInfo.addEventListener('click', (event) => {
+  event.stopPropagation()
+  setCalageTipOpen(false)
+  setMarkingTipOpen(Boolean(els.markingTip.hidden))
+})
+
 document.addEventListener('click', (event) => {
-  if (els.calageTip.hidden) return
   const target = event.target
   if (!(target instanceof Node)) return
-  if (els.calagePanel.contains(target)) return
-  setCalageTipOpen(false)
+  if (!els.calageTip.hidden && !els.calagePanel.contains(target)) {
+    setCalageTipOpen(false)
+  }
+  if (!els.markingTip.hidden && !els.markingHelp.contains(target)) {
+    setMarkingTipOpen(false)
+  }
 })
 
 els.openAdvanced.addEventListener('click', () => {
   setCalageMode(true)
-  els.calagePanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
 })
 
 els.dismissSkew.addEventListener('click', () => {
+  if (
+    referenceBeatWarning &&
+    referenceBeatWarning.key !== referenceBeatDismissedKey
+  ) {
+    referenceBeatDismissedKey = referenceBeatWarning.key
+    updateSkewWarning()
+    return
+  }
+
   const skewed = tracks
     .map((track, index) => ({ track, index }))
-    .filter(({ track, index }) => index > 0 && Math.abs(track.offsetMs) > OFFSET_WARN_MS)
+    .filter(
+      ({ track }) =>
+        track.id !== referenceTrackId && Math.abs(track.offsetMs) > OFFSET_WARN_MS,
+    )
   skewWarningDismissedKey = skewFingerprint(skewed)
   els.skewWarning.hidden = true
 })
@@ -2518,9 +2703,10 @@ els.tracks.addEventListener('click', (event) => {
       trackGains.delete(removed.id)
       trackPlayheads.delete(removed.id)
     }
-    // The new first track becomes the reference: never auto-aligned.
+    // The reference track cannot be deleted; still refresh beat checks.
     syncReferenceTrackRules()
     renderTracks()
+    void evaluateReferenceBeat()
     return
   }
 
