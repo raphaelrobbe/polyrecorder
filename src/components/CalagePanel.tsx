@@ -49,7 +49,7 @@ export function CalagePanel({ className }: CalagePanelProps) {
       <div className="flex flex-wrap items-center justify-between gap-[0.65rem]">
         <div className="inline-flex items-center gap-[0.4rem]">
           <span className="text-[0.78rem] font-bold tracking-[0.08em] uppercase text-ink-soft">
-            Gestion du calage
+            Avance de lecture
           </span>
           <Button
             variant="round"

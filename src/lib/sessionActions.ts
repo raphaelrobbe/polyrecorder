@@ -11,6 +11,7 @@ import {
 } from './format'
 import {
   applyAudioSink,
+  clearBufferCache,
   closeAudioContext,
   discardPendingRecording,
   ensureAudioContext,
@@ -314,7 +315,7 @@ function applyReferencePeaksLabel(reference: Track, peaks: number[]) {
     })
   } else {
     patch({
-      refPeaksLabel: `Attaques (${reference.name}) : ${times} (${peaks.length}/4)`,
+      refPeaksLabel: `Battue 1-2-3-4 (${reference.name}) : ${times} (${peaks.length}/4)`,
     })
   }
 }
@@ -1509,6 +1510,9 @@ export function deleteTrack(trackId: number) {
     stopPlayback({ resetSeek: false })
   }
   URL.revokeObjectURL(track.url)
+  clearBufferCache(trackId)
+  trackGains.delete(trackId)
+  trackPlayheads.delete(trackId)
   const tracks = get().tracks.filter((t) => t.id !== trackId)
   const trackAlignDetails = { ...get().trackAlignDetails }
   delete trackAlignDetails[trackId]
@@ -1530,6 +1534,9 @@ export function deleteAllTracks() {
   for (const track of get().tracks) {
     URL.revokeObjectURL(track.url)
   }
+  clearBufferCache()
+  trackGains.clear()
+  trackPlayheads.clear()
   patch({
     tracks: [],
     enabledTrackIds: [],
