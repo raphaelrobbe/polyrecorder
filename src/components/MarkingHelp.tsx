@@ -55,8 +55,8 @@ export function MarkingHelp({ className }: MarkingHelpProps) {
             passe directement à l’enregistrement de la deuxième voix
           </li>
           <li>
-            ne répéter que les 3ème et 4ème temps à haute voix puis chanter la
-            deuxième voix
+            ne répéter que les 3ème et 4ème temps à haute voix exactement quand
+            vous les entendez, puis chanter la deuxième voix
           </li>
           <li>recommencer pour les voix suivantes</li>
           <li>

@@ -77,9 +77,9 @@ export function TrackRow({
   return (
     <li
       className={cn(
-        'relative grid grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] grid-rows-[auto] items-center gap-x-[0.1rem] touch-manipulation animate-rise',
+        'relative grid grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] grid-rows-[auto] items-center gap-x-[0.1rem] touch-manipulation animate-rise max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]',
         calageMode &&
-          'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)_1.35rem_7.1rem] grid-rows-[auto_auto] gap-y-[0.1rem]',
+          'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)_2.2rem_7.1rem] grid-rows-[auto_auto] gap-y-[0.1rem] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)_1.9rem_6rem]',
         isDragging && 'opacity-45 touch-none',
         dragOver === 'before' &&
           'before:pointer-events-none before:absolute before:left-0 before:right-0 before:-top-[0.2rem] before:h-0.5 before:rounded-sm before:bg-ink before:content-[""]',
@@ -105,6 +105,7 @@ export function TrackRow({
       <div
         className={cn(
           'col-start-3 row-start-1 flex w-full min-w-0 items-center gap-[0.4rem] rounded-[14px] border border-transparent bg-ink/4 box-border py-[0.45rem] pr-[0.45rem] pl-[0.55rem]',
+          'max-sm:gap-[0.25rem] max-sm:rounded-[12px] max-sm:py-[0.35rem] max-sm:pr-[0.3rem] max-sm:pl-[0.35rem]',
           calageMode && 'items-start',
           !isEnabled && 'opacity-55',
         )}
@@ -173,7 +174,10 @@ export function TrackRow({
         {isReference ? null : (
           <Button
             variant="trash"
-            className={cn('ml-[0.15rem] shrink-0', calageMode && 'mt-[0.12rem]')}
+            className={cn(
+              'ml-[0.15rem] shrink-0 max-sm:ml-[0.08rem]',
+              calageMode && 'mt-[0.12rem]',
+            )}
             icon={<IconClose />}
             aria-label={`Supprimer ${track.name}`}
             title="Supprimer"
@@ -189,7 +193,7 @@ export function TrackRow({
         <>
           {isReference ? (
             <span
-              className="col-start-4 row-start-1 inline-flex h-[1.35rem] min-w-[1.35rem] w-auto shrink-0 items-center justify-center justify-self-center px-[0.2rem] text-[0.62rem] font-extrabold tracking-[0.04em] uppercase text-ink-soft select-none"
+              className="col-start-4 row-start-1 inline-flex h-[1.35rem] w-full shrink-0 items-center justify-center justify-self-center text-[0.62rem] font-extrabold tracking-[0.04em] uppercase text-ink-soft select-none"
               title="Piste de référence (marquages 1–2–3–4)"
               aria-label="Référence"
             >

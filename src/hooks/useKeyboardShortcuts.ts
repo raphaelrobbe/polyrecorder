@@ -20,7 +20,9 @@ function isEditableKeyboardTarget(target: EventTarget | null): boolean {
 }
 
 function focusSessionTitle() {
-  const input = document.querySelector<HTMLInputElement>('[data-session-title]')
+  const input = document.querySelector<HTMLTextAreaElement | HTMLInputElement>(
+    '[data-session-title]',
+  )
   if (!input) return
   input.focus()
   if (isDefaultSessionTitle(input.value)) input.select()

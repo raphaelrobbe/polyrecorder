@@ -124,5 +124,5 @@ export function getMaxTrackDurationMs(tracks: Track[]): number {
 }
 
 export function normalizeSessionTitle(raw: string): string {
-  return raw.trim().slice(0, 60) || defaultSessionTitle()
+  return raw.replace(/\s+/g, ' ').trim().slice(0, 60) || defaultSessionTitle()
 }

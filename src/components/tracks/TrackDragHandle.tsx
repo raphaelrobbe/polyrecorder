@@ -18,7 +18,7 @@ export function TrackDragHandle({
     <button
       type={type}
       className={cn(
-        'col-start-1 row-start-1 grid h-[1.9rem] w-[1.35rem] place-items-center rounded-md border-0 bg-transparent p-0 text-ink-soft opacity-70 touch-none cursor-grab',
+        'col-start-1 row-start-1 grid h-[1.9rem] w-[1.35rem] place-items-center rounded-md border-0 bg-transparent p-0 text-ink-soft opacity-70 touch-none cursor-grab max-sm:h-[1.7rem] max-sm:w-[1.2rem]',
         'hover:bg-ink/6 hover:text-ink hover:opacity-100',
         'active:cursor-grabbing',
         className,
@@ -27,7 +27,7 @@ export function TrackDragHandle({
       title={title}
       {...props}
     >
-      <IconDragDots className="size-[1.35rem]" />
+      <IconDragDots className="size-[1.35rem] max-sm:size-[1.15rem]" />
     </button>
   )
 }

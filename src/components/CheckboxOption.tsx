@@ -1,5 +1,6 @@
 import type { InputHTMLAttributes, ReactNode } from 'react'
 import { cn } from '../lib/utils'
+import { CheckFace } from './CheckFace'
 
 type CheckboxOptionProps = {
   children: ReactNode
@@ -37,16 +38,24 @@ export function CheckboxOption({
       title={title}
       hidden={hidden}
     >
-      <input
-        type="checkbox"
+      <span
         className={cn(
-          'h-4 w-4 shrink-0 accent-ink',
+          'relative h-4 w-4 shrink-0',
           align === 'start' && 'mt-[0.12rem]',
         )}
-        checked={checked}
-        onChange={(event) => onCheckedChange(event.target.checked)}
-        {...inputProps}
-      />
+      >
+        <input
+          type="checkbox"
+          className="peer absolute inset-0 z-10 m-0 cursor-pointer opacity-0"
+          checked={checked}
+          onChange={(event) => onCheckedChange(event.target.checked)}
+          {...inputProps}
+        />
+        <CheckFace
+          checked={checked}
+          className="rounded-[3px] shadow-none"
+        />
+      </span>
       <span className="min-w-0">{children}</span>
     </label>
   )

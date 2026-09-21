@@ -26,7 +26,7 @@ export function TrackNudgeControls({
   return (
     <div
       className={cn(
-        'inline-flex shrink-0 items-center gap-[0.15rem]',
+        'inline-flex shrink-0 items-center gap-[0.15rem] max-sm:gap-[0.08rem]',
         className,
       )}
       title={title}

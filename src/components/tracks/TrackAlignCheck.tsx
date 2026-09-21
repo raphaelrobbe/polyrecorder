@@ -5,6 +5,7 @@ import {
   type LabelHTMLAttributes,
 } from 'react'
 import { cn } from '../../lib/utils'
+import { CheckFace } from '../CheckFace'
 
 type DataAttrs = {
   [key: `data-${string}`]: string | number | boolean | undefined
@@ -73,29 +74,7 @@ export function TrackAlignCheck({
         onChange={(event) => onCheckedChange(event.target.checked)}
         {...inputProps}
       />
-      <span
-        className={cn(
-          'relative block size-full rounded border-2 border-ink/35 bg-surface shadow-[inset_0_1px_2px_color-mix(in_srgb,var(--ink)_6%,transparent)] transition-[background,border-color,box-shadow] duration-140 ease-in-out',
-          'peer-focus-visible:shadow-[0_0_0_3px_color-mix(in_srgb,var(--ink)_15%,transparent)]',
-          'peer-disabled:opacity-40',
-          checked && !indeterminate && 'border-ink bg-ink',
-          indeterminate && 'border-ink bg-ink/12',
-        )}
-        aria-hidden="true"
-      >
-        <span
-          className={cn(
-            'absolute top-[0.1rem] left-[0.32rem] h-[0.62rem] w-[0.32rem] rotate-45 border-solid border-transparent border-r-2 border-b-2 opacity-0 transition-opacity duration-140 ease-in-out',
-            checked && !indeterminate && 'border-white opacity-100',
-          )}
-        />
-        <span
-          className={cn(
-            'absolute top-[0.5rem] left-[0.25rem] h-0 w-[0.7rem] border-0 border-b-2 border-solid border-ink opacity-0 transition-opacity duration-140 ease-in-out',
-            indeterminate && 'opacity-100',
-          )}
-        />
-      </span>
+      <CheckFace checked={checked} indeterminate={indeterminate} />
     </label>
   )
 }

@@ -46,7 +46,7 @@ export function TrackMute({
   return (
     <label
       className={cn(
-        'relative h-[1.55rem] w-[1.55rem] shrink-0 cursor-pointer text-ink',
+        'relative h-[1.55rem] w-[1.55rem] shrink-0 cursor-pointer text-ink max-sm:h-[1.4rem] max-sm:w-[1.4rem]',
         className,
       )}
       title={title}

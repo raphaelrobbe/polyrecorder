@@ -222,9 +222,17 @@ export function TracksList({ className }: TracksListProps) {
         >
           {showRefPeaks ? refPeaksLabel : ''}
         </p>
-        <div className="mb-[0.45rem] flex min-h-[1.7rem] items-center gap-[0.12rem]">
-          <span className="w-[1.35rem] shrink-0" aria-hidden="true" />
+        <div
+          className={cn(
+            'mb-[0.45rem] grid min-h-[2rem] grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] items-center gap-x-[0.1rem] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]',
+            calageMode &&
+              alignable.length > 0 &&
+              'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)_2.2rem_7.1rem] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)_1.9rem_6rem]',
+          )}
+        >
+          <span className="col-start-1" aria-hidden="true" />
           <TrackMute
+            className="col-start-2 justify-self-center"
             title="Activer / couper toutes les pistes"
             ariaLabel="Activer toutes les pistes"
             checked={allSelected}
@@ -232,10 +240,10 @@ export function TracksList({ className }: TracksListProps) {
             onCheckedChange={(on) => setAllTracksEnabled(on)}
             inputProps={{ 'data-select-all': true }}
           />
-          <div className="flex min-w-0 flex-auto items-center justify-end">
+          <div className="col-start-3 flex w-full min-w-0 items-center justify-end py-[0.45rem] pr-[0.45rem] pl-[0.55rem] max-sm:py-[0.35rem] max-sm:pr-[0.3rem] max-sm:pl-[0.35rem]">
             <Button
               variant="trash"
-              className="h-[1.7rem] w-[1.7rem] rounded-lg text-[1.15rem]"
+              className="ml-[0.15rem] h-8 w-8 shrink-0 max-sm:ml-[0.08rem]"
               icon={<IconClose />}
               aria-label="Supprimer toutes les pistes"
               title="Supprimer toutes les pistes"
@@ -253,6 +261,7 @@ export function TracksList({ className }: TracksListProps) {
             />
           </div>
           <TrackAlignCheck
+            className="col-start-4 justify-self-center"
             hidden={!calageMode || alignable.length === 0}
             title="Activer / désactiver le calage auto (sauf piste 1)"
             ariaLabel="Calage auto sur toutes les pistes"
@@ -264,7 +273,7 @@ export function TracksList({ className }: TracksListProps) {
             labelProps={{ 'data-align-header': true }}
           />
           <span
-            className="w-[7.1rem] shrink-0"
+            className="col-start-5 w-full shrink-0 justify-self-center"
             data-align-nudge-spacer
             hidden={!calageMode || alignable.length === 0}
             aria-hidden="true"
@@ -377,14 +386,14 @@ export function TracksList({ className }: TracksListProps) {
       </div>
 
       <div
-        className="relative mt-4 flex flex-wrap items-center gap-x-3 gap-y-[0.55rem] rounded-[14px] border-[1.5px] border-[rgba(176,110,20,0.35)] bg-[rgba(232,176,72,0.16)] py-[0.85rem] pr-[2.1rem] pl-[0.95rem] text-[0.88rem] leading-[1.35] text-[#6a4508] [&_strong]:font-extrabold [&_strong]:tracking-[0.02em]"
+        className="relative mt-4 flex flex-wrap items-center gap-x-3 gap-y-[0.55rem] rounded-[14px] border-[1.5px] border-warn-border bg-warn-bg py-[0.85rem] pr-[2.1rem] pl-[0.95rem] text-[0.88rem] leading-[1.35] text-warn [&_strong]:font-extrabold [&_strong]:tracking-[0.02em]"
         data-skew-warning
         hidden={!skewWarningMessage}
         title="Un calage auto supérieur à 300 ms indique souvent un problème de sync (marquages peu clairs, latence, etc.). Ouvre le mode calage pour inspecter et ajuster."
       >
         <button
           type="button"
-          className="absolute top-[0.35rem] right-[0.4rem] h-[1.6rem] w-[1.6rem] cursor-pointer rounded-lg border-0 bg-transparent p-0 text-[1.15rem] leading-none text-[#6a4508] hover:bg-[rgba(176,110,20,0.12)]"
+          className="absolute top-[0.35rem] right-[0.4rem] h-[1.6rem] w-[1.6rem] cursor-pointer rounded-lg border-0 bg-transparent p-0 text-[1.15rem] leading-none text-warn hover:bg-warn-hover"
           data-dismiss-skew
           aria-label="Fermer"
           title="Fermer"
@@ -397,7 +406,7 @@ export function TracksList({ className }: TracksListProps) {
         {skewWarningShowOpenAdvanced ? (
           <Button
             variant="default"
-            className="ml-auto border-[1.5px] border-[rgba(176,110,20,0.4)] bg-transparent px-3 py-[0.4rem] text-[0.8rem] text-[#6a4508] hover:enabled:bg-[rgba(176,110,20,0.1)]"
+            className="ml-auto border-[1.5px] border-warn-border bg-transparent px-3 py-[0.4rem] text-[0.8rem] text-warn hover:enabled:bg-warn-hover"
             onClick={() => {
               setError(null)
               setCalageMode(true)

@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import { isDefaultSessionTitle } from '../lib/format'
 import { normalizeAndSetSessionTitle } from '../lib/sessionActions'
 import { cn } from '../lib/utils'
@@ -19,16 +20,25 @@ export function DeckMain({ className }: DeckMainProps) {
   const recordingTimerVisible = useSessionStore((s) => s.recordingTimerVisible)
   const error = useSessionStore((s) => s.error)
   const keyboardHintsEnabled = useSessionStore((s) => s.keyboardHintsEnabled)
+  const titleRef = useRef<HTMLTextAreaElement>(null)
 
   const defaultName = isDefaultSessionTitle(sessionTitle)
 
+  useLayoutEffect(() => {
+    const el = titleRef.current
+    if (!el) return
+    el.style.height = '0px'
+    el.style.height = `${el.scrollHeight}px`
+  }, [sessionTitle])
+
   return (
     <div className={cn(className)}>
-      <div className="relative mb-6 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
-        <input
-          type="text"
+      <div className="relative mb-6 grid grid-cols-[1fr_auto_1fr] items-start gap-3">
+        <textarea
+          ref={titleRef}
+          rows={1}
           className={cn(
-            'col-start-2 justify-self-center w-[min(100%,22rem)] min-w-0 border-0 bg-transparent font-[inherit] font-bold text-[1.35rem] leading-[1.25] text-center py-[0.2rem] px-[0.45rem] rounded-[10px] [font-synthesis:style]',
+            'col-start-2 justify-self-center w-[min(100%,22rem)] min-w-0 resize-none overflow-hidden border-0 bg-transparent font-[inherit] font-bold text-[1.35rem] leading-[1.25] text-center py-[0.2rem] px-[0.45rem] rounded-[10px] [font-synthesis:style] field-sizing-content',
             'hover:bg-ink/6 focus:bg-ink/6 focus:outline-none focus:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ink)_18%,transparent)]',
             defaultName
               ? 'text-ink-soft italic font-semibold'
@@ -45,7 +55,9 @@ export function DeckMain({ className }: DeckMainProps) {
           )}
           data-title-base="Titre de l'enregistrement"
           spellCheck={false}
-          onChange={(event) => setSessionTitle(event.target.value)}
+          onChange={(event) =>
+            setSessionTitle(event.target.value.replace(/\n/g, ' '))
+          }
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
               event.preventDefault()
@@ -69,7 +81,7 @@ export function DeckMain({ className }: DeckMainProps) {
           }}
         />
         <div
-          className="col-start-3 justify-self-end tabular-nums font-semibold tracking-[0.04em] text-ink-soft"
+          className="col-start-3 justify-self-end pt-[0.35rem] tabular-nums font-semibold tracking-[0.04em] text-ink-soft"
           data-timer
           hidden={!recordingTimerVisible}
         >
