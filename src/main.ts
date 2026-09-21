@@ -291,9 +291,9 @@ app.innerHTML = `
                 Ce navigateur ne permet pas de choisir la sortie audio depuis la page.
                 Branche un casque pour le monitoring, ou change la sortie dans les réglages du système.
               </p>
-              <p class="settings-note" data-audio-route-note hidden>
-                Sur téléphone ou tablette, la sortie est gérée par le système (haut-parleur, filaire, Bluetooth).
-                Un choix forcé depuis la page peut couper le son : PolyRecorder utilise donc la sortie par défaut.
+              <p class="settings-note" data-sink-mobile-note hidden>
+                Sur téléphone ou tablette, certains choix de sortie (surtout Bluetooth) peuvent couper le son Web Audio.
+                Si tu n’entends plus rien, reviens à «&nbsp;Par défaut (système)&nbsp;».
               </p>
             </div>
 
@@ -302,7 +302,7 @@ app.innerHTML = `
               <p class="settings-group-hint">
                 Micro utilisé pour capturer les prises. Les libellés du navigateur peuvent différer du nom Bluetooth habituel.
               </p>
-              <div class="settings-devices-cols settings-devices-cols--single">
+              <div class="settings-devices-cols settings-devices-cols--single" data-input-selects>
                 <label class="settings-device-col" data-input-monitor-wrap>
                   <span class="settings-device-col-title">pendant l'enregistrement</span>
                   <select
@@ -312,10 +312,9 @@ app.innerHTML = `
                   ></select>
                 </label>
               </div>
-              <p class="settings-note" data-audio-route-note hidden>
-                Si un casque Bluetooth est connecté, le téléphone impose souvent son micro
-                quel que soit le choix dans la liste. Pour le micro intégré : déconnecte le casque
-                dans les réglages Bluetooth, ou choisis «&nbsp;Par défaut (système)&nbsp;» après l’avoir débranché.
+              <p class="settings-note" data-input-mobile-note hidden>
+                Sur téléphone ou tablette, l’entrée micro est laissée au système (haut-parleur, filaire, Bluetooth).
+                PolyRecorder n’offre pas de choix d’entrée ici : connecte ou déconnecte le casque dans les réglages de l’appareil.
               </p>
               <p class="settings-note" data-input-override-note hidden></p>
             </div>
@@ -500,7 +499,9 @@ const els = {
   sinkSelects: app.querySelector<HTMLElement>('[data-sink-selects]')!,
   sinkUnsupported: app.querySelector<HTMLElement>('[data-sink-unsupported]')!,
   sinkEarpieceNote: app.querySelector<HTMLElement>('[data-sink-earpiece-note]')!,
-  audioRouteNotes: app.querySelectorAll<HTMLElement>('[data-audio-route-note]'),
+  sinkMobileNote: app.querySelector<HTMLElement>('[data-sink-mobile-note]')!,
+  inputSelects: app.querySelector<HTMLElement>('[data-input-selects]')!,
+  inputMobileNote: app.querySelector<HTMLElement>('[data-input-mobile-note]')!,
   inputOverrideNote: app.querySelector<HTMLElement>('[data-input-override-note]')!,
   inputMonitor: app.querySelector<HTMLSelectElement>('[data-input-monitor]')!,
   playIcon: app.querySelector<SVGElement>('.icon-play')!,
@@ -677,11 +678,17 @@ function supportsAudioSinkSelect(): boolean {
 }
 
 /**
- * Custom output routing is unreliable on phones/tablets (Bluetooth often
- * silences Web Audio). Keep system default there even if setSinkId exists.
+ * Experiment: allow output selection wherever setSinkId exists, including mobile.
  */
 function allowsAudioSinkSelect(): boolean {
-  return supportsAudioSinkSelect() && !prefersHeadphonesHint()
+  return supportsAudioSinkSelect()
+}
+
+/**
+ * Experiment: on phones/tablets, leave the mic to the OS (no input picker).
+ */
+function allowsAudioInputSelect(): boolean {
+  return !prefersHeadphonesHint()
 }
 
 function currentAudioSinkMode(): AudioSinkMode {
@@ -691,6 +698,10 @@ function currentAudioSinkMode(): AudioSinkMode {
 function sinkIdForMode(mode: AudioSinkMode): string {
   if (!allowsAudioSinkSelect()) return ''
   return mode === 'monitor' ? sinkMonitorId : sinkPlaybackId
+}
+
+function inputIdForCapture(): string {
+  return allowsAudioInputSelect() ? inputMonitorId : ''
 }
 
 async function applyAudioSink(mode: AudioSinkMode = currentAudioSinkMode()) {
@@ -711,15 +722,16 @@ async function applyAudioSink(mode: AudioSinkMode = currentAudioSinkMode()) {
   }
 }
 
-function updateSinkSettingsUi(apiSupported: boolean) {
-  const selectable = apiSupported && allowsAudioSinkSelect()
-  els.sinkUnsupported.hidden = selectable || prefersHeadphonesHint()
-  els.sinkSelects.hidden = !selectable
+function updateDeviceSettingsUi(apiSupported: boolean) {
+  const sinkSelectable = apiSupported && allowsAudioSinkSelect()
+  const inputSelectable = allowsAudioInputSelect()
+  els.sinkUnsupported.hidden = sinkSelectable
+  els.sinkSelects.hidden = !sinkSelectable
   els.sinkEarpieceNote.hidden = !prefersHeadphonesHint()
-  const showRouteNote = prefersHeadphonesHint()
-  for (const note of els.audioRouteNotes) {
-    note.hidden = !showRouteNote
-  }
+  els.sinkMobileNote.hidden = !(prefersHeadphonesHint() && sinkSelectable)
+  els.inputSelects.hidden = !inputSelectable
+  els.inputMobileNote.hidden = inputSelectable
+  if (!inputSelectable) setInputOverrideNote(null)
 }
 
 function setInputOverrideNote(message: string | null) {
@@ -795,7 +807,8 @@ async function refreshAudioDeviceOptions() {
 
   const apiSupported = supportsAudioSinkSelect()
   const sinkSelectable = allowsAudioSinkSelect()
-  updateSinkSettingsUi(apiSupported)
+  const inputSelectable = allowsAudioInputSelect()
+  updateDeviceSettingsUi(apiSupported)
 
   let outputs: MediaDeviceInfo[] = []
   let inputs: MediaDeviceInfo[] = []
@@ -823,11 +836,13 @@ async function refreshAudioDeviceOptions() {
     }
   }
 
-  fillDeviceSelect(els.inputMonitor, inputs, inputMonitorId, 'Micro')
+  if (inputSelectable) {
+    fillDeviceSelect(els.inputMonitor, inputs, inputMonitorId, 'Micro')
 
-  if (els.inputMonitor.value !== inputMonitorId) {
-    inputMonitorId = els.inputMonitor.value
-    saveSinkId(INPUT_MONITOR_KEY, inputMonitorId)
+    if (els.inputMonitor.value !== inputMonitorId) {
+      inputMonitorId = els.inputMonitor.value
+      saveSinkId(INPUT_MONITOR_KEY, inputMonitorId)
+    }
   }
 }
 
@@ -1190,7 +1205,7 @@ async function closeAudioContext() {
 }
 
 async function ensureMic(): Promise<MediaStream> {
-  const wantedId = inputMonitorId
+  const wantedId = inputIdForCapture()
   if (mediaStream) {
     const liveTrack = mediaStream
       .getAudioTracks()
@@ -3708,7 +3723,7 @@ window.addEventListener('keydown', (event) => {
 
 applyKeyboardShortcutTooltips()
 updateHelpShortcutsVisibility()
-updateSinkSettingsUi(supportsAudioSinkSelect())
+updateDeviceSettingsUi(supportsAudioSinkSelect())
 void refreshAudioDeviceOptions()
 
 {
