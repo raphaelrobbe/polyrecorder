@@ -1,0 +1,23 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: Manrope, system-ui, sans-serif;
+  --font-display: Fraunces, Georgia, serif;
+  --color-ink: #0f3d3e;
+  --color-ink-soft: #2a5556;
+  --color-paper: #f2efe6;
+  --color-paper-deep: #e4ddd0;
+  --color-foam: #c8e6e0;
+  --color-record: #e23d3d;
+  --color-ok: #1f7a4c;
+  --color-line: rgb(15 61 62 / 0.14);
+  --shadow-deck: 0 18px 50px rgb(15 61 62 / 0.12);
+}
+
+@utility font-display {
+  font-family: var(--font-display);
+}
+
+@utility animate-rise {
+  animation: rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
