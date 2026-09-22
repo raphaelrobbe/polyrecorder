@@ -57,8 +57,10 @@ import {
 import {
   decodeTrack,
   getSkipCountInStartS,
+  MASTER_VOLUME_MAX,
   renderSelectedMixBuffer,
   scheduleTrackSource,
+  TRACK_VOLUME_MAX,
   trimAudioBufferFrom,
 } from './audio/mix'
 import {
@@ -331,9 +333,68 @@ export function setCalageMode(on: boolean) {
     refreshSkewWarning()
     return
   }
-  patch({ calageMode: on })
+  if (on) {
+    patch({ calageMode: true, mixMode: false, calageTipOpen: false })
+    refreshSkewWarning()
+    if (tracks.length > 0) void evaluateReferenceBeat()
+    return
+  }
+  patch({ calageMode: false, calageTipOpen: false })
   refreshSkewWarning()
-  if (on && tracks.length > 0) void evaluateReferenceBeat()
+}
+
+export function setMixMode(on: boolean) {
+  const { tracks } = get()
+  if (tracks.length === 0 && on) {
+    patch({ mixMode: false })
+    return
+  }
+  if (on) {
+    patch({ mixMode: true, calageMode: false, calageTipOpen: false })
+    refreshSkewWarning()
+    return
+  }
+  patch({ mixMode: false })
+}
+
+export function clampTrackVolume(value: number): number {
+  if (!Number.isFinite(value)) return 1
+  return Math.min(TRACK_VOLUME_MAX, Math.max(0, value))
+}
+
+export function clampMasterVolume(value: number): number {
+  if (!Number.isFinite(value)) return 1
+  return Math.min(MASTER_VOLUME_MAX, Math.max(0, value))
+}
+
+export function getTrackVolume(trackId: number): number {
+  return clampTrackVolume(get().trackVolumes[trackId] ?? 1)
+}
+
+/** Live track GainNode value (mute → 0, else track volume). */
+function liveTrackGainValue(trackId: number): number {
+  const enabled = get().enabledTrackIds.includes(trackId)
+  return enabled ? getTrackVolume(trackId) : 0
+}
+
+export function setTrackVolume(trackId: number, volume: number) {
+  const next = clampTrackVolume(volume)
+  patch({
+    trackVolumes: { ...get().trackVolumes, [trackId]: next },
+  })
+  const gain = trackGains.get(trackId)
+  if (gain) {
+    gain.gain.value = liveTrackGainValue(trackId)
+  }
+}
+
+export function setMasterVolume(volume: number) {
+  const next = clampMasterVolume(volume)
+  patch({ masterVolume: next })
+  const master = getPlaybackGain()
+  if (master) {
+    master.gain.value = next
+  }
 }
 
 export function syncLatencyDisplay() {
@@ -485,7 +546,7 @@ export function startPlayheadClock() {
 export function setTrackAudible(trackId: number, audible: boolean) {
   const gain = trackGains.get(trackId)
   if (gain) {
-    gain.gain.value = audible ? 1 : 0
+    gain.gain.value = audible ? getTrackVolume(trackId) : 0
   }
 }
 
@@ -758,7 +819,14 @@ export async function downloadSelectedMix() {
   setError(null)
 
   try {
-    let mixed = await renderSelectedMixBuffer(selected)
+    const trackVolumes: Record<number, number> = {}
+    for (const track of selected) {
+      trackVolumes[track.id] = getTrackVolume(track.id)
+    }
+    let mixed = await renderSelectedMixBuffer(selected, {
+      trackVolumes,
+      masterVolume: clampMasterVolume(get().masterVolume),
+    })
     if (get().skipCountInDownload) {
       const cutS = await getSkipCountInStartSec()
       if (cutS >= mixed.duration - 0.05) {
@@ -813,7 +881,6 @@ export async function playTracks(
   const ctx = await ensureAudioContext()
   const applyOffsets = options?.applyOffsets ?? true
   trackGains.clear()
-  const enabled = new Set(get().enabledTrackIds)
 
   const decoded = await Promise.all(
     playable.map(async (track) => ({
@@ -823,7 +890,7 @@ export async function playTracks(
   )
 
   const gain = ctx.createGain()
-  gain.gain.value = 0.85
+  gain.gain.value = clampMasterVolume(get().masterVolume)
   gain.connect(ctx.destination)
   setPlaybackGain(gain)
 
@@ -846,7 +913,7 @@ export async function playTracks(
       applyOffsets,
       asMix || applyOffsets ? startAtMs : 0,
       {
-        audible: enabled.has(track.id),
+        volume: liveTrackGainValue(track.id),
         onTrackGain: (id, trackGain) => {
           trackGains.set(id, trackGain)
         },
@@ -1041,11 +1108,10 @@ export async function beginOverdubRecording(monitor: Track[]): Promise<void> {
   trackGains.clear()
 
   const gain = ctx.createGain()
-  gain.gain.value = 0.85
+  gain.gain.value = clampMasterVolume(get().masterVolume)
   gain.connect(ctx.destination)
   setPlaybackGain(gain)
 
-  const enabled = new Set(get().enabledTrackIds)
   const sources: AudioBufferSourceNode[] = []
   const playing = new Set<number>()
 
@@ -1059,7 +1125,7 @@ export async function beginOverdubRecording(monitor: Track[]): Promise<void> {
       true,
       0,
       {
-        audible: enabled.has(track.id),
+        volume: liveTrackGainValue(track.id),
         onTrackGain: (id, trackGain) => {
           trackGains.set(id, trackGain)
         },
@@ -1189,6 +1255,7 @@ export async function finalizeCurrentTake(): Promise<Track> {
     enabledTrackIds,
     autoAlignTrackIds,
     referenceTrackId,
+    trackVolumes: { ...get().trackVolumes, [track.id]: 1 },
   })
   updateSessionTimerDisplay()
 
@@ -1516,11 +1583,17 @@ export function deleteTrack(trackId: number) {
   const tracks = get().tracks.filter((t) => t.id !== trackId)
   const trackAlignDetails = { ...get().trackAlignDetails }
   delete trackAlignDetails[trackId]
+  const trackVolumes = { ...get().trackVolumes }
+  delete trackVolumes[trackId]
   patch({
     tracks,
     enabledTrackIds: get().enabledTrackIds.filter((id) => id !== trackId),
     autoAlignTrackIds: get().autoAlignTrackIds.filter((id) => id !== trackId),
     trackAlignDetails,
+    trackVolumes,
+    ...(tracks.length === 0
+      ? { calageMode: false, mixMode: false, calageTipOpen: false }
+      : {}),
   })
   syncReferenceTrackRules()
   updateSessionTimerDisplay()
@@ -1544,8 +1617,11 @@ export function deleteAllTracks() {
     playingTrackIds: [],
     referenceTrackId: null,
     trackAlignDetails: {},
+    trackVolumes: {},
+    masterVolume: 1,
     trackCounter: 0,
     calageMode: false,
+    mixMode: false,
     mixSeekMs: 0,
     mixClockText: '00:00.000',
   })

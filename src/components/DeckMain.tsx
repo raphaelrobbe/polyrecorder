@@ -6,6 +6,7 @@ import { withShortcut } from '../hooks/useKeyboardShortcuts'
 import { useSessionStore } from '../store/sessionStore'
 import { CaptureBar } from './CaptureBar'
 import { CalagePanel } from './CalagePanel'
+import { ModeTools } from './ModeTools'
 import { ErrorBanner } from './StatusMessage'
 import { TracksList } from './tracks/TracksList'
 
@@ -95,6 +96,7 @@ export function DeckMain({ className }: DeckMainProps) {
       <ErrorBanner hidden={!error}>{error}</ErrorBanner>
 
       <CalagePanel />
+      <ModeTools />
     </div>
   )
 }

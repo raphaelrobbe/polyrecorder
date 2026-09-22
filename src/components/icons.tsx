@@ -125,6 +125,42 @@ export function IconMoon(props: Omit<IconProps, 'children'>) {
   )
 }
 
+/** Three vertical mixer faders (outline knobs hide the track behind). */
+export function IconFaders(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="currentColor"
+        d="M6.45 3h1.1v18H6.45V3zm5 0h1.1v18h-1.1V3zm5 0h1.1v18h-1.1V3z"
+      />
+      <circle
+        cx="7"
+        cy="14"
+        r="1.9"
+        fill="var(--fader-knob-fill, var(--surface))"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <circle
+        cx="12"
+        cy="9"
+        r="1.9"
+        fill="var(--fader-knob-fill, var(--surface))"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+      <circle
+        cx="17"
+        cy="16.5"
+        r="1.9"
+        fill="var(--fader-knob-fill, var(--surface))"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      />
+    </Icon>
+  )
+}
+
 export function IconHelp({ className }: { className?: string }) {
   return (
     <span

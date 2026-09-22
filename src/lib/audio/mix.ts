@@ -2,6 +2,8 @@ import type { Track, TrackPlayhead } from '../../types'
 import { ensureAudioContext, getBufferCache } from './runtime'
 
 export const SKIP_COUNT_IN_PAD_S = 0.1
+export const TRACK_VOLUME_MAX = 1.5
+export const MASTER_VOLUME_MAX = 2
 
 export async function decodeTrack(track: Track): Promise<AudioBuffer> {
   const bufferCache = getBufferCache()
@@ -15,9 +17,15 @@ export async function decodeTrack(track: Track): Promise<AudioBuffer> {
   return buffer
 }
 
+export type MixVolumeMap = Record<number, number>
+
 /** Offline-render selected tracks into a stereo mix buffer. */
 export async function renderSelectedMixBuffer(
   selected: Track[],
+  options?: {
+    trackVolumes?: MixVolumeMap
+    masterVolume?: number
+  },
 ): Promise<AudioBuffer> {
   const playable = selected.filter((track) => track.blob.size > 0)
   if (playable.length === 0) {
@@ -48,14 +56,17 @@ export async function renderSelectedMixBuffer(
   const length = Math.max(1, Math.ceil(durationS * sampleRate) + sampleRate)
   const offline = new OfflineAudioContext(2, length, sampleRate)
   const master = offline.createGain()
-  // Match live mix headroom.
-  master.gain.value = 0.85
+  master.gain.value = options?.masterVolume ?? 1
   master.connect(offline.destination)
 
+  const volumes = options?.trackVolumes ?? {}
   for (const { track, buffer } of decoded) {
     const source = offline.createBufferSource()
     source.buffer = buffer
-    source.connect(master)
+    const trackGain = offline.createGain()
+    trackGain.gain.value = volumes[track.id] ?? 1
+    source.connect(trackGain)
+    trackGain.connect(master)
     const delayS = Math.max(0, track.offsetMs) / 1000
     const skipS = Math.max(0, -track.offsetMs) / 1000
     const playableLen = Math.max(0, buffer.duration - skipS)
@@ -118,8 +129,11 @@ export function getSkipCountInStartS(args: {
 }
 
 export type ScheduleTrackOptions = {
-  /** When false, track gain stays at 0 (muted but scheduled). Default true. */
-  audible?: boolean
+  /**
+   * Linear track gain before the master bus (0 = muted).
+   * Defaults to 1 when omitted.
+   */
+  volume?: number
   onTrackGain?: (trackId: number, gain: GainNode) => void
   onPlayhead?: (trackId: number, playhead: TrackPlayhead) => void
 }
@@ -141,7 +155,7 @@ export function scheduleTrackSource(
   const source = ctx.createBufferSource()
   source.buffer = buffer
   const trackGain = ctx.createGain()
-  trackGain.gain.value = options?.audible === false ? 0 : 1
+  trackGain.gain.value = options?.volume ?? 1
   source.connect(trackGain)
   trackGain.connect(gain)
   options?.onTrackGain?.(track.id, trackGain)

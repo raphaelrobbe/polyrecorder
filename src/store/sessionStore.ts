@@ -29,6 +29,7 @@ export type SessionStoreState = {
   trackAlignDetails: Record<number, TrackAlignDetail>
 
   calageMode: boolean
+  mixMode: boolean
   mixListenActive: boolean
   mixPaused: boolean
   mixSeekMs: number
@@ -40,6 +41,11 @@ export type SessionStoreState = {
   timerVisible: boolean
   calageTipOpen: boolean
   markingOpen: boolean
+
+  /** Per-track volume multipliers (1 = 100%). */
+  trackVolumes: Record<number, number>
+  /** Master bus multiplier (1 = 100%, may exceed 1). */
+  masterVolume: number
 
   sessionTitle: string
   error: string | null
@@ -82,6 +88,7 @@ export type SessionStoreState = {
   setHint: (hint: string) => void
   setSessionTitle: (title: string) => void
   setCalageMode: (on: boolean) => void
+  setMixMode: (on: boolean) => void
   setAutoplayAfterStop: (on: boolean) => void
   setSkipCountInPlayback: (on: boolean) => void
   setSkipCountInDownload: (on: boolean) => void
@@ -92,6 +99,8 @@ export type SessionStoreState = {
   setInputOverrideNote: (note: string | null) => void
   setDragTrackId: (id: number | null) => void
   setTouchReorder: (state: TouchReorderState | null) => void
+  setTrackVolume: (trackId: number, volume: number) => void
+  setMasterVolume: (volume: number) => void
   patch: (partial: Partial<SessionStoreState>) => void
 }
 
@@ -110,6 +119,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   trackAlignDetails: {},
 
   calageMode: false,
+  mixMode: false,
   mixListenActive: false,
   mixPaused: false,
   mixSeekMs: 0,
@@ -121,6 +131,9 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   timerVisible: false,
   calageTipOpen: false,
   markingOpen: false,
+
+  trackVolumes: {},
+  masterVolume: 1,
 
   sessionTitle: defaultSessionTitle(),
   error: null,
@@ -166,6 +179,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setHint: (hint) => set({ hint }),
   setSessionTitle: (title) => set({ sessionTitle: title }),
   setCalageMode: (on) => set({ calageMode: on }),
+  setMixMode: (on) => set({ mixMode: on }),
   setAutoplayAfterStop: (on) => set({ autoplayAfterStop: on }),
   setSkipCountInPlayback: (on) => set({ skipCountInPlayback: on }),
   setSkipCountInDownload: (on) => set({ skipCountInDownload: on }),
@@ -176,5 +190,10 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setInputOverrideNote: (note) => set({ inputOverrideNote: note }),
   setDragTrackId: (id) => set({ dragTrackId: id }),
   setTouchReorder: (state) => set({ touchReorder: state }),
+  setTrackVolume: (trackId, volume) =>
+    set((state) => ({
+      trackVolumes: { ...state.trackVolumes, [trackId]: volume },
+    })),
+  setMasterVolume: (volume) => set({ masterVolume: volume }),
   patch: (partial) => set(partial),
 }))

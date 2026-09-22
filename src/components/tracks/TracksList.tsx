@@ -10,18 +10,21 @@ import {
   setAllTracksEnabled,
   setCalageMode,
   setError,
+  setMasterVolume,
 } from '../../lib/sessionActions'
+import { MASTER_VOLUME_MAX } from '../../lib/audio/mix'
 import { cn } from '../../lib/utils'
 import { useSessionStore } from '../../store/sessionStore'
 import { Button } from '../Button'
 import { IconClose } from '../icons'
+import { VolumeRibbon } from '../VolumeRibbon'
 import { TrackAlignCheck } from './TrackAlignCheck'
 import { TrackMute } from './TrackMute'
 import { TrackRow } from './TrackRow'
 
 const TOUCH_REORDER_THRESHOLD_PX = 8
 const TOUCH_REORDER_EXCLUDE =
-  'input, textarea, select, button:not([data-drag-track]), [data-track-mute], [data-track-align], [data-rename-track], [data-track-nudge], [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-toggle-track]'
+  'input, textarea, select, button:not([data-drag-track]), [data-track-mute], [data-track-align], [data-rename-track], [data-track-nudge], [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-toggle-track], [data-volume-ribbon]'
 
 type DragOverState = { trackId: number; edge: 'before' | 'after' } | null
 
@@ -33,11 +36,12 @@ export function TracksList({ className }: TracksListProps) {
   const tracks = useSessionStore((s) => s.tracks)
   const state = useSessionStore((s) => s.state)
   const calageMode = useSessionStore((s) => s.calageMode)
+  const mixMode = useSessionStore((s) => s.mixMode)
+  const masterVolume = useSessionStore((s) => s.masterVolume)
   const enabledTrackIds = useSessionStore((s) => s.enabledTrackIds)
   const autoAlignTrackIds = useSessionStore((s) => s.autoAlignTrackIds)
   const mixClockText = useSessionStore((s) => s.mixClockText)
   const mixSeekMs = useSessionStore((s) => s.mixSeekMs)
-  const refPeaksLabel = useSessionStore((s) => s.refPeaksLabel)
   const skewWarningMessage = useSessionStore((s) => s.skewWarningMessage)
   const skewWarningShowOpenAdvanced = useSessionStore(
     (s) => s.skewWarningShowOpenAdvanced,
@@ -162,8 +166,6 @@ export function TracksList({ className }: TracksListProps) {
 
   if (tracks.length === 0) return null
 
-  const showRefPeaks = calageMode && Boolean(refPeaksLabel)
-
   return (
     <>
       <div
@@ -215,13 +217,25 @@ export function TracksList({ className }: TracksListProps) {
             style={{ width: pct }}
           />
         </div>
-        <p
-          className="mt-[0.55rem] mb-[0.15rem] text-left text-[0.78rem] font-semibold leading-[1.45] tracking-[0.01em] whitespace-pre-line tabular-nums text-ink-soft"
-          data-ref-peaks
-          hidden={!showRefPeaks}
-        >
-          {showRefPeaks ? refPeaksLabel : ''}
-        </p>
+        {mixMode ? (
+          <div
+            className="mb-[0.75rem] flex items-center gap-[0.55rem] max-sm:gap-[0.35rem]"
+            data-volume-ribbon
+          >
+            <span className="shrink-0 text-[0.84rem] font-semibold text-ink-soft max-sm:text-[0.76rem]">
+              Volume maître
+            </span>
+            <VolumeRibbon
+              className="min-w-0 flex-auto"
+              emphasis
+              label="Volume maître"
+              value={masterVolume}
+              max={MASTER_VOLUME_MAX}
+              onChange={setMasterVolume}
+              onReset={() => setMasterVolume(1)}
+            />
+          </div>
+        ) : null}
         <div
           className={cn(
             'mb-[0.45rem] grid min-h-[2rem] grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] items-center gap-x-[0.1rem] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]',
@@ -240,13 +254,14 @@ export function TracksList({ className }: TracksListProps) {
             onCheckedChange={(on) => setAllTracksEnabled(on)}
             inputProps={{ 'data-select-all': true }}
           />
-          <div className="col-start-3 flex w-full min-w-0 items-center justify-end py-[0.45rem] pr-[0.45rem] pl-[0.55rem] max-sm:py-[0.35rem] max-sm:pr-[0.3rem] max-sm:pl-[0.35rem]">
+          <div className="col-start-3 flex w-full min-w-0 items-center justify-end py-[0.2rem] pr-[0.45rem] pl-[0.35rem] max-sm:pr-[0.3rem] max-sm:pl-[0.2rem]">
             <Button
               variant="trash"
-              className="ml-[0.15rem] h-8 w-8 shrink-0 max-sm:ml-[0.08rem]"
+              className="h-8 w-8 shrink-0"
               icon={<IconClose />}
               aria-label="Supprimer toutes les pistes"
               title="Supprimer toutes les pistes"
+              hidden={calageMode || mixMode}
               disabled={state === 'recording'}
               onClick={() => {
                 const count = tracks.length

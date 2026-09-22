@@ -7,20 +7,24 @@ import {
   isDefaultTrackName,
   parseOffsetMsInput,
 } from '../../lib/format'
+import { TRACK_VOLUME_MAX } from '../../lib/audio/mix'
 import {
   applyManualTrackOffset,
   autoAlignTracksFromCounts,
   deleteTrack,
   getTrackPositionMs,
+  getTrackVolume,
   renameTrack,
   setError,
   setTrackAutoAlign,
   setTrackEnabled,
+  setTrackVolume,
 } from '../../lib/sessionActions'
 import { cn } from '../../lib/utils'
 import { useSessionStore } from '../../store/sessionStore'
 import { Button } from '../Button'
 import { IconClose } from '../icons'
+import { VolumeRibbon } from '../VolumeRibbon'
 import { TrackAlignCheck } from './TrackAlignCheck'
 import { TrackDragHandle } from './TrackDragHandle'
 import { TrackMute } from './TrackMute'
@@ -44,10 +48,12 @@ export function TrackRow({
   className,
 }: TrackRowProps) {
   const calageMode = useSessionStore((s) => s.calageMode)
+  const mixMode = useSessionStore((s) => s.mixMode)
   const enabledTrackIds = useSessionStore((s) => s.enabledTrackIds)
   const autoAlignTrackIds = useSessionStore((s) => s.autoAlignTrackIds)
   const referenceTrackId = useSessionStore((s) => s.referenceTrackId)
   const trackAlignDetails = useSessionStore((s) => s.trackAlignDetails)
+  const trackVolumes = useSessionStore((s) => s.trackVolumes)
   // Re-render on playhead ticks so per-track clocks stay live in calage mode.
   useSessionStore((s) => s.mixClockText)
 
@@ -60,6 +66,8 @@ export function TrackRow({
       ? formatAlignDetail(track.offsetMs, alignDetail)
       : ''
   const clock = formatCentis(getTrackPositionMs(track.id))
+  const volume = trackVolumes[track.id] ?? getTrackVolume(track.id)
+  const hideDelete = calageMode || mixMode
 
   const [nameDraft, setNameDraft] = useState(track.name)
   const [offsetDraft, setOffsetDraft] = useState(
@@ -106,78 +114,94 @@ export function TrackRow({
         className={cn(
           'col-start-3 row-start-1 flex w-full min-w-0 items-center gap-[0.4rem] rounded-[14px] border border-transparent bg-ink/4 box-border py-[0.45rem] pr-[0.45rem] pl-[0.55rem]',
           'max-sm:gap-[0.25rem] max-sm:rounded-[12px] max-sm:py-[0.35rem] max-sm:pr-[0.3rem] max-sm:pl-[0.35rem]',
-          calageMode && 'items-start',
+          (calageMode || mixMode) && 'items-start',
           !isEnabled && 'opacity-55',
         )}
       >
         <div
           className={cn(
             'flex min-w-0 flex-auto items-center gap-[0.45rem]',
-            calageMode && 'flex-col items-stretch gap-[0.12rem]',
+            (calageMode || mixMode) && 'flex-col items-stretch gap-[0.35rem]',
           )}
         >
-          <TrackNameInput
-            isDefault={isDefaultTrackName(nameDraft)}
-            data-rename-track={track.id}
-            value={nameDraft}
-            aria-label="Nom de la piste"
-            maxLength={40}
-            onChange={(event) => setNameDraft(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                event.preventDefault()
-                event.currentTarget.blur()
-              }
-            }}
-            onFocus={(event) => {
-              if (!isDefaultTrackName(event.currentTarget.value)) return
-              event.currentTarget.select()
-              event.currentTarget.addEventListener(
-                'mouseup',
-                (mouseupEvent) => {
-                  mouseupEvent.preventDefault()
-                  event.currentTarget.select()
-                },
-                { once: true },
-              )
-            }}
-            onBlur={() => {
-              const next =
-                nameDraft.trim().slice(0, 40) || `Piste ${index + 1}`
-              setNameDraft(next)
-              renameTrack(track.id, next)
-            }}
-          />
-          <span
+          <div
             className={cn(
-              'ml-auto inline-flex shrink-0 flex-col items-end gap-[0.1rem] leading-[1.15]',
-              calageMode &&
-                'ml-0 flex-row items-center justify-start gap-[0.55rem]',
+              'flex min-w-0 items-center gap-[0.45rem]',
+              calageMode && 'w-full',
+              mixMode && 'w-full',
             )}
-            hidden={!calageMode}
           >
-            {calageMode ? (
-              <>
-                <small
-                  className="text-[0.8rem] font-bold tracking-[0.02em] tabular-nums text-ink"
-                  data-track-clock={track.id}
-                >
-                  {clock}
-                </small>
-                <small className="text-[0.72rem] tabular-nums text-ink-soft">
-                  {formatTime(track.durationMs)}
-                </small>
-              </>
-            ) : null}
-          </span>
+            <TrackNameInput
+              isDefault={isDefaultTrackName(nameDraft)}
+              data-rename-track={track.id}
+              value={nameDraft}
+              aria-label="Nom de la piste"
+              maxLength={40}
+              onChange={(event) => setNameDraft(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                  event.currentTarget.blur()
+                }
+              }}
+              onFocus={(event) => {
+                if (!isDefaultTrackName(event.currentTarget.value)) return
+                event.currentTarget.select()
+                event.currentTarget.addEventListener(
+                  'mouseup',
+                  (mouseupEvent) => {
+                    mouseupEvent.preventDefault()
+                    event.currentTarget.select()
+                  },
+                  { once: true },
+                )
+              }}
+              onBlur={() => {
+                const next =
+                  nameDraft.trim().slice(0, 40) || `Piste ${index + 1}`
+                setNameDraft(next)
+                renameTrack(track.id, next)
+              }}
+            />
+            <span
+              className={cn(
+                'ml-auto inline-flex shrink-0 flex-col items-end gap-[0.1rem] leading-[1.15]',
+                calageMode &&
+                  'ml-0 flex-row items-center justify-start gap-[0.55rem]',
+              )}
+              hidden={!calageMode}
+            >
+              {calageMode ? (
+                <>
+                  <small
+                    className="text-[0.8rem] font-bold tracking-[0.02em] tabular-nums text-ink"
+                    data-track-clock={track.id}
+                  >
+                    {clock}
+                  </small>
+                  <small className="text-[0.72rem] tabular-nums text-ink-soft">
+                    {formatTime(track.durationMs)}
+                  </small>
+                </>
+              ) : null}
+            </span>
+          </div>
+          {mixMode ? (
+            <div data-volume-ribbon>
+              <VolumeRibbon
+                label={`Volume ${track.name}`}
+                value={volume}
+                max={TRACK_VOLUME_MAX}
+                onChange={(next) => setTrackVolume(track.id, next)}
+                onReset={() => setTrackVolume(track.id, 1)}
+              />
+            </div>
+          ) : null}
         </div>
-        {isReference ? null : (
+        {isReference || hideDelete ? null : (
           <Button
             variant="trash"
-            className={cn(
-              'ml-[0.15rem] shrink-0 max-sm:ml-[0.08rem]',
-              calageMode && 'mt-[0.12rem]',
-            )}
+            className="ml-[0.15rem] shrink-0 max-sm:ml-[0.08rem]"
             icon={<IconClose />}
             aria-label={`Supprimer ${track.name}`}
             title="Supprimer"
