@@ -73,7 +73,6 @@ import {
   findTakeThreeFourPeaks,
   findVolumePeaks,
 } from './audio/peaks'
-import { encodeAudioBufferToMp3 } from '../mp3-encode'
 import { useSessionStore, type SessionStoreState } from '../store/sessionStore'
 import { t } from './i18n'
 
@@ -866,6 +865,7 @@ export async function downloadSelectedMix() {
       }
       mixed = trimAudioBufferFrom(mixed, cutS)
     }
+    const { encodeAudioBufferToMp3 } = await import('../mp3-encode')
     const mp3 = await encodeAudioBufferToMp3(mixed, 192)
     downloadBlob(
       mp3,
