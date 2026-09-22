@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { prefersHeadphonesHint } from '../lib/audio/runtime'
-import { useTheme } from '../hooks/useTheme'
-import type { ThemePreference } from '../lib/theme'
+import { useLocale } from '../hooks/useLocale'
+import { t } from '../lib/i18n'
 import {
   applyInputMonitorSelection,
   applySinkMonitorSelection,
@@ -11,6 +11,8 @@ import {
 import { useSessionStore } from '../store/sessionStore'
 import { DeckOverlayPanel } from './DeckOverlayPanel'
 import { CheckboxOption, OptionGroup } from './CheckboxOption'
+import { LocaleButtons } from './LocaleButtons'
+import { ThemeButtons } from './ThemeButtons'
 import {
   SettingsDeviceCols,
   SettingsDeviceField,
@@ -25,6 +27,7 @@ type SettingsPanelProps = {
 }
 
 export function SettingsPanel({ className }: SettingsPanelProps) {
+  useLocale()
   const autoplayAfterStop = useSessionStore((s) => s.autoplayAfterStop)
   const skipCountInPlayback = useSessionStore((s) => s.skipCountInPlayback)
   const skipCountInDownload = useSessionStore((s) => s.skipCountInDownload)
@@ -39,7 +42,6 @@ export function SettingsPanel({ className }: SettingsPanelProps) {
   const sinkPlaybackId = useSessionStore((s) => s.sinkPlaybackId)
   const inputMonitorId = useSessionStore((s) => s.inputMonitorId)
   const inputOverrideNote = useSessionStore((s) => s.inputOverrideNote)
-  const { preference, setPreference } = useTheme()
 
   const showMobileNote = prefersHeadphonesHint()
   const showDesktopDevices = !showMobileNote
@@ -61,65 +63,51 @@ export function SettingsPanel({ className }: SettingsPanelProps) {
 
   return (
     <DeckOverlayPanel
-      title="Paramètres"
+      title={t('settings.title')}
       className={className}
       bodyClassName="flex max-w-[36rem] flex-col gap-[0.85rem]"
-      closeAriaLabel="Fermer les paramètres"
+      closeAriaLabel={t('settings.close')}
     >
-      <SettingsDeviceField label="Apparence">
-        <SettingsSelect
-          aria-label="Thème d'apparence"
-          value={preference}
-          onChange={(event) => {
-            setPreference(event.target.value as ThemePreference)
-          }}
-        >
-          <option value="system">Automatique (navigateur)</option>
-          <option value="light">Clair</option>
-          <option value="dark">Sombre</option>
-        </SettingsSelect>
-      </SettingsDeviceField>
+      <ThemeButtons />
+      <LocaleButtons />
 
       <CheckboxOption
         checked={autoplayAfterStop}
         onCheckedChange={setAutoplayAfterStop}
       >
-        Lire automatiquement après la fin de l'enregistrement
+        {t('settings.autoplay')}
       </CheckboxOption>
-      <OptionGroup title="Supprimer le 1-2-3-4">
+      <OptionGroup title={t('settings.skipCountIn')}>
         <CheckboxOption
-          title="La lecture commence juste après le « 4 »"
+          title={t('settings.skipCountIn.play.hint')}
           checked={skipCountInPlayback}
           onCheckedChange={setSkipCountInPlayback}
         >
-          à la lecture
+          {t('settings.skipCountIn.play')}
         </CheckboxOption>
         <CheckboxOption
-          title="Le MP3 commence juste après le « 4 »"
+          title={t('settings.skipCountIn.download.hint')}
           checked={skipCountInDownload}
           onCheckedChange={setSkipCountInDownload}
         >
-          au téléchargement du mp3
+          {t('settings.skipCountIn.download')}
         </CheckboxOption>
       </OptionGroup>
 
-      <SettingsDevices title="Périphériques audio">
+      <SettingsDevices title={t('settings.devices')}>
         <SettingsNote hidden={!showMobileNote}>
-          Sur téléphone ou tablette, choisir une entrée ou une sortie depuis le
-          navigateur pose plus de problèmes que ça n’en résout (casque Bluetooth
-          mal détecté, son coupé, micro imposé par le système…). Branche plutôt
-          un casque : le téléphone gère la route audio.
+          {t('settings.devices.mobileNote')}
         </SettingsNote>
 
         <div hidden={!showDesktopDevices}>
           <SettingsDeviceSection
-            title="Lecture"
-            hint="Pour éviter que le micro reprenne le son lu : utilise un casque."
+            title={t('settings.devices.playback')}
+            hint={t('settings.devices.playback.hint')}
           >
             <SettingsDeviceCols columns={2} hidden={!sinkSelectable}>
-              <SettingsDeviceField label="pendant l'enregistrement">
+              <SettingsDeviceField label={t('settings.devices.duringRecord')}>
                 <SettingsSelect
-                  aria-label="Sortie pendant l'enregistrement"
+                  aria-label={t('settings.devices.sinkMonitor')}
                   value={sinkMonitorId}
                   onChange={(event) =>
                     applySinkMonitorSelection(event.target.value)
@@ -132,9 +120,9 @@ export function SettingsPanel({ className }: SettingsPanelProps) {
                   ))}
                 </SettingsSelect>
               </SettingsDeviceField>
-              <SettingsDeviceField label="en lecture">
+              <SettingsDeviceField label={t('settings.devices.duringPlayback')}>
                 <SettingsSelect
-                  aria-label="Sortie en lecture"
+                  aria-label={t('settings.devices.sinkPlayback')}
                   value={sinkPlaybackId}
                   onChange={(event) =>
                     applySinkPlaybackSelection(event.target.value)
@@ -149,20 +137,18 @@ export function SettingsPanel({ className }: SettingsPanelProps) {
               </SettingsDeviceField>
             </SettingsDeviceCols>
             <SettingsNote hidden={sinkSelectable}>
-              Ce navigateur ne permet pas de choisir la sortie audio depuis la
-              page. Branche un casque pour le monitoring, ou change la sortie
-              dans les réglages du système.
+              {t('settings.devices.sinkUnsupported')}
             </SettingsNote>
           </SettingsDeviceSection>
 
           <SettingsDeviceSection
-            title="Enregistrement"
-            hint="Micro utilisé pour capturer les prises. Les libellés apparaissent après l’autorisation d’accès."
+            title={t('settings.devices.record')}
+            hint={t('settings.devices.record.hint')}
           >
             <SettingsDeviceCols columns={1}>
               <SettingsDeviceField>
                 <SettingsSelect
-                  aria-label="Micro pendant l'enregistrement"
+                  aria-label={t('settings.devices.inputMonitor')}
                   value={inputMonitorId}
                   disabled={!deviceSelectable && inputOptions.length === 0}
                   onChange={(event) =>

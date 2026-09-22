@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import type { Track } from '../../types'
 import {
+  defaultTrackName,
   formatAlignDetail,
   formatCentis,
   formatTime,
@@ -19,6 +20,8 @@ import {
   setTrackEnabled,
   setTrackVolume,
 } from '../../lib/sessionActions'
+import { useLocale } from '../../hooks/useLocale'
+import { t } from '../../lib/i18n'
 import { cn } from '../../lib/utils'
 import { useSessionStore } from '../../store/sessionStore'
 import { Button } from '../Button'
@@ -45,6 +48,7 @@ export function TrackRow({
   dragOver,
   className,
 }: TrackRowProps) {
+  useLocale()
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
   const enabledTrackIds = useSessionStore((s) => s.enabledTrackIds)
@@ -91,12 +95,12 @@ export function TrackRow({
       <TrackDragHandle
         draggable
         data-drag-track={track.id}
-        ariaLabel={`Réordonner ${track.name}`}
+        ariaLabel={t('tracks.reorder', { name: track.name })}
       />
       <TrackMute
         className="col-start-2 row-start-1"
-        title={isEnabled ? 'Audible' : 'Muet'}
-        ariaLabel={`Écouter ${track.name}`}
+        title={isEnabled ? t('tracks.audible') : t('tracks.muted')}
+        ariaLabel={t('tracks.listen', { name: track.name })}
         checked={isEnabled}
         onCheckedChange={(on) => setTrackEnabled(track.id, on)}
         inputProps={{ 'data-toggle-track': track.id }}
@@ -126,7 +130,7 @@ export function TrackRow({
               isDefault={isDefaultTrackName(nameDraft)}
               data-rename-track={track.id}
               value={nameDraft}
-              aria-label="Nom de la piste"
+              aria-label={t('tracks.name.aria')}
               maxLength={40}
               onChange={(event) => setNameDraft(event.target.value)}
               onKeyDown={(event) => {
@@ -149,7 +153,7 @@ export function TrackRow({
               }}
               onBlur={() => {
                 const next =
-                  nameDraft.trim().slice(0, 40) || `Piste ${index + 1}`
+                  nameDraft.trim().slice(0, 40) || defaultTrackName(index + 1)
                 setNameDraft(next)
                 renameTrack(track.id, next)
               }}
@@ -180,7 +184,7 @@ export function TrackRow({
           {mixMode ? (
             <div data-volume-ribbon>
               <VolumeRibbon
-                label={`Volume ${track.name}`}
+                label={t('tracks.volume', { name: track.name })}
                 value={volume}
                 max={TRACK_VOLUME_MAX}
                 onChange={(next) => setTrackVolume(track.id, next)}
@@ -194,10 +198,12 @@ export function TrackRow({
             variant="trash"
             className="ml-[0.15rem] shrink-0 max-sm:ml-[0.08rem]"
             icon={<IconClose />}
-            aria-label={`Supprimer ${track.name}`}
-            title="Supprimer"
+            aria-label={t('tracks.delete', { name: track.name })}
+            title={t('common.delete')}
             onClick={() => {
-              const ok = window.confirm(`Supprimer « ${track.name} » ?`)
+              const ok = window.confirm(
+                t('tracks.delete.confirm', { name: track.name }),
+              )
               if (!ok) return
               deleteTrack(track.id)
             }}
@@ -209,16 +215,16 @@ export function TrackRow({
           {isReference ? (
             <span
               className="col-start-4 row-start-1 inline-flex h-[1.35rem] w-full shrink-0 items-center justify-center justify-self-center text-[0.62rem] font-extrabold tracking-[0.04em] uppercase text-ink-soft select-none"
-              title="Piste de référence (marquages 1–2–3–4)"
-              aria-label="Référence"
+              title={t('tracks.ref.hint')}
+              aria-label={t('tracks.ref.aria')}
             >
-              réf.
+              {t('tracks.ref.badge')}
             </span>
           ) : (
             <TrackAlignCheck
               className="col-start-4 row-start-1 justify-self-center"
-              title="Calage auto"
-              ariaLabel={`Calage auto ${track.name}`}
+              title={t('tracks.autoAlign')}
+              ariaLabel={t('tracks.autoAlign.named', { name: track.name })}
               checked={autoAlign}
               onCheckedChange={(on) => {
                 if (on) {
@@ -231,7 +237,7 @@ export function TrackRow({
                       setError(
                         error instanceof Error
                           ? error.message
-                          : 'Calage auto impossible.',
+                          : t('error.autoAlignFailed'),
                       )
                     }
                   })()
@@ -244,12 +250,12 @@ export function TrackRow({
           )}
           <MsOffsetEditor
             className="col-start-5 row-start-1 justify-self-center"
-            title="Décaler cette piste à la lecture"
+            title={t('tracks.offset.hint')}
             value={Math.round(track.offsetMs)}
             onChange={(next) => applyManualTrackOffset(track.id, next)}
-            minusAriaLabel={`Avancer ${track.name} de 5 ms`}
-            plusAriaLabel={`Retarder ${track.name} de 5 ms`}
-            inputAriaLabel={`Calage de ${track.name} en millisecondes`}
+            minusAriaLabel={t('tracks.offset.minus', { name: track.name })}
+            plusAriaLabel={t('tracks.offset.plus', { name: track.name })}
+            inputAriaLabel={t('tracks.offset.input', { name: track.name })}
             inputProps={{ 'data-offset-track': track.id }}
           />
           <small

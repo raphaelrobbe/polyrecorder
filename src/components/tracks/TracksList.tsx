@@ -13,6 +13,8 @@ import {
   setMasterVolume,
 } from '../../lib/sessionActions'
 import { MASTER_VOLUME_MAX } from '../../lib/audio/mix'
+import { useLocale } from '../../hooks/useLocale'
+import { t } from '../../lib/i18n'
 import { cn } from '../../lib/utils'
 import { useSessionStore } from '../../store/sessionStore'
 import { Button } from '../Button'
@@ -33,6 +35,7 @@ type TracksListProps = {
 }
 
 export function TracksList({ className }: TracksListProps) {
+  useLocale()
   const tracks = useSessionStore((s) => s.tracks)
   const state = useSessionStore((s) => s.state)
   const calageMode = useSessionStore((s) => s.calageMode)
@@ -180,7 +183,7 @@ export function TracksList({ className }: TracksListProps) {
           data-mix-seek
           role="slider"
           tabIndex={0}
-          aria-label="Position de lecture"
+          aria-label={t('mix.seekAria')}
           aria-valuemin={0}
           aria-valuenow={Math.round(clamped)}
           aria-valuemax={Math.round(duration)}
@@ -223,12 +226,12 @@ export function TracksList({ className }: TracksListProps) {
             data-volume-ribbon
           >
             <span className="shrink-0 text-[0.84rem] font-semibold text-ink-soft max-sm:text-[0.76rem]">
-              Volume maître
+              {t('mix.masterVolume')}
             </span>
             <VolumeRibbon
               className="min-w-0 flex-auto"
               emphasis
-              label="Volume maître"
+              label={t('mix.masterVolume')}
               value={masterVolume}
               max={MASTER_VOLUME_MAX}
               onChange={setMasterVolume}
@@ -247,8 +250,8 @@ export function TracksList({ className }: TracksListProps) {
           <span className="col-start-1" aria-hidden="true" />
           <TrackMute
             className="col-start-2 justify-self-center"
-            title="Activer / couper toutes les pistes"
-            ariaLabel="Activer toutes les pistes"
+            title={t('tracks.muteAll.hint')}
+            ariaLabel={t('tracks.muteAll.aria')}
             checked={allSelected}
             indeterminate={masterMuteIndeterminate}
             onCheckedChange={(on) => setAllTracksEnabled(on)}
@@ -259,16 +262,16 @@ export function TracksList({ className }: TracksListProps) {
               variant="trash"
               className="h-8 w-8 shrink-0"
               icon={<IconClose />}
-              aria-label="Supprimer toutes les pistes"
-              title="Supprimer toutes les pistes"
+              aria-label={t('tracks.deleteAll')}
+              title={t('tracks.deleteAll')}
               hidden={calageMode || mixMode}
               disabled={state === 'recording'}
               onClick={() => {
                 const count = tracks.length
                 const ok = window.confirm(
                   count === 1
-                    ? `Supprimer la piste « ${tracks[0]!.name} » ?`
-                    : `Supprimer les ${count} pistes ? Elles seront définitivement perdues.`,
+                    ? t('tracks.deleteOne.confirm', { name: tracks[0]!.name })
+                    : t('tracks.deleteAll.confirm', { count }),
                 )
                 if (!ok) return
                 deleteAllTracks()
@@ -278,8 +281,8 @@ export function TracksList({ className }: TracksListProps) {
           <TrackAlignCheck
             className="col-start-4 justify-self-center"
             hidden={!calageMode || alignable.length === 0}
-            title="Activer / désactiver le calage auto (sauf piste 1)"
-            ariaLabel="Calage auto sur toutes les pistes"
+            title={t('tracks.alignAll.hint')}
+            ariaLabel={t('tracks.alignAll.aria')}
             checked={allAutoAlign}
             indeterminate={someAutoAlign && !allAutoAlign}
             disabled={alignable.length === 0 || !calageMode}
@@ -404,19 +407,19 @@ export function TracksList({ className }: TracksListProps) {
         className="relative mt-4 flex flex-wrap items-center gap-x-3 gap-y-[0.55rem] rounded-[14px] border-[1.5px] border-warn-border bg-warn-bg py-[0.85rem] pr-[2.1rem] pl-[0.95rem] text-[0.88rem] leading-[1.35] text-warn [&_strong]:font-extrabold [&_strong]:tracking-[0.02em]"
         data-skew-warning
         hidden={!skewWarningMessage}
-        title="Un calage auto supérieur à 300 ms indique souvent un problème de sync (marquages peu clairs, latence, etc.). Ouvre le mode calage pour inspecter et ajuster."
+        title={t('warn.skew.tooltip')}
       >
         <button
           type="button"
           className="absolute top-[0.35rem] right-[0.4rem] h-[1.6rem] w-[1.6rem] cursor-pointer rounded-lg border-0 bg-transparent p-0 text-[1.15rem] leading-none text-warn hover:bg-warn-hover"
           data-dismiss-skew
-          aria-label="Fermer"
-          title="Fermer"
+          aria-label={t('common.close')}
+          title={t('common.close')}
           onClick={() => dismissSkewWarning()}
         >
           ×
         </button>
-        <strong>Attention</strong>
+        <strong>{t('warn.attention')}</strong>
         <span data-skew-warning-text>{skewWarningMessage}</span>
         {skewWarningShowOpenAdvanced ? (
           <Button
@@ -427,7 +430,7 @@ export function TracksList({ className }: TracksListProps) {
               setCalageMode(true)
             }}
           >
-            Ouvrir le mode calage
+            {t('warn.openAlignMode')}
           </Button>
         ) : null}
       </div>

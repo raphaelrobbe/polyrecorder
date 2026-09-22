@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { formatSignedMs } from '../lib/format'
 import { updateLatencyTrim } from '../lib/sessionActions'
+import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
+import { useLocale } from '../hooks/useLocale'
 import { useSessionStore } from '../store/sessionStore'
 import { Button } from './Button'
 import { MsOffsetEditor } from './MsOffsetEditor'
@@ -11,6 +13,7 @@ type CalagePanelProps = {
 }
 
 export function CalagePanel({ className }: CalagePanelProps) {
+  useLocale()
   const calageMode = useSessionStore((s) => s.calageMode)
   const calageTipOpen = useSessionStore((s) => s.calageTipOpen)
   const latencyTrimMs = useSessionStore((s) => s.latencyTrimMs)
@@ -41,14 +44,14 @@ export function CalagePanel({ className }: CalagePanelProps) {
     <div ref={panelRef} className={cn('relative mt-[0.85rem] mb-0.5', className)}>
       <div className="flex flex-nowrap items-start gap-[0.4rem] max-sm:gap-[0.3rem]">
         <span className="shrink-0 pt-[0.28rem] text-[0.84rem] font-semibold text-ink-soft max-sm:text-[0.78rem]">
-          Avance de lecture
+          {t('align.latency.label')}
         </span>
         <Button
           variant="round"
           className="mt-[0.22rem] h-[1.25rem] w-[1.25rem] shrink-0 border-ink/22 text-[0.72rem] font-bold text-ink-soft hover:enabled:border-ink/35 hover:enabled:bg-ink/6 hover:enabled:text-ink aria-expanded:border-ink/35 aria-expanded:bg-ink/6 aria-expanded:text-ink max-sm:h-[1.15rem] max-sm:w-[1.15rem] max-sm:text-[0.68rem]"
           aria-expanded={calageTipOpen}
           aria-controls="calage-info-tip"
-          title="À propos de l'avance de lecture"
+          title={t('align.latency.about')}
           onClick={(event) => {
             event.stopPropagation()
             patch({ calageTipOpen: !calageTipOpen })
@@ -58,14 +61,14 @@ export function CalagePanel({ className }: CalagePanelProps) {
         </Button>
         <div className="ml-auto inline-flex flex-col items-center">
           <MsOffsetEditor
-            title="Ajuster l'avance de lecture du monitoring"
+            title={t('align.latency.adjust')}
             value={total}
             onChange={(next) =>
               updateLatencyTrim(Math.max(0, next) - lastReportedLatencyMs)
             }
-            minusAriaLabel="Démarrer le monitoring un peu plus tôt (−5 ms)"
-            plusAriaLabel="Démarrer le monitoring un peu plus tard (+5 ms)"
-            inputAriaLabel="Avance de lecture en millisecondes"
+            minusAriaLabel={t('align.latency.minus')}
+            plusAriaLabel={t('align.latency.plus')}
+            inputAriaLabel={t('align.latency.input')}
             inputProps={{ 'data-latency-trim': true }}
           />
           <small
@@ -83,13 +86,7 @@ export function CalagePanel({ className }: CalagePanelProps) {
         id="calage-info-tip"
         hidden={!calageTipOpen}
       >
-        Pendant « Piste suivante », les prises déjà faites sont rejouées dans le
-        casque avec un peu de latence matérielle. PolyRecorder démarre cette
-        écoute un peu plus tôt pour que ta nouvelle voix tombe au bon endroit sur
-        la timeline. Ajuste la valeur (±5&nbsp;ms ou saisie directe) si le
-        monitoring te paraît encore en retard ou en avance (réglage mémorisé sur
-        cet appareil). Ce n’est pas le calage auto des pistes (marquages 3–4) :
-        celui-ci sert uniquement pendant l’enregistrement.
+        {t('align.latency.tip')}
       </p>
     </div>
   )

@@ -18,6 +18,31 @@
           document.documentElement.dataset.theme = dark ? 'dark' : 'light'
           document.documentElement.style.colorScheme = dark ? 'dark' : 'light'
         } catch (_) {}
+        try {
+          const stored = localStorage.getItem('polyrecorder-locale')
+          const known = new Set(['fr', 'en', 'de', 'no'])
+          const aliases = { nb: 'no', nn: 'no' }
+          let locale =
+            stored && known.has(stored) ? stored : null
+          if (!locale) {
+            const langs = navigator.languages?.length
+              ? navigator.languages
+              : [navigator.language]
+            for (const raw of langs) {
+              const tag = String(raw || '').toLowerCase()
+              const primary = tag.split('-')[0] || tag
+              if (known.has(primary)) {
+                locale = primary
+                break
+              }
+              if (aliases[primary]) {
+                locale = aliases[primary]
+                break
+              }
+            }
+          }
+          document.documentElement.lang = locale || 'en'
+        } catch (_) {}
       })()
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />

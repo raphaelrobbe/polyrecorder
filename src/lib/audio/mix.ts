@@ -1,4 +1,5 @@
 import type { Track, TrackPlayhead } from '../../types'
+import { t } from '../i18n'
 import { ensureAudioContext, getBufferCache } from './runtime'
 
 export const SKIP_COUNT_IN_PAD_S = 0.1
@@ -29,7 +30,7 @@ export async function renderSelectedMixBuffer(
 ): Promise<AudioBuffer> {
   const playable = selected.filter((track) => track.blob.size > 0)
   if (playable.length === 0) {
-    throw new Error('Aucune piste sélectionnée à exporter.')
+    throw new Error(t('error.exportNoneSelected'))
   }
 
   // Ensure a live context exists so decodeAudioData is available.
@@ -118,7 +119,10 @@ export function getSkipCountInStartS(args: {
   if (fourSec == null) {
     if (!peaks || peaks.length < 4) {
       throw new Error(
-        `${reference.name} : ${peaks?.length ?? 0}/4 attaques trouvées. Fais 4 sons bien espacés pour supprimer le 1-2-3-4.`,
+        t('error.refPeaksSkipCountIn', {
+          name: reference.name,
+          count: peaks?.length ?? 0,
+        }),
       )
     }
     fourSec = peaks[3]!

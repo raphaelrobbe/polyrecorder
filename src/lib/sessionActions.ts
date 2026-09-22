@@ -1,5 +1,6 @@
 import type { ActiveRecording, AppState, Track, TrackPlayhead } from '../types'
 import {
+  defaultSessionTitle,
   defaultTrackName,
   downloadFilenameForSelection,
   formatCentis,
@@ -7,8 +8,12 @@ import {
   formatTime,
   getMaxTrackDurationMs,
   getMixDurationMs,
+  isDefaultSessionTitleAnyLocale,
+  isDefaultTrackNameAnyLocale,
   normalizeSessionTitle,
+  parseDefaultTrackIndex,
 } from './format'
+import type { Locale } from './i18n'
 import {
   applyAudioSink,
   clearBufferCache,
@@ -70,6 +75,7 @@ import {
 } from './audio/peaks'
 import { encodeAudioBufferToMp3 } from '../mp3-encode'
 import { useSessionStore, type SessionStoreState } from '../store/sessionStore'
+import { t } from './i18n'
 
 // --- Module-private live playback maps (not in Zustand) ---
 
@@ -106,11 +112,11 @@ function computeHint(state: AppState, trackCount: number): string {
   if (state === 'recording') {
     if (trackCount === 0) return ''
     if (prefersHeadphonesHint()) {
-      return 'Casque conseillé : sans casque, le micro peut reprendre le son des haut-parleurs et fausser le calage.'
+      return t('hint.recording.headphonesBleed')
     }
-    return 'Casque conseillé. Monitoring compensé pour la latence audio.'
+    return t('hint.recording.headphonesLatency')
   }
-  return 'Écoute en cours.'
+  return t('hint.listening')
 }
 
 function syncPlayingIds(ids: Iterable<number>) {
@@ -247,8 +253,8 @@ export function refreshSkewWarning() {
   const names = skewed.map(({ track }) => track.name).join(', ')
   patch({
     skewWarningMessage: calageMode
-      ? `Calage auto élevé sur ${names}.`
-      : `Calage auto élevé sur ${names}. Vérifie le sync en mode calage.`,
+      ? t('warn.skew.short', { names })
+      : t('warn.skew.long', { names }),
     skewWarningShowOpenAdvanced: !calageMode,
   })
 }
@@ -313,11 +319,19 @@ function applyReferencePeaksLabel(reference: Track, peaks: number[]) {
       Math.round((peaks[index]! - peaks[index - 1]!) * 1000),
     )
     patch({
-      refPeaksLabel: `1-2-3-4 (${reference.name}) : ${times}\nécarts ${gapsMs.join(' / ')} ms`,
+      refPeaksLabel: t('align.refPeaks.ok', {
+        name: reference.name,
+        times,
+        gaps: gapsMs.join(' / '),
+      }),
     })
   } else {
     patch({
-      refPeaksLabel: `Battue 1-2-3-4 (${reference.name}) : ${times} (${peaks.length}/4)`,
+      refPeaksLabel: t('align.refPeaks.partial', {
+        name: reference.name,
+        times,
+        count: peaks.length,
+      }),
     })
   }
 }
@@ -415,8 +429,14 @@ export async function refreshDeviceSnapshot(): Promise<void> {
     deviceApiSupported: snapshot.apiSupported,
     deviceSelectable: snapshot.deviceSelectable,
     sinkSelectable: snapshot.sinkSelectable,
-    outputOptions: toSelectableDeviceOptions(snapshot.outputs, 'Sortie'),
-    inputOptions: toSelectableDeviceOptions(snapshot.inputs, 'Micro'),
+    outputOptions: toSelectableDeviceOptions(
+      snapshot.outputs,
+      t('devices.outputFallback'),
+    ),
+    inputOptions: toSelectableDeviceOptions(
+      snapshot.inputs,
+      t('devices.inputFallback'),
+    ),
     sinkMonitorId: snapshot.sinkMonitorId,
     sinkPlaybackId: snapshot.sinkPlaybackId,
     inputMonitorId: snapshot.inputMonitorId,
@@ -650,7 +670,7 @@ export async function evaluateReferenceBeat(): Promise<void> {
       patch({
         referenceBeatWarning: {
           key: `beat:${reference.id}:irregular:${assessment.peaks.map((p) => p.toFixed(3)).join(',')}`,
-          message: `Battue 1-2-3-4 irrégulière ou non détectée sur la piste de référence (${reference.name}).`,
+          message: t('warn.beat.irregular', { name: reference.name }),
           reason: 'irregular',
         },
       })
@@ -658,7 +678,10 @@ export async function evaluateReferenceBeat(): Promise<void> {
       patch({
         referenceBeatWarning: {
           key: `beat:${reference.id}:missing:${peaks.length}`,
-          message: `Battue 1-2-3-4 non détectée sur « ${reference.name} » (${peaks.length}/4 attaques).`,
+          message: t('warn.beat.missing', {
+            name: reference.name,
+            count: peaks.length,
+          }),
           reason: 'missing',
         },
       })
@@ -667,7 +690,7 @@ export async function evaluateReferenceBeat(): Promise<void> {
     patch({
       referenceBeatWarning: {
         key: `beat:${reference.id}:error`,
-        message: `Impossible d'analyser la battue de « ${reference.name} ».`,
+        message: t('warn.beat.error', { name: reference.name }),
         reason: 'error',
       },
     })
@@ -683,19 +706,22 @@ export async function evaluateReferenceBeat(): Promise<void> {
 export async function autoAlignTracksFromCounts(): Promise<void> {
   const { tracks, autoAlignTrackIds, trackAlignDetails } = get()
   if (tracks.length < 2) {
-    throw new Error('Il faut au moins deux pistes pour caler.')
+    throw new Error(t('error.needTwoTracks'))
   }
 
   const reference = getReferenceTrack()
   if (!reference) {
-    throw new Error('Piste de référence manquante.')
+    throw new Error(t('error.missingReference'))
   }
 
   const refBuffer = await decodeTrack(reference)
   const refPeaks = findVolumePeaks(refBuffer, 4)
   if (refPeaks.length < 4) {
     throw new Error(
-      `${reference.name} : ${refPeaks.length}/4 attaques trouvées. Fais 4 sons bien espacés (voix ou claquements).`,
+      t('error.refPeaks', {
+        name: reference.name,
+        count: refPeaks.length,
+      }),
     )
   }
 
@@ -716,7 +742,10 @@ export async function autoAlignTracksFromCounts(): Promise<void> {
     const pair = findTakeThreeFourPeaks(peaks, refThree, refFour)
     if (!pair) {
       throw new Error(
-        `${track.name} : ${peaks.length}/2 attaques trouvées. Fais 2 sons nets pour « 3 4 » (voix ou claquements).`,
+        t('error.trackPeaks', {
+          name: track.name,
+          count: peaks.length,
+        }),
       )
     }
 
@@ -747,8 +776,8 @@ async function maybeAutoAlignAfterTake(): Promise<void> {
   } catch (error) {
     setError(
       error instanceof Error
-        ? `Calage auto reporté : ${error.message}`
-        : 'Calage auto reporté.',
+        ? t('error.autoAlignDeferred', { message: error.message })
+        : t('error.autoAlignDeferredGeneric'),
     )
   }
 }
@@ -757,7 +786,7 @@ async function maybeAutoAlignAfterTake(): Promise<void> {
 export async function getSkipCountInStartSec(): Promise<number> {
   const reference = getReferenceTrack()
   if (!reference) {
-    throw new Error('Piste de référence manquante.')
+    throw new Error(t('error.missingReference'))
   }
 
   let fourSec = refPeakFourSec
@@ -767,7 +796,10 @@ export async function getSkipCountInStartSec(): Promise<number> {
     peaks = findVolumePeaks(buffer, 4)
     if (peaks.length < 4) {
       throw new Error(
-        `${reference.name} : ${peaks.length}/4 attaques trouvées. Fais 4 sons bien espacés pour supprimer le 1-2-3-4.`,
+        t('error.refPeaksSkipCountIn', {
+          name: reference.name,
+          count: peaks.length,
+        }),
       )
     }
     applyReferencePeaksLabel(reference, peaks)
@@ -811,7 +843,7 @@ export async function downloadSelectedMix() {
   if (get().mixExporting) return
   const selected = selectedTracks().filter((track) => track.blob.size > 0)
   if (selected.length === 0) {
-    setError('Sélectionne au moins une piste à exporter.')
+    setError(t('error.exportNoTracks'))
     return
   }
 
@@ -830,9 +862,7 @@ export async function downloadSelectedMix() {
     if (get().skipCountInDownload) {
       const cutS = await getSkipCountInStartSec()
       if (cutS >= mixed.duration - 0.05) {
-        throw new Error(
-          'Le « 4 » est trop près de la fin : rien à exporter après le décompte.',
-        )
+        throw new Error(t('error.countInTooLate'))
       }
       mixed = trimAudioBufferFrom(mixed, cutS)
     }
@@ -847,7 +877,7 @@ export async function downloadSelectedMix() {
     )
   } catch (error) {
     setError(
-      error instanceof Error ? error.message : 'Export MP3 impossible.',
+      error instanceof Error ? error.message : t('error.exportFailed'),
     )
   } finally {
     patch({ mixExporting: false })
@@ -867,7 +897,7 @@ export async function playTracks(
   const sourceTracks = asMix ? get().tracks : tracksToPlay
   const playable = sourceTracks.filter((track) => track.blob.size > 0)
   if (playable.length === 0) {
-    return Promise.reject(new Error('Piste vide, rien à lire.'))
+    return Promise.reject(new Error(t('error.emptyTrack')))
   }
 
   let startAtMs = Math.max(0, options?.startAtMs ?? 0)
@@ -1017,7 +1047,7 @@ function stopRecorderToBlob(recording: ActiveRecording): Promise<Blob> {
     const onError = () => {
       recorder.removeEventListener('stop', onStop)
       recorder.removeEventListener('dataavailable', onData)
-      reject(new Error("L'enregistrement a échoué."))
+      reject(new Error(t('error.recordFailed')))
     }
 
     recorder.addEventListener('stop', onStop, { once: true })
@@ -1032,7 +1062,7 @@ function stopRecorderToBlob(recording: ActiveRecording): Promise<Blob> {
       reject(
         error instanceof Error
           ? error
-          : new Error("L'enregistrement a échoué."),
+          : new Error(t('error.recordFailed')),
       )
     }
   })
@@ -1196,7 +1226,7 @@ export async function beginOverdubRecording(monitor: Track[]): Promise<void> {
           reject(
             error instanceof Error
               ? error
-              : new Error("Impossible de démarrer l'enregistrement."),
+              : new Error(t('error.recordStart')),
           )
         }
       }, armDelayMs),
@@ -1207,7 +1237,7 @@ export async function beginOverdubRecording(monitor: Track[]): Promise<void> {
 export async function finalizeCurrentTake(): Promise<Track> {
   const active = getActiveRecording()
   if (!active || active.recorder.state === 'inactive') {
-    throw new Error('Aucun enregistrement en cours.')
+    throw new Error(t('error.noActiveRecording'))
   }
 
   const durationMs = stopTimer()
@@ -1224,7 +1254,7 @@ export async function finalizeCurrentTake(): Promise<Track> {
   })
 
   if (blob.size === 0) {
-    throw new Error("Aucune donnée audio capturée. Réessaie l'enregistrement.")
+    throw new Error(t('error.noAudioData'))
   }
 
   const trackCounter = get().trackCounter + 1
@@ -1301,7 +1331,7 @@ export async function discard() {
     setError(
       error instanceof Error
         ? error.message
-        : 'Impossible de recommencer la prise.',
+        : t('error.discardFailed'),
     )
     stopMeterNodes()
     stopTimer()
@@ -1322,7 +1352,7 @@ export async function startSession() {
     setError(
       error instanceof Error
         ? error.message
-        : "Impossible d'accéder au micro.",
+        : t('error.micAccess'),
     )
     setTransportState('idle')
   }
@@ -1339,7 +1369,7 @@ export async function nextTrack() {
     setError(
       error instanceof Error
         ? error.message
-        : 'Impossible de passer à la piste suivante.',
+        : t('error.nextTrackFailed'),
     )
     stopMeterNodes()
     stopTimer()
@@ -1378,7 +1408,7 @@ export async function stopSession() {
     setError(
       error instanceof Error
         ? error.message
-        : "Impossible d'arrêter proprement.",
+        : t('error.stopFailed'),
     )
   } finally {
     stopMeterNodes()
@@ -1410,7 +1440,7 @@ export async function stopSession() {
       applyOffsets: true,
       startAtMs: 0,
     }).catch((error) => {
-      setError(error instanceof Error ? error.message : 'Lecture impossible.')
+      setError(error instanceof Error ? error.message : t('error.playbackFailed'))
     })
   }
 }
@@ -1441,7 +1471,7 @@ export async function seekMixTo(ms: number) {
       tickClockDisplays()
     }
   } catch (error) {
-    setError(error instanceof Error ? error.message : 'Lecture impossible.')
+    setError(error instanceof Error ? error.message : t('error.playbackFailed'))
   }
 }
 
@@ -1469,7 +1499,7 @@ export async function toggleMixPlayPause() {
       setError(
         error instanceof Error
           ? error.message
-          : 'Impossible de mettre en pause.',
+          : t('error.pauseFailed'),
       )
       return
     }
@@ -1486,7 +1516,7 @@ export async function toggleMixPlayPause() {
     applyOffsets: true,
     startAtMs,
   }).catch((error) => {
-    setError(error instanceof Error ? error.message : 'Lecture impossible.')
+    setError(error instanceof Error ? error.message : t('error.playbackFailed'))
   })
 }
 
@@ -1555,7 +1585,7 @@ export function setAllAutoAlign(on: boolean) {
       await autoAlignTracksFromCounts()
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : 'Calage auto impossible.',
+        error instanceof Error ? error.message : t('error.autoAlignFailed'),
       )
     }
   })()
@@ -1632,6 +1662,32 @@ export function deleteAllTracks() {
 
 export function normalizeAndSetSessionTitle(raw: string) {
   patch({ sessionTitle: normalizeSessionTitle(raw) })
+}
+
+/**
+ * When the UI language changes, rewrite still-default titles / track names
+ * into the new locale so italic + select-on-focus stay correct.
+ */
+export function rematerializeLocalizedDefaults(locale: Locale) {
+  const { sessionTitle, tracks } = get()
+  const nextTitle = isDefaultSessionTitleAnyLocale(sessionTitle)
+    ? defaultSessionTitle(locale)
+    : null
+  let tracksChanged = false
+  const nextTracks = tracks.map((track, index) => {
+    if (!isDefaultTrackNameAnyLocale(track.name)) return track
+    const parsed = parseDefaultTrackIndex(track.name)
+    const trackIndex = parsed ?? index + 1
+    const nextName = defaultTrackName(trackIndex, locale)
+    if (nextName === track.name) return track
+    tracksChanged = true
+    return { ...track, name: nextName }
+  })
+  if (nextTitle == null && !tracksChanged) return
+  patch({
+    ...(nextTitle != null ? { sessionTitle: nextTitle } : {}),
+    ...(tracksChanged ? { tracks: nextTracks } : {}),
+  })
 }
 
 /** Probe output latency and mirror it into the session store for the UI. */

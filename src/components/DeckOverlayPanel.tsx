@@ -1,5 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react'
 import { withShortcut } from '../hooks/useKeyboardShortcuts'
+import { useLocale } from '../hooks/useLocale'
+import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
 import { useDeckStore } from '../store/deckStore'
 import { useSessionStore } from '../store/sessionStore'
@@ -20,9 +22,11 @@ export function DeckOverlayPanel({
   bodyClassName,
   children,
 }: DeckOverlayPanelProps) {
+  useLocale()
   const leaveDeckOverlay = useDeckStore((s) => s.leaveDeckOverlay)
   const keyboardHintsEnabled = useSessionStore((s) => s.keyboardHintsEnabled)
   const closeRef = useRef<HTMLButtonElement>(null)
+  const closeLabel = t('common.close')
 
   useEffect(() => {
     closeRef.current?.focus()
@@ -40,8 +44,8 @@ export function DeckOverlayPanel({
         type="button"
         className="absolute top-[0.35rem] right-[0.35rem] z-[2] grid h-[2.9rem] w-[2.9rem] place-items-center rounded-[14px] border-0 bg-transparent p-0 text-[2.15rem] font-normal leading-none text-ink-soft cursor-pointer transition-[background,color] duration-[160ms] ease-in-out hover:bg-ink/8 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2"
         aria-label={closeAriaLabel}
-        title={withShortcut('Fermer', 'Échap', keyboardHintsEnabled)}
-        data-title-base="Fermer"
+        title={withShortcut(closeLabel, 'Échap', keyboardHintsEnabled)}
+        data-title-base={closeLabel}
         onClick={() => leaveDeckOverlay()}
       >
         ×

@@ -4,7 +4,9 @@ import {
   toggleMixPlayPause,
 } from '../lib/sessionActions'
 import { getPlaybackSources } from '../lib/audio/runtime'
+import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
+import { useLocale } from '../hooks/useLocale'
 import { withShortcut } from '../hooks/useKeyboardShortcuts'
 import { useSessionStore } from '../store/sessionStore'
 import { Button } from './Button'
@@ -15,6 +17,7 @@ type MixTransportProps = {
 }
 
 export function MixTransport({ className }: MixTransportProps) {
+  useLocale()
   const tracks = useSessionStore((s) => s.tracks)
   const state = useSessionStore((s) => s.state)
   const mixPaused = useSessionStore((s) => s.mixPaused)
@@ -29,7 +32,7 @@ export function MixTransport({ className }: MixTransportProps) {
   const hasPlayback =
     getPlaybackSources().length > 0 || playingTrackIds.length > 0
   const isPausedOrIdle = !hasPlayback || mixPaused
-  const playLabel = isPausedOrIdle ? 'Lecture' : 'Pause'
+  const playLabel = isPausedOrIdle ? t('mix.play') : t('mix.pause')
   const enabled = new Set(enabledTrackIds)
   const canDownload =
     !mixExporting &&
@@ -48,8 +51,8 @@ export function MixTransport({ className }: MixTransportProps) {
         className="h-[2.75rem] w-[2.75rem] [&_svg]:size-[1.15rem]"
         icon={<IconRestart />}
         disabled={tracks.length === 0}
-        aria-label="Revenir au début"
-        title="Revenir au début"
+        aria-label={t('mix.restart')}
+        title={t('mix.restart')}
         onClick={() => void seekMixTo(0)}
       />
       <Button
@@ -73,9 +76,9 @@ export function MixTransport({ className }: MixTransportProps) {
         icon={<IconDownload />}
         disabled={!canDownload}
         aria-busy={mixExporting}
-        aria-label="Télécharger le mix (MP3)"
+        aria-label={t('mix.download')}
         title={withShortcut(
-          'Télécharger le mix des pistes sélectionnées (MP3)',
+          t('mix.download.hint'),
           'T / D',
           keyboardHintsEnabled,
         )}

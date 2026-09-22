@@ -4,6 +4,7 @@ import type {
   AudioContextWithSink,
   AudioSinkMode,
 } from '../../types'
+import { t } from '../i18n'
 
 export const MIX_LOOKAHEAD_S = 0.12
 /** Fallback when the browser reports no output latency (seconds). */
@@ -546,8 +547,8 @@ export async function ensureMic(): Promise<EnsureMicResult> {
   let inputOverrideNote: string | null = null
   if (wantedId && actualId && actualId !== wantedId) {
     inputOverrideNote = actualLabel
-      ? `Le système a ouvert « ${actualLabel} » à la place du micro choisi (souvent le cas avec un casque Bluetooth).`
-      : 'Le système a ouvert un autre micro que celui choisi (souvent le cas avec un casque Bluetooth).'
+      ? t('settings.devices.inputOverride', { label: actualLabel })
+      : t('settings.devices.inputOverrideGeneric')
   }
 
   return { stream: mediaStream, inputOverrideNote }

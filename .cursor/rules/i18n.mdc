@@ -1,0 +1,15 @@
+---
+description: All user-facing labels must go through t() i18n
+alwaysApply: true
+---
+
+# Internationalization
+
+Every user-facing string (visible labels, `aria-label`, `title` tooltips, `confirm()` copy, errors, hints, default session/track names) **must** use `t('…')` from `src/lib/i18n`.
+
+- Add new keys to **both** `src/lib/i18n/fr.ts` and `src/lib/i18n/en.ts` (and any future locale files).
+- Call `useLocale()` in React components that render translated copy so they re-render when the language changes.
+- Do **not** hardcode French or English in components or `sessionActions` / runtime helpers.
+- Brand name **PolyRecorder** stays untranslated.
+- Language names in the picker stay in their native form (Français, English, …) via the locale catalog, not via `t()`.
+- Shortcut key chords (E / R, F2, …) may stay literal.

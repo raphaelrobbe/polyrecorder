@@ -4,7 +4,9 @@ import {
   startSession,
   stopSession,
 } from '../lib/sessionActions'
+import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
+import { useLocale } from '../hooks/useLocale'
 import { withShortcut } from '../hooks/useKeyboardShortcuts'
 import { useSessionStore } from '../store/sessionStore'
 import { Button } from './Button'
@@ -21,6 +23,7 @@ type CaptureBarProps = {
 }
 
 export function CaptureBar({ className }: CaptureBarProps) {
+  useLocale()
   const state = useSessionStore((s) => s.state)
   const tracks = useSessionStore((s) => s.tracks)
   const meterLevel = useSessionStore((s) => s.meterLevel)
@@ -63,9 +66,9 @@ export function CaptureBar({ className }: CaptureBarProps) {
           icon={<IconNext />}
           hidden={!recording}
           disabled={!recording}
-          aria-label="Piste suivante"
+          aria-label={t('capture.nextTrack')}
           title={withShortcut(
-            'Piste suivante : rejoue cette prise et enregistre la suivante en même temps.',
+            t('capture.nextTrack.hint'),
             'S / N',
             keyboardHintsEnabled,
           )}
@@ -77,9 +80,9 @@ export function CaptureBar({ className }: CaptureBarProps) {
           icon={<IconDiscard />}
           hidden={!recording}
           disabled={!recording}
-          aria-label="Annuler la prise et recommencer"
+          aria-label={t('capture.discard')}
           title={withShortcut(
-            'Annuler la prise et recommencer',
+            t('capture.discard'),
             'Suppr',
             keyboardHintsEnabled,
           )}
@@ -91,8 +94,12 @@ export function CaptureBar({ className }: CaptureBarProps) {
           icon={<IconRecord />}
           hidden={recording}
           disabled={recording}
-          aria-label="Enregistrer"
-          title={withShortcut('Enregistrer', 'E / R', keyboardHintsEnabled)}
+          aria-label={t('capture.record')}
+          title={withShortcut(
+            t('capture.record'),
+            'E / R',
+            keyboardHintsEnabled,
+          )}
           onClick={() => void startSession()}
         />
         <Button
@@ -106,8 +113,8 @@ export function CaptureBar({ className }: CaptureBarProps) {
           icon={<IconStop />}
           hidden={!recording}
           disabled={!recording}
-          aria-label="Stop"
-          title={withShortcut('Stop', 'Entrée', keyboardHintsEnabled)}
+          aria-label={t('capture.stop')}
+          title={withShortcut(t('capture.stop'), 'Entrée', keyboardHintsEnabled)}
           onClick={() => void stopSession()}
         />
       </div>

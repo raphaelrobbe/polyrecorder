@@ -1,7 +1,9 @@
 import { useLayoutEffect, useRef } from 'react'
 import { isDefaultSessionTitle } from '../lib/format'
 import { normalizeAndSetSessionTitle } from '../lib/sessionActions'
+import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
+import { useLocale } from '../hooks/useLocale'
 import { withShortcut } from '../hooks/useKeyboardShortcuts'
 import { useSessionStore } from '../store/sessionStore'
 import { CaptureBar } from './CaptureBar'
@@ -15,6 +17,7 @@ type DeckMainProps = {
 }
 
 export function DeckMain({ className }: DeckMainProps) {
+  useLocale()
   const sessionTitle = useSessionStore((s) => s.sessionTitle)
   const setSessionTitle = useSessionStore((s) => s.setSessionTitle)
   const timerText = useSessionStore((s) => s.timerText)
@@ -24,6 +27,7 @@ export function DeckMain({ className }: DeckMainProps) {
   const titleRef = useRef<HTMLTextAreaElement>(null)
 
   const defaultName = isDefaultSessionTitle(sessionTitle)
+  const titleAria = t('session.title.aria')
 
   useLayoutEffect(() => {
     const el = titleRef.current
@@ -48,13 +52,9 @@ export function DeckMain({ className }: DeckMainProps) {
           data-session-title
           value={sessionTitle}
           maxLength={60}
-          aria-label="Titre de l'enregistrement"
-          title={withShortcut(
-            "Titre de l'enregistrement",
-            'F2',
-            keyboardHintsEnabled,
-          )}
-          data-title-base="Titre de l'enregistrement"
+          aria-label={titleAria}
+          title={withShortcut(titleAria, 'F2', keyboardHintsEnabled)}
+          data-title-base={titleAria}
           spellCheck={false}
           onChange={(event) =>
             setSessionTitle(event.target.value.replace(/\n/g, ' '))

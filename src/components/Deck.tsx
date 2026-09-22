@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import { useLocale } from '../hooks/useLocale'
+import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
 
 type DeckProps = {
@@ -11,6 +13,7 @@ type DeckProps = {
  * View content is passed as children (main / settings / help).
  */
 export function Deck({ children, className }: DeckProps) {
+  useLocale()
   return (
     <section
       className={cn(
@@ -21,7 +24,7 @@ export function Deck({ children, className }: DeckProps) {
         'before:bg-[var(--deck-sheen)]',
         className,
       )}
-      aria-label="Enregistreur"
+      aria-label={t('deck.ariaLabel')}
     >
       {children}
     </section>

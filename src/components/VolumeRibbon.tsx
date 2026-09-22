@@ -6,6 +6,8 @@ import {
   type PointerEvent as ReactPointerEvent,
 } from 'react'
 import { parsePercentInput } from '../lib/format'
+import { useLocale } from '../hooks/useLocale'
+import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
 import { NudgeValueField } from './NudgeValueField'
 
@@ -33,6 +35,7 @@ export function VolumeRibbon({
   className,
   emphasis = false,
 }: VolumeRibbonProps) {
+  useLocale()
   const trackRef = useRef<HTMLDivElement>(null)
   const draggingRef = useRef(false)
 
@@ -63,8 +66,8 @@ export function VolumeRibbon({
       if (!el) return value
       const rect = el.getBoundingClientRect()
       if (rect.width <= 0) return value
-      const t = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width))
-      return t * max
+      const frac = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width))
+      return frac * max
     },
     [max, value],
   )
@@ -168,7 +171,7 @@ export function VolumeRibbon({
         data-volume-percent
         value={draft}
         inputMode="numeric"
-        aria-label={`${label} en pourcent`}
+        aria-label={t('volume.percentAria', { label })}
         spellCheck={false}
         labelClassName="min-w-0 max-sm:min-w-0"
         className={cn(

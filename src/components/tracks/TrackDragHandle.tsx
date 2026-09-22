@@ -1,4 +1,6 @@
 import type { ButtonHTMLAttributes } from 'react'
+import { useLocale } from '../../hooks/useLocale'
+import { t } from '../../lib/i18n'
 import { cn } from '../../lib/utils'
 import { IconDragDots } from '../icons'
 
@@ -10,10 +12,11 @@ export type TrackDragHandleProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 export function TrackDragHandle({
   ariaLabel,
   className,
-  title = 'Glisser pour réordonner',
+  title,
   type = 'button',
   ...props
 }: TrackDragHandleProps) {
+  useLocale()
   return (
     <button
       type={type}
@@ -24,7 +27,7 @@ export function TrackDragHandle({
         className,
       )}
       aria-label={ariaLabel}
-      title={title}
+      title={title ?? t('tracks.drag')}
       {...props}
     >
       <IconDragDots className="size-[1.35rem] max-sm:size-[1.15rem]" />

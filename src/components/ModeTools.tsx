@@ -1,5 +1,7 @@
 import { setCalageMode, setMixMode } from '../lib/sessionActions'
+import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
+import { useLocale } from '../hooks/useLocale'
 import { useSessionStore } from '../store/sessionStore'
 import { IconFaders } from './icons'
 
@@ -13,6 +15,7 @@ type ModeToolsProps = {
  * Sits at the bottom of the deck, left-aligned: « Mode » + buttons.
  */
 export function ModeTools({ className }: ModeToolsProps) {
+  useLocale()
   const tracks = useSessionStore((s) => s.tracks)
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
@@ -26,15 +29,15 @@ export function ModeTools({ className }: ModeToolsProps) {
         className,
       )}
       role="group"
-      aria-label="Modes de travail"
+      aria-label={t('mode.groupAria')}
     >
       <span className="shrink-0 text-[0.82rem] font-semibold tracking-[0.02em] text-ink-soft">
-        Mode
+        {t('mode.label')}
       </span>
       <button
         type="button"
         aria-pressed={mixMode}
-        title="Mode mixage : volumes par piste et maître"
+        title={t('mode.mix.hint')}
         onClick={() => setMixMode(!mixMode)}
         style={
           {
@@ -54,12 +57,12 @@ export function ModeTools({ className }: ModeToolsProps) {
         )}
       >
         <IconFaders className="size-[1rem]" />
-        Mixage
+        {t('mode.mix')}
       </button>
       <button
         type="button"
         aria-pressed={calageMode}
-        title="Mode calage : synchronisation des pistes"
+        title={t('mode.align.hint')}
         onClick={() => setCalageMode(!calageMode)}
         className={cn(
           'inline-flex items-center rounded-full border px-[0.62rem] py-[0.34rem]',
@@ -71,7 +74,7 @@ export function ModeTools({ className }: ModeToolsProps) {
             : 'border-transparent bg-transparent text-ink-soft hover:bg-ink/6 hover:text-ink',
         )}
       >
-        Calage
+        {t('mode.align')}
       </button>
     </div>
   )

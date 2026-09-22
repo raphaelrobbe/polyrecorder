@@ -1,4 +1,5 @@
 import type { Track } from '../types'
+import { LOCALES, getLocale, t, type Locale } from './i18n'
 
 export function formatSignedMs(ms: number): string {
   const rounded = Math.round(ms)
@@ -48,12 +49,22 @@ export function formatCentisCompact(ms: number): string {
   return m === 0 ? sec : `${m}:${sec}`
 }
 
-export function defaultSessionTitle(): string {
-  return 'Ma polyphonie'
+export function defaultSessionTitle(locale: Locale = getLocale()): string {
+  return t('session.defaultTitle', undefined, locale)
 }
 
-export function isDefaultSessionTitle(name: string): boolean {
-  return name.trim() === defaultSessionTitle()
+/** True when the title matches the default for the active (or given) locale. */
+export function isDefaultSessionTitle(
+  name: string,
+  locale: Locale = getLocale(),
+): boolean {
+  return name.trim() === defaultSessionTitle(locale)
+}
+
+/** True when the title is still an auto-default in any supported locale. */
+export function isDefaultSessionTitleAnyLocale(name: string): boolean {
+  const trimmed = name.trim()
+  return LOCALES.some((item) => trimmed === defaultSessionTitle(item.code))
 }
 
 export function sanitizeFilenamePart(value: string): string {
@@ -83,7 +94,10 @@ export function downloadFilenameForSelection(
     return `${title}.mp3`
   }
   const trackParts = selected
-    .map((track) => sanitizeFilenamePart(track.name) || 'piste')
+    .map(
+      (track) =>
+        sanitizeFilenamePart(track.name) || t('tracks.filenameFallback'),
+    )
     .join(' - ')
   return `${title}_${trackParts}.mp3`
 }
@@ -96,12 +110,50 @@ export function escapeHtml(value: string): string {
     .replace(/>/g, '&gt;')
 }
 
-export function defaultTrackName(index: number): string {
-  return `Piste ${index}`
+export function defaultTrackName(
+  index: number,
+  locale: Locale = getLocale(),
+): string {
+  return t('tracks.defaultName', { index }, locale)
 }
 
-export function isDefaultTrackName(name: string): boolean {
-  return /^Piste \d+$/.test(name.trim())
+function trackDefaultNamePattern(locale: Locale): RegExp | null {
+  const sample = defaultTrackName(1, locale)
+  const match = sample.match(/^(.+?)\s+(\d+)$/)
+  if (!match) return null
+  const prefix = match[1]!.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  return new RegExp(`^${prefix}\\s+(\\d+)$`)
+}
+
+/** True when the name matches the default pattern for the active (or given) locale. */
+export function isDefaultTrackName(
+  name: string,
+  locale: Locale = getLocale(),
+): boolean {
+  const pattern = trackDefaultNamePattern(locale)
+  return pattern ? pattern.test(name.trim()) : false
+}
+
+/** True when the name is still an auto-default in any supported locale. */
+export function isDefaultTrackNameAnyLocale(name: string): boolean {
+  return LOCALES.some((item) => isDefaultTrackName(name, item.code))
+}
+
+/**
+ * Extract the numeric index from a default track name in any locale
+ * (e.g. « Piste 2 » / « Track 2 » / « Spur 2 » → 2).
+ */
+export function parseDefaultTrackIndex(name: string): number | null {
+  for (const item of LOCALES) {
+    const pattern = trackDefaultNamePattern(item.code)
+    if (!pattern) continue
+    const match = name.trim().match(pattern)
+    if (match) {
+      const index = Number(match[1])
+      return Number.isFinite(index) ? index : null
+    }
+  }
+  return null
 }
 
 export function formatAlignDetail(

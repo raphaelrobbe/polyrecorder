@@ -1,4 +1,6 @@
+import { useLocale } from '../hooks/useLocale'
 import { useTheme } from '../hooks/useTheme'
+import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
 import { Button } from './Button'
 import { IconMoon, IconSun } from './icons'
@@ -9,6 +11,7 @@ type ThemeToggleProps = {
 
 /** Manual light/dark switch (system preference is the default until toggled). */
 export function ThemeToggle({ className }: ThemeToggleProps) {
+  useLocale()
   const { resolved, preference, toggle, setPreference } = useTheme()
   const goingDark = resolved === 'light'
 
@@ -18,16 +21,16 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
       className={cn(className)}
       icon={goingDark ? <IconMoon /> : <IconSun />}
       aria-label={
-        goingDark ? 'Passer en thème sombre' : 'Passer en thème clair'
+        goingDark ? t('theme.switchToDark') : t('theme.switchToLight')
       }
       title={
         preference === 'system'
           ? goingDark
-            ? 'Thème sombre (actuellement auto)'
-            : 'Thème clair (actuellement auto)'
+            ? t('theme.darkSystem')
+            : t('theme.lightSystem')
           : goingDark
-            ? 'Thème sombre'
-            : 'Thème clair'
+            ? t('theme.dark')
+            : t('theme.light')
       }
       onClick={() => toggle()}
       onContextMenu={(event) => {
