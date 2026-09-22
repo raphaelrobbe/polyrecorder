@@ -18,6 +18,9 @@ html.light {
   --ok: #1f7a4c;
   --control: #0f3d3e;
   --on-control: #ffffff;
+  /* Soft foam-family fill for volume ribbons (vs deeper VU → record). */
+  --volume: #5a9e92;
+  --meter: #2a6b5c;
   --warn: #6a4508;
   --warn-border: rgb(176 110 20 / 0.35);
   --warn-bg: rgb(232 176 72 / 0.16);
@@ -53,6 +56,8 @@ html.dark {
   --ok: #3dba78;
   --control: #6ec4b8;
   --on-control: #0c1a1b;
+  --volume: #6ec4b8;
+  --meter: #2f8f7b;
   --warn: #f0d08a;
   --warn-border: rgb(232 176 72 / 0.45);
   --warn-bg: rgb(232 176 72 / 0.14);
@@ -88,6 +93,8 @@ html.dark {
   --color-ok: var(--ok);
   --color-control: var(--control);
   --color-on-control: var(--on-control);
+  --color-volume: var(--volume);
+  --color-meter: var(--meter);
   --color-warn: var(--warn);
   --color-warn-border: var(--warn-border);
   --color-warn-bg: var(--warn-bg);

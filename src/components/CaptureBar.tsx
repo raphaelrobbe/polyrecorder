@@ -42,7 +42,7 @@ export function CaptureBar({ className }: CaptureBarProps) {
         aria-hidden={!recording}
       >
         <span
-          className="block h-full w-0 rounded-[inherit] bg-gradient-to-r from-[#2f8f7b] to-record transition-[width] duration-[80ms] ease-linear"
+          className="block h-full w-0 rounded-[inherit] bg-gradient-to-r from-meter to-record transition-[width] duration-[80ms] ease-linear"
           style={{
             width: `${Math.max(0, Math.min(100, meterLevel))}%`,
           }}

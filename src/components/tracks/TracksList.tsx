@@ -24,7 +24,7 @@ import { TrackRow } from './TrackRow'
 
 const TOUCH_REORDER_THRESHOLD_PX = 8
 const TOUCH_REORDER_EXCLUDE =
-  'input, textarea, select, button:not([data-drag-track]), [data-track-mute], [data-track-align], [data-rename-track], [data-track-nudge], [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-toggle-track], [data-volume-ribbon]'
+  'input, textarea, select, button:not([data-drag-track]), [data-track-mute], [data-track-align], [data-rename-track], [data-ms-nudge], [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-toggle-track], [data-volume-ribbon], [data-volume-percent]'
 
 type DragOverState = { trackId: number; edge: 'before' | 'after' } | null
 

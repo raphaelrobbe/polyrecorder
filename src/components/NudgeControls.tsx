@@ -1,28 +1,27 @@
 import type { ReactNode } from 'react'
-import { cn } from '../../lib/utils'
-import { Button } from '../Button'
-import { TrackOffsetField } from './TrackOffsetField'
+import { cn } from '../lib/utils'
+import { Button } from './Button'
 
-export type TrackNudgeControlsProps = {
+export type NudgeControlsProps = {
   title?: string
   className?: string
   minusAriaLabel: string
   plusAriaLabel: string
   onMinus: () => void
   onPlus: () => void
-  offset: ReactNode
+  valueSlot: ReactNode
 }
 
-/** − / offset / + controls for manual track timing. */
-export function TrackNudgeControls({
-  title = 'Décaler cette piste à la lecture',
+/** − / value / + chrome for fine numeric adjustments. */
+export function NudgeControls({
+  title,
   className,
   minusAriaLabel,
   plusAriaLabel,
   onMinus,
   onPlus,
-  offset,
-}: TrackNudgeControlsProps) {
+  valueSlot,
+}: NudgeControlsProps) {
   return (
     <div
       className={cn(
@@ -30,17 +29,15 @@ export function TrackNudgeControls({
         className,
       )}
       title={title}
-      data-track-nudge
+      data-ms-nudge
     >
       <Button variant="nudge" aria-label={minusAriaLabel} onClick={onMinus}>
         −
       </Button>
-      {offset}
+      {valueSlot}
       <Button variant="nudge" aria-label={plusAriaLabel} onClick={onPlus}>
         +
       </Button>
     </div>
   )
 }
-
-export { TrackOffsetField }

@@ -14,6 +14,15 @@ export function parseOffsetMsInput(raw: string): number | null {
   return Math.round(Math.max(-120_000, Math.min(120_000, value)))
 }
 
+/** Parse a percent field (`100`, `100%`, …). Returns null if empty/invalid. */
+export function parsePercentInput(raw: string): number | null {
+  const cleaned = raw.trim().replace(/\s*%$/i, '').replace(/\s+/g, '')
+  if (!cleaned || cleaned === '+' || cleaned === '-') return null
+  const value = Number(cleaned)
+  if (!Number.isFinite(value)) return null
+  return Math.round(value)
+}
+
 export function formatTime(ms: number): string {
   const total = Math.max(0, Math.floor(ms / 1000))
   const m = Math.floor(total / 60)

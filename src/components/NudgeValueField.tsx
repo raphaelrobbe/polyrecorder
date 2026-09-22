@@ -1,7 +1,7 @@
 import type { InputHTMLAttributes, ReactNode } from 'react'
-import { cn } from '../../lib/utils'
+import { cn } from '../lib/utils'
 
-export type TrackOffsetFieldProps = Omit<
+export type NudgeValueFieldProps = Omit<
   InputHTMLAttributes<HTMLInputElement>,
   'type'
 > & {
@@ -9,13 +9,13 @@ export type TrackOffsetFieldProps = Omit<
   labelClassName?: string
 }
 
-/** Millisecond offset input with optional unit label. */
-export function TrackOffsetField({
-  unit = 'ms',
+/** Compact numeric value input with optional unit label (ms, %, …). */
+export function NudgeValueField({
+  unit,
   className,
   labelClassName,
   ...props
-}: TrackOffsetFieldProps) {
+}: NudgeValueFieldProps) {
   return (
     <label
       className={cn(

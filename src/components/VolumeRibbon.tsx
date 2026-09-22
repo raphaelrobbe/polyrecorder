@@ -1,5 +1,13 @@
-import { useCallback, useRef, type PointerEvent as ReactPointerEvent } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+} from 'react'
+import { parsePercentInput } from '../lib/format'
 import { cn } from '../lib/utils'
+import { NudgeValueField } from './NudgeValueField'
 
 type VolumeRibbonProps = {
   value: number
@@ -12,13 +20,9 @@ type VolumeRibbonProps = {
   emphasis?: boolean
 }
 
-function formatPercent(value: number): string {
-  return `${Math.round(value * 100)}%`
-}
-
 /**
  * Horizontal volume ribbon: drag to set level, double-click / double-tap resets to 100%.
- * Fill past 100% uses a warmer tint to show boost.
+ * The percent label is click-to-edit (no ± buttons).
  */
 export function VolumeRibbon({
   value,
@@ -35,6 +39,23 @@ export function VolumeRibbon({
   const ratio = max > 0 ? Math.min(1, Math.max(0, value / max)) : 0
   const unityRatio = max > 0 ? Math.min(1, 1 / max) : 0
   const boosted = value > 1.001
+  const percent = Math.round(value * 100)
+  const maxPercent = Math.round(max * 100)
+  const [draft, setDraft] = useState(String(percent))
+
+  useEffect(() => {
+    setDraft(String(percent))
+  }, [percent])
+
+  const commitDraft = () => {
+    const parsed = parsePercentInput(draft)
+    const nextPercent =
+      parsed == null
+        ? percent
+        : Math.min(maxPercent, Math.max(0, parsed))
+    setDraft(String(nextPercent))
+    if (nextPercent !== percent) onChange(nextPercent / 100)
+  }
 
   const valueFromClientX = useCallback(
     (clientX: number) => {
@@ -84,9 +105,9 @@ export function VolumeRibbon({
         tabIndex={0}
         aria-label={label}
         aria-valuemin={0}
-        aria-valuemax={Math.round(max * 100)}
-        aria-valuenow={Math.round(value * 100)}
-        aria-valuetext={formatPercent(value)}
+        aria-valuemax={maxPercent}
+        aria-valuenow={percent}
+        aria-valuetext={`${percent}%`}
         className={cn(
           'relative min-w-0 flex-auto cursor-pointer touch-none rounded-full bg-ink/10',
           emphasis ? 'h-[0.7rem]' : 'h-[0.55rem]',
@@ -117,7 +138,6 @@ export function VolumeRibbon({
           }
         }}
       >
-        {/* Unity marker at 100% */}
         {max > 1 ? (
           <span
             className="pointer-events-none absolute inset-y-[0.08rem] w-px bg-ink/25"
@@ -129,8 +149,8 @@ export function VolumeRibbon({
           className={cn(
             'pointer-events-none absolute inset-y-0 left-0 rounded-full',
             boosted
-              ? 'bg-gradient-to-r from-control to-record/80'
-              : 'bg-control',
+              ? 'bg-gradient-to-r from-volume to-record/80'
+              : 'bg-volume',
           )}
           style={{ width: `${ratio * 100}%` }}
         />
@@ -143,15 +163,39 @@ export function VolumeRibbon({
           aria-hidden="true"
         />
       </div>
-      <span
+      <NudgeValueField
+        unit="%"
+        data-volume-percent
+        value={draft}
+        inputMode="numeric"
+        aria-label={`${label} en pourcent`}
+        spellCheck={false}
+        labelClassName="min-w-0 max-sm:min-w-0"
         className={cn(
-          'w-[2.6rem] shrink-0 text-right text-[0.72rem] font-bold tabular-nums text-ink-soft max-sm:w-[2.35rem] max-sm:text-[0.68rem]',
+          'w-[2.1rem] text-right max-sm:w-[1.9rem]',
           boosted && 'text-record',
           emphasis && 'text-[0.78rem] text-ink max-sm:text-[0.72rem]',
         )}
-      >
-        {formatPercent(value)}
-      </span>
+        onChange={(event) => setDraft(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            event.preventDefault()
+            event.currentTarget.blur()
+          }
+        }}
+        onFocus={(event) => {
+          event.currentTarget.select()
+          event.currentTarget.addEventListener(
+            'mouseup',
+            (mouseupEvent) => {
+              mouseupEvent.preventDefault()
+              event.currentTarget.select()
+            },
+            { once: true },
+          )
+        }}
+        onBlur={commitDraft}
+      />
     </div>
   )
 }

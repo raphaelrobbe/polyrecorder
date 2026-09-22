@@ -5,7 +5,6 @@ import {
   formatCentis,
   formatTime,
   isDefaultTrackName,
-  parseOffsetMsInput,
 } from '../../lib/format'
 import { TRACK_VOLUME_MAX } from '../../lib/audio/mix'
 import {
@@ -24,13 +23,12 @@ import { cn } from '../../lib/utils'
 import { useSessionStore } from '../../store/sessionStore'
 import { Button } from '../Button'
 import { IconClose } from '../icons'
+import { MsOffsetEditor } from '../MsOffsetEditor'
 import { VolumeRibbon } from '../VolumeRibbon'
 import { TrackAlignCheck } from './TrackAlignCheck'
 import { TrackDragHandle } from './TrackDragHandle'
 import { TrackMute } from './TrackMute'
 import { TrackNameInput } from './TrackNameInput'
-import { TrackNudgeControls } from './TrackNudgeControls'
-import { TrackOffsetField } from './TrackOffsetField'
 
 type TrackRowProps = {
   track: Track
@@ -70,17 +68,10 @@ export function TrackRow({
   const hideDelete = calageMode || mixMode
 
   const [nameDraft, setNameDraft] = useState(track.name)
-  const [offsetDraft, setOffsetDraft] = useState(
-    String(Math.round(track.offsetMs)),
-  )
 
   useEffect(() => {
     setNameDraft(track.name)
   }, [track.name])
-
-  useEffect(() => {
-    setOffsetDraft(String(Math.round(track.offsetMs)))
-  }, [track.offsetMs])
 
   return (
     <li
@@ -251,51 +242,15 @@ export function TrackRow({
               inputProps={{ 'data-auto-align-track': track.id }}
             />
           )}
-          <TrackNudgeControls
+          <MsOffsetEditor
             className="col-start-5 row-start-1 justify-self-center"
+            title="Décaler cette piste à la lecture"
+            value={Math.round(track.offsetMs)}
+            onChange={(next) => applyManualTrackOffset(track.id, next)}
             minusAriaLabel={`Avancer ${track.name} de 5 ms`}
             plusAriaLabel={`Retarder ${track.name} de 5 ms`}
-            onMinus={() =>
-              applyManualTrackOffset(track.id, Math.round(track.offsetMs - 5))
-            }
-            onPlus={() =>
-              applyManualTrackOffset(track.id, Math.round(track.offsetMs + 5))
-            }
-            offset={
-              <TrackOffsetField
-                data-offset-track={track.id}
-                value={offsetDraft}
-                inputMode="numeric"
-                aria-label={`Calage de ${track.name} en millisecondes`}
-                spellCheck={false}
-                onChange={(event) => setOffsetDraft(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault()
-                    event.currentTarget.blur()
-                  }
-                }}
-                onFocus={(event) => {
-                  event.currentTarget.select()
-                  event.currentTarget.addEventListener(
-                    'mouseup',
-                    (mouseupEvent) => {
-                      mouseupEvent.preventDefault()
-                      event.currentTarget.select()
-                    },
-                    { once: true },
-                  )
-                }}
-                onBlur={() => {
-                  const parsed = parseOffsetMsInput(offsetDraft)
-                  const next = parsed ?? Math.round(track.offsetMs)
-                  setOffsetDraft(String(next))
-                  if (next !== track.offsetMs) {
-                    applyManualTrackOffset(track.id, next)
-                  }
-                }}
-              />
-            }
+            inputAriaLabel={`Calage de ${track.name} en millisecondes`}
+            inputProps={{ 'data-offset-track': track.id }}
           />
           <small
             className={cn(
