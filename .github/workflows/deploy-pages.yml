@@ -1,5 +1,9 @@
 name: Deploy to GitHub Pages
 
+# Legacy SPA deploy for `main` only.
+# Branch `refacto-remix` uses Remix SSR (`bun run start`); see DEPLOY.md and build-remix.yml.
+# Do not point Pages at the Remix `build/` output.
+
 on:
   push:
     branches: [main]
