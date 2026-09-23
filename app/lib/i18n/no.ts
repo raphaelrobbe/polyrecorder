@@ -55,6 +55,7 @@ export const no: Record<MessageKey, string> = {
   'account.delete.deleting': 'Sletter…',
   'account.delete.error': 'Kunne ikke slette kontoen. Prøv igjen.',
 
+  'auth.close': 'Lukk innlogging',
   'auth.signIn.title': 'Logg inn eller opprett konto',
   'auth.signIn.lead':
     'Skriv inn e-posten din: vi oppretter kontoen om den mangler, og sender en engangs magisk lenke (gyldig i 30 minutter). Ingen passord.',

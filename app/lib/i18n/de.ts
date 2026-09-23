@@ -55,6 +55,7 @@ export const de: Record<MessageKey, string> = {
   'account.delete.deleting': 'Wird gelöscht…',
   'account.delete.error': 'Konto konnte nicht gelöscht werden. Erneut versuchen.',
 
+  'auth.close': 'Anmeldung schließen',
   'auth.signIn.title': 'Anmelden oder Konto erstellen',
   'auth.signIn.lead':
     'Gib deine E-Mail ein: wir erstellen bei Bedarf ein Konto und senden dir einen einmaligen Magie-Link (30 Minuten gültig). Kein Passwort.',

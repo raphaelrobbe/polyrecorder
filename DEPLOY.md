@@ -38,7 +38,7 @@ Repo secrets:
 | `SCW_DOCKER_REGISTRY` | Registry host, e.g. `rg.fr-par.scw.cloud/<namespace>` |
 | `SCW_SECRET_KEY` | Scaleway API / registry password (`nologin`) |
 | `SCW_CONTAINER_ID` | Serverless Container UUID to redeploy (optional until the container exists) |
-| `DATABASE_URL` | Postgres URL (`sslmode=require`) — used by CI `prisma migrate deploy` |
+| `DATABASE_URL` | Postgres URL (`sslmode=no-verify`) — used by CI `prisma migrate deploy` |
 
 Optional variable: `SCW_REGION` (default `fr-par`).
 
@@ -55,7 +55,7 @@ Set on the Serverless Container (same values as local `.env`, prod-oriented):
 | `DATABASE_URL` | Same as the GitHub secret |
 | `SESSION_SECRET` | Long random string (required in prod) |
 | `APP_URL` | Public HTTPS origin, e.g. `https://polyrecorder.app` |
-| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_FROM` | Scaleway TEM |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` | Scaleway TEM (`From` is hardcoded to `noreply@polyrecorder.app`) |
 | `SMTP_PASS` | Optional — if unset, uses `SCW_SECRET_KEY` |
 | `SCW_SECRET_KEY` | Optional on the container — TEM password fallback (same value as the deploy secret) |
 
@@ -76,7 +76,8 @@ Port **5434** (avoids clash with other local Postgres, e.g. E-RIC on 5433). Imag
 1. Console → **Managed Databases** → Create PostgreSQL (region `fr-par`, v16 if available).
 2. Create a DB user + database `polyrecorder` (or use the default DB and set the name in the URL).
 3. Allow the **Serverless Containers** / app IP (or “allow Scaleway IPs” / VPC as you prefer).
-4. Connection string with `sslmode=require` → secret `DATABASE_URL` (GitHub + container env).
+4. Connection string with `sslmode=no-verify` → secret `DATABASE_URL` (GitHub + container env).
+   (`no-verify` encrypts without failing on Scaleway’s private CA; do not omit SSL entirely.)
 
 Do **not** commit real credentials. Use `.env` locally and Scaleway / GitHub secrets in prod.
 

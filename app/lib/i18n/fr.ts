@@ -53,6 +53,7 @@ export const fr = {
   'account.delete.deleting': 'Suppression…',
   'account.delete.error': 'Impossible de supprimer le compte. Réessaie.',
 
+  'auth.close': 'Fermer la connexion',
   'auth.signIn.title': 'Connexion ou création de compte',
   'auth.signIn.lead':
     'Entre ton email : on crée le compte s’il n’existe pas encore, puis on t’envoie un lien magique (valable 30 minutes, usage unique). Pas de mot de passe.',

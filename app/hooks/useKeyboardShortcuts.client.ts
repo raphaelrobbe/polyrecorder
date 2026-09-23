@@ -33,9 +33,12 @@ function isOverlayPath(pathname: string): boolean {
     pathname === '/aide' ||
     pathname === '/parametres' ||
     pathname === '/compte' ||
+    pathname === '/connexion' ||
+    pathname.startsWith('/connexion/') ||
     pathname.endsWith('/aide') ||
     pathname.endsWith('/parametres') ||
-    pathname.endsWith('/compte')
+    pathname.endsWith('/compte') ||
+    pathname.endsWith('/connexion')
   )
 }
 

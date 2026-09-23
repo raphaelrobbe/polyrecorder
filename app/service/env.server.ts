@@ -31,6 +31,9 @@ export function getSessionSecret(): string {
   return 'dev-only-insecure-session-secret'
 }
 
+/** Fixed sender — domain must be verified in Scaleway TEM. */
+export const SMTP_FROM = 'PolyRecorder <noreply@polyrecorder.app>'
+
 export function getSmtpConfig() {
   const host = process.env.SMTP_HOST?.trim()
   const port = Number(process.env.SMTP_PORT || '587')
@@ -38,9 +41,8 @@ export function getSmtpConfig() {
   // TEM SMTP password is the Scaleway API secret — reuse SCW_SECRET_KEY when set.
   const pass =
     process.env.SMTP_PASS?.trim() || process.env.SCW_SECRET_KEY?.trim()
-  const from = process.env.SMTP_FROM?.trim()
-  if (!host || !user || !pass || !from) {
+  if (!host || !user || !pass) {
     return null
   }
-  return { host, port, user, pass, from }
+  return { host, port, user, pass, from: SMTP_FROM }
 }

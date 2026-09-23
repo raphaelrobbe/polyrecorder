@@ -54,6 +54,7 @@ export const en: Record<MessageKey, string> = {
   'account.delete.deleting': 'Deleting…',
   'account.delete.error': 'Could not delete the account. Try again.',
 
+  'auth.close': 'Close sign-in',
   'auth.signIn.title': 'Sign in or create an account',
   'auth.signIn.lead':
     'Enter your email: we’ll create an account if needed, then send a one-time magic link (valid 30 minutes). No password.',

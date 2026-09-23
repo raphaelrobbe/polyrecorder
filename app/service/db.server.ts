@@ -8,23 +8,30 @@ const globalForPrisma = globalThis as unknown as {
 }
 
 /**
- * Managed Postgres (e.g. Scaleway RDB) uses a private/self-signed CA.
- * `sslmode=require` encrypts the link, but node-pg still verifies the cert
- * unless we set `rejectUnauthorized: false` → "self-signed certificate".
+ * Managed Postgres (e.g. Scaleway RDB) uses a private CA.
+ *
+ * Important: do NOT leave `sslmode=…` on the connection string while also
+ * passing `ssl`. `pg` does `Object.assign(config, parse(connectionString))`,
+ * and `sslmode=require` sets `ssl: true`, which overwrites
+ * `{ rejectUnauthorized: false }` and yields "self-signed certificate".
  */
 function poolConfigFromUrl(connectionString: string): PoolConfig {
-  const config: PoolConfig = { connectionString }
   try {
-    const sslmode = new URL(connectionString).searchParams.get('sslmode')
+    const url = new URL(connectionString)
+    const sslmode = url.searchParams.get('sslmode')
+    url.searchParams.delete('sslmode')
+    const cleaned = url.toString().replace(/\?$/, '')
+
+    const config: PoolConfig = { connectionString: cleaned }
     if (sslmode && sslmode !== 'disable') {
       config.ssl = {
         rejectUnauthorized: sslmode === 'verify-full',
       }
     }
+    return config
   } catch {
-    // Malformed URL — let pg fail with its own error.
+    return { connectionString }
   }
-  return config
 }
 
 function createPrismaClient() {

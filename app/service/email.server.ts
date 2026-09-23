@@ -8,7 +8,6 @@ function smtpMissingFields(): string[] {
   if (!process.env.SMTP_PASS?.trim() && !process.env.SCW_SECRET_KEY?.trim()) {
     missing.push('SMTP_PASS|SCW_SECRET_KEY')
   }
-  if (!process.env.SMTP_FROM?.trim()) missing.push('SMTP_FROM')
   return missing
 }
 

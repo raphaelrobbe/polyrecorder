@@ -14,7 +14,7 @@ type DeckOverlayPanelProps = {
   children: ReactNode
 }
 
-/** Shared shell for Paramètres / Aide (close button, title, body). */
+/** Shared shell for Paramètres / Aide / Compte / Connexion (close button, title, body). */
 export function DeckOverlayPanel({
   title,
   closeAriaLabel,
@@ -42,7 +42,7 @@ export function DeckOverlayPanel({
       <button
         ref={closeRef}
         type="button"
-        className="absolute top-[0.35rem] right-[0.35rem] z-[2] grid h-[2.9rem] w-[2.9rem] place-items-center rounded-[14px] border-0 bg-transparent p-0 text-[2.15rem] font-normal leading-none text-ink-soft cursor-pointer transition-[background,color] duration-[160ms] ease-in-out hover:bg-ink/8 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2"
+        className="float-right relative z-[2] -mt-[0.15rem] -mr-[0.15rem] mb-1 ml-2 grid h-[2.9rem] w-[2.9rem] place-items-center rounded-[14px] border-0 bg-transparent p-0 text-[2.15rem] font-normal leading-none text-ink-soft cursor-pointer transition-[background,color] duration-[160ms] ease-in-out hover:bg-ink/8 hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2"
         aria-label={closeAriaLabel}
         title={withShortcut(closeLabel, 'Échap', keyboardHintsEnabled)}
         data-title-base={closeLabel}
@@ -50,10 +50,10 @@ export function DeckOverlayPanel({
       >
         ×
       </button>
-      <h2 className="font-display mr-[2.8rem] mb-[1.15rem] mt-0 text-[1.45rem] font-bold tracking-[-0.02em] text-ink">
+      <h2 className="font-display mb-[1.15rem] mt-0 text-[1.45rem] font-bold tracking-[-0.02em] text-ink">
         {title}
       </h2>
-      <div className={cn(bodyClassName)}>{children}</div>
+      <div className={cn('clear-both', bodyClassName)}>{children}</div>
     </div>
   )
 }
