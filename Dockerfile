@@ -9,11 +9,14 @@
 FROM oven/bun:1.3.5 AS build
 WORKDIR /app
 COPY package.json bun.lock ./
+# Needed before install: postinstall runs `prisma generate`.
+COPY prisma ./prisma
+COPY prisma7.config.ts ./
 RUN bun install --frozen-lockfile
 COPY . .
 RUN bun run build \
   && rm -rf node_modules \
-  && bun install --frozen-lockfile --production
+  && bun install --frozen-lockfile --production --ignore-scripts
 
 FROM node:22-bookworm-slim AS production
 ENV NODE_ENV=production
