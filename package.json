@@ -8,7 +8,7 @@
     "dev": "remix vite:dev",
     "build": "remix vite:build",
     "start": "remix-serve ./build/server/index.js",
-    "typecheck": "tsc --noEmit"
+    "ts": "tsc --noEmit"
   },
   "dependencies": {
     "@breezystack/lamejs": "^1.2.7",
