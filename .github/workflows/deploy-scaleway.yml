@@ -1,0 +1,61 @@
+name: Deploy Scaleway
+
+# Build the Remix SSR image on GitHub Actions and push it to Scaleway Container
+# Registry, then trigger a Serverless Container redeploy.
+# Go-live: switch `branches` to `main` and retire deploy-pages.yml.
+
+on:
+  push:
+    branches: [refacto-remix]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-scaleway-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Build & deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Scaleway Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.SCW_DOCKER_REGISTRY }}
+          username: nologin
+          password: ${{ secrets.SCW_SECRET_KEY }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.SCW_DOCKER_REGISTRY }}/polyrecorder:latest
+            ${{ secrets.SCW_DOCKER_REGISTRY }}/polyrecorder:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Deploy Scaleway container
+        env:
+          SCW_SECRET_KEY: ${{ secrets.SCW_SECRET_KEY }}
+          SCW_CONTAINER_ID: ${{ secrets.SCW_CONTAINER_ID }}
+          SCW_REGION: ${{ vars.SCW_REGION }}
+        run: |
+          set -euo pipefail
+          REGION="${SCW_REGION:-fr-par}"
+          curl -fsS -X POST \
+            "https://api.scaleway.com/containers/v1beta1/regions/${REGION}/containers/${SCW_CONTAINER_ID}/deploy" \
+            -H "X-Auth-Token: ${SCW_SECRET_KEY}" \
+            -H "Content-Type: application/json" \
+            -d '{}'
