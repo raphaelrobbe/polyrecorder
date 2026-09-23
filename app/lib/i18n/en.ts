@@ -9,6 +9,10 @@ export const en: Record<MessageKey, string> = {
   'common.close': 'Close',
   'common.delete': 'Delete',
 
+  'error.title': 'Oops',
+  'error.lead': 'Something went wrong. You can go back to the recorder and try again.',
+  'error.home': 'Back to the recorder',
+
   'nav.help': 'Help',
   'nav.settings': 'Settings',
   'nav.signIn': 'Sign in',

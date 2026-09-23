@@ -2,9 +2,11 @@ import { useSyncExternalStore } from 'react'
 import {
   applyLocale,
   getLocale,
+  markClientLocaleReady,
   setLocale,
+  SSR_LOCALE,
   type Locale,
-} from '../lib/i18n'
+} from '../lib/i18n/locale'
 
 const listeners = new Set<() => void>()
 
@@ -24,7 +26,7 @@ function getSnapshot(): Locale {
 }
 
 function getServerSnapshot(): Locale {
-  return 'en'
+  return SSR_LOCALE
 }
 
 function rematerializeDefaults(next: Locale) {
@@ -37,6 +39,17 @@ function rematerializeDefaults(next: Locale) {
 function applyLocaleChange(next: Locale) {
   setLocale(next)
   rematerializeDefaults(next)
+  emit()
+}
+
+/**
+ * Call once from the app root after mount so `t()` / `getLocale()` can leave
+ * the SSR-stable locale and pick localStorage / browser preference.
+ */
+export function initLocale() {
+  markClientLocaleReady()
+  applyLocale()
+  rematerializeDefaults(getLocale())
   emit()
 }
 
@@ -53,11 +66,4 @@ export function useLocale() {
       applyLocaleChange(next)
     },
   }
-}
-
-/** Ensure html[lang] matches stored/detected locale once on the client. */
-export function initLocale() {
-  applyLocale()
-  rematerializeDefaults(getLocale())
-  emit()
 }

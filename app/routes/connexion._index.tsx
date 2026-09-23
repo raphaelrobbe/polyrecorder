@@ -33,22 +33,27 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
-  const form = await request.formData()
-  const email = String(form.get('email') ?? '')
-  const result = await requestMagicLink(email)
+  try {
+    const form = await request.formData()
+    const email = String(form.get('email') ?? '')
+    const result = await requestMagicLink(email)
 
-  if (!result.ok) {
-    return { ok: false as const, reason: result.reason }
+    if (!result.ok) {
+      return { ok: false as const, reason: result.reason }
+    }
+
+    const params = new URLSearchParams()
+    const normalized = email.trim().toLowerCase()
+    if (normalized) params.set('email', normalized)
+    return redirectWithMagicLinkPreview(
+      `/connexion/envoye?${params}`,
+      request,
+      result.previewLink,
+    )
+  } catch (error) {
+    console.error('[connexion] action failed', error)
+    return { ok: false as const, reason: 'email_failed' as const }
   }
-
-  const params = new URLSearchParams()
-  const normalized = email.trim().toLowerCase()
-  if (normalized) params.set('email', normalized)
-  return redirectWithMagicLinkPreview(
-    `/connexion/envoye?${params}`,
-    request,
-    result.previewLink,
-  )
 }
 
 export default function ConnexionRoute() {

@@ -9,6 +9,11 @@ export const no: Record<MessageKey, string> = {
   'common.close': 'Lukk',
   'common.delete': 'Slett',
 
+  'error.title': 'Oi',
+  'error.lead':
+    'Noe gikk galt. Du kan gå tilbake til opptakeren og prøve igjen.',
+  'error.home': 'Tilbake til opptakeren',
+
   'nav.help': 'Hjelp',
   'nav.settings': 'Innstillinger',
   'nav.signIn': 'Logg inn',

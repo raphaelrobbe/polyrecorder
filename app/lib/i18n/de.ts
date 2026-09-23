@@ -9,6 +9,11 @@ export const de: Record<MessageKey, string> = {
   'common.close': 'Schließen',
   'common.delete': 'Löschen',
 
+  'error.title': 'Ups',
+  'error.lead':
+    'Etwas ist schiefgelaufen. Du kannst zum Rekorder zurückkehren und es erneut versuchen.',
+  'error.home': 'Zurück zum Rekorder',
+
   'nav.help': 'Hilfe',
   'nav.settings': 'Einstellungen',
   'nav.signIn': 'Anmelden',

@@ -68,80 +68,85 @@ export type RequestMagicLinkResult =
 export async function requestMagicLink(
   rawEmail: string,
 ): Promise<RequestMagicLinkResult> {
-  const email = normalizeEmail(rawEmail)
-  if (!isValidEmail(email)) {
-    return { ok: false, reason: 'invalid_email' }
-  }
+  try {
+    const email = normalizeEmail(rawEmail)
+    if (!isValidEmail(email)) {
+      return { ok: false, reason: 'invalid_email' }
+    }
 
-  const since = new Date(Date.now() - MAGIC_LINK_RATE_WINDOW_MS)
-  const recentCount = await prisma.magicLink.count({
-    where: { email, createdAt: { gte: since } },
-  })
-  if (recentCount >= MAGIC_LINK_RATE_LIMIT) {
-    return { ok: false, reason: 'rate_limited' }
-  }
+    const since = new Date(Date.now() - MAGIC_LINK_RATE_WINDOW_MS)
+    const recentCount = await prisma.magicLink.count({
+      where: { email, createdAt: { gte: since } },
+    })
+    if (recentCount >= MAGIC_LINK_RATE_LIMIT) {
+      return { ok: false, reason: 'rate_limited' }
+    }
 
-  const existing = await prisma.user.findUnique({
-    where: { email },
-    select: { id: true },
-  })
-  const isNewAccount = existing == null
+    const existing = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    })
+    const isNewAccount = existing == null
 
-  const user = await prisma.user.upsert({
-    where: { email },
-    create: { email },
-    update: {},
-  })
+    const user = await prisma.user.upsert({
+      where: { email },
+      create: { email },
+      update: {},
+    })
 
-  const rawToken = createOpaqueToken(32)
-  const tokenHash = hashToken(rawToken)
-  const expiresAt = new Date(Date.now() + MAGIC_LINK_TTL_MS)
+    const rawToken = createOpaqueToken(32)
+    const tokenHash = hashToken(rawToken)
+    const expiresAt = new Date(Date.now() + MAGIC_LINK_TTL_MS)
 
-  await prisma.magicLink.create({
-    data: {
-      email,
-      purpose: 'login',
-      tokenHash,
-      expiresAt,
-      userId: user.id,
-    },
-  })
+    await prisma.magicLink.create({
+      data: {
+        email,
+        purpose: 'login',
+        tokenHash,
+        expiresAt,
+        userId: user.id,
+      },
+    })
 
-  const appUrl = process.env.APP_URL?.trim()?.replace(/\/$/, '')
-  if (!appUrl) {
-    console.error('[auth] APP_URL is not set — cannot build magic link')
+    const appUrl = process.env.APP_URL?.trim()?.replace(/\/$/, '')
+    if (!appUrl) {
+      console.error('[auth] APP_URL is not set — cannot build magic link')
+      return { ok: false, reason: 'email_failed' }
+    }
+
+    const link = `${appUrl}/auth/callback?token=${encodeURIComponent(rawToken)}`
+    // Emails default to French until we persist a preferred locale on User.
+    const locale = 'fr' as const
+    const keys = isNewAccount
+      ? {
+          subject: 'auth.email.welcome.subject' as const,
+          text: 'auth.email.welcome.text' as const,
+          html: 'auth.email.welcome.html' as const,
+        }
+      : {
+          subject: 'auth.email.signIn.subject' as const,
+          text: 'auth.email.signIn.text' as const,
+          html: 'auth.email.signIn.html' as const,
+        }
+    const sent = await sendMail({
+      to: email,
+      subject: t(keys.subject, undefined, locale),
+      text: t(keys.text, { link }, locale),
+      html: t(keys.html, { link }, locale),
+    })
+
+    const isProd = process.env.NODE_ENV === 'production'
+    if (!sent.ok && isProd) {
+      return { ok: false, reason: 'email_failed' }
+    }
+
+    return {
+      ok: true,
+      previewLink: isProd ? undefined : link,
+    }
+  } catch (error) {
+    console.error('[auth] requestMagicLink failed', error)
     return { ok: false, reason: 'email_failed' }
-  }
-
-  const link = `${appUrl}/auth/callback?token=${encodeURIComponent(rawToken)}`
-  // Emails default to French until we persist a preferred locale on User.
-  const locale = 'fr' as const
-  const keys = isNewAccount
-    ? {
-        subject: 'auth.email.welcome.subject' as const,
-        text: 'auth.email.welcome.text' as const,
-        html: 'auth.email.welcome.html' as const,
-      }
-    : {
-        subject: 'auth.email.signIn.subject' as const,
-        text: 'auth.email.signIn.text' as const,
-        html: 'auth.email.signIn.html' as const,
-      }
-  const sent = await sendMail({
-    to: email,
-    subject: t(keys.subject, undefined, locale),
-    text: t(keys.text, { link }, locale),
-    html: t(keys.html, { link }, locale),
-  })
-
-  const isProd = process.env.NODE_ENV === 'production'
-  if (!sent.ok && isProd) {
-    return { ok: false, reason: 'email_failed' }
-  }
-
-  return {
-    ok: true,
-    previewLink: isProd ? undefined : link,
   }
 }
 

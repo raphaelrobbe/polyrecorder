@@ -25,6 +25,23 @@ const BROWSER_ALIASES: Record<string, Locale> = {
 const STORAGE_KEY = 'polyrecorder-locale'
 const localeCodes = new Set<string>(LOCALES.map((item) => item.code))
 
+/** Must match `useLocale` getServerSnapshot — stable during SSR + hydration. */
+export const SSR_LOCALE: Locale = 'en'
+
+/**
+ * Until the client marks itself ready, `getLocale()` returns `SSR_LOCALE` so
+ * `t()` matches server HTML and avoids React hydration error #418.
+ */
+let clientLocaleReady = false
+
+export function markClientLocaleReady(): void {
+  clientLocaleReady = true
+}
+
+export function isClientLocaleReady(): boolean {
+  return clientLocaleReady
+}
+
 export function isLocale(value: string | null | undefined): value is Locale {
   return value != null && localeCodes.has(value)
 }
@@ -75,6 +92,10 @@ export function getStoredLocale(): Locale | null {
 }
 
 export function getLocale(): Locale {
+  // SSR + first client render (hydration): keep a stable locale.
+  if (typeof window === 'undefined' || !clientLocaleReady) {
+    return SSR_LOCALE
+  }
   return getStoredLocale() ?? detectBrowserLocale()
 }
 

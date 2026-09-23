@@ -13,9 +13,15 @@ export const meta: MetaFunction = () => [
 ]
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const email = new URL(request.url).searchParams.get('email')
-  const { previewLink, headers } = await consumeMagicLinkPreview(request)
-  return data({ email, previewLink }, { headers })
+  try {
+    const email = new URL(request.url).searchParams.get('email')
+    const { previewLink, headers } = await consumeMagicLinkPreview(request)
+    return data({ email, previewLink }, { headers })
+  } catch (error) {
+    console.error('[connexion/envoye] loader failed', error)
+    const email = new URL(request.url).searchParams.get('email')
+    return { email, previewLink: null }
+  }
 }
 
 export default function ConnexionEnvoyeRoute() {

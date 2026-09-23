@@ -7,6 +7,11 @@ export const fr = {
   'common.close': 'Fermer',
   'common.delete': 'Supprimer',
 
+  'error.title': 'Oups',
+  'error.lead':
+    'Une erreur est survenue. Tu peux revenir à l’enregistreur et réessayer.',
+  'error.home': 'Retour à l’enregistreur',
+
   'nav.help': 'Aide',
   'nav.settings': 'Paramètres',
   'nav.signIn': 'Connexion',
