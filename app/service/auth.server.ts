@@ -521,14 +521,7 @@ export type DeleteAccountResult =
   | { ok: false; reason: 'unauthorized' | 'delete_failed' }
 
 /**
- * Permanently delete the current user and auth-related rows.
- *
- * Today: User (+ cascading Session / MagicLink), plus any MagicLink rows
- * still keyed only by email.
- *
- * Later (when cloud storage / shared projects exist): also delete all
- * user-owned domain rows and every related object in S3 — keep this
- * function as the single choke point for that cleanup.
+ * Permanently delete the current user, cloud objects, and auth-related rows.
  */
 export async function deleteAccountForRequest(
   request: Request,
@@ -537,6 +530,8 @@ export async function deleteAccountForRequest(
   if (!current) return { ok: false, reason: 'unauthorized' }
 
   try {
+    const { purgeUserCloudStorage } = await import('./cloud.server')
+    await purgeUserCloudStorage(current.id)
     await prisma.$transaction([
       prisma.magicLink.deleteMany({ where: { email: current.email } }),
       prisma.user.delete({ where: { id: current.id } }),

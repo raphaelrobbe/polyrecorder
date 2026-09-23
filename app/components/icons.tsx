@@ -41,6 +41,18 @@ export function IconDiscard(props: Omit<IconProps, 'children'>) {
   )
 }
 
+/** Trash can with lid + vertical ribs (filled). */
+export function IconTrash(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="currentColor"
+        d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM6 9h2v9H6V9zm1 12c-.6 0-1-.4-1-1l1-11h10l1 11c0 .6-.4 1-1 1H7z"
+      />
+    </Icon>
+  )
+}
+
 export function IconRecord(props: Omit<IconProps, 'children'>) {
   return (
     <Icon {...props}>
@@ -183,6 +195,44 @@ export function IconClose({ className }: { className?: string }) {
   )
 }
 
+/** Chevron pointing down; rotate −90° when collapsed. */
+export function IconChevron(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M6.5 9.25 12 14.75l5.5-5.5"
+      />
+    </Icon>
+  )
+}
+
+export function IconCloudSave(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="currentColor"
+        d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM14 13v4h-4v-4H7l5-5 5 5h-3z"
+      />
+    </Icon>
+  )
+}
+
+export function IconLibrary(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="currentColor"
+        d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V9h4V5h2v4h4v2z"
+      />
+    </Icon>
+  )
+}
+
 export function IconSpeakerOn(props: Omit<IconProps, 'children'>) {
   return (
     <Icon {...props}>
@@ -212,6 +262,31 @@ export function IconDragDots(props: Omit<IconProps, 'children'>) {
         fill="currentColor"
         d="M9 7h2v2H9V7zm4 0h2v2h-2V7zM9 11h2v2H9v-2zm4 0h2v2h-2v-2zm-4 4h2v2H9v-2zm4 0h2v2h-2v-2z"
       />
+    </Icon>
+  )
+}
+
+/** Sparkle — feature-this track in mix mode (outline; fill via CSS when pressed). */
+export function IconHighlight({
+  filled = false,
+  ...props
+}: Omit<IconProps, 'children'> & { filled?: boolean }) {
+  return (
+    <Icon {...props}>
+      {filled ? (
+        <path
+          fill="currentColor"
+          d="M12 2.2 13.55 9.1 20.5 10.7 13.55 12.3 12 19.2 10.45 12.3 3.5 10.7 10.45 9.1 12 2.2zm5.6 11.05 1.05 4.55 4.55 1.05-4.55 1.05-1.05 4.55-1.05-4.55-4.55-1.05 4.55-1.05 1.05-4.55z"
+        />
+      ) : (
+        <path
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+          d="M12 3.4 13.2 9.1 18.9 10.4 13.2 11.7 12 17.4 10.8 11.7 5.1 10.4 10.8 9.1 12 3.4zm5.35 10.35.7 3.05 3.05.7-3.05.7-.7 3.05-.7-3.05-3.05-.7 3.05-.7.7-3.05z"
+        />
+      )}
     </Icon>
   )
 }

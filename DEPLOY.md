@@ -58,6 +58,28 @@ Set on the Serverless Container (same values as local `.env`, prod-oriented):
 | `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` | Scaleway TEM (`From` is hardcoded to `noreply@polyrecorder.app`) |
 | `SMTP_PASS` | Optional — if unset, uses `SCW_SECRET_KEY` |
 | `SCW_SECRET_KEY` | Optional on the container — TEM password fallback (same value as the deploy secret) |
+| `S3_ENDPOINT` | e.g. `https://s3.fr-par.scw.cloud` |
+| `S3_REGION` | e.g. `fr-par` |
+| `S3_BUCKET` | Object Storage bucket name |
+| `S3_ACCESS_KEY` / `S3_SECRET_KEY` | IAM API keys with Object Storage access |
+| `S3_KEY_PREFIX` | Optional — object key prefix (`dev` / `prod`). Defaults to `prod` when `NODE_ENV=production`, else `dev` |
+
+### Object Storage CORS
+
+Browser uploads use **presigned PUT** (no server proxy). Configure bucket CORS, for example:
+
+```json
+[
+  {
+    "AllowedOrigins": ["https://polyrecorder.app", "http://localhost:5173"],
+    "AllowedMethods": ["GET", "PUT", "HEAD"],
+    "AllowedHeaders": ["*"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+Object keys: `{prefix}/{userId}/{trackAssetId}.{ext}` (`prefix` = `dev` or `prod`). Hierarchy (group / repertoire / song) lives in Postgres only.
 
 ## Database (Postgres + Prisma)
 

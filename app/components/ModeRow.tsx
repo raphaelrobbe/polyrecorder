@@ -23,7 +23,7 @@ export function ModeRow({ className }: ModeRowProps) {
   return (
     <div
       className={cn(
-        'mt-[0.35rem] flex flex-col items-end gap-[0.35rem]',
+        'mt-[0.35rem] flex w-full flex-col items-stretch gap-[0.55rem]',
         className,
       )}
     >
@@ -49,18 +49,21 @@ export function ModeRow({ className }: ModeRowProps) {
           {t('nav.settings')}
         </Button>
       </div>
-      {user ? (
-        <AccountMenu user={user} />
-      ) : (
-        <Button
-          variant="utility"
-          aria-label={t('nav.signIn')}
-          title={t('nav.signIn')}
-          onClick={() => navigate('/connexion')}
-        >
-          {t('nav.signIn')}
-        </Button>
-      )}
+
+      <div className="flex items-center justify-end gap-[0.4rem]">
+        {user ? (
+          <AccountMenu user={user} />
+        ) : (
+          <Button
+            variant="utility"
+            aria-label={t('nav.signIn')}
+            title={t('nav.signIn')}
+            onClick={() => navigate('/connexion')}
+          >
+            {t('nav.signIn')}
+          </Button>
+        )}
+      </div>
     </div>
   )
 }

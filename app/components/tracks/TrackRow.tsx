@@ -19,13 +19,17 @@ import {
   setTrackAutoAlign,
   setTrackEnabled,
   setTrackVolume,
+  toggleTrackHighlight,
 } from '../../lib/sessionActions.client'
+import { uploadTrackToCloud } from '../../lib/cloudUpload.client'
 import { useLocale } from '../../hooks/useLocale'
 import { t } from '../../lib/i18n'
 import { cn } from '../../lib/utils'
+import type { loader as rootLoader } from '../../root'
 import { useSessionStore } from '../../store/sessionStore'
+import { useRouteLoaderData } from '@remix-run/react'
 import { Button } from '../Button'
-import { IconClose } from '../icons'
+import { IconCloudSave, IconHighlight, IconTrash } from '../icons'
 import { MsOffsetEditor } from '../MsOffsetEditor'
 import { VolumeRibbon } from '../VolumeRibbon'
 import { TrackAlignCheck } from './TrackAlignCheck'
@@ -49,6 +53,8 @@ export function TrackRow({
   className,
 }: TrackRowProps) {
   useLocale()
+  const rootData = useRouteLoaderData<typeof rootLoader>('root')
+  const user = rootData?.user ?? null
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
   const enabledTrackIds = useSessionStore((s) => s.enabledTrackIds)
@@ -56,12 +62,14 @@ export function TrackRow({
   const referenceTrackId = useSessionStore((s) => s.referenceTrackId)
   const trackAlignDetails = useSessionStore((s) => s.trackAlignDetails)
   const trackVolumes = useSessionStore((s) => s.trackVolumes)
+  const highlightedTrackIds = useSessionStore((s) => s.highlightedTrackIds)
   // Re-render on playhead ticks so per-track clocks stay live in calage mode.
   useSessionStore((s) => s.mixClockText)
 
   const isEnabled = enabledTrackIds.includes(track.id)
   const autoAlign = autoAlignTrackIds.includes(track.id)
   const isReference = track.id === referenceTrackId
+  const isHighlighted = highlightedTrackIds.includes(track.id)
   const alignDetail = trackAlignDetails[track.id]
   const alignDetailText =
     alignDetail && !isReference
@@ -70,6 +78,12 @@ export function TrackRow({
   const clock = formatCentis(getTrackPositionMs(track.id))
   const volume = trackVolumes[track.id] ?? getTrackVolume(track.id)
   const hideDelete = calageMode || mixMode
+  const showCloudSave =
+    user != null &&
+    (track.cloudStatus === 'local' ||
+      track.cloudStatus === 'error' ||
+      track.cloudStatus == null)
+  const cloudUploading = track.cloudStatus === 'uploading'
 
   const [nameDraft, setNameDraft] = useState(track.name)
 
@@ -97,14 +111,43 @@ export function TrackRow({
         data-drag-track={track.id}
         ariaLabel={t('tracks.reorder', { name: track.name })}
       />
-      <TrackMute
-        className="col-start-2 row-start-1"
-        title={isEnabled ? t('tracks.audible') : t('tracks.muted')}
-        ariaLabel={t('tracks.listen', { name: track.name })}
-        checked={isEnabled}
-        onCheckedChange={(on) => setTrackEnabled(track.id, on)}
-        inputProps={{ 'data-toggle-track': track.id }}
-      />
+      <div
+        className={cn(
+          'col-start-2 row-start-1 flex flex-col items-center gap-[0.3rem]',
+          mixMode && 'self-start pt-[0.2rem]',
+        )}
+      >
+        <TrackMute
+          title={isEnabled ? t('tracks.audible') : t('tracks.muted')}
+          ariaLabel={t('tracks.listen', { name: track.name })}
+          checked={isEnabled}
+          onCheckedChange={(on) => setTrackEnabled(track.id, on)}
+          inputProps={{ 'data-toggle-track': track.id }}
+        />
+        {mixMode ? (
+          <button
+            type="button"
+            data-highlight-track={track.id}
+            aria-pressed={isHighlighted}
+            aria-label={t('tracks.highlight', { name: track.name })}
+            title={t('tracks.highlight', { name: track.name })}
+            onClick={() => toggleTrackHighlight(track.id)}
+            className={cn(
+              'm-0 inline-flex h-[1.55rem] w-[1.55rem] shrink-0 items-center justify-center rounded-md border-0 bg-transparent p-0',
+              'transition-[color,transform,opacity] duration-160',
+              'cursor-pointer active:scale-[0.96]',
+              'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
+              '[&_svg]:size-[1.05rem]',
+              'max-sm:h-[1.4rem] max-sm:w-[1.4rem] max-sm:[&_svg]:size-[0.95rem]',
+              isHighlighted
+                ? 'text-ink'
+                : 'text-ink-soft/55 hover:text-ink-soft',
+            )}
+          >
+              <IconHighlight filled={isHighlighted} />
+          </button>
+        ) : null}
+      </div>
       <div
         className={cn(
           'col-start-3 row-start-1 flex w-full min-w-0 items-center gap-[0.4rem] rounded-[14px] border border-transparent bg-ink/4 box-border py-[0.45rem] pr-[0.45rem] pl-[0.55rem]',
@@ -193,11 +236,28 @@ export function TrackRow({
             </div>
           ) : null}
         </div>
+        {showCloudSave || cloudUploading ? (
+          <Button
+            variant="utility"
+            className="ml-[0.15rem] shrink-0 max-sm:ml-[0.08rem]"
+            icon={<IconCloudSave />}
+            disabled={cloudUploading}
+            aria-label={t('tracks.cloudSave', { name: track.name })}
+            title={
+              cloudUploading
+                ? t('tracks.cloudSaving')
+                : t('tracks.cloudSave', { name: track.name })
+            }
+            onClick={() => {
+              void uploadTrackToCloud(track.id)
+            }}
+          />
+        ) : null}
         {isReference || hideDelete ? null : (
           <Button
             variant="trash"
-            className="ml-[0.15rem] shrink-0 max-sm:ml-[0.08rem]"
-            icon={<IconClose />}
+            className="ml-[0.15rem] h-[1.65rem] w-[1.65rem] shrink-0 rounded-lg border-ink/18 text-ink/55 [&_svg]:size-[0.82rem] max-sm:ml-[0.08rem] max-sm:h-[1.45rem] max-sm:w-[1.45rem] max-sm:[&_svg]:size-[0.72rem]"
+            icon={<IconTrash />}
             aria-label={t('tracks.delete', { name: track.name })}
             title={t('common.delete')}
             onClick={() => {

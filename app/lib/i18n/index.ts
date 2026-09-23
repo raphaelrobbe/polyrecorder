@@ -37,3 +37,15 @@ export function t(
     return value == null ? match : String(value)
   })
 }
+
+/**
+ * Pick a one/other message by count (singular for 0 and 1, plural otherwise).
+ */
+export function tp(
+  keyOne: MessageKey,
+  keyOther: MessageKey,
+  count: number,
+  locale: Locale = getLocale(),
+): string {
+  return t(count <= 1 ? keyOne : keyOther, { count }, locale)
+}

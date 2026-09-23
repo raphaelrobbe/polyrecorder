@@ -14,6 +14,7 @@ import {
   parseDefaultTrackIndex,
 } from './format'
 import type { Locale } from './i18n'
+import { writeActiveSongId } from './cloudPrefs'
 import {
   applyAudioSink,
   clearBufferCache,
@@ -347,6 +348,7 @@ export function setCalageMode(on: boolean) {
     return
   }
   if (on) {
+    clearTrackHighlights()
     patch({ calageMode: true, mixMode: false, calageTipOpen: false })
     refreshSkewWarning()
     if (tracks.length > 0) void evaluateReferenceBeat()
@@ -367,7 +369,46 @@ export function setMixMode(on: boolean) {
     refreshSkewWarning()
     return
   }
+  clearTrackHighlights()
   patch({ mixMode: false })
+}
+
+const HIGHLIGHT_DIM_VOLUME = 0.3
+
+function syncLiveTrackGains() {
+  for (const [id, gain] of trackGains) {
+    gain.gain.value = liveTrackGainValue(id)
+  }
+}
+
+function applyHighlightVolumes(highlighted: number[]) {
+  const volumes: Record<number, number> = { ...get().trackVolumes }
+  for (const track of get().tracks) {
+    volumes[track.id] =
+      highlighted.length === 0
+        ? 1
+        : highlighted.includes(track.id)
+          ? 1
+          : HIGHLIGHT_DIM_VOLUME
+  }
+  patch({ trackVolumes: volumes })
+  syncLiveTrackGains()
+}
+
+function clearTrackHighlights() {
+  if (get().highlightedTrackIds.length === 0) return
+  patch({ highlightedTrackIds: [] })
+  applyHighlightVolumes([])
+}
+
+export function toggleTrackHighlight(trackId: number) {
+  if (!get().mixMode) return
+  const current = get().highlightedTrackIds
+  const next = current.includes(trackId)
+    ? current.filter((id) => id !== trackId)
+    : [...current, trackId]
+  patch({ highlightedTrackIds: next })
+  applyHighlightVolumes(next)
 }
 
 export function clampTrackVolume(value: number): number {
@@ -1266,6 +1307,7 @@ export async function finalizeCurrentTake(): Promise<Track> {
     url: URL.createObjectURL(blob),
     durationMs,
     offsetMs,
+    cloudStatus: 'local',
   }
 
   const becameReference = get().referenceTrackId == null
@@ -1293,6 +1335,9 @@ export async function finalizeCurrentTake(): Promise<Track> {
     await evaluateReferenceBeat()
   }
   await maybeAutoAlignAfterTake()
+  void import('./cloudUpload.client').then((mod) =>
+    mod.maybeAutoUploadTrack(track.id),
+  )
   return track
 }
 
@@ -1593,11 +1638,34 @@ export function setAllAutoAlign(on: boolean) {
 
 export function renameTrack(trackId: number, name: string) {
   const trimmed = name.trim().slice(0, 40) || defaultTrackName(1)
+  const track = get().tracks.find((t) => t.id === trackId)
   patch({
-    tracks: get().tracks.map((track) =>
-      track.id === trackId ? { ...track, name: trimmed } : track,
+    tracks: get().tracks.map((t) =>
+      t.id === trackId ? { ...t, name: trimmed } : t,
     ),
   })
+
+  const cloudTrackId = track?.cloudTrackId
+  if (!cloudTrackId) return
+
+  void fetch('/api/cloud/library', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      intent: 'renameTrack',
+      id: cloudTrackId,
+      name: trimmed,
+    }),
+  })
+    .then(async (res) => {
+      const data = (await res.json()) as { ok: boolean }
+      if (!data.ok) {
+        console.error('[cloud] failed to rename track')
+      }
+    })
+    .catch((error) => {
+      console.error('[cloud] failed to rename track', error)
+    })
 }
 
 export function deleteTrack(trackId: number) {
@@ -1615,25 +1683,54 @@ export function deleteTrack(trackId: number) {
   delete trackAlignDetails[trackId]
   const trackVolumes = { ...get().trackVolumes }
   delete trackVolumes[trackId]
+  const prevHighlights = get().highlightedTrackIds
+  const nextHighlights = prevHighlights.filter((id) => id !== trackId)
   patch({
     tracks,
     enabledTrackIds: get().enabledTrackIds.filter((id) => id !== trackId),
     autoAlignTrackIds: get().autoAlignTrackIds.filter((id) => id !== trackId),
+    highlightedTrackIds: nextHighlights,
     trackAlignDetails,
     trackVolumes,
     ...(tracks.length === 0
       ? { calageMode: false, mixMode: false, calageTipOpen: false }
       : {}),
   })
+  if (prevHighlights.length > 0) {
+    applyHighlightVolumes(nextHighlights)
+  }
   syncReferenceTrackRules()
   updateSessionTimerDisplay()
   refreshSkewWarning()
   if (get().referenceTrackId != null) void evaluateReferenceBeat()
+
+  const cloudTrackId = track.cloudTrackId
+  if (!cloudTrackId) return
+  void fetch('/api/cloud/library', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      intent: 'deleteTrack',
+      id: cloudTrackId,
+    }),
+  })
+    .then(async (res) => {
+      const data = (await res.json()) as { ok: boolean }
+      if (!data.ok) {
+        console.error('[cloud] failed to delete track')
+      }
+    })
+    .catch((error) => {
+      console.error('[cloud] failed to delete track', error)
+    })
 }
 
 export function deleteAllTracks() {
   if (get().state === 'recording') return
   stopPlayback({ resetSeek: true })
+  const cloudTrackIds = get()
+    .tracks.map((track) => track.cloudTrackId)
+    .filter((id): id is string => Boolean(id))
   for (const track of get().tracks) {
     URL.revokeObjectURL(track.url)
   }
@@ -1645,6 +1742,7 @@ export function deleteAllTracks() {
     enabledTrackIds: [],
     autoAlignTrackIds: [],
     playingTrackIds: [],
+    highlightedTrackIds: [],
     referenceTrackId: null,
     trackAlignDetails: {},
     trackVolumes: {},
@@ -1658,10 +1756,148 @@ export function deleteAllTracks() {
   clearRefPeaks()
   updateSessionTimerDisplay()
   refreshSkewWarning()
+
+  for (const cloudTrackId of cloudTrackIds) {
+    void fetch('/api/cloud/library', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        intent: 'deleteTrack',
+        id: cloudTrackId,
+      }),
+    })
+      .then(async (res) => {
+        const data = (await res.json()) as { ok: boolean }
+        if (!data.ok) {
+          console.error('[cloud] failed to delete track')
+        }
+      })
+      .catch((error) => {
+        console.error('[cloud] failed to delete track', error)
+      })
+  }
 }
 
+/** Drop cloud song context and all loaded takes (e.g. on sign-out). */
+export function resetDeckOnSignOut() {
+  if (get().state === 'recording') {
+    discardPendingRecording()
+    const recording = getActiveRecording()
+    setActiveRecording(null)
+    if (recording && recording.recorder.state !== 'inactive') {
+      try {
+        recording.recorder.ondataavailable = null
+        recording.recorder.onstop = null
+        recording.recorder.stop()
+      } catch {
+        // Discarded take — ignore stop errors.
+      }
+    }
+    stopTimer()
+    stopMeterNodes()
+    patch({ meterLevel: 0 })
+    setTransportState('idle')
+  }
+
+  deleteAllTracks()
+  writeActiveSongId(null)
+  patch({
+    activeSongId: null,
+    deckSongId: null,
+    sessionTitle: defaultSessionTitle(),
+    error: null,
+    hint: '',
+  })
+}
+
+/** Replace the deck with tracks loaded from a cloud song. */
+export async function loadCloudSongIntoSession(songId: string): Promise<boolean> {
+  if (get().state === 'recording') return false
+  const { fetchAndHydrateSong, writeActiveSongId } = await import(
+    './cloudUpload.client'
+  )
+  const opened = await fetchAndHydrateSong(songId)
+  if (!opened) return false
+
+  stopPlayback({ resetSeek: true })
+  for (const track of get().tracks) {
+    URL.revokeObjectURL(track.url)
+  }
+  clearBufferCache()
+  trackGains.clear()
+  trackPlayheads.clear()
+
+  const enabledTrackIds = opened.tracks.map((t) => t.id)
+  const trackVolumes: Record<number, number> = {}
+  for (const track of opened.tracks) trackVolumes[track.id] = 1
+
+  writeActiveSongId(opened.song.id)
+  patch({
+    tracks: opened.tracks,
+    trackCounter: opened.tracks.length,
+    enabledTrackIds,
+    autoAlignTrackIds: opened.tracks.slice(1).map((t) => t.id),
+    playingTrackIds: [],
+    highlightedTrackIds: [],
+    referenceTrackId: opened.tracks[0]?.id ?? null,
+    trackAlignDetails: {},
+    trackVolumes,
+    masterVolume: 1,
+    sessionTitle: opened.song.name,
+    activeSongId: opened.song.id,
+    deckSongId: opened.song.id,
+    calageMode: false,
+    mixMode: false,
+    mixSeekMs: 0,
+    mixClockText: '00:00.000',
+    error: null,
+  })
+  clearRefPeaks()
+  updateSessionTimerDisplay()
+  refreshSkewWarning()
+  if (opened.tracks.length > 0) void evaluateReferenceBeat()
+  return true
+}
+
+/**
+ * If a cloud song is the upload target but not loaded on the deck yet,
+ * hydrate it (e.g. after refresh or closing the library).
+ */
+export async function hydrateActiveSongIfNeeded(): Promise<void> {
+  const { activeSongId, deckSongId, state } = get()
+  if (!activeSongId || activeSongId === deckSongId || state === 'recording') {
+    return
+  }
+  await loadCloudSongIntoSession(activeSongId)
+}
+
+
 export function normalizeAndSetSessionTitle(raw: string) {
-  patch({ sessionTitle: normalizeSessionTitle(raw) })
+  const name = normalizeSessionTitle(raw)
+  patch({ sessionTitle: name })
+
+  const songId = get().activeSongId
+  if (!songId || !name) return
+
+  void fetch('/api/cloud/library', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      intent: 'rename',
+      kind: 'song',
+      id: songId,
+      name,
+    }),
+  })
+    .then(async (res) => {
+      const data = (await res.json()) as { ok: boolean }
+      if (!data.ok) {
+        console.error('[cloud] failed to rename song from session title')
+      }
+    })
+    .catch((error) => {
+      console.error('[cloud] failed to rename song from session title', error)
+    })
 }
 
 /**

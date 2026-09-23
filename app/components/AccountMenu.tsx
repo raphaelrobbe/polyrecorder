@@ -6,6 +6,7 @@ import {
 } from '../common/user'
 import { useLocale } from '../hooks/useLocale'
 import { t } from '../lib/i18n'
+import { resetDeckOnSignOut } from '../lib/sessionActions.client'
 import { cn } from '../lib/utils'
 
 type AccountMenuProps = {
@@ -95,7 +96,14 @@ export function AccountMenu({ user, className }: AccountMenuProps) {
           >
             {t('nav.accountSettings')}
           </button>
-          <Form method="post" action="/auth/deconnexion" role="none">
+          <Form
+            method="post"
+            action="/auth/deconnexion"
+            role="none"
+            onSubmit={() => {
+              resetDeckOnSignOut()
+            }}
+          >
             <button
               type="submit"
               role="menuitem"

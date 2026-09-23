@@ -18,7 +18,7 @@ import { t } from '../../lib/i18n'
 import { cn } from '../../lib/utils'
 import { useSessionStore } from '../../store/sessionStore'
 import { Button } from '../Button'
-import { IconClose } from '../icons'
+import { IconTrash } from '../icons'
 import { VolumeRibbon } from '../VolumeRibbon'
 import { TrackAlignCheck } from './TrackAlignCheck'
 import { TrackMute } from './TrackMute'
@@ -26,7 +26,7 @@ import { TrackRow } from './TrackRow'
 
 const TOUCH_REORDER_THRESHOLD_PX = 8
 const TOUCH_REORDER_EXCLUDE =
-  'input, textarea, select, button:not([data-drag-track]), [data-track-mute], [data-track-align], [data-rename-track], [data-ms-nudge], [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-toggle-track], [data-volume-ribbon], [data-volume-percent]'
+  'input, textarea, select, button:not([data-drag-track]), [data-track-mute], [data-track-align], [data-rename-track], [data-ms-nudge], [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-toggle-track], [data-highlight-track], [data-volume-ribbon], [data-volume-percent]'
 
 type DragOverState = { trackId: number; edge: 'before' | 'after' } | null
 
@@ -260,8 +260,8 @@ export function TracksList({ className }: TracksListProps) {
           <div className="col-start-3 flex w-full min-w-0 items-center justify-end py-[0.2rem] pr-[0.45rem] pl-[0.35rem] max-sm:pr-[0.3rem] max-sm:pl-[0.2rem]">
             <Button
               variant="trash"
-              className="h-8 w-8 shrink-0"
-              icon={<IconClose />}
+              className="h-[1.75rem] w-[1.75rem] shrink-0 rounded-lg border-ink/18 text-ink/55 [&_svg]:size-[0.88rem]"
+              icon={<IconTrash />}
               aria-label={t('tracks.deleteAll')}
               title={t('tracks.deleteAll')}
               hidden={calageMode || mixMode}

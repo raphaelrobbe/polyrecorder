@@ -1,10 +1,12 @@
 import { useLayoutEffect, useRef } from 'react'
+import { useNavigate, useRouteLoaderData } from '@remix-run/react'
 import { isDefaultSessionTitle } from '../lib/format'
 import { normalizeAndSetSessionTitle } from '../lib/sessionActions.client'
 import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
 import { useLocale } from '../hooks/useLocale'
 import { withShortcut } from '../lib/withShortcut'
+import type { loader as rootLoader } from '../root'
 import { useSessionStore } from '../store/sessionStore'
 import { CaptureBar } from './CaptureBar'
 import { CalagePanel } from './CalagePanel'
@@ -18,16 +20,21 @@ type DeckMainProps = {
 
 export function DeckMain({ className }: DeckMainProps) {
   useLocale()
+  const navigate = useNavigate()
+  const rootData = useRouteLoaderData<typeof rootLoader>('root')
+  const user = rootData?.user ?? null
   const sessionTitle = useSessionStore((s) => s.sessionTitle)
   const setSessionTitle = useSessionStore((s) => s.setSessionTitle)
   const timerText = useSessionStore((s) => s.timerText)
   const recordingTimerVisible = useSessionStore((s) => s.recordingTimerVisible)
   const error = useSessionStore((s) => s.error)
   const keyboardHintsEnabled = useSessionStore((s) => s.keyboardHintsEnabled)
+  const tracks = useSessionStore((s) => s.tracks)
   const titleRef = useRef<HTMLTextAreaElement>(null)
 
   const defaultName = isDefaultSessionTitle(sessionTitle)
   const titleAria = t('session.title.aria')
+  const showModes = tracks.length > 0
 
   useLayoutEffect(() => {
     const el = titleRef.current
@@ -96,7 +103,41 @@ export function DeckMain({ className }: DeckMainProps) {
       <ErrorBanner hidden={!error}>{error}</ErrorBanner>
 
       <CalagePanel />
-      <ModeTools />
+
+      {user || showModes ? (
+        <div
+          className={cn(
+            'mt-4 flex flex-wrap items-center gap-x-[0.55rem] gap-y-[0.45rem]',
+            'max-sm:mt-3',
+          )}
+        >
+          {user ? (
+            <button
+              type="button"
+              className={cn(
+                'm-0 inline-flex items-center gap-[0.35rem] rounded-full border-[1.5px] border-line bg-surface px-[0.75rem] py-[0.4rem]',
+                'font-[inherit] text-[0.84rem] font-bold tracking-[0.01em] text-ink',
+                'transition-[background,color,border-color,box-shadow,transform] duration-160',
+                'cursor-pointer active:scale-[0.98]',
+                'hover:border-ink/35 hover:bg-ink/6',
+                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
+              )}
+              aria-label={t('nav.library')}
+              title={t('nav.library')}
+              onClick={() => navigate('/bibliotheque')}
+            >
+              <span>{t('nav.library')}</span>
+              <span
+                aria-hidden="true"
+                className="translate-y-px text-[0.95rem] font-medium leading-none text-ink/45"
+              >
+                ›
+              </span>
+            </button>
+          ) : null}
+          <ModeTools className="mt-0 ml-auto justify-end max-sm:mt-0" />
+        </div>
+      ) : null}
     </div>
   )
 }

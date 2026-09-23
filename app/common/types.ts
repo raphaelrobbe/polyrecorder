@@ -1,5 +1,7 @@
 export type AppState = 'idle' | 'recording' | 'playing'
 
+export type TrackCloudStatus = 'local' | 'uploading' | 'synced' | 'error'
+
 export type Track = {
   id: number
   name: string
@@ -12,7 +14,12 @@ export type Track = {
    * Negative = skip the beginning (take began before mix t0 / pre-roll).
    */
   offsetMs: number
+  /** Cloud sync state for authenticated users. */
+  cloudStatus?: TrackCloudStatus
+  /** Server TrackAsset id once reserved / synced. */
+  cloudTrackId?: string
 }
+
 
 export type AudioSinkMode = 'monitor' | 'playback'
 

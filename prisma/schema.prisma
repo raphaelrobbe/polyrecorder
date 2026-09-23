@@ -19,6 +19,7 @@ model User {
 
   magicLinks MagicLink[]
   sessions   Session[]
+  groups     Group[]
 }
 
 /// One-time email login / email-change token (store only the hash of the raw token).
@@ -52,4 +53,75 @@ model Session {
 
   @@index([userId])
   @@index([expiresAt])
+}
+
+/// Top-level personal folder (owned by one user; sharing comes later).
+model Group {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  repertoires Repertoire[]
+
+  @@index([userId])
+}
+
+/// Musical repertoire inside a group.
+model Repertoire {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  groupId String
+  group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  songs Song[]
+
+  @@index([groupId])
+}
+
+/// A polyphonic song / session (tracks layered together).
+model Song {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  /// Last time this song was opened / used for recording.
+  lastOpenedAt DateTime @default(now())
+
+  repertoireId String
+  repertoire   Repertoire @relation(fields: [repertoireId], references: [id], onDelete: Cascade)
+
+  tracks TrackAsset[]
+
+  @@index([repertoireId])
+  @@index([lastOpenedAt])
+}
+
+/// Cloud-backed audio take for a song (S3 object + metadata).
+model TrackAsset {
+  id            String    @id @default(cuid())
+  name          String
+  objectKey     String
+  contentType   String
+  byteSize      Int
+  durationMs    Int
+  offsetMs      Int       @default(0)
+  /// Client-side track id at upload time (best-effort).
+  clientTrackId Int?
+  /// Null until the browser PUT + complete succeeds.
+  uploadedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  songId String
+  song   Song   @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  @@unique([objectKey])
+  @@index([songId])
 }

@@ -42,6 +42,8 @@ export type SessionStoreState = {
   trackVolumes: Record<number, number>
   /** Master bus multiplier (1 = 100%, may exceed 1). */
   masterVolume: number
+  /** Mix-mode “feature” set: highlighted tracks at 100%, others at 30%. */
+  highlightedTrackIds: number[]
 
   sessionTitle: string
   error: string | null
@@ -53,6 +55,12 @@ export type SessionStoreState = {
   autoplayAfterStop: boolean
   skipCountInPlayback: boolean
   skipCountInDownload: boolean
+  /** Persist takes to Scaleway S3 when signed in (localStorage). */
+  autoCloudSave: boolean
+  /** Current cloud song id for new uploads (localStorage). */
+  activeSongId: string | null
+  /** Cloud song currently loaded on the deck (may be empty). */
+  deckSongId: string | null
 
   /** Mirrored from runtime for UI (persisted via runtime setters). */
   latencyTrimMs: number
@@ -88,6 +96,8 @@ export type SessionStoreState = {
   setAutoplayAfterStop: (on: boolean) => void
   setSkipCountInPlayback: (on: boolean) => void
   setSkipCountInDownload: (on: boolean) => void
+  setAutoCloudSave: (on: boolean) => void
+  setActiveSongId: (songId: string | null) => void
   setKeyboardHintsEnabled: (on: boolean) => void
   setSeekDragActive: (on: boolean) => void
   setMixSeekMs: (ms: number) => void
@@ -128,6 +138,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
 
   trackVolumes: {},
   masterVolume: 1,
+  highlightedTrackIds: [],
 
   sessionTitle: defaultSessionTitle(),
   error: null,
@@ -139,6 +150,9 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   autoplayAfterStop: true,
   skipCountInPlayback: true,
   skipCountInDownload: true,
+  autoCloudSave: true,
+  activeSongId: null,
+  deckSongId: null,
 
   // Hydrated from audio runtime on the client (refreshDeviceSnapshot / init).
   latencyTrimMs: 0,
@@ -178,6 +192,8 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setAutoplayAfterStop: (on) => set({ autoplayAfterStop: on }),
   setSkipCountInPlayback: (on) => set({ skipCountInPlayback: on }),
   setSkipCountInDownload: (on) => set({ skipCountInDownload: on }),
+  setAutoCloudSave: (on) => set({ autoCloudSave: on }),
+  setActiveSongId: (songId) => set({ activeSongId: songId }),
   setKeyboardHintsEnabled: (on) => set({ keyboardHintsEnabled: on }),
   setSeekDragActive: (on) => set({ seekDragActive: on }),
   setMixSeekMs: (ms) => set({ mixSeekMs: ms }),

@@ -12,7 +12,7 @@ type ModeToolsProps = {
 /**
  * In-deck mode toggles (active / inactive buttons, no checkboxes).
  * Mixage is the prominent control; calage is secondary.
- * Sits at the bottom of the deck, left-aligned: « Mode » + buttons.
+ * Paired with Bibliothèque on one row: modes sit on the right.
  */
 export function ModeTools({ className }: ModeToolsProps) {
   useLocale()
@@ -25,7 +25,7 @@ export function ModeTools({ className }: ModeToolsProps) {
   return (
     <div
       className={cn(
-        'mt-4 flex flex-wrap items-center justify-start gap-[0.45rem] max-sm:mt-3 max-sm:gap-[0.35rem]',
+        'mt-4 flex flex-wrap items-center justify-end gap-[0.45rem] max-sm:mt-3 max-sm:gap-[0.35rem]',
         className,
       )}
       role="group"

@@ -46,3 +46,45 @@ export function getSmtpConfig() {
   }
   return { host, port, user, pass, from: SMTP_FROM }
 }
+
+export type S3Config = {
+  endpoint: string
+  region: string
+  bucket: string
+  accessKey: string
+  secretKey: string
+}
+
+export function getS3Config(): S3Config | null {
+  const region = process.env.S3_REGION?.trim() || 'fr-par'
+  const bucket = process.env.S3_BUCKET?.trim()
+  const accessKey = process.env.S3_ACCESS_KEY?.trim()
+  const secretKey = process.env.S3_SECRET_KEY?.trim()
+  if (!bucket || !accessKey || !secretKey) {
+    return null
+  }
+
+  // Always use the regional endpoint. A bucket virtual-host URL
+  // (https://bucket.s3.region.scw.cloud) makes the SDK double the bucket name.
+  let endpoint = process.env.S3_ENDPOINT?.trim()
+  if (!endpoint || endpoint.includes(`${bucket}.s3.`)) {
+    endpoint = `https://s3.${region}.scw.cloud`
+  }
+  endpoint = endpoint.replace(/\/$/, '')
+
+  return { endpoint, region, bucket, accessKey, secretKey }
+}
+
+/**
+ * First path segment of object keys (`dev` | `prod`, or custom via S3_KEY_PREFIX).
+ * Lets localhost and production share one bucket without mixing objects.
+ */
+export function getS3KeyPrefix(): string {
+  const explicit = process.env.S3_KEY_PREFIX?.trim()
+  if (explicit) return explicit.replace(/^\/+|\/+$/g, '')
+  return process.env.NODE_ENV === 'production' ? 'prod' : 'dev'
+}
+
+/** Max upload size accepted by presign (100 MiB). */
+export const CLOUD_UPLOAD_MAX_BYTES = 100 * 1024 * 1024
+
