@@ -38,7 +38,54 @@ Repo secrets:
 | `SCW_DOCKER_REGISTRY` | Registry host, e.g. `rg.fr-par.scw.cloud/<namespace>` |
 | `SCW_SECRET_KEY` | Scaleway API / registry password (`nologin`) |
 | `SCW_CONTAINER_ID` | Serverless Container UUID to redeploy (optional until the container exists) |
+| `DATABASE_URL` | Postgres URL (`sslmode=require`) — used by CI `prisma migrate deploy` |
 
 Optional variable: `SCW_REGION` (default `fr-par`).
 
 Image tags pushed: `polyrecorder:latest` and `polyrecorder:<sha>`. Point the Scaleway container at `…/polyrecorder:latest`.
+
+CI steps: `bun run ts` → `prisma generate` → `prisma migrate deploy` → Docker build/push → container redeploy.
+
+### Container env (Scaleway)
+
+Set on the Serverless Container (same values as local `.env`, prod-oriented):
+
+| Env | Notes |
+|-----|--------|
+| `DATABASE_URL` | Same as the GitHub secret |
+| `SESSION_SECRET` | Long random string (required in prod) |
+| `APP_URL` | Public HTTPS origin, e.g. `https://polyrecorder.app` |
+| `SMTP_HOST` / `SMTP_PORT` / `SMTP_USER` / `SMTP_FROM` | Scaleway TEM |
+| `SMTP_PASS` | Optional — if unset, uses `SCW_SECRET_KEY` |
+| `SCW_SECRET_KEY` | Optional on the container — TEM password fallback (same value as the deploy secret) |
+
+## Database (Postgres + Prisma)
+
+### Local
+
+```bash
+docker compose up -d
+cp .env.example .env   # if needed
+# DATABASE_URL=postgresql://polyrecorder:polyrecorder@127.0.0.1:5434/polyrecorder?schema=public
+```
+
+Port **5434** (avoids clash with other local Postgres, e.g. E-RIC on 5433). Image: Postgres **17** (align with Scaleway).
+
+### Scaleway (prod)
+
+1. Console → **Managed Databases** → Create PostgreSQL (region `fr-par`, v16 if available).
+2. Create a DB user + database `polyrecorder` (or use the default DB and set the name in the URL).
+3. Allow the **Serverless Containers** / app IP (or “allow Scaleway IPs” / VPC as you prefer).
+4. Connection string with `sslmode=require` → secret `DATABASE_URL` (GitHub + container env).
+
+Do **not** commit real credentials. Use `.env` locally and Scaleway / GitHub secrets in prod.
+
+### Prisma
+
+```bash
+bun run db:migrate    # local: create/apply migrations
+bun run db:deploy     # prod: apply existing migrations
+bun run db:studio     # browse data
+```
+
+Schema: `User`, `MagicLink`, `Session` (opaque hashed tokens). Client: `app/service/db.server.ts`.

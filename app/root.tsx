@@ -6,7 +6,6 @@ import {
   Scripts,
   ScrollRestoration,
 } from '@remix-run/react'
-import type { User } from '~/common/user'
 import stylesheet from '~/tailwind.css?url'
 
 export const links: LinksFunction = () => [
@@ -28,9 +27,11 @@ export const links: LinksFunction = () => [
   },
 ]
 
-/** Stub auth seam — later: cookie/JWT → user | null. */
-export async function loader(_args: LoaderFunctionArgs) {
-  return { user: null as User | null }
+/** Cookie session → authenticated user, or null for guests. */
+export async function loader({ request }: LoaderFunctionArgs) {
+  const { getUserFromRequest } = await import('~/service/auth.server')
+  const user = await getUserFromRequest(request)
+  return { user }
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {

@@ -11,6 +11,81 @@ export const de: Record<MessageKey, string> = {
 
   'nav.help': 'Hilfe',
   'nav.settings': 'Einstellungen',
+  'nav.signIn': 'Anmelden',
+  'nav.signOut': 'Abmelden',
+  'nav.accountMenu': 'Kontomenü',
+  'nav.accountSettings': 'Kontoeinstellungen',
+
+  'account.title': 'Konto',
+  'account.close': 'Kontoeinstellungen schließen',
+  'account.email': 'E-Mail',
+  'account.email.hint':
+    'Ein Bestätigungslink wird an die neue Adresse gesendet.',
+  'account.email.pending':
+    'Fast geschafft: öffne den an {email} gesendeten Link, um die Änderung zu bestätigen.',
+  'account.email.openConfirmLink': 'Bestätigungslink öffnen',
+  'account.pseudo': 'Anzeigename',
+  'account.pseudoPlaceholder': 'Dein Anzeigename',
+  'account.pseudo.lengthHint': '3–40 Zeichen',
+  'account.pseudo.available': 'verfügbar',
+  'account.pseudo.unavailable': 'nicht verfügbar',
+  'account.pseudo.current': 'mein aktueller Name',
+  'account.save': 'Speichern',
+  'account.saving': 'Wird gespeichert…',
+  'account.saved': 'Gespeichert.',
+  'account.error.pseudoTooShort': 'Anzeigename muss mindestens 3 Zeichen haben.',
+  'account.error.pseudoTooLong': 'Anzeigename zu lang (max. 40 Zeichen).',
+  'account.error.pseudoTaken': 'Dieser Anzeigename ist bereits vergeben.',
+  'account.error.invalidEmail': 'Ungültige E-Mail-Adresse.',
+  'account.error.emailTaken': 'Diese E-Mail-Adresse wird bereits verwendet.',
+  'account.error.emailRateLimited':
+    'Zu viele Anfragen für diese E-Mail. Versuche es in einer Stunde erneut.',
+  'account.error.emailFailed': 'E-Mail konnte nicht gesendet werden. Später erneut versuchen.',
+  'account.error.saveFailed': 'Speichern fehlgeschlagen. Erneut versuchen.',
+  'account.delete.button': 'Konto löschen',
+  'account.delete.confirmBody':
+    'Diese Aktion ist unwiderruflich. Alle mit deinem Konto verknüpften Daten werden dauerhaft gelöscht, und geteilte Links funktionieren nicht mehr.',
+  'account.delete.confirm': 'Ja, endgültig löschen',
+  'account.delete.cancel': 'Abbrechen',
+  'account.delete.deleting': 'Wird gelöscht…',
+  'account.delete.error': 'Konto konnte nicht gelöscht werden. Erneut versuchen.',
+
+  'auth.signIn.title': 'Anmelden oder Konto erstellen',
+  'auth.signIn.lead':
+    'Gib deine E-Mail ein: wir erstellen bei Bedarf ein Konto und senden dir einen einmaligen Magie-Link (30 Minuten gültig). Kein Passwort.',
+  'auth.signIn.email': 'E-Mail',
+  'auth.signIn.emailPlaceholder': 'du@beispiel.com',
+  'auth.signIn.submit': 'Weiter',
+  'auth.signIn.sending': 'Wird gesendet…',
+  'auth.sent.title': 'Posteingang prüfen',
+  'auth.sent.body':
+    'Eine E-Mail mit einem Anmelde-Link wurde gerade gesendet. Öffne ihn, um fortzufahren — dein Konto wird beim ersten Klick erstellt, falls nötig.',
+  'auth.sent.bodyWithEmail':
+    'Eine E-Mail mit einem Anmelde-Link wurde gerade an {email} gesendet. Öffne ihn, um fortzufahren — dein Konto wird beim ersten Klick erstellt, falls nötig.',
+  'auth.sent.hint':
+    'Der Link läuft in 30 Minuten ab und kann nur einmal verwendet werden. Schau auch im Spam nach.',
+  'auth.sent.retry': 'Andere E-Mail verwenden',
+  'auth.sent.devHint':
+    'Lokal kommt die E-Mail möglicherweise nicht an — nutze den Button unten, um dich sofort anzumelden.',
+  'auth.sent.openLink': 'Anmelde-Link öffnen',
+  'auth.error.invalidEmail': 'Ungültige E-Mail-Adresse.',
+  'auth.error.rateLimited':
+    'Zu viele Anfragen für diese E-Mail. Versuche es in einer Stunde erneut.',
+  'auth.error.emailFailed': 'E-Mail konnte nicht gesendet werden. Später erneut versuchen.',
+  'auth.error.linkInvalid': 'Ungültiger Anmelde-Link.',
+  'auth.error.linkExpired': 'Dieser Link ist abgelaufen. Fordere einen neuen an.',
+  'auth.error.linkUsed': 'Dieser Link wurde bereits verwendet. Fordere einen neuen an.',
+  'auth.email.subject': 'Dein PolyRecorder-Link',
+  'auth.email.text':
+    'Hier ist dein Link, um dich bei PolyRecorder anzumelden (oder ein Konto zu erstellen). 30 Minuten gültig, einmalig:\n\n{link}\n\nWenn du das nicht angefordert hast, ignoriere diese E-Mail.',
+  'auth.email.html':
+    '<p>Hier ist dein Link, um dich bei <strong>PolyRecorder</strong> anzumelden (oder ein Konto zu erstellen). 30&nbsp;Minuten gültig, einmalig:</p><p><a href="{link}">Weiter</a></p><p>Wenn du das nicht angefordert hast, ignoriere diese E-Mail.</p>',
+  'auth.emailChange.subject': 'Bestätige deine neue PolyRecorder-E-Mail',
+  'auth.emailChange.text':
+    'Hier ist der Link, um deine neue E-Mail bei PolyRecorder zu bestätigen. 30 Minuten gültig, einmalig:\n\n{link}\n\nWenn du das nicht angefordert hast, ignoriere diese E-Mail.',
+  'auth.emailChange.html':
+    '<p>Hier ist der Link, um deine neue E-Mail bei <strong>PolyRecorder</strong> zu bestätigen. 30&nbsp;Minuten gültig, einmalig:</p><p><a href="{link}">E-Mail bestätigen</a></p><p>Wenn du das nicht angefordert hast, ignoriere diese E-Mail.</p>',
+
   'locale.select.aria': 'Sprache wählen',
   'settings.language': 'Sprache:',
   'settings.language.aria': 'Oberflächensprache',
@@ -142,7 +217,7 @@ export const de: Record<MessageKey, string> = {
   'help.shortcuts.download': 'MP3 herunterladen',
   'help.shortcuts.general': 'Allgemein',
   'help.shortcuts.editTitle': 'Titel bearbeiten',
-  'help.shortcuts.closePanels': 'Hilfe / Einstellungen schließen',
+  'help.shortcuts.closePanels': 'Hilfe / Einstellungen / Konto schließen',
 
   'settings.title': 'Einstellungen',
   'settings.close': 'Einstellungen schließen',

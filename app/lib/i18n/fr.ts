@@ -9,6 +9,81 @@ export const fr = {
 
   'nav.help': 'Aide',
   'nav.settings': 'Paramètres',
+  'nav.signIn': 'Connexion',
+  'nav.signOut': 'Déconnexion',
+  'nav.accountMenu': 'Menu du compte',
+  'nav.accountSettings': 'Paramètres du compte',
+
+  'account.title': 'Compte',
+  'account.close': 'Fermer les paramètres du compte',
+  'account.email': 'Email',
+  'account.email.hint':
+    'Un lien de confirmation sera envoyé à la nouvelle adresse.',
+  'account.email.pending':
+    'Presque : ouvre le lien envoyé à {email} pour confirmer le changement.',
+  'account.email.openConfirmLink': 'Ouvrir le lien de confirmation',
+  'account.pseudo': 'Pseudo',
+  'account.pseudoPlaceholder': 'Ton nom affiché',
+  'account.pseudo.lengthHint': '3 à 40 caractères',
+  'account.pseudo.available': 'disponible',
+  'account.pseudo.unavailable': 'indisponible',
+  'account.pseudo.current': 'mon pseudo actuel',
+  'account.save': 'Enregistrer',
+  'account.saving': 'Enregistrement…',
+  'account.saved': 'Enregistré.',
+  'account.error.pseudoTooShort': 'Le pseudo doit faire au moins 3 caractères.',
+  'account.error.pseudoTooLong': 'Pseudo trop long (40 caractères max).',
+  'account.error.pseudoTaken': 'Ce pseudo est déjà pris.',
+  'account.error.invalidEmail': 'Adresse email invalide.',
+  'account.error.emailTaken': 'Cette adresse email est déjà utilisée.',
+  'account.error.emailRateLimited':
+    'Trop de demandes pour cet email. Réessaie dans une heure.',
+  'account.error.emailFailed': 'Impossible d’envoyer l’email. Réessaie plus tard.',
+  'account.error.saveFailed': 'Impossible d’enregistrer. Réessaie.',
+  'account.delete.button': 'Supprimer mon compte',
+  'account.delete.confirmBody':
+    'Cette action est irréversible. Toutes les données liées à ton compte seront définitivement effacées, et les liens partagés ne fonctionneront plus.',
+  'account.delete.confirm': 'Oui, supprimer définitivement',
+  'account.delete.cancel': 'Annuler',
+  'account.delete.deleting': 'Suppression…',
+  'account.delete.error': 'Impossible de supprimer le compte. Réessaie.',
+
+  'auth.signIn.title': 'Connexion ou création de compte',
+  'auth.signIn.lead':
+    'Entre ton email : on crée le compte s’il n’existe pas encore, puis on t’envoie un lien magique (valable 30 minutes, usage unique). Pas de mot de passe.',
+  'auth.signIn.email': 'Email',
+  'auth.signIn.emailPlaceholder': 'vous@exemple.com',
+  'auth.signIn.submit': 'Continuer',
+  'auth.signIn.sending': 'Envoi…',
+  'auth.sent.title': 'Vérifie ta boîte mail',
+  'auth.sent.body':
+    'Un email avec un lien de connexion vient d’être envoyé. Ouvre-le pour te connecter — ton compte sera créé au premier clic si besoin.',
+  'auth.sent.bodyWithEmail':
+    'Un email avec un lien de connexion vient d’être envoyé à {email}. Ouvre-le pour te connecter — ton compte sera créé au premier clic si besoin.',
+  'auth.sent.hint':
+    'Le lien expire dans 30 minutes et ne peut être utilisé qu’une fois. Pense à regarder les indésirables.',
+  'auth.sent.retry': 'Utiliser un autre email',
+  'auth.sent.devHint':
+    'En local, l’email peut ne pas arriver : utilise le bouton ci-dessous pour te connecter tout de suite.',
+  'auth.sent.openLink': 'Ouvrir le lien de connexion',
+  'auth.error.invalidEmail': 'Adresse email invalide.',
+  'auth.error.rateLimited':
+    'Trop de demandes pour cet email. Réessaie dans une heure.',
+  'auth.error.emailFailed': 'Impossible d’envoyer l’email. Réessaie plus tard.',
+  'auth.error.linkInvalid': 'Lien de connexion invalide.',
+  'auth.error.linkExpired': 'Ce lien a expiré. Demande-en un nouveau.',
+  'auth.error.linkUsed': 'Ce lien a déjà été utilisé. Demande-en un nouveau.',
+  'auth.email.subject': 'Ton lien PolyRecorder',
+  'auth.email.text':
+    'Voici ton lien pour te connecter à PolyRecorder (ou créer ton compte). Valable 30 minutes, usage unique :\n\n{link}\n\nSi tu n’es pas à l’origine de cette demande, ignore cet email.',
+  'auth.email.html':
+    '<p>Voici ton lien pour te connecter à <strong>PolyRecorder</strong> (ou créer ton compte). Valable 30&nbsp;minutes, usage unique&nbsp;:</p><p><a href="{link}">Continuer</a></p><p>Si tu n’es pas à l’origine de cette demande, ignore cet email.</p>',
+  'auth.emailChange.subject': 'Confirme ton nouvel email PolyRecorder',
+  'auth.emailChange.text':
+    'Voici le lien pour confirmer ton nouvel email sur PolyRecorder. Valable 30 minutes, usage unique :\n\n{link}\n\nSi tu n’es pas à l’origine de cette demande, ignore cet email.',
+  'auth.emailChange.html':
+    '<p>Voici le lien pour confirmer ton nouvel email sur <strong>PolyRecorder</strong>. Valable 30&nbsp;minutes, usage unique&nbsp;:</p><p><a href="{link}">Confirmer l’email</a></p><p>Si tu n’es pas à l’origine de cette demande, ignore cet email.</p>',
+
   'locale.select.aria': 'Choisir la langue',
   'settings.language': 'Langue :',
   'settings.language.aria': 'Langue de l’interface',
@@ -143,7 +218,7 @@ export const fr = {
   'help.shortcuts.download': 'Télécharger le MP3',
   'help.shortcuts.general': 'Général',
   'help.shortcuts.editTitle': 'Éditer le titre',
-  'help.shortcuts.closePanels': 'Fermer Aide / Paramètres',
+  'help.shortcuts.closePanels': 'Fermer Aide / Paramètres / Compte',
 
   'settings.title': 'Paramètres',
   'settings.close': 'Fermer les paramètres',

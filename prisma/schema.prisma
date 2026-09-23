@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Authenticated account (optional — guests work without one).
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  /// Optional display name shown in the account menu.
+  /// Uniqueness is case-insensitive via index `User_pseudo_lower_key`.
+  pseudo    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  magicLinks MagicLink[]
+  sessions   Session[]
+}
+
+/// One-time email login / email-change token (store only the hash of the raw token).
+model MagicLink {
+  id        String    @id @default(cuid())
+  email     String
+  /// `login` | `email_change`
+  purpose   String    @default("login")
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([expiresAt])
+}
+
+/// Opaque browser session (cookie value hashed in tokenHash).
+model Session {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}

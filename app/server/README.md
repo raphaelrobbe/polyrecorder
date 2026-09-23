@@ -1,1 +1,1 @@
-# Server-only code (future: tRPC, auth). Do not import from client modules.
+# Server-only code (auth loaders/actions, future tRPC). Do not import from client modules.

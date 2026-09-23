@@ -27,3 +27,8 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Prisma
+generated/prisma
+
+/app/generated/prisma

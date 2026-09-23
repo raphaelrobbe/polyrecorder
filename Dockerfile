@@ -24,6 +24,9 @@ WORKDIR /app
 COPY --from=build /app/package.json /app/bun.lock ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/build ./build
+COPY --from=build /app/generated ./generated
+COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/prisma7.config.ts ./
 
 EXPOSE 8080
 CMD ["./node_modules/.bin/remix-serve", "./build/server/index.js"]

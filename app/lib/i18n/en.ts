@@ -11,6 +11,81 @@ export const en: Record<MessageKey, string> = {
 
   'nav.help': 'Help',
   'nav.settings': 'Settings',
+  'nav.signIn': 'Sign in',
+  'nav.signOut': 'Sign out',
+  'nav.accountMenu': 'Account menu',
+  'nav.accountSettings': 'Account settings',
+
+  'account.title': 'Account',
+  'account.close': 'Close account settings',
+  'account.email': 'Email',
+  'account.email.hint':
+    'A confirmation link will be sent to the new address.',
+  'account.email.pending':
+    'Almost there: open the link sent to {email} to confirm the change.',
+  'account.email.openConfirmLink': 'Open confirmation link',
+  'account.pseudo': 'Display name',
+  'account.pseudoPlaceholder': 'Your display name',
+  'account.pseudo.lengthHint': '3–40 characters',
+  'account.pseudo.available': 'available',
+  'account.pseudo.unavailable': 'unavailable',
+  'account.pseudo.current': 'my current name',
+  'account.save': 'Save',
+  'account.saving': 'Saving…',
+  'account.saved': 'Saved.',
+  'account.error.pseudoTooShort': 'Display name must be at least 3 characters.',
+  'account.error.pseudoTooLong': 'Display name too long (40 characters max).',
+  'account.error.pseudoTaken': 'This display name is already taken.',
+  'account.error.invalidEmail': 'Invalid email address.',
+  'account.error.emailTaken': 'This email address is already in use.',
+  'account.error.emailRateLimited':
+    'Too many requests for this email. Try again in an hour.',
+  'account.error.emailFailed': 'Could not send the email. Try again later.',
+  'account.error.saveFailed': 'Could not save. Try again.',
+  'account.delete.button': 'Delete my account',
+  'account.delete.confirmBody':
+    'This action cannot be undone. All data linked to your account will be permanently erased, and shared links will stop working.',
+  'account.delete.confirm': 'Yes, delete permanently',
+  'account.delete.cancel': 'Cancel',
+  'account.delete.deleting': 'Deleting…',
+  'account.delete.error': 'Could not delete the account. Try again.',
+
+  'auth.signIn.title': 'Sign in or create an account',
+  'auth.signIn.lead':
+    'Enter your email: we’ll create an account if needed, then send a one-time magic link (valid 30 minutes). No password.',
+  'auth.signIn.email': 'Email',
+  'auth.signIn.emailPlaceholder': 'you@example.com',
+  'auth.signIn.submit': 'Continue',
+  'auth.signIn.sending': 'Sending…',
+  'auth.sent.title': 'Check your inbox',
+  'auth.sent.body':
+    'A sign-in link has just been emailed to you. Open it to continue — your account is created on first click if needed.',
+  'auth.sent.bodyWithEmail':
+    'A sign-in link has just been emailed to {email}. Open it to continue — your account is created on first click if needed.',
+  'auth.sent.hint':
+    'The link expires in 30 minutes and can only be used once. Check spam if needed.',
+  'auth.sent.retry': 'Use a different email',
+  'auth.sent.devHint':
+    'Locally, the email may not arrive — use the button below to sign in right away.',
+  'auth.sent.openLink': 'Open sign-in link',
+  'auth.error.invalidEmail': 'Invalid email address.',
+  'auth.error.rateLimited':
+    'Too many requests for this email. Try again in an hour.',
+  'auth.error.emailFailed': 'Could not send the email. Try again later.',
+  'auth.error.linkInvalid': 'Invalid sign-in link.',
+  'auth.error.linkExpired': 'This link has expired. Request a new one.',
+  'auth.error.linkUsed': 'This link was already used. Request a new one.',
+  'auth.email.subject': 'Your PolyRecorder link',
+  'auth.email.text':
+    'Here is your link to sign in to PolyRecorder (or create your account). Valid 30 minutes, one-time use:\n\n{link}\n\nIf you did not request this, you can ignore this email.',
+  'auth.email.html':
+    '<p>Here is your link to sign in to <strong>PolyRecorder</strong> (or create your account). Valid 30&nbsp;minutes, one-time use:</p><p><a href="{link}">Continue</a></p><p>If you did not request this, you can ignore this email.</p>',
+  'auth.emailChange.subject': 'Confirm your new PolyRecorder email',
+  'auth.emailChange.text':
+    'Here is the link to confirm your new email on PolyRecorder. Valid 30 minutes, one-time use:\n\n{link}\n\nIf you did not request this, you can ignore this email.',
+  'auth.emailChange.html':
+    '<p>Here is the link to confirm your new email on <strong>PolyRecorder</strong>. Valid 30&nbsp;minutes, one-time use:</p><p><a href="{link}">Confirm email</a></p><p>If you did not request this, you can ignore this email.</p>',
+
   'locale.select.aria': 'Choose language',
   'settings.language': 'Language:',
   'settings.language.aria': 'Interface language',
@@ -142,7 +217,7 @@ export const en: Record<MessageKey, string> = {
   'help.shortcuts.download': 'Download MP3',
   'help.shortcuts.general': 'General',
   'help.shortcuts.editTitle': 'Edit title',
-  'help.shortcuts.closePanels': 'Close Help / Settings',
+  'help.shortcuts.closePanels': 'Close Help / Settings / Account',
 
   'settings.title': 'Settings',
   'settings.close': 'Close settings',

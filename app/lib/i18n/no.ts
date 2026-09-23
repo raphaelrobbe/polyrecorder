@@ -11,6 +11,81 @@ export const no: Record<MessageKey, string> = {
 
   'nav.help': 'Hjelp',
   'nav.settings': 'Innstillinger',
+  'nav.signIn': 'Logg inn',
+  'nav.signOut': 'Logg ut',
+  'nav.accountMenu': 'Kontomeny',
+  'nav.accountSettings': 'Kontoinnstillinger',
+
+  'account.title': 'Konto',
+  'account.close': 'Lukk kontoinnstillinger',
+  'account.email': 'E-post',
+  'account.email.hint':
+    'En bekreftelseslenke sendes til den nye adressen.',
+  'account.email.pending':
+    'Nesten ferdig: åpne lenken sendt til {email} for å bekrefte endringen.',
+  'account.email.openConfirmLink': 'Åpne bekreftelseslenken',
+  'account.pseudo': 'Visningsnavn',
+  'account.pseudoPlaceholder': 'Visningsnavnet ditt',
+  'account.pseudo.lengthHint': '3–40 tegn',
+  'account.pseudo.available': 'ledig',
+  'account.pseudo.unavailable': 'opptatt',
+  'account.pseudo.current': 'mitt nåværende navn',
+  'account.save': 'Lagre',
+  'account.saving': 'Lagrer…',
+  'account.saved': 'Lagret.',
+  'account.error.pseudoTooShort': 'Visningsnavn må ha minst 3 tegn.',
+  'account.error.pseudoTooLong': 'Visningsnavn for langt (maks 40 tegn).',
+  'account.error.pseudoTaken': 'Dette visningsnavnet er allerede tatt.',
+  'account.error.invalidEmail': 'Ugyldig e-postadresse.',
+  'account.error.emailTaken': 'Denne e-postadressen er allerede i bruk.',
+  'account.error.emailRateLimited':
+    'For mange forespørsler for denne e-posten. Prøv igjen om en time.',
+  'account.error.emailFailed': 'Kunne ikke sende e-posten. Prøv igjen senere.',
+  'account.error.saveFailed': 'Kunne ikke lagre. Prøv igjen.',
+  'account.delete.button': 'Slett kontoen min',
+  'account.delete.confirmBody':
+    'Denne handlingen kan ikke angres. Alle data knyttet til kontoen din slettes permanent, og delte lenker slutter å fungere.',
+  'account.delete.confirm': 'Ja, slett permanent',
+  'account.delete.cancel': 'Avbryt',
+  'account.delete.deleting': 'Sletter…',
+  'account.delete.error': 'Kunne ikke slette kontoen. Prøv igjen.',
+
+  'auth.signIn.title': 'Logg inn eller opprett konto',
+  'auth.signIn.lead':
+    'Skriv inn e-posten din: vi oppretter kontoen om den mangler, og sender en engangs magisk lenke (gyldig i 30 minutter). Ingen passord.',
+  'auth.signIn.email': 'E-post',
+  'auth.signIn.emailPlaceholder': 'deg@eksempel.com',
+  'auth.signIn.submit': 'Fortsett',
+  'auth.signIn.sending': 'Sender…',
+  'auth.sent.title': 'Sjekk innboksen',
+  'auth.sent.body':
+    'En e-post med innloggingslenke er nettopp sendt. Åpne den for å fortsette — kontoen opprettes ved første klikk om nødvendig.',
+  'auth.sent.bodyWithEmail':
+    'En e-post med innloggingslenke er nettopp sendt til {email}. Åpne den for å fortsette — kontoen opprettes ved første klikk om nødvendig.',
+  'auth.sent.hint':
+    'Lenken utløper om 30 minutter og kan bare brukes én gang. Sjekk søppelpost om nødvendig.',
+  'auth.sent.retry': 'Bruk en annen e-post',
+  'auth.sent.devHint':
+    'Lokalt kan e-posten utebli — bruk knappen under for å logge inn med en gang.',
+  'auth.sent.openLink': 'Åpne innloggingslenken',
+  'auth.error.invalidEmail': 'Ugyldig e-postadresse.',
+  'auth.error.rateLimited':
+    'For mange forespørsler for denne e-posten. Prøv igjen om en time.',
+  'auth.error.emailFailed': 'Kunne ikke sende e-posten. Prøv igjen senere.',
+  'auth.error.linkInvalid': 'Ugyldig innloggingslenke.',
+  'auth.error.linkExpired': 'Denne lenken er utløpt. Be om en ny.',
+  'auth.error.linkUsed': 'Denne lenken er allerede brukt. Be om en ny.',
+  'auth.email.subject': 'Din PolyRecorder-lenke',
+  'auth.email.text':
+    'Her er lenken for å logge inn på PolyRecorder (eller opprette konto). Gyldig i 30 minutter, engangsbruk:\n\n{link}\n\nHvis du ikke ba om dette, kan du ignorere denne e-posten.',
+  'auth.email.html':
+    '<p>Her er lenken for å logge inn på <strong>PolyRecorder</strong> (eller opprette konto). Gyldig i 30&nbsp;minutter, engangsbruk:</p><p><a href="{link}">Fortsett</a></p><p>Hvis du ikke ba om dette, kan du ignorere denne e-posten.</p>',
+  'auth.emailChange.subject': 'Bekreft ny e-post for PolyRecorder',
+  'auth.emailChange.text':
+    'Her er lenken for å bekrefte din nye e-post på PolyRecorder. Gyldig i 30 minutter, engangsbruk:\n\n{link}\n\nHvis du ikke ba om dette, kan du ignorere denne e-posten.',
+  'auth.emailChange.html':
+    '<p>Her er lenken for å bekrefte din nye e-post på <strong>PolyRecorder</strong>. Gyldig i 30&nbsp;minutter, engangsbruk:</p><p><a href="{link}">Bekreft e-post</a></p><p>Hvis du ikke ba om dette, kan du ignorere denne e-posten.</p>',
+
   'locale.select.aria': 'Velg språk',
   'settings.language': 'Språk:',
   'settings.language.aria': 'Grensesnittspråk',
@@ -142,7 +217,7 @@ export const no: Record<MessageKey, string> = {
   'help.shortcuts.download': 'Last ned MP3',
   'help.shortcuts.general': 'Generelt',
   'help.shortcuts.editTitle': 'Rediger tittel',
-  'help.shortcuts.closePanels': 'Lukk Hjelp / Innstillinger',
+  'help.shortcuts.closePanels': 'Lukk Hjelp / Innstillinger / Konto',
 
   'settings.title': 'Innstillinger',
   'settings.close': 'Lukk innstillinger',
