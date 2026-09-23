@@ -93,6 +93,8 @@ model Song {
   updatedAt DateTime @updatedAt
   /// Last time this song was opened / used for recording.
   lastOpenedAt DateTime @default(now())
+  /// When true, anyone with the URL can open the song read-only.
+  isPublic  Boolean  @default(false)
 
   repertoireId String
   repertoire   Repertoire @relation(fields: [repertoireId], references: [id], onDelete: Cascade)
@@ -101,6 +103,7 @@ model Song {
 
   @@index([repertoireId])
   @@index([lastOpenedAt])
+  @@index([isPublic])
 }
 
 /// Cloud-backed audio take for a song (S3 object + metadata).

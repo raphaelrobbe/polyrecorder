@@ -10,6 +10,7 @@ import {
   openSong,
   renameLibraryNode,
   renameTrackAsset,
+  setSongPublic,
 } from '~/service/cloud.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -32,6 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
       groupId?: string
       repertoireId?: string
       songId?: string
+      isPublic?: boolean
     }
     const intent = String(body.intent ?? '')
 
@@ -78,6 +80,14 @@ export async function action({ request }: ActionFunctionArgs) {
     }
     if (intent === 'deleteTrack') {
       const result = await deleteTrackAsset(request, String(body.id ?? ''))
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'setSongPublic') {
+      const result = await setSongPublic(
+        request,
+        String(body.songId ?? body.id ?? ''),
+        Boolean(body.isPublic),
+      )
       return json(result, { status: result.ok ? 200 : 400 })
     }
     if (intent === 'delete') {

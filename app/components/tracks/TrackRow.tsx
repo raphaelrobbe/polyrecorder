@@ -57,6 +57,7 @@ export function TrackRow({
   const user = rootData?.user ?? null
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
+  const readOnlySession = useSessionStore((s) => s.readOnlySession)
   const enabledTrackIds = useSessionStore((s) => s.enabledTrackIds)
   const autoAlignTrackIds = useSessionStore((s) => s.autoAlignTrackIds)
   const referenceTrackId = useSessionStore((s) => s.referenceTrackId)
@@ -77,8 +78,9 @@ export function TrackRow({
       : ''
   const clock = formatCentis(getTrackPositionMs(track.id))
   const volume = trackVolumes[track.id] ?? getTrackVolume(track.id)
-  const hideDelete = calageMode || mixMode
+  const hideDelete = calageMode || mixMode || readOnlySession
   const showCloudSave =
+    !readOnlySession &&
     user != null &&
     (track.cloudStatus === 'local' ||
       track.cloudStatus === 'error' ||
@@ -173,9 +175,13 @@ export function TrackRow({
               isDefault={isDefaultTrackName(nameDraft)}
               data-rename-track={track.id}
               value={nameDraft}
+              readOnly={readOnlySession}
               aria-label={t('tracks.name.aria')}
               maxLength={40}
-              onChange={(event) => setNameDraft(event.target.value)}
+              onChange={(event) => {
+                if (readOnlySession) return
+                setNameDraft(event.target.value)
+              }}
               onKeyDown={(event) => {
                 if (event.key === 'Enter') {
                   event.preventDefault()
@@ -183,6 +189,7 @@ export function TrackRow({
                 }
               }}
               onFocus={(event) => {
+                if (readOnlySession) return
                 if (!isDefaultTrackName(event.currentTarget.value)) return
                 event.currentTarget.select()
                 event.currentTarget.addEventListener(
@@ -195,6 +202,7 @@ export function TrackRow({
                 )
               }}
               onBlur={() => {
+                if (readOnlySession) return
                 const next =
                   nameDraft.trim().slice(0, 40) || defaultTrackName(index + 1)
                 setNameDraft(next)

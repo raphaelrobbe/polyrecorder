@@ -69,7 +69,11 @@ export function RecorderApp({
       resetDeckOnSignOut()
     }
     wasSignedIn.current = Boolean(user)
-    if (user) void hydrateActiveSongIfNeeded()
+    if (!user) return
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/song/')) {
+      return
+    }
+    void hydrateActiveSongIfNeeded()
   }, [user])
 
   return (

@@ -26,6 +26,7 @@ export async function uploadTrackToCloud(
   trackId: number,
   options?: { quietIfUnauthorized?: boolean },
 ): Promise<boolean> {
+  if (useSessionStore.getState().readOnlySession) return false
   const track = useSessionStore.getState().tracks.find((t) => t.id === trackId)
   if (!track || track.blob.size === 0) return false
   if (track.cloudStatus === 'uploading' || track.cloudStatus === 'synced') {
@@ -133,8 +134,17 @@ export async function maybeAutoUploadTrack(trackId: number): Promise<void> {
 }
 
 export type OpenedCloudSong = {
-  song: { id: string; name: string; repertoireId: string }
+  song: {
+    id: string
+    name: string
+    repertoireId: string
+    isPublic: boolean
+    groupName: string
+    repertoireName: string
+    ownerPseudo: string | null
+  }
   tracks: Track[]
+  isOwner: boolean
 }
 
 export async function fetchAndHydrateSong(
@@ -148,7 +158,16 @@ export async function fetchAndHydrateSong(
   const data = (await res.json()) as
     | {
         ok: true
-        song: { id: string; name: string; repertoireId: string }
+        isOwner: boolean
+        song: {
+          id: string
+          name: string
+          repertoireId: string
+          isPublic: boolean
+          groupName: string
+          repertoireName: string
+          ownerPseudo: string | null
+        }
         tracks: Array<{
           id: string
           name: string
@@ -191,5 +210,5 @@ export async function fetchAndHydrateSong(
     })
   }
 
-  return { song: data.song, tracks }
+  return { song: data.song, tracks, isOwner: data.isOwner }
 }

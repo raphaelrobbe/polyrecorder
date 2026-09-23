@@ -28,9 +28,10 @@ export function CaptureBar({ className }: CaptureBarProps) {
   const tracks = useSessionStore((s) => s.tracks)
   const meterLevel = useSessionStore((s) => s.meterLevel)
   const keyboardHintsEnabled = useSessionStore((s) => s.keyboardHintsEnabled)
+  const readOnlySession = useSessionStore((s) => s.readOnlySession)
 
   const recording = state === 'recording'
-  const recordOnly = !recording && tracks.length === 0
+  const recordOnly = !recording && tracks.length === 0 && !readOnlySession
 
   return (
     <div
@@ -52,6 +53,7 @@ export function CaptureBar({ className }: CaptureBarProps) {
         />
       </div>
       <MixTransport />
+      {!readOnlySession ? (
       <div
         className={cn(
           'inline-flex shrink-0 items-center justify-end gap-[0.65rem]',
@@ -118,6 +120,7 @@ export function CaptureBar({ className }: CaptureBarProps) {
           onClick={() => void stopSession()}
         />
       </div>
+      ) : null}
     </div>
   )
 }

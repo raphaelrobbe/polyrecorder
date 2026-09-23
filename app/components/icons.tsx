@@ -290,3 +290,48 @@ export function IconHighlight({
     </Icon>
   )
 }
+
+export function IconGlobe(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 3.5a8.5 8.5 0 1 0 0 17 8.5 8.5 0 0 0 0-17zm0 0c2.2 2.4 3.4 5.3 3.4 8.5S14.2 18.1 12 20.5M12 3.5C9.8 5.9 8.6 8.8 8.6 12s1.2 6.1 3.4 8.5M4.2 12h15.6"
+      />
+    </Icon>
+  )
+}
+
+export function IconLock(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M8 11V8.2a4 4 0 0 1 8 0V11M7 11h10v9.5H7V11z"
+      />
+    </Icon>
+  )
+}
+
+export function IconShare(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M12 3.5v11M8.2 7.2 12 3.5l3.8 3.7M6.5 13.5v4.2a1.8 1.8 0 0 0 1.8 1.8h7.4a1.8 1.8 0 0 0 1.8-1.8v-4.2"
+      />
+    </Icon>
+  )
+}

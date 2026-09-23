@@ -13,7 +13,7 @@ import type { loader as rootLoader } from '../root'
 import { useSessionStore } from '../store/sessionStore'
 import { Button } from './Button'
 import { DeckOverlayPanel } from './DeckOverlayPanel'
-import { IconChevron, IconTrash } from './icons'
+import { IconChevron, IconGlobe, IconShare, IconTrash } from './icons'
 
 type LibraryTree = {
   groups: Array<{
@@ -25,6 +25,7 @@ type LibraryTree = {
       songs: Array<{
         id: string
         name: string
+        isPublic: boolean
         trackNames: string[]
         lastOpenedAt: string
         updatedAt: string
@@ -97,6 +98,168 @@ function DeleteIconButton({
   )
 }
 
+const songActionBtnClass = cn(
+  'm-0 grid h-[1.65rem] w-[1.65rem] shrink-0 place-items-center rounded-lg border border-ink/18 bg-transparent p-0',
+  'text-ink/55 transition-[background,color,border-color] duration-150',
+  'cursor-pointer hover:border-ink/28 hover:bg-ink/6 hover:text-ink',
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
+  'disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-ink/18 disabled:hover:bg-transparent disabled:hover:text-ink/55',
+  '[&_svg]:size-[0.95rem]',
+)
+
+function SongVisibilityButton({
+  songId,
+  isPublic,
+  onChanged,
+  onError,
+}: {
+  songId: string
+  isPublic: boolean
+  onChanged: () => void
+  onError: () => void
+}) {
+  useLocale()
+  const label = isPublic ? t('library.private') : t('library.public')
+  return (
+    <button
+      type="button"
+      className={cn(
+        songActionBtnClass,
+        'pointer-events-auto',
+        isPublic &&
+          'border-ink/40 bg-ink text-on-ink hover:border-ink hover:bg-ink hover:text-on-ink',
+      )}
+      aria-label={label}
+      title={isPublic ? t('library.public.on') : t('library.public.off')}
+      aria-pressed={isPublic}
+      onClick={(event) => {
+        event.stopPropagation()
+        void postLibrary({
+          intent: 'setSongPublic',
+          songId,
+          isPublic: !isPublic,
+        }).then((r) => {
+          if (!r.ok) onError()
+          else onChanged()
+        })
+      }}
+    >
+      <IconGlobe />
+    </button>
+  )
+}
+
+function SongShareButton({
+  songId,
+  songName,
+  isPublic,
+  onOpenChange,
+}: {
+  songId: string
+  songName: string
+  isPublic: boolean
+  onOpenChange?: (open: boolean) => void
+}) {
+  useLocale()
+  const [open, setOpen] = useState(false)
+  const [copied, setCopied] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  const setShareOpen = (next: boolean) => {
+    setOpen(next)
+    onOpenChange?.(next)
+  }
+
+  useEffect(() => {
+    if (!open) return
+    const onPointer = (event: MouseEvent) => {
+      if (!panelRef.current?.contains(event.target as Node)) {
+        setShareOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', onPointer)
+    return () => document.removeEventListener('mousedown', onPointer)
+  }, [open])
+
+  const shareUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}/song/${songId}`
+      : `/song/${songId}`
+
+  return (
+    <div className="relative pointer-events-auto" ref={panelRef}>
+      <button
+        type="button"
+        className={songActionBtnClass}
+        aria-label={t('library.share')}
+        title={
+          isPublic ? t('library.share') : t('library.share.disabled')
+        }
+        disabled={!isPublic}
+        aria-expanded={open}
+        onClick={(event) => {
+          event.stopPropagation()
+          if (!isPublic) return
+          setShareOpen(!open)
+          setCopied(false)
+        }}
+      >
+        <IconShare />
+      </button>
+      {open && isPublic ? (
+        <div
+          className="absolute right-0 top-[calc(100%+0.35rem)] z-50 min-w-[11.5rem] rounded-[12px] border border-line bg-surface p-2 shadow-[0_12px_28px_var(--shadow)]"
+          role="dialog"
+          aria-label={t('library.share.title', { name: songName })}
+        >
+          <p className="m-0 mb-1.5 px-1 text-[0.72rem] font-semibold text-ink-soft">
+            {t('library.share.title', { name: songName })}
+          </p>
+          <button
+            type="button"
+            className="m-0 flex w-full cursor-pointer items-center rounded-[8px] border-0 bg-transparent px-2 py-1.5 text-left text-[0.82rem] font-semibold text-ink hover:bg-ink/6"
+            onClick={() => {
+              void navigator.clipboard.writeText(shareUrl).then(() => {
+                setCopied(true)
+              })
+            }}
+          >
+            {copied ? t('library.share.copied') : t('library.share.copy')}
+          </button>
+          <a
+            className="m-0 flex w-full items-center rounded-[8px] px-2 py-1.5 text-left text-[0.82rem] font-semibold text-ink no-underline hover:bg-ink/6"
+            href={`https://wa.me/?text=${encodeURIComponent(`${songName} — ${shareUrl}`)}`}
+            target="_blank"
+            rel="noreferrer"
+            onClick={() => setShareOpen(false)}
+          >
+            {t('library.share.whatsapp')}
+          </a>
+          {typeof navigator !== 'undefined' &&
+          typeof navigator.share === 'function' ? (
+            <button
+              type="button"
+              className="m-0 flex w-full cursor-pointer items-center rounded-[8px] border-0 bg-transparent px-2 py-1.5 text-left text-[0.82rem] font-semibold text-ink hover:bg-ink/6"
+              onClick={() => {
+                void navigator
+                  .share({
+                    title: songName,
+                    url: shareUrl,
+                    text: songName,
+                  })
+                  .catch(() => {})
+                setShareOpen(false)
+              }}
+            >
+              {t('library.share.native')}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
 const accordionControlClass = cn(
   'm-0 grid h-[2.05rem] w-[2.05rem] shrink-0 place-items-center rounded-[10px] border border-ink/12 bg-transparent p-0',
   'text-ink/55 transition-[transform,background,color,border-color] duration-160',
@@ -137,6 +300,118 @@ function AccordionToggle({
     >
       <IconChevron />
     </button>
+  )
+}
+
+function SongCard({
+  song,
+  isActive,
+  isBusy,
+  onOpen,
+  onRename,
+  onDelete,
+  onVisibilityError,
+  onVisibilityChanged,
+}: {
+  song: {
+    id: string
+    name: string
+    isPublic: boolean
+    trackNames: string[]
+  }
+  isActive: boolean
+  isBusy: boolean
+  onOpen: () => void
+  onRename: (name: string) => void
+  onDelete: () => void
+  onVisibilityError: () => void
+  onVisibilityChanged: () => void
+}) {
+  useLocale()
+  const [shareOpen, setShareOpen] = useState(false)
+
+  return (
+    <li
+      className={cn(
+        'relative rounded-[10px] bg-ink/[0.06] px-1.5 py-1',
+        isActive && 'bg-ink/[0.1]',
+        isBusy && 'opacity-60',
+        shareOpen && 'z-30',
+      )}
+    >
+      <button
+        type="button"
+        disabled={isBusy}
+        aria-busy={isBusy || undefined}
+        aria-label={`${t('library.open')} — ${song.name}`}
+        className={cn(
+          'absolute inset-0 z-0 m-0 cursor-pointer rounded-[10px] border-0 bg-transparent p-0',
+          'transition-colors duration-150',
+          'hover:enabled:bg-ink/[0.04]',
+          'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
+          'disabled:cursor-wait',
+        )}
+        onClick={onOpen}
+      />
+      <div className="relative z-[1] flex min-w-0 items-start gap-1.5 pointer-events-none">
+        <div className="flex min-w-0 flex-1 items-center gap-1.5">
+          <LibraryNameInput
+            value={song.name}
+            ariaLabel={t('library.song')}
+            className="pointer-events-auto text-[0.9rem] font-medium text-ink"
+            onCommit={onRename}
+          />
+        </div>
+        <SongVisibilityButton
+          songId={song.id}
+          isPublic={song.isPublic}
+          onError={onVisibilityError}
+          onChanged={onVisibilityChanged}
+        />
+        <SongShareButton
+          songId={song.id}
+          songName={song.name}
+          isPublic={song.isPublic}
+          onOpenChange={setShareOpen}
+        />
+        <DeleteIconButton
+          className="pointer-events-auto"
+          label={t('library.delete')}
+          onClick={onDelete}
+        />
+      </div>
+
+      {isBusy ? (
+        <div className="relative mt-1 pointer-events-none">
+          <span className="text-[0.75rem] font-normal text-ink-soft">
+            {t('library.opening')}
+          </span>
+        </div>
+      ) : song.trackNames.length > 0 ? (
+        <div className="relative mt-1 pointer-events-none">
+          <span className="flex flex-wrap gap-1">
+            {song.trackNames.map((trackName, index) => (
+              <span
+                key={`${trackName}-${index}`}
+                className="inline-flex max-w-full truncate rounded-[7px] bg-ink/[0.06] px-[0.45rem] py-[0.18rem] text-[0.68rem] font-semibold leading-none text-ink-soft"
+              >
+                {trackName}
+              </span>
+            ))}
+          </span>
+        </div>
+      ) : (
+        <div className="relative mt-0.5 pl-[0.25rem] pointer-events-none">
+          <span className="block text-[0.75rem] font-normal leading-none text-ink-soft">
+            {tp(
+              'library.count.track.one',
+              'library.count.track.other',
+              0,
+            )}
+          </span>
+        </div>
+      )}
+    </li>
   )
 }
 
@@ -794,104 +1069,43 @@ export function LibraryPanel({ className }: LibraryPanelProps) {
 
                           {repOpen ? (
                             <ul className="m-0 mt-2.5 flex list-none flex-col gap-2.5 p-0 pl-[calc(2.05rem+0.375rem)]">
-                              {rep.songs.map((song) => {
-                                const isActive = song.id === activeSongId
-                                const isBusy = busySongId === song.id
-                                return (
-                                  <li
-                                    key={song.id}
-                                    className={cn(
-                                      'relative rounded-[10px] bg-ink/[0.06] px-1.5 py-1',
-                                      isActive && 'bg-ink/[0.1]',
-                                      isBusy && 'opacity-60',
-                                    )}
-                                  >
-                                    <button
-                                      type="button"
-                                      disabled={isBusy}
-                                      aria-busy={isBusy || undefined}
-                                      aria-label={`${t('library.open')} — ${song.name}`}
-                                      className={cn(
-                                        'absolute inset-0 z-0 m-0 cursor-pointer rounded-[10px] border-0 bg-transparent p-0',
-                                        'transition-colors duration-150',
-                                        'hover:enabled:bg-ink/[0.04]',
-                                        'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
-                                        'disabled:cursor-wait',
-                                      )}
-                                      onClick={() => void onOpenSong(song.id)}
-                                    />
-                                    <div className="relative z-[1] flex min-w-0 items-start gap-1.5 pointer-events-none">
-                                      <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                                        <LibraryNameInput
-                                          value={song.name}
-                                          ariaLabel={t('library.song')}
-                                          className="pointer-events-auto text-[0.9rem] font-medium text-ink"
-                                          onCommit={(name) =>
-                                            renameNode('song', song.id, name)
-                                          }
-                                        />
-                                      </div>
-                                      <DeleteIconButton
-                                        className="pointer-events-auto"
-                                        label={t('library.delete')}
-                                        onClick={() => {
-                                          if (
-                                            !window.confirm(
-                                              t('library.deleteConfirm', {
-                                                name: song.name,
-                                              }),
-                                            )
-                                          ) {
-                                            return
-                                          }
-                                          void postLibrary({
-                                            intent: 'delete',
-                                            kind: 'song',
-                                            id: song.id,
-                                          }).then((r) => {
-                                            if (!r.ok)
-                                              setError(t('library.error'))
-                                            else void reload()
-                                          })
-                                        }}
-                                      />
-                                    </div>
-
-                                    {isBusy ? (
-                                      <div className="relative mt-1 pointer-events-none">
-                                        <span className="text-[0.75rem] font-normal text-ink-soft">
-                                          {t('library.opening')}
-                                        </span>
-                                      </div>
-                                    ) : song.trackNames.length > 0 ? (
-                                      <div className="relative mt-1 pointer-events-none">
-                                        <span className="flex flex-wrap gap-1">
-                                          {song.trackNames.map(
-                                            (trackName, index) => (
-                                              <span
-                                                key={`${trackName}-${index}`}
-                                                className="inline-flex max-w-full truncate rounded-[7px] bg-ink/[0.06] px-[0.45rem] py-[0.18rem] text-[0.68rem] font-semibold leading-none text-ink-soft"
-                                              >
-                                                {trackName}
-                                              </span>
-                                            ),
-                                          )}
-                                        </span>
-                                      </div>
-                                    ) : (
-                                      <div className="relative mt-0.5 pl-[0.25rem] pointer-events-none">
-                                        <span className="block text-[0.75rem] font-normal leading-none text-ink-soft">
-                                          {tp(
-                                            'library.count.track.one',
-                                            'library.count.track.other',
-                                            0,
-                                          )}
-                                        </span>
-                                      </div>
-                                    )}
-                                  </li>
-                                )
-                              })}
+                              {rep.songs.map((song) => (
+                                <SongCard
+                                  key={song.id}
+                                  song={song}
+                                  isActive={song.id === activeSongId}
+                                  isBusy={busySongId === song.id}
+                                  onOpen={() => void onOpenSong(song.id)}
+                                  onRename={(name) =>
+                                    renameNode('song', song.id, name)
+                                  }
+                                  onDelete={() => {
+                                    if (
+                                      !window.confirm(
+                                        t('library.deleteConfirm', {
+                                          name: song.name,
+                                        }),
+                                      )
+                                    ) {
+                                      return
+                                    }
+                                    void postLibrary({
+                                      intent: 'delete',
+                                      kind: 'song',
+                                      id: song.id,
+                                    }).then((r) => {
+                                      if (!r.ok) setError(t('library.error'))
+                                      else void reload()
+                                    })
+                                  }}
+                                  onVisibilityError={() =>
+                                    setError(t('library.error'))
+                                  }
+                                  onVisibilityChanged={() => {
+                                    void reload()
+                                  }}
+                                />
+                              ))}
                               <AddSongRow
                                 repertoireId={rep.id}
                                 onError={() => setError(t('library.error'))}

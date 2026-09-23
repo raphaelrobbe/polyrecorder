@@ -1,3 +1,4 @@
+import type { User as AppUser } from '~/common/user'
 import { prisma } from './db.server'
 import { CLOUD_UPLOAD_MAX_BYTES, getS3KeyPrefix } from './env.server'
 import {
@@ -31,6 +32,47 @@ function extensionForContentType(contentType: string): string {
   return 'webm'
 }
 
+async function requireUser(
+  request: Request,
+): Promise<AppUser | { ok: false; reason: 'unauthorized' }> {
+  const user = await getUserFromRequest(request)
+  if (!user) return { ok: false, reason: 'unauthorized' }
+  return user
+}
+
+function isUser(
+  value: AppUser | { ok: false; reason: 'unauthorized' },
+): value is AppUser {
+  return !('ok' in value)
+}
+
+async function assertOwnedGroup(userId: string, groupId: string) {
+  return prisma.group.findFirst({
+    where: { id: groupId, userId },
+  })
+}
+
+async function assertOwnedRepertoire(userId: string, repertoireId: string) {
+  return prisma.repertoire.findFirst({
+    where: { id: repertoireId, group: { userId } },
+  })
+}
+
+async function assertOwnedSong(userId: string, songId: string) {
+  return prisma.song.findFirst({
+    where: { id: songId, repertoire: { group: { userId } } },
+  })
+}
+
+async function assertOwnedTrackAsset(userId: string, trackAssetId: string) {
+  return prisma.trackAsset.findFirst({
+    where: {
+      id: trackAssetId,
+      song: { repertoire: { group: { userId } } },
+    },
+  })
+}
+
 async function ensureDefaultTree(userId: string) {
   let group = await prisma.group.findFirst({
     where: { userId },
@@ -61,12 +103,7 @@ async function resolveSongForUpload(
   sessionTitle: string | null | undefined,
 ) {
   if (songId) {
-    const song = await prisma.song.findFirst({
-      where: {
-        id: songId,
-        repertoire: { group: { userId } },
-      },
-    })
+    const song = await assertOwnedSong(userId, songId)
     if (song) {
       await prisma.song.update({
         where: { id: song.id },
@@ -125,8 +162,9 @@ export async function presignTrackUpload(
   },
 ): Promise<PresignResult> {
   try {
-    const user = await getUserFromRequest(request)
-    if (!user) return { ok: false, reason: 'unauthorized' }
+    const userOrErr = await requireUser(request)
+    if (!isUser(userOrErr)) return userOrErr
+    const user = userOrErr
     if (!isS3Configured()) return { ok: false, reason: 's3_not_configured' }
 
     const contentType = input.contentType.trim() || 'audio/webm'
@@ -195,18 +233,17 @@ export async function completeTrackUpload(
   trackAssetId: string,
 ): Promise<CompleteUploadResult> {
   try {
-    const user = await getUserFromRequest(request)
-    if (!user) return { ok: false, reason: 'unauthorized' }
+    const userOrErr = await requireUser(request)
+    if (!isUser(userOrErr)) return userOrErr
+    const user = userOrErr
     if (!isS3Configured()) return { ok: false, reason: 's3_not_configured' }
     if (!trackAssetId.trim()) return { ok: false, reason: 'invalid' }
 
-    const asset = await prisma.trackAsset.findFirst({
-      where: {
-        id: trackAssetId,
-        song: { repertoire: { group: { userId: user.id } } },
-      },
-    })
+    const asset = await assertOwnedTrackAsset(user.id, trackAssetId)
     if (!asset) return { ok: false, reason: 'not_found' }
+    if (!asset.objectKey || asset.objectKey === 'pending') {
+      return { ok: false, reason: 'incomplete' }
+    }
 
     const head = await headObject(asset.objectKey)
     if (!head) return { ok: false, reason: 'incomplete' }
@@ -237,6 +274,7 @@ export type LibraryTree = {
       songs: Array<{
         id: string
         name: string
+        isPublic: boolean
         trackNames: string[]
         lastOpenedAt: string
         updatedAt: string
@@ -251,8 +289,9 @@ export async function getLibraryTree(
   | { ok: true; tree: LibraryTree }
   | { ok: false; reason: CloudFailureReason }
 > {
-  const user = await getUserFromRequest(request)
-  if (!user) return { ok: false, reason: 'unauthorized' }
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
 
   await ensureDefaultTree(user.id)
 
@@ -290,6 +329,7 @@ export async function getLibraryTree(
           songs: rep.songs.map((song) => ({
             id: song.id,
             name: song.name,
+            isPublic: song.isPublic,
             trackNames: song.tracks.map((track) => track.name),
             lastOpenedAt: song.lastOpenedAt.toISOString(),
             updatedAt: song.updatedAt.toISOString(),
@@ -307,8 +347,9 @@ export async function createGroup(
   | { ok: true; id: string; name: string }
   | { ok: false; reason: CloudFailureReason }
 > {
-  const user = await getUserFromRequest(request)
-  if (!user) return { ok: false, reason: 'unauthorized' }
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
   const trimmed = name.trim()
   if (!trimmed) return { ok: false, reason: 'invalid' }
   const group = await prisma.group.create({
@@ -325,13 +366,12 @@ export async function createRepertoire(
   | { ok: true; id: string; name: string; groupId: string }
   | { ok: false; reason: CloudFailureReason }
 > {
-  const user = await getUserFromRequest(request)
-  if (!user) return { ok: false, reason: 'unauthorized' }
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
   const trimmed = name.trim()
   if (!trimmed || !groupId) return { ok: false, reason: 'invalid' }
-  const group = await prisma.group.findFirst({
-    where: { id: groupId, userId: user.id },
-  })
+  const group = await assertOwnedGroup(user.id, groupId)
   if (!group) return { ok: false, reason: 'not_found' }
   const repertoire = await prisma.repertoire.create({
     data: { groupId: group.id, name: trimmed },
@@ -352,13 +392,12 @@ export async function createSong(
   | { ok: true; id: string; name: string; repertoireId: string }
   | { ok: false; reason: CloudFailureReason }
 > {
-  const user = await getUserFromRequest(request)
-  if (!user) return { ok: false, reason: 'unauthorized' }
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
   const trimmed = name.trim()
   if (!trimmed || !repertoireId) return { ok: false, reason: 'invalid' }
-  const repertoire = await prisma.repertoire.findFirst({
-    where: { id: repertoireId, group: { userId: user.id } },
-  })
+  const repertoire = await assertOwnedRepertoire(user.id, repertoireId)
   if (!repertoire) return { ok: false, reason: 'not_found' }
   const song = await prisma.song.create({
     data: {
@@ -381,34 +420,33 @@ export async function renameLibraryNode(
   id: string,
   name: string,
 ): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
-  const user = await getUserFromRequest(request)
-  if (!user) return { ok: false, reason: 'unauthorized' }
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
   const trimmed = name.trim()
   if (!trimmed || !id) return { ok: false, reason: 'invalid' }
 
   if (kind === 'group') {
-    const result = await prisma.group.updateMany({
-      where: { id, userId: user.id },
-      data: { name: trimmed },
-    })
-    return result.count > 0 ? { ok: true } : { ok: false, reason: 'not_found' }
-  }
-  if (kind === 'repertoire') {
-    const owned = await prisma.repertoire.findFirst({
-      where: { id, group: { userId: user.id } },
-    })
-    if (!owned) return { ok: false, reason: 'not_found' }
-    await prisma.repertoire.update({
-      where: { id },
+    const group = await assertOwnedGroup(user.id, id)
+    if (!group) return { ok: false, reason: 'not_found' }
+    await prisma.group.update({
+      where: { id: group.id },
       data: { name: trimmed },
     })
     return { ok: true }
   }
-  const song = await prisma.song.findFirst({
-    where: { id, repertoire: { group: { userId: user.id } } },
-  })
+  if (kind === 'repertoire') {
+    const owned = await assertOwnedRepertoire(user.id, id)
+    if (!owned) return { ok: false, reason: 'not_found' }
+    await prisma.repertoire.update({
+      where: { id: owned.id },
+      data: { name: trimmed },
+    })
+    return { ok: true }
+  }
+  const song = await assertOwnedSong(user.id, id)
   if (!song) return { ok: false, reason: 'not_found' }
-  await prisma.song.update({ where: { id }, data: { name: trimmed } })
+  await prisma.song.update({ where: { id: song.id }, data: { name: trimmed } })
   return { ok: true }
 }
 
@@ -417,17 +455,13 @@ export async function renameTrackAsset(
   trackAssetId: string,
   name: string,
 ): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
-  const user = await getUserFromRequest(request)
-  if (!user) return { ok: false, reason: 'unauthorized' }
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
   const trimmed = name.trim().slice(0, 40)
   if (!trimmed || !trackAssetId) return { ok: false, reason: 'invalid' }
 
-  const asset = await prisma.trackAsset.findFirst({
-    where: {
-      id: trackAssetId,
-      song: { repertoire: { group: { userId: user.id } } },
-    },
-  })
+  const asset = await assertOwnedTrackAsset(user.id, trackAssetId)
   if (!asset) return { ok: false, reason: 'not_found' }
 
   await prisma.trackAsset.update({
@@ -441,23 +475,40 @@ export async function deleteTrackAsset(
   request: Request,
   trackAssetId: string,
 ): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
-  const user = await getUserFromRequest(request)
-  if (!user) return { ok: false, reason: 'unauthorized' }
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
   if (!trackAssetId) return { ok: false, reason: 'invalid' }
 
-  const asset = await prisma.trackAsset.findFirst({
-    where: {
-      id: trackAssetId,
-      song: { repertoire: { group: { userId: user.id } } },
-    },
-    select: { id: true, objectKey: true },
-  })
+  const asset = await assertOwnedTrackAsset(user.id, trackAssetId)
   if (!asset) return { ok: false, reason: 'not_found' }
 
   const { deleteObjectsByKeys } = await import('./s3.server')
-  await deleteObjectsByKeys([asset.objectKey])
+  if (asset.objectKey && asset.objectKey !== 'pending') {
+    await deleteObjectsByKeys([asset.objectKey])
+  }
   await prisma.trackAsset.delete({ where: { id: asset.id } })
   return { ok: true }
+}
+
+export async function setSongPublic(
+  request: Request,
+  songId: string,
+  isPublic: boolean,
+): Promise<{ ok: true; isPublic: boolean } | { ok: false; reason: CloudFailureReason }> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  if (!songId) return { ok: false, reason: 'invalid' }
+
+  const song = await assertOwnedSong(user.id, songId)
+  if (!song) return { ok: false, reason: 'not_found' }
+
+  const updated = await prisma.song.update({
+    where: { id: song.id },
+    data: { isPublic: Boolean(isPublic) },
+  })
+  return { ok: true, isPublic: updated.isPublic }
 }
 
 export async function deleteLibraryNode(
@@ -465,8 +516,9 @@ export async function deleteLibraryNode(
   kind: 'group' | 'repertoire' | 'song',
   id: string,
 ): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
-  const user = await getUserFromRequest(request)
-  if (!user) return { ok: false, reason: 'unauthorized' }
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
   if (!id) return { ok: false, reason: 'invalid' }
 
   if (kind === 'song') {
@@ -475,11 +527,13 @@ export async function deleteLibraryNode(
       include: { tracks: { select: { objectKey: true } } },
     })
     if (!song) return { ok: false, reason: 'not_found' }
-    // Cascade deletes TrackAsset rows; S3 objects cleaned by prefix on account
-    // delete. For single song delete we remove objects by key.
     const { deleteObjectsByKeys } = await import('./s3.server')
-    await deleteObjectsByKeys(song.tracks.map((t) => t.objectKey))
-    await prisma.song.delete({ where: { id } })
+    await deleteObjectsByKeys(
+      song.tracks
+        .map((t) => t.objectKey)
+        .filter((key) => key && key !== 'pending'),
+    )
+    await prisma.song.delete({ where: { id: song.id } })
     return { ok: true }
   }
 
@@ -492,11 +546,13 @@ export async function deleteLibraryNode(
     })
     if (!repertoire) return { ok: false, reason: 'not_found' }
     const keys = repertoire.songs.flatMap((s) =>
-      s.tracks.map((t) => t.objectKey),
+      s.tracks
+        .map((t) => t.objectKey)
+        .filter((key) => key && key !== 'pending'),
     )
     const { deleteObjectsByKeys } = await import('./s3.server')
     await deleteObjectsByKeys(keys)
-    await prisma.repertoire.delete({ where: { id } })
+    await prisma.repertoire.delete({ where: { id: repertoire.id } })
     return { ok: true }
   }
 
@@ -512,18 +568,31 @@ export async function deleteLibraryNode(
   })
   if (!group) return { ok: false, reason: 'not_found' }
   const keys = group.repertoires.flatMap((r) =>
-    r.songs.flatMap((s) => s.tracks.map((t) => t.objectKey)),
+    r.songs.flatMap((s) =>
+      s.tracks
+        .map((t) => t.objectKey)
+        .filter((key) => key && key !== 'pending'),
+    ),
   )
   const { deleteObjectsByKeys } = await import('./s3.server')
   await deleteObjectsByKeys(keys)
-  await prisma.group.delete({ where: { id } })
+  await prisma.group.delete({ where: { id: group.id } })
   return { ok: true }
 }
 
 export type OpenSongResult =
   | {
       ok: true
-      song: { id: string; name: string; repertoireId: string }
+      isOwner: boolean
+      song: {
+        id: string
+        name: string
+        repertoireId: string
+        isPublic: boolean
+        groupName: string
+        repertoireName: string
+        ownerPseudo: string | null
+      }
       tracks: Array<{
         id: string
         name: string
@@ -540,17 +609,24 @@ export async function openSong(
   songId: string,
 ): Promise<OpenSongResult> {
   try {
-    const user = await getUserFromRequest(request)
-    if (!user) return { ok: false, reason: 'unauthorized' }
     if (!isS3Configured()) return { ok: false, reason: 's3_not_configured' }
     if (!songId) return { ok: false, reason: 'invalid' }
 
+    const user = await getUserFromRequest(request)
     const song = await prisma.song.findFirst({
-      where: {
-        id: songId,
-        repertoire: { group: { userId: user.id } },
-      },
+      where: { id: songId },
       include: {
+        repertoire: {
+          include: {
+            group: {
+              select: {
+                userId: true,
+                name: true,
+                user: { select: { pseudo: true } },
+              },
+            },
+          },
+        },
         tracks: {
           where: { uploadedAt: { not: null } },
           orderBy: { createdAt: 'asc' },
@@ -559,10 +635,17 @@ export async function openSong(
     })
     if (!song) return { ok: false, reason: 'not_found' }
 
-    await prisma.song.update({
-      where: { id: song.id },
-      data: { lastOpenedAt: new Date() },
-    })
+    const isOwner = Boolean(user && song.repertoire.group.userId === user.id)
+    if (!isOwner && !song.isPublic) {
+      return { ok: false, reason: 'not_found' }
+    }
+
+    if (isOwner) {
+      await prisma.song.update({
+        where: { id: song.id },
+        data: { lastOpenedAt: new Date() },
+      })
+    }
 
     const tracks = await Promise.all(
       song.tracks.map(async (track) => ({
@@ -577,16 +660,70 @@ export async function openSong(
 
     return {
       ok: true,
+      isOwner,
       song: {
         id: song.id,
         name: song.name,
         repertoireId: song.repertoireId,
+        isPublic: song.isPublic,
+        groupName: song.repertoire.group.name,
+        repertoireName: song.repertoire.name,
+        ownerPseudo: song.repertoire.group.user.pseudo?.trim() || null,
       },
       tracks,
     }
   } catch (error) {
     console.error('[cloud] openSong failed', error)
     return { ok: false, reason: 'failed' }
+  }
+}
+
+/** Public song metadata for OG / route loaders (no audio URLs). */
+export async function getSongShareMeta(
+  request: Request,
+  songId: string,
+): Promise<
+  | {
+      ok: true
+      isOwner: boolean
+      song: {
+        id: string
+        name: string
+        isPublic: boolean
+        trackCount: number
+      }
+    }
+  | { ok: false; reason: CloudFailureReason }
+> {
+  if (!songId) return { ok: false, reason: 'invalid' }
+
+  const user = await getUserFromRequest(request)
+  const song = await prisma.song.findFirst({
+    where: { id: songId },
+    include: {
+      repertoire: { include: { group: { select: { userId: true } } } },
+      tracks: {
+        where: { uploadedAt: { not: null } },
+        select: { id: true },
+      },
+    },
+  })
+  if (!song) return { ok: false, reason: 'not_found' }
+
+  const isOwner = Boolean(user && song.repertoire.group.userId === user.id)
+  if (!isOwner && !song.isPublic) {
+    return { ok: false, reason: 'not_found' }
+  }
+
+  return {
+    ok: true,
+    isOwner,
+    song: {
+      id: song.id,
+      name: song.name,
+      isPublic: song.isPublic,
+      trackCount: song.tracks.length,
+    },
   }
 }
 

@@ -1385,6 +1385,7 @@ export async function discard() {
 }
 
 export async function startSession() {
+  if (get().readOnlySession) return
   try {
     stopPlayback()
     pendingTakeOffsetMs = 0
@@ -1637,6 +1638,7 @@ export function setAllAutoAlign(on: boolean) {
 }
 
 export function renameTrack(trackId: number, name: string) {
+  if (get().readOnlySession) return
   const trimmed = name.trim().slice(0, 40) || defaultTrackName(1)
   const track = get().tracks.find((t) => t.id === trackId)
   patch({
@@ -1669,6 +1671,7 @@ export function renameTrack(trackId: number, name: string) {
 }
 
 export function deleteTrack(trackId: number) {
+  if (get().readOnlySession) return
   const track = get().tracks.find((t) => t.id === trackId)
   if (!track) return
   if (get().playingTrackIds.length > 0 || get().mixListenActive) {
@@ -1727,6 +1730,7 @@ export function deleteTrack(trackId: number) {
 
 export function deleteAllTracks() {
   if (get().state === 'recording') return
+  if (get().readOnlySession) return
   stopPlayback({ resetSeek: true })
   const cloudTrackIds = get()
     .tracks.map((track) => track.cloudTrackId)
@@ -1804,6 +1808,9 @@ export function resetDeckOnSignOut() {
   patch({
     activeSongId: null,
     deckSongId: null,
+    readOnlySession: false,
+    songLibraryPath: null,
+    sharedOwnerLabel: null,
     sessionTitle: defaultSessionTitle(),
     error: null,
     hint: '',
@@ -1831,7 +1838,18 @@ export async function loadCloudSongIntoSession(songId: string): Promise<boolean>
   const trackVolumes: Record<number, number> = {}
   for (const track of opened.tracks) trackVolumes[track.id] = 1
 
-  writeActiveSongId(opened.song.id)
+  const readOnly = !opened.isOwner
+  if (opened.isOwner) {
+    writeActiveSongId(opened.song.id)
+  }
+
+  const songLibraryPath = opened.isOwner
+    ? `${opened.song.groupName} / ${opened.song.repertoireName}`
+    : null
+  const sharedOwnerLabel = readOnly
+    ? opened.song.ownerPseudo
+    : null
+
   patch({
     tracks: opened.tracks,
     trackCounter: opened.tracks.length,
@@ -1844,18 +1862,33 @@ export async function loadCloudSongIntoSession(songId: string): Promise<boolean>
     trackVolumes,
     masterVolume: 1,
     sessionTitle: opened.song.name,
-    activeSongId: opened.song.id,
-    deckSongId: opened.song.id,
+    activeSongId: opened.isOwner ? opened.song.id : null,
+    deckSongId: opened.isOwner ? opened.song.id : null,
+    readOnlySession: readOnly,
+    songLibraryPath,
+    sharedOwnerLabel,
     calageMode: false,
-    mixMode: false,
+    mixMode: readOnly,
     mixSeekMs: 0,
     mixClockText: '00:00.000',
     error: null,
+    ...(readOnly
+      ? {
+          referenceBeatWarning: null,
+          referenceBeatDismissedKey: '',
+          skewWarningMessage: null,
+          skewWarningDismissedKey: '',
+          skewWarningShowOpenAdvanced: false,
+          refPeaksLabel: '',
+        }
+      : {}),
   })
   clearRefPeaks()
   updateSessionTimerDisplay()
-  refreshSkewWarning()
-  if (opened.tracks.length > 0) void evaluateReferenceBeat()
+  if (!readOnly) {
+    refreshSkewWarning()
+    if (opened.tracks.length > 0) void evaluateReferenceBeat()
+  }
   return true
 }
 
@@ -1864,8 +1897,13 @@ export async function loadCloudSongIntoSession(songId: string): Promise<boolean>
  * hydrate it (e.g. after refresh or closing the library).
  */
 export async function hydrateActiveSongIfNeeded(): Promise<void> {
-  const { activeSongId, deckSongId, state } = get()
-  if (!activeSongId || activeSongId === deckSongId || state === 'recording') {
+  const { activeSongId, deckSongId, state, readOnlySession } = get()
+  if (
+    readOnlySession ||
+    !activeSongId ||
+    activeSongId === deckSongId ||
+    state === 'recording'
+  ) {
     return
   }
   await loadCloudSongIntoSession(activeSongId)
@@ -1876,6 +1914,7 @@ export function normalizeAndSetSessionTitle(raw: string) {
   const name = normalizeSessionTitle(raw)
   patch({ sessionTitle: name })
 
+  if (get().readOnlySession) return
   const songId = get().activeSongId
   if (!songId || !name) return
 

@@ -30,11 +30,17 @@ export function DeckMain({ className }: DeckMainProps) {
   const error = useSessionStore((s) => s.error)
   const keyboardHintsEnabled = useSessionStore((s) => s.keyboardHintsEnabled)
   const tracks = useSessionStore((s) => s.tracks)
+  const readOnlySession = useSessionStore((s) => s.readOnlySession)
+  const songLibraryPath = useSessionStore((s) => s.songLibraryPath)
+  const sharedOwnerLabel = useSessionStore((s) => s.sharedOwnerLabel)
   const titleRef = useRef<HTMLTextAreaElement>(null)
 
   const defaultName = isDefaultSessionTitle(sessionTitle)
   const titleAria = t('session.title.aria')
   const showModes = tracks.length > 0
+  const consultationCredit = readOnlySession
+    ? sharedOwnerLabel?.trim() || t('song.view.shared')
+    : null
 
   useLayoutEffect(() => {
     const el = titleRef.current
@@ -46,26 +52,42 @@ export function DeckMain({ className }: DeckMainProps) {
   return (
     <div className={cn(className)}>
       <div className="relative mb-6 grid grid-cols-[1fr_auto_1fr] items-start gap-3">
-        <textarea
+        <div className="col-start-2 flex w-[min(100%,22rem)] min-w-0 flex-col items-center justify-self-center">
+          {songLibraryPath && !readOnlySession ? (
+            <p className="m-0 mb-1 max-w-full truncate text-center text-[0.72rem] font-semibold tracking-[0.02em] text-ink-soft">
+              {songLibraryPath}
+            </p>
+          ) : null}
+          <textarea
           ref={titleRef}
           rows={1}
+          readOnly={readOnlySession}
           className={cn(
-            'col-start-2 justify-self-center w-[min(100%,22rem)] min-w-0 resize-none overflow-hidden border-0 bg-transparent font-[inherit] font-bold text-[1.35rem] leading-[1.25] text-center py-[0.2rem] px-[0.45rem] rounded-[10px] [font-synthesis:style] field-sizing-content',
-            'hover:bg-ink/6 focus:bg-ink/6 focus:outline-none focus:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ink)_18%,transparent)]',
-            defaultName
+            'w-full min-w-0 resize-none overflow-hidden border-0 bg-transparent font-[inherit] font-bold text-[1.35rem] leading-[1.25] text-center py-[0.2rem] px-[0.45rem] rounded-[10px] [font-synthesis:style] field-sizing-content',
+            readOnlySession
+              ? 'text-ink cursor-default'
+              : 'hover:bg-ink/6 focus:bg-ink/6 focus:outline-none focus:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ink)_18%,transparent)]',
+            !readOnlySession && defaultName
               ? 'text-ink-soft italic font-semibold'
-              : 'text-ink',
+              : !readOnlySession
+                ? 'text-ink'
+                : null,
           )}
           data-session-title
           value={sessionTitle}
           maxLength={60}
           aria-label={titleAria}
-          title={withShortcut(titleAria, 'F2', keyboardHintsEnabled)}
+          title={
+            readOnlySession
+              ? titleAria
+              : withShortcut(titleAria, 'F2', keyboardHintsEnabled)
+          }
           data-title-base={titleAria}
           spellCheck={false}
-          onChange={(event) =>
+          onChange={(event) => {
+            if (readOnlySession) return
             setSessionTitle(event.target.value.replace(/\n/g, ' '))
-          }
+          }}
           onKeyDown={(event) => {
             if (event.key === 'Enter') {
               event.preventDefault()
@@ -73,6 +95,7 @@ export function DeckMain({ className }: DeckMainProps) {
             }
           }}
           onFocus={(event) => {
+            if (readOnlySession) return
             if (!isDefaultSessionTitle(event.currentTarget.value)) return
             event.currentTarget.select()
             event.currentTarget.addEventListener(
@@ -85,9 +108,16 @@ export function DeckMain({ className }: DeckMainProps) {
             )
           }}
           onBlur={(event) => {
+            if (readOnlySession) return
             normalizeAndSetSessionTitle(event.currentTarget.value)
           }}
         />
+          {consultationCredit ? (
+            <p className="m-0 mt-1 max-w-full truncate text-center text-[0.72rem] font-semibold tracking-[0.02em] text-ink-soft">
+              {consultationCredit}
+            </p>
+          ) : null}
+        </div>
         <div
           className="col-start-3 justify-self-end pt-[0.35rem] tabular-nums font-semibold tracking-[0.04em] text-ink-soft"
           data-timer
@@ -102,7 +132,7 @@ export function DeckMain({ className }: DeckMainProps) {
 
       <ErrorBanner hidden={!error}>{error}</ErrorBanner>
 
-      <CalagePanel />
+      {!readOnlySession ? <CalagePanel /> : null}
 
       {user || showModes ? (
         <div

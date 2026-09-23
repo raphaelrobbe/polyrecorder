@@ -40,6 +40,7 @@ export function TracksList({ className }: TracksListProps) {
   const state = useSessionStore((s) => s.state)
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
+  const readOnlySession = useSessionStore((s) => s.readOnlySession)
   const masterVolume = useSessionStore((s) => s.masterVolume)
   const enabledTrackIds = useSessionStore((s) => s.enabledTrackIds)
   const autoAlignTrackIds = useSessionStore((s) => s.autoAlignTrackIds)
@@ -264,8 +265,8 @@ export function TracksList({ className }: TracksListProps) {
               icon={<IconTrash />}
               aria-label={t('tracks.deleteAll')}
               title={t('tracks.deleteAll')}
-              hidden={calageMode || mixMode}
-              disabled={state === 'recording'}
+              hidden={calageMode || mixMode || readOnlySession}
+              disabled={state === 'recording' || readOnlySession}
               onClick={() => {
                 const count = tracks.length
                 const ok = window.confirm(
@@ -406,7 +407,7 @@ export function TracksList({ className }: TracksListProps) {
       <div
         className="relative mt-4 flex flex-wrap items-center gap-x-3 gap-y-[0.55rem] rounded-[14px] border-[1.5px] border-warn-border bg-warn-bg py-[0.85rem] pr-[2.1rem] pl-[0.95rem] text-[0.88rem] leading-[1.35] text-warn [&_strong]:font-extrabold [&_strong]:tracking-[0.02em]"
         data-skew-warning
-        hidden={!skewWarningMessage}
+        hidden={!skewWarningMessage || readOnlySession}
         title={t('warn.skew.tooltip')}
       >
         <button

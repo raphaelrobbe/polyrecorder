@@ -61,6 +61,12 @@ export type SessionStoreState = {
   activeSongId: string | null
   /** Cloud song currently loaded on the deck (may be empty). */
   deckSongId: string | null
+  /** Shared public song viewed without ownership (no mutate / record). */
+  readOnlySession: boolean
+  /** Breadcrumb for the owned cloud song on the deck. */
+  songLibraryPath: string | null
+  /** Owner display for a shared song in consultation (pseudo or null). */
+  sharedOwnerLabel: string | null
 
   /** Mirrored from runtime for UI (persisted via runtime setters). */
   latencyTrimMs: number
@@ -153,6 +159,9 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   autoCloudSave: true,
   activeSongId: null,
   deckSongId: null,
+  readOnlySession: false,
+  songLibraryPath: null,
+  sharedOwnerLabel: null,
 
   // Hydrated from audio runtime on the client (refreshDeviceSnapshot / init).
   latencyTrimMs: 0,
