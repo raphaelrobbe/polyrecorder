@@ -17,15 +17,17 @@ export async function sendMail(options: {
   subject: string
   text: string
   html: string
-}): Promise<{ ok: true } | { ok: false; reason: string }> {
+}): Promise<{ ok: true } | { ok: false; reason: string; detail?: string }> {
   const smtp = getSmtpConfig()
   if (!smtp) {
     if (process.env.NODE_ENV === 'production') {
-      console.error(
-        '[email] SMTP not configured — missing:',
-        smtpMissingFields().join(', ') || '(unknown)',
-      )
-      return { ok: false, reason: 'smtp_not_configured' }
+      const missing = smtpMissingFields().join(', ') || '(unknown)'
+      console.error('[email] SMTP not configured — missing:', missing)
+      return {
+        ok: false,
+        reason: 'smtp_not_configured',
+        detail: `missing ${missing}`,
+      }
     }
     console.info('[email:dev] SMTP not configured — message dumped:\n', {
       to: options.to,
@@ -35,17 +37,17 @@ export async function sendMail(options: {
     return { ok: true }
   }
 
-  const transporter = nodemailer.createTransport({
-    host: smtp.host,
-    port: smtp.port,
-    secure: smtp.port === 465,
-    auth: {
-      user: smtp.user,
-      pass: smtp.pass,
-    },
-  })
-
   try {
+    const transporter = nodemailer.createTransport({
+      host: smtp.host,
+      port: smtp.port,
+      secure: smtp.port === 465,
+      auth: {
+        user: smtp.user,
+        pass: smtp.pass,
+      },
+    })
+
     await transporter.sendMail({
       from: smtp.from,
       to: options.to,
@@ -55,7 +57,11 @@ export async function sendMail(options: {
     })
     return { ok: true }
   } catch (error) {
-    console.error('[email] send failed', error)
-    return { ok: false, reason: 'send_failed' }
+    const detail =
+      error instanceof Error
+        ? `${error.name}: ${error.message}`.slice(0, 240)
+        : String(error).slice(0, 240)
+    console.error('[email] send failed', detail, error)
+    return { ok: false, reason: 'send_failed', detail }
   }
 }

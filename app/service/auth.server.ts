@@ -61,10 +61,34 @@ export type MagicLinkFailureReason =
   | 'smtp_not_configured'
   | 'send_failed'
   | 'app_url_missing'
+  | 'db_failed'
 
 export type RequestMagicLinkResult =
   | { ok: true; previewLink?: string }
-  | { ok: false; reason: MagicLinkFailureReason }
+  | { ok: false; reason: MagicLinkFailureReason; detail?: string }
+
+function failureFromUnknown(error: unknown): {
+  reason: MagicLinkFailureReason
+  detail: string
+} {
+  const detail =
+    error instanceof Error
+      ? `${error.name}: ${error.message}`.slice(0, 240)
+      : String(error).slice(0, 240)
+  const code =
+    typeof error === 'object' &&
+    error != null &&
+    'code' in error &&
+    typeof (error as { code: unknown }).code === 'string'
+      ? (error as { code: string }).code
+      : ''
+  const looksLikeDb =
+    code.startsWith('P') ||
+    /prisma|database|postgres|ECONNREFUSED|ENOTFOUND|DATABASE_URL/i.test(
+      detail,
+    )
+  return { reason: looksLikeDb ? 'db_failed' : 'email_failed', detail }
+}
 
 /**
  * Creates the User on first request, then emails a one-time link.
@@ -149,8 +173,16 @@ export async function requestMagicLink(
         sent.reason === 'smtp_not_configured' || sent.reason === 'send_failed'
           ? sent.reason
           : 'email_failed'
-      console.error('[auth] magic link email failed', { reason, email })
-      return { ok: false, reason }
+      console.error('[auth] magic link email failed', {
+        reason,
+        detail: sent.detail ?? sent.reason,
+        email,
+      })
+      return {
+        ok: false,
+        reason,
+        detail: sent.detail ?? sent.reason,
+      }
     }
 
     return {
@@ -158,8 +190,9 @@ export async function requestMagicLink(
       previewLink: isProd ? undefined : link,
     }
   } catch (error) {
-    console.error('[auth] requestMagicLink failed', error)
-    return { ok: false, reason: 'email_failed' }
+    const failure = failureFromUnknown(error)
+    console.error('[auth] requestMagicLink failed', failure, error)
+    return { ok: false, ...failure }
   }
 }
 

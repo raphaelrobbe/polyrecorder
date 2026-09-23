@@ -40,8 +40,15 @@ export async function action({ request }: ActionFunctionArgs) {
     const result = await requestMagicLink(email)
 
     if (!result.ok) {
-      console.error('[connexion] magic link failed', { reason: result.reason })
-      return { ok: false as const, reason: result.reason }
+      console.error('[connexion] magic link failed', {
+        reason: result.reason,
+        detail: result.detail,
+      })
+      return {
+        ok: false as const,
+        reason: result.reason,
+        detail: result.detail,
+      }
     }
 
     const params = new URLSearchParams()
@@ -53,8 +60,16 @@ export async function action({ request }: ActionFunctionArgs) {
       result.previewLink,
     )
   } catch (error) {
-    console.error('[connexion] action failed', error)
-    return { ok: false as const, reason: 'email_failed' as const }
+    const detail =
+      error instanceof Error
+        ? `${error.name}: ${error.message}`.slice(0, 240)
+        : String(error).slice(0, 240)
+    console.error('[connexion] action failed', detail, error)
+    return {
+      ok: false as const,
+      reason: 'email_failed' as const,
+      detail,
+    }
   }
 }
 
@@ -67,7 +82,11 @@ export default function ConnexionRoute() {
 
   useEffect(() => {
     if (actionData && actionData.ok === false) {
-      console.error('[connexion] actionData.reason =', actionData.reason)
+      console.error(
+        '[connexion] actionData.reason =',
+        actionData.reason,
+        actionData.detail ? `| detail = ${actionData.detail}` : '',
+      )
     }
   }, [actionData])
 
