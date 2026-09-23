@@ -8,12 +8,12 @@ GitHub Pages cannot host SSR. The Pages workflow on `main` remains for the legac
 
 ```bash
 bun install
-bun run dev      # remix vite:dev — http://localhost:5173/polyrecorder/
+bun run dev      # remix vite:dev — http://localhost:5173/
 bun run build
 bun run start    # serves ./build/server/index.js
 ```
 
-Basename: `/polyrecorder/` (container and reverse proxy must expose the app under that path).
+Served at `/` (routes `/`, `/parametres`, `/aide`).
 
 ## Docker (Scaleway)
 
@@ -22,7 +22,7 @@ docker build -t polyrecorder .
 # if bun install hangs in Docker:
 docker build --network=host -t polyrecorder .
 docker run --rm -p 8080:8080 -e PORT=8080 polyrecorder
-# → http://localhost:8080/polyrecorder/
+# → http://localhost:8080/
 ```
 
 The image builds with Bun and runs with Node (React 19 + Bun breaks `react-dom/server`). `remix-serve` listens on `PORT` (default `8080`; Scaleway overrides it).
@@ -37,7 +37,7 @@ Repo secrets:
 |--------|------|
 | `SCW_DOCKER_REGISTRY` | Registry host, e.g. `rg.fr-par.scw.cloud/<namespace>` |
 | `SCW_SECRET_KEY` | Scaleway API / registry password (`nologin`) |
-| `SCW_CONTAINER_ID` | Serverless Container UUID to redeploy |
+| `SCW_CONTAINER_ID` | Serverless Container UUID to redeploy (optional until the container exists) |
 
 Optional variable: `SCW_REGION` (default `fr-par`).
 

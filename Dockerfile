@@ -1,7 +1,7 @@
 # PolyRecorder — Remix SSR image for Scaleway Containers
 # Build:  docker build -t polyrecorder .
 # Run:    docker run --rm -p 8080:8080 -e PORT=8080 polyrecorder
-# App URL path: /polyrecorder/ (Vite/Remix basename)
+# App URL: http://localhost:8080/
 #
 # Build with Bun; serve with Node — remix-serve + React 19 crashes under Bun
 # (`react-dom/server.bun.js` TypeError).

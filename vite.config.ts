@@ -6,17 +6,20 @@ import tsconfigPaths from 'vite-tsconfig-paths'
 
 installGlobals()
 
+declare module '@remix-run/node' {
+  interface Future {
+    v3_singleFetch: true
+  }
+}
+
 export default defineConfig({
-  base: '/polyrecorder/',
   plugins: [
     remix({
-      basename: '/polyrecorder/',
       future: {
-        // v3_singleFetch omitted: with basename it requests `/polyrecorder.data`
-        // (outside the Vite base) when navigating back to `/` — Remix #10212.
         v3_lazyRouteDiscovery: true,
         v3_fetcherPersist: true,
         v3_relativeSplatPath: true,
+        v3_singleFetch: true,
         v3_throwAbortReason: true,
       },
     }),
