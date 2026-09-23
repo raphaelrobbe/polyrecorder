@@ -3,7 +3,6 @@ import { t } from '~/lib/i18n'
 import { createOpaqueToken, hashToken } from './crypto.server'
 import { prisma } from './db.server'
 import { sendMail } from './email.server'
-import { getAppUrl } from './env.server'
 import { getSessionToken } from './session.server'
 
 const MAGIC_LINK_TTL_MS = 30 * 60 * 1000 // 30 minutes
@@ -60,9 +59,9 @@ export type RequestMagicLinkResult =
   | { ok: false; reason: 'invalid_email' | 'rate_limited' | 'email_failed' }
 
 /**
- * Creates the User on first request (upsert), then emails a one-time link.
- * Always returns the same success shape for unknown vs known emails
- * (after validation), to avoid account enumeration.
+ * Creates the User on first request, then emails a one-time link.
+ * HTTP response shape is identical for new vs existing emails (no enumeration).
+ * Email copy differs: welcome for first-time accounts, simpler for sign-in.
  * In non-production, also returns `previewLink` so the UI can complete
  * sign-up without relying on SMTP.
  */
@@ -81,6 +80,12 @@ export async function requestMagicLink(
   if (recentCount >= MAGIC_LINK_RATE_LIMIT) {
     return { ok: false, reason: 'rate_limited' }
   }
+
+  const existing = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true },
+  })
+  const isNewAccount = existing == null
 
   const user = await prisma.user.upsert({
     where: { email },
@@ -102,14 +107,31 @@ export async function requestMagicLink(
     },
   })
 
-  const link = `${getAppUrl()}/auth/callback?token=${encodeURIComponent(rawToken)}`
+  const appUrl = process.env.APP_URL?.trim()?.replace(/\/$/, '')
+  if (!appUrl) {
+    console.error('[auth] APP_URL is not set — cannot build magic link')
+    return { ok: false, reason: 'email_failed' }
+  }
+
+  const link = `${appUrl}/auth/callback?token=${encodeURIComponent(rawToken)}`
   // Emails default to French until we persist a preferred locale on User.
   const locale = 'fr' as const
+  const keys = isNewAccount
+    ? {
+        subject: 'auth.email.welcome.subject' as const,
+        text: 'auth.email.welcome.text' as const,
+        html: 'auth.email.welcome.html' as const,
+      }
+    : {
+        subject: 'auth.email.signIn.subject' as const,
+        text: 'auth.email.signIn.text' as const,
+        html: 'auth.email.signIn.html' as const,
+      }
   const sent = await sendMail({
     to: email,
-    subject: t('auth.email.subject', undefined, locale),
-    text: t('auth.email.text', { link }, locale),
-    html: t('auth.email.html', { link }, locale),
+    subject: t(keys.subject, undefined, locale),
+    text: t(keys.text, { link }, locale),
+    html: t(keys.html, { link }, locale),
   })
 
   const isProd = process.env.NODE_ENV === 'production'
@@ -415,7 +437,13 @@ export async function updateProfileForRequest(
     },
   })
 
-  const link = `${getAppUrl()}/auth/callback?token=${encodeURIComponent(rawToken)}&next=${encodeURIComponent('/compte')}`
+  const appUrl = process.env.APP_URL?.trim()?.replace(/\/$/, '')
+  if (!appUrl) {
+    console.error('[auth] APP_URL is not set — cannot build email-change link')
+    return { ok: false, reason: 'email_failed' }
+  }
+
+  const link = `${appUrl}/auth/callback?token=${encodeURIComponent(rawToken)}&next=${encodeURIComponent('/compte')}`
   const locale = 'fr' as const
   const sent = await sendMail({
     to: email,

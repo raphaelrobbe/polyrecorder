@@ -73,16 +73,21 @@ export const fr = {
   'auth.error.linkInvalid': 'Lien de connexion invalide.',
   'auth.error.linkExpired': 'Ce lien a expiré. Demande-en un nouveau.',
   'auth.error.linkUsed': 'Ce lien a déjà été utilisé. Demande-en un nouveau.',
-  'auth.email.subject': 'Ton lien PolyRecorder',
-  'auth.email.text':
-    'Voici ton lien pour te connecter à PolyRecorder (ou créer ton compte). Valable 30 minutes, usage unique :\n\n{link}\n\nSi tu n’es pas à l’origine de cette demande, ignore cet email.',
-  'auth.email.html':
-    '<p>Voici ton lien pour te connecter à <strong>PolyRecorder</strong> (ou créer ton compte). Valable 30&nbsp;minutes, usage unique&nbsp;:</p><p><a href="{link}">Continuer</a></p><p>Si tu n’es pas à l’origine de cette demande, ignore cet email.</p>',
-  'auth.emailChange.subject': 'Confirme ton nouvel email PolyRecorder',
+  'auth.email.welcome.subject': 'Bienvenue sur PolyRecorder',
+  'auth.email.welcome.text':
+    'Bienvenue ! Ton compte PolyRecorder est prêt.\n\nPour l’activer et te connecter, ouvre ce lien (valable 30 minutes, usage unique) :\n\n{link}\n\nEnsuite tu pourras enregistrer, superposer et télécharger tes prises.\n\nSi tu n’es pas à l’origine de cette demande, ignore cet email.',
+  'auth.email.welcome.html':
+    '<p>Bienvenue&nbsp;! Ton compte <strong>PolyRecorder</strong> est prêt.</p><p>Pour l’activer et te connecter, ouvre ce lien (valable 30&nbsp;minutes, usage unique)&nbsp;:</p><p><a href="{link}">Activer mon compte</a></p><p>Ensuite tu pourras enregistrer, superposer et télécharger tes prises.</p><p>Si tu n’es pas à l’origine de cette demande, ignore cet email.</p>',
+  'auth.email.signIn.subject': 'Ton lien de connexion PolyRecorder',
+  'auth.email.signIn.text':
+    'Voici ton lien de connexion à PolyRecorder (valable 30 minutes, usage unique) :\n\n{link}\n\nSi tu n’es pas à l’origine de cette demande, ignore cet email.',
+  'auth.email.signIn.html':
+    '<p>Voici ton lien de connexion à <strong>PolyRecorder</strong> (valable 30&nbsp;minutes, usage unique)&nbsp;:</p><p><a href="{link}">Se connecter</a></p><p>Si tu n’es pas à l’origine de cette demande, ignore cet email.</p>',
+  'auth.emailChange.subject': 'Demande de modification d’email PolyRecorder',
   'auth.emailChange.text':
-    'Voici le lien pour confirmer ton nouvel email sur PolyRecorder. Valable 30 minutes, usage unique :\n\n{link}\n\nSi tu n’es pas à l’origine de cette demande, ignore cet email.',
+    'Une demande de modification de l’adresse email liée à un compte PolyRecorder a été faite pour cette boîte mail.\n\nSi tu n’es pas à l’origine de cette demande, ignore cet email : ton adresse ne changera pas.\n\nSinon, confirme le changement en ouvrant ce lien (valable 30 minutes, usage unique) :\n\n{link}',
   'auth.emailChange.html':
-    '<p>Voici le lien pour confirmer ton nouvel email sur <strong>PolyRecorder</strong>. Valable 30&nbsp;minutes, usage unique&nbsp;:</p><p><a href="{link}">Confirmer l’email</a></p><p>Si tu n’es pas à l’origine de cette demande, ignore cet email.</p>',
+    '<p>Une demande de modification de l’adresse email liée à un compte <strong>PolyRecorder</strong> a été faite pour cette boîte mail.</p><p>Si tu n’es pas à l’origine de cette demande, ignore cet email&nbsp;: ton adresse ne changera pas.</p><p>Sinon, confirme le changement en ouvrant ce lien (valable 30&nbsp;minutes, usage unique)&nbsp;:</p><p><a href="{link}">Confirmer mon nouvel email</a></p>',
 
   'locale.select.aria': 'Choisir la langue',
   'settings.language': 'Langue :',

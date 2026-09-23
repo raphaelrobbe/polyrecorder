@@ -75,16 +75,21 @@ export const en: Record<MessageKey, string> = {
   'auth.error.linkInvalid': 'Invalid sign-in link.',
   'auth.error.linkExpired': 'This link has expired. Request a new one.',
   'auth.error.linkUsed': 'This link was already used. Request a new one.',
-  'auth.email.subject': 'Your PolyRecorder link',
-  'auth.email.text':
-    'Here is your link to sign in to PolyRecorder (or create your account). Valid 30 minutes, one-time use:\n\n{link}\n\nIf you did not request this, you can ignore this email.',
-  'auth.email.html':
-    '<p>Here is your link to sign in to <strong>PolyRecorder</strong> (or create your account). Valid 30&nbsp;minutes, one-time use:</p><p><a href="{link}">Continue</a></p><p>If you did not request this, you can ignore this email.</p>',
-  'auth.emailChange.subject': 'Confirm your new PolyRecorder email',
+  'auth.email.welcome.subject': 'Welcome to PolyRecorder',
+  'auth.email.welcome.text':
+    'Welcome! Your PolyRecorder account is ready.\n\nTo activate it and sign in, open this link (valid 30 minutes, one-time use):\n\n{link}\n\nThen you can record, layer, and download your takes.\n\nIf you did not request this, you can ignore this email.',
+  'auth.email.welcome.html':
+    '<p>Welcome! Your <strong>PolyRecorder</strong> account is ready.</p><p>To activate it and sign in, open this link (valid 30&nbsp;minutes, one-time use):</p><p><a href="{link}">Activate my account</a></p><p>Then you can record, layer, and download your takes.</p><p>If you did not request this, you can ignore this email.</p>',
+  'auth.email.signIn.subject': 'Your PolyRecorder sign-in link',
+  'auth.email.signIn.text':
+    'Here is your PolyRecorder sign-in link (valid 30 minutes, one-time use):\n\n{link}\n\nIf you did not request this, you can ignore this email.',
+  'auth.email.signIn.html':
+    '<p>Here is your <strong>PolyRecorder</strong> sign-in link (valid 30&nbsp;minutes, one-time use):</p><p><a href="{link}">Sign in</a></p><p>If you did not request this, you can ignore this email.</p>',
+  'auth.emailChange.subject': 'PolyRecorder email change request',
   'auth.emailChange.text':
-    'Here is the link to confirm your new email on PolyRecorder. Valid 30 minutes, one-time use:\n\n{link}\n\nIf you did not request this, you can ignore this email.',
+    'A request was made to change the email address linked to a PolyRecorder account to this inbox.\n\nIf you did not make this request, ignore this email — your address will not change.\n\nOtherwise, confirm the change by opening this link (valid 30 minutes, one-time use):\n\n{link}',
   'auth.emailChange.html':
-    '<p>Here is the link to confirm your new email on <strong>PolyRecorder</strong>. Valid 30&nbsp;minutes, one-time use:</p><p><a href="{link}">Confirm email</a></p><p>If you did not request this, you can ignore this email.</p>',
+    '<p>A request was made to change the email address linked to a <strong>PolyRecorder</strong> account to this inbox.</p><p>If you did not make this request, ignore this email — your address will not change.</p><p>Otherwise, confirm the change by opening this link (valid 30&nbsp;minutes, one-time use):</p><p><a href="{link}">Confirm my new email</a></p>',
 
   'locale.select.aria': 'Choose language',
   'settings.language': 'Language:',

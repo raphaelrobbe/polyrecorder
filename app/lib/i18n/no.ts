@@ -75,16 +75,21 @@ export const no: Record<MessageKey, string> = {
   'auth.error.linkInvalid': 'Ugyldig innloggingslenke.',
   'auth.error.linkExpired': 'Denne lenken er utløpt. Be om en ny.',
   'auth.error.linkUsed': 'Denne lenken er allerede brukt. Be om en ny.',
-  'auth.email.subject': 'Din PolyRecorder-lenke',
-  'auth.email.text':
-    'Her er lenken for å logge inn på PolyRecorder (eller opprette konto). Gyldig i 30 minutter, engangsbruk:\n\n{link}\n\nHvis du ikke ba om dette, kan du ignorere denne e-posten.',
-  'auth.email.html':
-    '<p>Her er lenken for å logge inn på <strong>PolyRecorder</strong> (eller opprette konto). Gyldig i 30&nbsp;minutter, engangsbruk:</p><p><a href="{link}">Fortsett</a></p><p>Hvis du ikke ba om dette, kan du ignorere denne e-posten.</p>',
-  'auth.emailChange.subject': 'Bekreft ny e-post for PolyRecorder',
+  'auth.email.welcome.subject': 'Velkommen til PolyRecorder',
+  'auth.email.welcome.text':
+    'Velkommen! PolyRecorder-kontoen din er klar.\n\nFor å aktivere den og logge inn, åpne denne lenken (gyldig i 30 minutter, engangsbruk):\n\n{link}\n\nDeretter kan du ta opp, legge lag på lag og laste ned.\n\nHvis du ikke ba om dette, kan du ignorere denne e-posten.',
+  'auth.email.welcome.html':
+    '<p>Velkommen&nbsp;! <strong>PolyRecorder</strong>-kontoen din er klar.</p><p>For å aktivere den og logge inn, åpne denne lenken (gyldig i 30&nbsp;minutter, engangsbruk):</p><p><a href="{link}">Aktiver kontoen min</a></p><p>Deretter kan du ta opp, legge lag på lag og laste ned.</p><p>Hvis du ikke ba om dette, kan du ignorere denne e-posten.</p>',
+  'auth.email.signIn.subject': 'Innloggingslenken din til PolyRecorder',
+  'auth.email.signIn.text':
+    'Her er innloggingslenken din til PolyRecorder (gyldig i 30 minutter, engangsbruk):\n\n{link}\n\nHvis du ikke ba om dette, kan du ignorere denne e-posten.',
+  'auth.email.signIn.html':
+    '<p>Her er innloggingslenken din til <strong>PolyRecorder</strong> (gyldig i 30&nbsp;minutter, engangsbruk):</p><p><a href="{link}">Logg inn</a></p><p>Hvis du ikke ba om dette, kan du ignorere denne e-posten.</p>',
+  'auth.emailChange.subject': 'Forespørsel om e-postendring for PolyRecorder',
   'auth.emailChange.text':
-    'Her er lenken for å bekrefte din nye e-post på PolyRecorder. Gyldig i 30 minutter, engangsbruk:\n\n{link}\n\nHvis du ikke ba om dette, kan du ignorere denne e-posten.',
+    'Det er bedt om å endre e-postadressen knyttet til en PolyRecorder-konto til denne innboksen.\n\nHvis du ikke ba om dette, kan du ignorere e-posten — adressen din endres ikke.\n\nEllers bekreft endringen ved å åpne denne lenken (gyldig i 30 minutter, engangsbruk):\n\n{link}',
   'auth.emailChange.html':
-    '<p>Her er lenken for å bekrefte din nye e-post på <strong>PolyRecorder</strong>. Gyldig i 30&nbsp;minutter, engangsbruk:</p><p><a href="{link}">Bekreft e-post</a></p><p>Hvis du ikke ba om dette, kan du ignorere denne e-posten.</p>',
+    '<p>Det er bedt om å endre e-postadressen knyttet til en <strong>PolyRecorder</strong>-konto til denne innboksen.</p><p>Hvis du ikke ba om dette, kan du ignorere e-posten — adressen din endres ikke.</p><p>Ellers bekreft endringen ved å åpne denne lenken (gyldig i 30&nbsp;minutter, engangsbruk):</p><p><a href="{link}">Bekreft ny e-post</a></p>',
 
   'locale.select.aria': 'Velg språk',
   'settings.language': 'Språk:',

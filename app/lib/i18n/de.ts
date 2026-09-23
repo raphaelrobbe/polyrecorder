@@ -75,16 +75,21 @@ export const de: Record<MessageKey, string> = {
   'auth.error.linkInvalid': 'Ungültiger Anmelde-Link.',
   'auth.error.linkExpired': 'Dieser Link ist abgelaufen. Fordere einen neuen an.',
   'auth.error.linkUsed': 'Dieser Link wurde bereits verwendet. Fordere einen neuen an.',
-  'auth.email.subject': 'Dein PolyRecorder-Link',
-  'auth.email.text':
-    'Hier ist dein Link, um dich bei PolyRecorder anzumelden (oder ein Konto zu erstellen). 30 Minuten gültig, einmalig:\n\n{link}\n\nWenn du das nicht angefordert hast, ignoriere diese E-Mail.',
-  'auth.email.html':
-    '<p>Hier ist dein Link, um dich bei <strong>PolyRecorder</strong> anzumelden (oder ein Konto zu erstellen). 30&nbsp;Minuten gültig, einmalig:</p><p><a href="{link}">Weiter</a></p><p>Wenn du das nicht angefordert hast, ignoriere diese E-Mail.</p>',
-  'auth.emailChange.subject': 'Bestätige deine neue PolyRecorder-E-Mail',
+  'auth.email.welcome.subject': 'Willkommen bei PolyRecorder',
+  'auth.email.welcome.text':
+    'Willkommen! Dein PolyRecorder-Konto ist bereit.\n\nZum Aktivieren und Anmelden öffne diesen Link (30 Minuten gültig, einmalig):\n\n{link}\n\nDanach kannst du Aufnahmen machen, überlagern und herunterladen.\n\nWenn du das nicht angefordert hast, ignoriere diese E-Mail.',
+  'auth.email.welcome.html':
+    '<p>Willkommen&nbsp;! Dein <strong>PolyRecorder</strong>-Konto ist bereit.</p><p>Zum Aktivieren und Anmelden öffne diesen Link (30&nbsp;Minuten gültig, einmalig):</p><p><a href="{link}">Konto aktivieren</a></p><p>Danach kannst du Aufnahmen machen, überlagern und herunterladen.</p><p>Wenn du das nicht angefordert hast, ignoriere diese E-Mail.</p>',
+  'auth.email.signIn.subject': 'Dein PolyRecorder-Anmelde-Link',
+  'auth.email.signIn.text':
+    'Hier ist dein Anmelde-Link für PolyRecorder (30 Minuten gültig, einmalig):\n\n{link}\n\nWenn du das nicht angefordert hast, ignoriere diese E-Mail.',
+  'auth.email.signIn.html':
+    '<p>Hier ist dein Anmelde-Link für <strong>PolyRecorder</strong> (30&nbsp;Minuten gültig, einmalig):</p><p><a href="{link}">Anmelden</a></p><p>Wenn du das nicht angefordert hast, ignoriere diese E-Mail.</p>',
+  'auth.emailChange.subject': 'Anfrage zur E-Mail-Änderung bei PolyRecorder',
   'auth.emailChange.text':
-    'Hier ist der Link, um deine neue E-Mail bei PolyRecorder zu bestätigen. 30 Minuten gültig, einmalig:\n\n{link}\n\nWenn du das nicht angefordert hast, ignoriere diese E-Mail.',
+    'Es wurde beantragt, die E-Mail-Adresse eines PolyRecorder-Kontos auf dieses Postfach zu ändern.\n\nWenn du das nicht angefordert hast, ignoriere diese E-Mail — deine Adresse ändert sich nicht.\n\nAndernfalls bestätige die Änderung mit diesem Link (30 Minuten gültig, einmalig):\n\n{link}',
   'auth.emailChange.html':
-    '<p>Hier ist der Link, um deine neue E-Mail bei <strong>PolyRecorder</strong> zu bestätigen. 30&nbsp;Minuten gültig, einmalig:</p><p><a href="{link}">E-Mail bestätigen</a></p><p>Wenn du das nicht angefordert hast, ignoriere diese E-Mail.</p>',
+    '<p>Es wurde beantragt, die E-Mail-Adresse eines <strong>PolyRecorder</strong>-Kontos auf dieses Postfach zu ändern.</p><p>Wenn du das nicht angefordert hast, ignoriere diese E-Mail — deine Adresse ändert sich nicht.</p><p>Andernfalls bestätige die Änderung mit diesem Link (30&nbsp;Minuten gültig, einmalig):</p><p><a href="{link}">Neue E-Mail bestätigen</a></p>',
 
   'locale.select.aria': 'Sprache wählen',
   'settings.language': 'Sprache:',
