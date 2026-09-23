@@ -54,9 +54,17 @@ export async function getUserFromRequest(
   }
 }
 
+export type MagicLinkFailureReason =
+  | 'invalid_email'
+  | 'rate_limited'
+  | 'email_failed'
+  | 'smtp_not_configured'
+  | 'send_failed'
+  | 'app_url_missing'
+
 export type RequestMagicLinkResult =
   | { ok: true; previewLink?: string }
-  | { ok: false; reason: 'invalid_email' | 'rate_limited' | 'email_failed' }
+  | { ok: false; reason: MagicLinkFailureReason }
 
 /**
  * Creates the User on first request, then emails a one-time link.
@@ -111,7 +119,7 @@ export async function requestMagicLink(
     const appUrl = process.env.APP_URL?.trim()?.replace(/\/$/, '')
     if (!appUrl) {
       console.error('[auth] APP_URL is not set — cannot build magic link')
-      return { ok: false, reason: 'email_failed' }
+      return { ok: false, reason: 'app_url_missing' }
     }
 
     const link = `${appUrl}/auth/callback?token=${encodeURIComponent(rawToken)}`
@@ -137,7 +145,12 @@ export async function requestMagicLink(
 
     const isProd = process.env.NODE_ENV === 'production'
     if (!sent.ok && isProd) {
-      return { ok: false, reason: 'email_failed' }
+      const reason: MagicLinkFailureReason =
+        sent.reason === 'smtp_not_configured' || sent.reason === 'send_failed'
+          ? sent.reason
+          : 'email_failed'
+      console.error('[auth] magic link email failed', { reason, email })
+      return { ok: false, reason }
     }
 
     return {

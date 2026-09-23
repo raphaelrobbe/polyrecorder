@@ -9,6 +9,7 @@ import {
   useLoaderData,
   useNavigation,
 } from '@remix-run/react'
+import { useEffect } from 'react'
 import { AuthCloseButton } from '~/components/AuthCloseButton'
 import { Brand } from '~/components/Brand'
 import { Button } from '~/components/Button'
@@ -39,6 +40,7 @@ export async function action({ request }: ActionFunctionArgs) {
     const result = await requestMagicLink(email)
 
     if (!result.ok) {
+      console.error('[connexion] magic link failed', { reason: result.reason })
       return { ok: false as const, reason: result.reason }
     }
 
@@ -62,6 +64,12 @@ export default function ConnexionRoute() {
   const actionData = useActionData<typeof action>()
   const navigation = useNavigation()
   const submitting = navigation.state === 'submitting'
+
+  useEffect(() => {
+    if (actionData && actionData.ok === false) {
+      console.error('[connexion] actionData.reason =', actionData.reason)
+    }
+  }, [actionData])
 
   const errorMessage =
     actionData && actionData.ok === false

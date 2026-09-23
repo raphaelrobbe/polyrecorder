@@ -11,6 +11,7 @@ import {
 import { useEffect } from 'react'
 import { initLocale } from '~/hooks/useLocale'
 import { t } from '~/lib/i18n'
+import { getUserFromRequest } from '~/service/auth.server'
 import stylesheet from '~/tailwind.css?url'
 
 export const links: LinksFunction = () => [
@@ -35,7 +36,6 @@ export const links: LinksFunction = () => [
 /** Cookie session → authenticated user, or null for guests. */
 export async function loader({ request }: LoaderFunctionArgs) {
   try {
-    const { getUserFromRequest } = await import('~/service/auth.server')
     const user = await getUserFromRequest(request)
     return { user }
   } catch (error) {
