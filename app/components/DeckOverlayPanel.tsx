@@ -1,6 +1,6 @@
 import { useNavigate } from '@remix-run/react'
 import { useEffect, useRef, type ReactNode } from 'react'
-import { withShortcut } from '../hooks/useKeyboardShortcuts'
+import { withShortcut } from '../lib/withShortcut'
 import { useLocale } from '../hooks/useLocale'
 import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'

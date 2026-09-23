@@ -7,7 +7,7 @@ import {
 import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
 import { useLocale } from '../hooks/useLocale'
-import { withShortcut } from '../hooks/useKeyboardShortcuts'
+import { withShortcut } from '../lib/withShortcut'
 import { useSessionStore } from '../store/sessionStore'
 import { Button } from './Button'
 import {

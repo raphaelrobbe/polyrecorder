@@ -1,11 +1,7 @@
 import { useEffect } from 'react'
-import { Brand } from './Brand'
-import { Deck } from './Deck'
+import { AppShell } from './AppShell'
 import { DeckMain } from './DeckMain'
-import { MarkingHelp } from './MarkingHelp'
-import { ModeRow } from './ModeRow'
-import { Hint } from './StatusMessage'
-import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts'
+import { useKeyboardShortcuts } from '../hooks/useKeyboardShortcuts.client'
 import {
   getMediaStream,
   releaseMic,
@@ -27,15 +23,12 @@ type RecorderAppProps = {
 }
 
 /**
- * Client-only recorder shell: brand, deck slot, footer utilities, hints.
- * Audio bootstrap lives here so SSR never touches Web Audio APIs.
+ * Client-only recorder shell: AppShell + audio bootstrap / shortcuts.
  */
 export function RecorderApp({
   children,
   showMarkingHelp = false,
 }: RecorderAppProps) {
-  const hint = useSessionStore((s) => s.hint)
-
   useKeyboardShortcuts()
 
   useEffect(() => {
@@ -60,14 +53,8 @@ export function RecorderApp({
   }, [])
 
   return (
-    <main className="flex w-[min(440px,100%)] flex-col gap-7 animate-rise">
-      <Brand />
-
-      <Deck>{children ?? <DeckMain />}</Deck>
-
-      {showMarkingHelp ? <MarkingHelp /> : null}
-      <ModeRow />
-      <Hint>{hint}</Hint>
-    </main>
+    <AppShell showMarkingHelp={showMarkingHelp}>
+      {children ?? <DeckMain />}
+    </AppShell>
   )
 }

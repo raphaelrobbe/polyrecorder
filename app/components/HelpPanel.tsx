@@ -1,4 +1,4 @@
-import { prefersHeadphonesHint } from '../lib/audio/runtime.client'
+import { prefersHeadphonesHint } from '../lib/deviceHint'
 import { useLocale } from '../hooks/useLocale'
 import { t } from '../lib/i18n'
 import { useSessionStore } from '../store/sessionStore'

@@ -4,11 +4,20 @@ import type {
   AudioContextWithSink,
   AudioSinkMode,
 } from '../../common/types'
+import {
+  DEFAULT_MONITOR_LATENCY_S,
+  type SelectableDeviceOption,
+} from '../../common/devices'
+import { prefersHeadphonesHint } from '../deviceHint'
 import { t } from '../i18n'
 
+export {
+  DEFAULT_MONITOR_LATENCY_S,
+  type SelectableDeviceOption,
+} from '../../common/devices'
+export { prefersHeadphonesHint } from '../deviceHint'
+
 export const MIX_LOOKAHEAD_S = 0.12
-/** Fallback when the browser reports no output latency (seconds). */
-export const DEFAULT_MONITOR_LATENCY_S = 0.045
 
 export const LATENCY_TRIM_KEY = 'polyrecorder.latencyTrimMs'
 export const SINK_MONITOR_KEY = 'polyrecorder.sinkMonitor'
@@ -95,11 +104,6 @@ export type AudioDevicesSnapshot = {
   sinkMonitorId: string
   sinkPlaybackId: string
   inputMonitorId: string
-}
-
-export type SelectableDeviceOption = {
-  deviceId: string
-  label: string
 }
 
 // --- Getters / setters for singleton state ---
@@ -247,13 +251,6 @@ export function setInputMonitorId(value: string) {
 
 export function getLastReportedLatencyMs(): number {
   return lastReportedLatencyMs
-}
-
-export function prefersHeadphonesHint(): boolean {
-  return (
-    window.matchMedia('(pointer: coarse)').matches ||
-    /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
-  )
 }
 
 export function supportsAudioSinkSelect(): boolean {

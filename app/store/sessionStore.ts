@@ -6,15 +6,11 @@ import type {
   Track,
   TrackAlignDetail,
 } from '../common/types'
-import { defaultSessionTitle } from '../lib/format'
 import {
   DEFAULT_MONITOR_LATENCY_S,
-  getInputMonitorId,
-  getLatencyTrimMs,
-  getSinkMonitorId,
-  getSinkPlaybackId,
   type SelectableDeviceOption,
-} from '../lib/audio/runtime.client'
+} from '../common/devices'
+import { defaultSessionTitle } from '../lib/format'
 
 export type SessionStoreState = {
   tracks: Track[]
@@ -104,8 +100,6 @@ export type SessionStoreState = {
   patch: (partial: Partial<SessionStoreState>) => void
 }
 
-const initialLatencyTrimMs = getLatencyTrimMs()
-
 export const useSessionStore = create<SessionStoreState>((set) => ({
   tracks: [],
   trackCounter: 0,
@@ -146,7 +140,8 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   skipCountInPlayback: true,
   skipCountInDownload: true,
 
-  latencyTrimMs: initialLatencyTrimMs,
+  // Hydrated from audio runtime on the client (refreshDeviceSnapshot / init).
+  latencyTrimMs: 0,
   lastReportedLatencyMs: Math.round(DEFAULT_MONITOR_LATENCY_S * 1000),
 
   refPeaksLabel: '',
@@ -168,9 +163,9 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   sinkSelectable: false,
   outputOptions: [],
   inputOptions: [],
-  sinkMonitorId: getSinkMonitorId(),
-  sinkPlaybackId: getSinkPlaybackId(),
-  inputMonitorId: getInputMonitorId(),
+  sinkMonitorId: '',
+  sinkPlaybackId: '',
+  inputMonitorId: '',
 
   dragTrackId: null,
   touchReorder: null,

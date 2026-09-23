@@ -5,7 +5,6 @@ import {
   setLocale,
   type Locale,
 } from '../lib/i18n'
-import { rematerializeLocalizedDefaults } from '../lib/sessionActions.client'
 
 const listeners = new Set<() => void>()
 
@@ -28,9 +27,16 @@ function getServerSnapshot(): Locale {
   return 'en'
 }
 
+function rematerializeDefaults(next: Locale) {
+  if (typeof window === 'undefined') return
+  void import('../lib/sessionActions.client').then((mod) => {
+    mod.rematerializeLocalizedDefaults(next)
+  })
+}
+
 function applyLocaleChange(next: Locale) {
   setLocale(next)
-  rematerializeLocalizedDefaults(next)
+  rematerializeDefaults(next)
   emit()
 }
 
@@ -52,6 +58,6 @@ export function useLocale() {
 /** Ensure html[lang] matches stored/detected locale once on the client. */
 export function initLocale() {
   applyLocale()
-  rematerializeLocalizedDefaults(getLocale())
+  rematerializeDefaults(getLocale())
   emit()
 }
