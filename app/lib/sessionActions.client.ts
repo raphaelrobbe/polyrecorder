@@ -71,6 +71,12 @@ import {
   trimAudioBufferFrom,
 } from './audio/mix.client'
 import {
+  beginSaveWithMemory,
+  downloadBlobLegacy,
+  writeSaveTarget,
+} from './fileSystemMemory.client'
+import { resolveImportTrackName } from './audioImportName.client'
+import {
   assessCountInBeat,
   findTakeThreeFourPeaks,
   findVolumePeaks,
@@ -214,16 +220,26 @@ export function refreshSkewWarning() {
     referenceTrackId,
     skewWarningDismissedKey,
     calageMode,
+    showCalageWarnings,
   } = get()
 
-  if (
-    referenceBeatWarning &&
+  if (!showCalageWarnings) {
+    patch({
+      skewWarningMessage: null,
+      skewWarningShowOpenAdvanced: false,
+    })
+    return
+  }
+
+  const beatActive =
+    referenceBeatWarning != null &&
     referenceBeatWarning.key !== referenceBeatDismissedKey
-  ) {
+
+  // Battue warning banner only in calage mode (outside: chip on reference track).
+  if (beatActive && calageMode) {
     patch({
       skewWarningMessage: referenceBeatWarning.message,
-      skewWarningShowOpenAdvanced:
-        !calageMode && referenceBeatWarning.reason !== 'missing',
+      skewWarningShowOpenAdvanced: false,
     })
     return
   }
@@ -247,16 +263,23 @@ export function refreshSkewWarning() {
 
   const key = skewFingerprint(skewed)
   if (key === skewWarningDismissedKey) {
-    patch({ skewWarningMessage: null })
+    patch({ skewWarningMessage: null, skewWarningShowOpenAdvanced: false })
+    return
+  }
+
+  // Offset skew banner only in calage (outside: chip left of trash on each track).
+  if (!calageMode) {
+    patch({
+      skewWarningMessage: null,
+      skewWarningShowOpenAdvanced: false,
+    })
     return
   }
 
   const names = skewed.map(({ track }) => track.name).join(', ')
   patch({
-    skewWarningMessage: calageMode
-      ? t('warn.skew.short', { names })
-      : t('warn.skew.long', { names }),
-    skewWarningShowOpenAdvanced: !calageMode,
+    skewWarningMessage: t('warn.skew.short', { names }),
+    skewWarningShowOpenAdvanced: false,
   })
 }
 
@@ -868,18 +891,6 @@ export async function applySkipCountInStartMs(
   }
 }
 
-function downloadBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = filename
-  anchor.rel = 'noopener'
-  document.body.appendChild(anchor)
-  anchor.click()
-  anchor.remove()
-  window.setTimeout(() => URL.revokeObjectURL(url), 2000)
-}
-
 export async function downloadSelectedMix() {
   if (get().mixExporting) return
   const selected = selectedTracks().filter((track) => track.blob.size > 0)
@@ -887,6 +898,16 @@ export async function downloadSelectedMix() {
     setError(t('error.exportNoTracks'))
     return
   }
+
+  const filename = downloadFilenameForSelection(
+    get().sessionTitle,
+    selected,
+    get().tracks.length,
+  )
+
+  // Pick save location first while the click gesture is still valid.
+  const saveTarget = await beginSaveWithMemory(filename)
+  if (saveTarget.kind === 'cancelled') return
 
   patch({ mixExporting: true })
   setError(null)
@@ -909,14 +930,11 @@ export async function downloadSelectedMix() {
     }
     const { encodeAudioBufferToMp3 } = await import('../mp3-encode.client')
     const mp3 = await encodeAudioBufferToMp3(mixed, 192)
-    downloadBlob(
-      mp3,
-      downloadFilenameForSelection(
-        get().sessionTitle,
-        selected,
-        get().tracks.length,
-      ),
-    )
+    if (saveTarget.kind === 'handle') {
+      await writeSaveTarget(saveTarget, mp3)
+    } else {
+      downloadBlobLegacy(mp3, filename)
+    }
   } catch (error) {
     setError(
       error instanceof Error ? error.message : t('error.exportFailed'),
@@ -1299,15 +1317,23 @@ export async function finalizeCurrentTake(): Promise<Track> {
     throw new Error(t('error.noAudioData'))
   }
 
+  return appendTrackFromBlob(blob, { durationMs, offsetMs })
+}
+
+/** Shared path: mic take or imported file → session track + cloud hook. */
+async function appendTrackFromBlob(
+  blob: Blob,
+  options: { durationMs: number; offsetMs?: number; name?: string },
+): Promise<Track> {
   const trackCounter = get().trackCounter + 1
   const tracks = get().tracks
   const track: Track = {
     id: trackCounter,
-    name: defaultTrackName(tracks.length + 1),
+    name: options.name ?? defaultTrackName(tracks.length + 1),
     blob,
     url: URL.createObjectURL(blob),
-    durationMs,
-    offsetMs,
+    durationMs: options.durationMs,
+    offsetMs: options.offsetMs ?? 0,
     cloudStatus: 'local',
   }
 
@@ -1340,6 +1366,92 @@ export async function finalizeCurrentTake(): Promise<Track> {
     mod.maybeAutoUploadTrack(track.id),
   )
   return track
+}
+
+function isAudioImportFile(file: File): boolean {
+  if (file.type.startsWith('audio/')) return true
+  return /\.(mp3|wav|ogg|m4a|aac|flac|webm|mp4|aiff?)$/i.test(file.name)
+}
+
+async function measureBlobDurationMs(blob: Blob): Promise<number> {
+  // Offline decode: file-picker `change` is outside the user-gesture window, so a
+  // live AudioContext cannot be resumed (Chrome autoplay policy).
+  const copy = await blob.arrayBuffer()
+  const offline = new OfflineAudioContext(1, 1, 44100)
+  const buffer = await offline.decodeAudioData(copy.slice(0))
+  return Math.round(buffer.duration * 1000)
+}
+
+/**
+ * Import one or more audio files from the device as tracks (same blob pipeline
+ * as a mic take). No-op while recording. Local-only in consultation (no cloud).
+ */
+export async function importAudioFiles(
+  files: ArrayLike<File> | File[],
+): Promise<void> {
+  if (get().state === 'recording') return
+
+  const list = Array.from(files).filter(isAudioImportFile)
+  if (list.length === 0) {
+    setError(t('error.importNoAudio'))
+    return
+  }
+
+  // First track via import (not mic): hide calage warnings for this session.
+  if (get().tracks.length === 0 && get().showCalageWarnings) {
+    patch({ showCalageWarnings: false })
+    refreshSkewWarning()
+  }
+
+  stopPlayback()
+
+  try {
+    for (const file of list) {
+      const blob =
+        file.type && file.type.startsWith('audio/')
+          ? file
+          : new Blob([file], { type: guessAudioMime(file.name) })
+
+      if (blob.size === 0) {
+        throw new Error(t('error.importNoAudio'))
+      }
+
+      let durationMs: number
+      try {
+        durationMs = await measureBlobDurationMs(blob)
+      } catch {
+        throw new Error(t('error.importDecodeFailed'))
+      }
+
+      if (durationMs < 100) {
+        throw new Error(t('error.importNoAudio'))
+      }
+      if (durationMs > MAX_RECORDING_MS) {
+        throw new Error(t('error.importTooLong'))
+      }
+
+      const name = await resolveImportTrackName(file)
+      await appendTrackFromBlob(blob, { durationMs, offsetMs: 0, name })
+    }
+    setError(null)
+  } catch (error) {
+    setError(
+      error instanceof Error ? error.message : t('error.importFailed'),
+    )
+  }
+}
+
+function guessAudioMime(filename: string): string {
+  const lower = filename.toLowerCase()
+  if (lower.endsWith('.mp3')) return 'audio/mpeg'
+  if (lower.endsWith('.wav')) return 'audio/wav'
+  if (lower.endsWith('.ogg')) return 'audio/ogg'
+  if (lower.endsWith('.m4a') || lower.endsWith('.mp4')) return 'audio/mp4'
+  if (lower.endsWith('.aac')) return 'audio/aac'
+  if (lower.endsWith('.flac')) return 'audio/flac'
+  if (lower.endsWith('.webm')) return 'audio/webm'
+  if (lower.endsWith('.aif') || lower.endsWith('.aiff')) return 'audio/aiff'
+  return 'audio/mpeg'
 }
 
 export async function abortCurrentTake(): Promise<void> {
@@ -1386,7 +1498,6 @@ export async function discard() {
 }
 
 export async function startSession() {
-  if (get().readOnlySession) return
   try {
     stopPlayback()
     pendingTakeOffsetMs = 0
@@ -1639,17 +1750,19 @@ export function setAllAutoAlign(on: boolean) {
 }
 
 export function renameTrack(trackId: number, name: string) {
-  if (get().readOnlySession) return
-  const trimmed = name.trim().slice(0, 40) || defaultTrackName(1)
   const track = get().tracks.find((t) => t.id === trackId)
+  if (!track) return
+  // Consultation: owner cloud tracks stay immutable; local overlay takes ok.
+  if (get().readOnlySession && track.cloudTrackId) return
+  const trimmed = name.trim().slice(0, 40) || defaultTrackName(1)
   patch({
     tracks: get().tracks.map((t) =>
       t.id === trackId ? { ...t, name: trimmed } : t,
     ),
   })
 
-  const cloudTrackId = track?.cloudTrackId
-  if (!cloudTrackId) return
+  const cloudTrackId = track.cloudTrackId
+  if (!cloudTrackId || get().readOnlySession) return
 
   void fetch('/api/cloud/library', {
     method: 'POST',
@@ -1672,9 +1785,10 @@ export function renameTrack(trackId: number, name: string) {
 }
 
 export function deleteTrack(trackId: number) {
-  if (get().readOnlySession) return
   const track = get().tracks.find((t) => t.id === trackId)
   if (!track) return
+  // Consultation: never remove or mutate the owner's cloud tracks.
+  if (get().readOnlySession && track.cloudTrackId) return
   if (get().playingTrackIds.length > 0 || get().mixListenActive) {
     stopPlayback({ resetSeek: false })
   }
@@ -1709,7 +1823,7 @@ export function deleteTrack(trackId: number) {
   if (get().referenceTrackId != null) void evaluateReferenceBeat()
 
   const cloudTrackId = track.cloudTrackId
-  if (!cloudTrackId) return
+  if (!cloudTrackId || get().readOnlySession) return
   void fetch('/api/cloud/library', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -1731,7 +1845,16 @@ export function deleteTrack(trackId: number) {
 
 export function deleteAllTracks() {
   if (get().state === 'recording') return
-  if (get().readOnlySession) return
+  // Consultation: only drop local overlay takes — never owner cloud tracks/API.
+  if (get().readOnlySession) {
+    const localIds = get()
+      .tracks.filter((track) => !track.cloudTrackId)
+      .map((track) => track.id)
+    for (const id of localIds) {
+      deleteTrack(id)
+    }
+    return
+  }
   stopPlayback({ resetSeek: true })
   const cloudTrackIds = get()
     .tracks.map((track) => track.cloudTrackId)
@@ -1878,21 +2001,15 @@ export async function loadCloudSongIntoSession(
     error: null,
     ...(readOnly
       ? {
-          referenceBeatWarning: null,
           referenceBeatDismissedKey: '',
-          skewWarningMessage: null,
           skewWarningDismissedKey: '',
-          skewWarningShowOpenAdvanced: false,
-          refPeaksLabel: '',
         }
       : {}),
   })
   clearRefPeaks()
   updateSessionTimerDisplay()
-  if (!readOnly) {
-    refreshSkewWarning()
-    if (opened.tracks.length > 0) void evaluateReferenceBeat()
-  }
+  refreshSkewWarning()
+  if (opened.tracks.length > 0) void evaluateReferenceBeat()
   return true
 }
 

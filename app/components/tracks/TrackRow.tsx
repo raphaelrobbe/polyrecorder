@@ -8,6 +8,7 @@ import {
   isDefaultTrackName,
 } from '../../lib/format'
 import { TRACK_VOLUME_MAX } from '../../lib/audio/mix.client'
+import { OFFSET_WARN_MS } from '../../lib/audio/runtime.client'
 import {
   applyManualTrackOffset,
   autoAlignTracksFromCounts,
@@ -19,6 +20,7 @@ import {
   setTrackAutoAlign,
   setTrackEnabled,
   setTrackVolume,
+  setCalageMode,
   toggleTrackHighlight,
 } from '../../lib/sessionActions.client'
 import { uploadTrackToCloud } from '../../lib/cloudUpload.client'
@@ -64,6 +66,15 @@ export function TrackRow({
   const trackAlignDetails = useSessionStore((s) => s.trackAlignDetails)
   const trackVolumes = useSessionStore((s) => s.trackVolumes)
   const highlightedTrackIds = useSessionStore((s) => s.highlightedTrackIds)
+  const referenceBeatWarning = useSessionStore((s) => s.referenceBeatWarning)
+  const referenceBeatDismissedKey = useSessionStore(
+    (s) => s.referenceBeatDismissedKey,
+  )
+  const tracks = useSessionStore((s) => s.tracks)
+  const skewWarningDismissedKey = useSessionStore(
+    (s) => s.skewWarningDismissedKey,
+  )
+  const showCalageWarnings = useSessionStore((s) => s.showCalageWarnings)
   // Re-render on playhead ticks so per-track clocks stay live in calage mode.
   useSessionStore((s) => s.mixClockText)
 
@@ -78,7 +89,33 @@ export function TrackRow({
       : ''
   const clock = formatCentis(getTrackPositionMs(track.id))
   const volume = trackVolumes[track.id] ?? getTrackVolume(track.id)
-  const hideDelete = calageMode || mixMode || readOnlySession
+  const hideDelete =
+    calageMode ||
+    mixMode ||
+    (readOnlySession && Boolean(track.cloudTrackId))
+  const nameReadOnly = readOnlySession && Boolean(track.cloudTrackId)
+  const showBeatAttention =
+    showCalageWarnings &&
+    isReference &&
+    !calageMode &&
+    referenceBeatWarning != null &&
+    referenceBeatWarning.key !== referenceBeatDismissedKey
+  const skewFingerprint = tracks
+    .filter(
+      (t) =>
+        t.id !== referenceTrackId && Math.abs(t.offsetMs) > OFFSET_WARN_MS,
+    )
+    .map((t) => `${t.id}:${Math.round(t.offsetMs)}`)
+    .join('|')
+  const skewActive =
+    skewFingerprint.length > 0 &&
+    skewFingerprint !== skewWarningDismissedKey
+  const showSkewAttention =
+    showCalageWarnings &&
+    skewActive &&
+    !isReference &&
+    !calageMode &&
+    Math.abs(track.offsetMs) > OFFSET_WARN_MS
   const showCloudSave =
     !readOnlySession &&
     user != null &&
@@ -175,11 +212,11 @@ export function TrackRow({
               isDefault={isDefaultTrackName(nameDraft)}
               data-rename-track={track.id}
               value={nameDraft}
-              readOnly={readOnlySession}
+              readOnly={nameReadOnly}
               aria-label={t('tracks.name.aria')}
               maxLength={40}
               onChange={(event) => {
-                if (readOnlySession) return
+                if (nameReadOnly) return
                 setNameDraft(event.target.value)
               }}
               onKeyDown={(event) => {
@@ -189,7 +226,7 @@ export function TrackRow({
                 }
               }}
               onFocus={(event) => {
-                if (readOnlySession) return
+                if (nameReadOnly) return
                 if (!isDefaultTrackName(event.currentTarget.value)) return
                 event.currentTarget.select()
                 event.currentTarget.addEventListener(
@@ -202,7 +239,7 @@ export function TrackRow({
                 )
               }}
               onBlur={() => {
-                if (readOnlySession) return
+                if (nameReadOnly) return
                 const next =
                   nameDraft.trim().slice(0, 40) || defaultTrackName(index + 1)
                 setNameDraft(next)
@@ -261,7 +298,34 @@ export function TrackRow({
             }}
           />
         ) : null}
-        {isReference || hideDelete ? null : (
+        {showSkewAttention ? (
+          <Button
+            variant="trash"
+            className="ml-[0.15rem] h-[1.65rem] w-[1.65rem] shrink-0 rounded-lg border-warn-border bg-warn-bg text-[0.88rem] font-extrabold leading-none text-warn hover:enabled:border-warn-border hover:enabled:bg-warn-hover hover:enabled:text-warn max-sm:ml-[0.08rem] max-sm:h-[1.45rem] max-sm:w-[1.45rem] max-sm:text-[0.8rem]"
+            title={t('warn.skew.long', { names: track.name })}
+            aria-label={t('warn.skew.chip.aria', { name: track.name })}
+            onClick={() => {
+              setError(null)
+              setCalageMode(true)
+            }}
+          >
+            !
+          </Button>
+        ) : null}
+        {showBeatAttention ? (
+          <Button
+            variant="trash"
+            className="ml-[0.15rem] h-[1.65rem] w-[1.65rem] shrink-0 rounded-lg border-warn-border bg-warn-bg text-[0.88rem] font-extrabold leading-none text-warn hover:enabled:border-warn-border hover:enabled:bg-warn-hover hover:enabled:text-warn max-sm:ml-[0.08rem] max-sm:h-[1.45rem] max-sm:w-[1.45rem] max-sm:text-[0.8rem]"
+            title={referenceBeatWarning.message}
+            aria-label={t('warn.beat.chip.aria')}
+            onClick={() => {
+              setError(null)
+              setCalageMode(true)
+            }}
+          >
+            !
+          </Button>
+        ) : isReference || hideDelete ? null : (
           <Button
             variant="trash"
             className="ml-[0.15rem] h-[1.65rem] w-[1.65rem] shrink-0 rounded-lg border-ink/18 text-ink/55 [&_svg]:size-[0.82rem] max-sm:ml-[0.08rem] max-sm:h-[1.45rem] max-sm:w-[1.45rem] max-sm:[&_svg]:size-[0.72rem]"

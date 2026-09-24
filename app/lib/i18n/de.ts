@@ -238,6 +238,10 @@ export const de: Record<MessageKey, string> = {
     'Nächste Spur: spielt diesen Take ab und nimmt gleichzeitig den nächsten auf.',
   'capture.discard': 'Take verwerfen und neu starten',
   'capture.record': 'Aufnehmen',
+  'capture.import': 'Audiodatei importieren',
+  'capture.import.hint':
+    'Audiodatei von diesem Gerät importieren (wird zu einer Spur)',
+  'capture.dropHint': 'Zum Importieren ablegen',
   'capture.stop': 'Stopp',
 
   'mix.restart': 'Zum Anfang',
@@ -301,11 +305,15 @@ export const de: Record<MessageKey, string> = {
 
   'warn.attention': 'Achtung',
   'warn.openAlignMode': 'Ausricht-Modus öffnen',
+  'warn.beat.chip.aria':
+    'Achtung: Problem mit dem Auftakt der Referenzspur. Ausricht-Modus öffnen.',
   'warn.skew.tooltip':
     'Eine Auto-Ausrichtung über 300 ms deutet oft auf Sync-Probleme hin (unklare Markierungen, Latenz usw.). Öffne den Ausricht-Modus zum Prüfen und Anpassen.',
   'warn.skew.short': 'Hohe Auto-Ausrichtung bei {names}.',
   'warn.skew.long':
     'Hohe Auto-Ausrichtung bei {names}. Sync im Ausricht-Modus prüfen.',
+  'warn.skew.chip.aria':
+    'Hohe Auto-Ausrichtung bei {name}. Ausricht-Modus öffnen.',
   'warn.beat.irregular':
     'Unregelmäßiger oder nicht erkannter 1-2-3-4-Auftakt auf der Referenzspur ({name}).',
   'warn.beat.missing':
@@ -413,6 +421,10 @@ export const de: Record<MessageKey, string> = {
   'settings.theme.light': 'Hell',
   'settings.theme.dark': 'Dunkel',
   'settings.autoplay': 'Nach Aufnahmeende automatisch abspielen',
+  'settings.showCalageWarnings': 'Ausrichtungsbezogene Warnungen anzeigen',
+  'settings.showCalageWarnings.about': 'Über Ausrichtungswarnungen',
+  'settings.showCalageWarnings.tip':
+    '„!“-Hinweise, wenn der 1-2-3-4-Auftakt der Referenz unregelmäßig wirkt oder die Auto-Ausrichtung über 300 ms liegt. Wird automatisch deaktiviert, wenn die erste Spur eines Songs ein Audio-Import ist (meist ohne Auftakt).',
   'settings.autoCloudSave': 'Spuren automatisch in der Cloud speichern',
   'settings.autoCloudSave.hint':
     'Wenn deaktiviert, erscheint an jeder lokalen Spur ein Button zum manuellen Hochladen.',
@@ -475,6 +487,12 @@ export const de: Record<MessageKey, string> = {
   'error.noAudioData': 'Keine Audiodaten erfasst. Aufnahme erneut versuchen.',
   'error.discardFailed': 'Take konnte nicht neu gestartet werden.',
   'error.micAccess': 'Kein Zugriff auf das Mikrofon.',
+  'error.importFailed': 'Audiodatei konnte nicht importiert werden.',
+  'error.importNoAudio': 'Keine erkannte Audiodatei.',
+  'error.importDecodeFailed':
+    'Diese Audiodatei kann vom Browser nicht gelesen werden.',
+  'error.importTooLong':
+    'Datei zu lang (max. 5 Minuten, wie eine Aufnahme).',
   'error.nextTrackFailed': 'Wechsel zur nächsten Spur fehlgeschlagen.',
   'error.stopFailed': 'Konnte nicht sauber stoppen.',
   'error.playbackFailed': 'Wiedergabe fehlgeschlagen.',

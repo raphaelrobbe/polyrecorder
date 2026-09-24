@@ -61,6 +61,18 @@ export function IconRecord(props: Omit<IconProps, 'children'>) {
   )
 }
 
+/** Import from device — upload arrow into a tray (universally readable). */
+export function IconImportAudio(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="currentColor"
+        d="M11 16V7.85l-2.6 2.6L7 9l5-5 5 5-1.4 1.45-2.6-2.6V16h-2zM5 18h14v2H5v-2z"
+      />
+    </Icon>
+  )
+}
+
 export function IconStop(props: Omit<IconProps, 'children'>) {
   return (
     <Icon {...props}>

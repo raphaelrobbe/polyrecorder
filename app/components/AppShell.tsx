@@ -14,6 +14,8 @@ type AppShellProps = {
   showMarkingHelp?: boolean
   /** Wider column (e.g. library tree). */
   wide?: boolean
+  /** Allow dropping audio files onto the recorder deck. */
+  enableAudioDrop?: boolean
   className?: string
 }
 
@@ -25,6 +27,7 @@ export function AppShell({
   children,
   showMarkingHelp = false,
   wide = false,
+  enableAudioDrop = false,
   className,
 }: AppShellProps) {
   const hint = useSessionStore((s) => s.hint)
@@ -37,10 +40,10 @@ export function AppShell({
         className,
       )}
     >
-      <AuthBar className="shrink-0" />
+      <AuthBar className="mb-3 shrink-0" />
       <main className="flex flex-1 flex-col justify-center gap-7 animate-rise">
         <Brand />
-        <Deck>{children}</Deck>
+        <Deck enableAudioDrop={enableAudioDrop}>{children}</Deck>
         {showMarkingHelp ? <MarkingHelp /> : null}
         <ModeRow />
         <Hint>{hint}</Hint>

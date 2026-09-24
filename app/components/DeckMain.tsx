@@ -132,7 +132,7 @@ export function DeckMain({ className }: DeckMainProps) {
 
       <ErrorBanner hidden={!error}>{error}</ErrorBanner>
 
-      {!readOnlySession ? <CalagePanel /> : null}
+      <CalagePanel />
 
       {user || showModes ? (
         <div

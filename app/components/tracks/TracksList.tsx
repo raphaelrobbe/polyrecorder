@@ -77,6 +77,9 @@ export function TracksList({ className }: TracksListProps) {
   )
   const masterMuteIndeterminate =
     selectedCount > 0 && selectedCount < tracks.length
+  const hasDeletableTracks = readOnlySession
+    ? tracks.some((track) => !track.cloudTrackId)
+    : tracks.length > 0
 
   const duration = getMixDurationMs(tracks)
   const seekPosition = mixSeekMs
@@ -265,13 +268,18 @@ export function TracksList({ className }: TracksListProps) {
               icon={<IconTrash />}
               aria-label={t('tracks.deleteAll')}
               title={t('tracks.deleteAll')}
-              hidden={calageMode || mixMode || readOnlySession}
-              disabled={state === 'recording' || readOnlySession}
+              hidden={calageMode || mixMode || !hasDeletableTracks}
+              disabled={state === 'recording' || !hasDeletableTracks}
               onClick={() => {
-                const count = tracks.length
+                const deletable = readOnlySession
+                  ? tracks.filter((track) => !track.cloudTrackId)
+                  : tracks
+                const count = deletable.length
                 const ok = window.confirm(
                   count === 1
-                    ? t('tracks.deleteOne.confirm', { name: tracks[0]!.name })
+                    ? t('tracks.deleteOne.confirm', {
+                        name: deletable[0]!.name,
+                      })
                     : t('tracks.deleteAll.confirm', { count }),
                 )
                 if (!ok) return
@@ -407,7 +415,7 @@ export function TracksList({ className }: TracksListProps) {
       <div
         className="relative mt-4 flex flex-wrap items-center gap-x-3 gap-y-[0.55rem] rounded-[14px] border-[1.5px] border-warn-border bg-warn-bg py-[0.85rem] pr-[2.1rem] pl-[0.95rem] text-[0.88rem] leading-[1.35] text-warn [&_strong]:font-extrabold [&_strong]:tracking-[0.02em]"
         data-skew-warning
-        hidden={!skewWarningMessage || readOnlySession}
+        hidden={!skewWarningMessage}
         title={t('warn.skew.tooltip')}
       >
         <button
@@ -420,7 +428,6 @@ export function TracksList({ className }: TracksListProps) {
         >
           ×
         </button>
-        <strong>{t('warn.attention')}</strong>
         <span data-skew-warning-text>{skewWarningMessage}</span>
         {skewWarningShowOpenAdvanced ? (
           <Button

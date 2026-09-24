@@ -236,6 +236,10 @@ export const fr = {
     'Piste suivante : rejoue cette prise et enregistre la suivante en même temps.',
   'capture.discard': 'Annuler la prise et recommencer',
   'capture.record': 'Enregistrer',
+  'capture.import': 'Importer un fichier audio',
+  'capture.import.hint':
+    'Importer un fichier audio depuis cet appareil (devient une piste)',
+  'capture.dropHint': 'Déposer pour importer',
   'capture.stop': 'Stop',
 
   'mix.restart': 'Revenir au début',
@@ -302,11 +306,15 @@ export const fr = {
 
   'warn.attention': 'Attention',
   'warn.openAlignMode': 'Ouvrir le mode calage',
+  'warn.beat.chip.aria':
+    'Attention : problème de battue sur la piste de référence. Ouvrir le mode calage.',
   'warn.skew.tooltip':
     'Un calage auto supérieur à 300 ms indique souvent un problème de sync (marquages peu clairs, latence, etc.). Ouvre le mode calage pour inspecter et ajuster.',
   'warn.skew.short': 'Calage auto élevé sur {names}.',
   'warn.skew.long':
     'Calage auto élevé sur {names}. Vérifie le sync en mode calage.',
+  'warn.skew.chip.aria':
+    'Calage auto élevé sur {name}. Ouvrir le mode calage.',
   'warn.beat.irregular':
     'Battue 1-2-3-4 irrégulière ou non détectée sur la piste de référence ({name}).',
   'warn.beat.missing':
@@ -414,6 +422,12 @@ export const fr = {
   'settings.theme.dark': 'Sombre',
   'settings.autoplay':
     "Lire automatiquement après la fin de l'enregistrement",
+  'settings.showCalageWarnings':
+    'Afficher les avertissements liés au calage',
+  'settings.showCalageWarnings.about':
+    'À propos des avertissements de calage',
+  'settings.showCalageWarnings.tip':
+    'Alertes « ! » quand la battue 1-2-3-4 de la référence paraît irrégulière, ou quand un calage auto dépasse 300 ms. Se décoche automatiquement si la première piste d’une chanson est un import audio (sans battue typique).',
   'settings.autoCloudSave': 'Enregistrer automatiquement les pistes sur le cloud',
   'settings.autoCloudSave.hint':
     'Si décoché, un bouton apparaît sur chaque piste locale pour l’envoyer manuellement.',
@@ -477,6 +491,12 @@ export const fr = {
     "Aucune donnée audio capturée. Réessaie l'enregistrement.",
   'error.discardFailed': 'Impossible de recommencer la prise.',
   'error.micAccess': "Impossible d'accéder au micro.",
+  'error.importFailed': "Impossible d'importer le fichier audio.",
+  'error.importNoAudio': 'Aucun fichier audio reconnu.',
+  'error.importDecodeFailed':
+    'Ce fichier audio ne peut pas être lu par le navigateur.',
+  'error.importTooLong':
+    "Fichier trop long (5 minutes max, comme un enregistrement).",
   'error.nextTrackFailed': 'Impossible de passer à la piste suivante.',
   'error.stopFailed': "Impossible d'arrêter proprement.",
   'error.playbackFailed': 'Lecture impossible.',

@@ -19,7 +19,6 @@ export function ModeTools({ className }: ModeToolsProps) {
   const tracks = useSessionStore((s) => s.tracks)
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
-  const readOnlySession = useSessionStore((s) => s.readOnlySession)
 
   if (tracks.length === 0) return null
 
@@ -60,25 +59,23 @@ export function ModeTools({ className }: ModeToolsProps) {
         <IconFaders className="size-[1rem]" />
         {t('mode.mix')}
       </button>
-      {!readOnlySession ? (
-        <button
-          type="button"
-          aria-pressed={calageMode}
-          title={t('mode.align.hint')}
-          onClick={() => setCalageMode(!calageMode)}
-          className={cn(
-            'inline-flex items-center rounded-full border px-[0.62rem] py-[0.34rem]',
-            'font-[inherit] text-[0.78rem] font-semibold tracking-[0.01em] transition-[background,color,border-color,transform] duration-160',
-            'cursor-pointer active:scale-[0.98]',
-            'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
-            calageMode
-              ? 'border-ink/35 bg-ink text-on-ink'
-              : 'border-transparent bg-transparent text-ink-soft hover:bg-ink/6 hover:text-ink',
-          )}
-        >
-          {t('mode.align')}
-        </button>
-      ) : null}
+      <button
+        type="button"
+        aria-pressed={calageMode}
+        title={t('mode.align.hint')}
+        onClick={() => setCalageMode(!calageMode)}
+        className={cn(
+          'inline-flex items-center rounded-full border px-[0.62rem] py-[0.34rem]',
+          'font-[inherit] text-[0.78rem] font-semibold tracking-[0.01em] transition-[background,color,border-color,transform] duration-160',
+          'cursor-pointer active:scale-[0.98]',
+          'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
+          calageMode
+            ? 'border-ink/35 bg-ink text-on-ink'
+            : 'border-transparent bg-transparent text-ink-soft hover:bg-ink/6 hover:text-ink',
+        )}
+      >
+        {t('mode.align')}
+      </button>
     </div>
   )
 }

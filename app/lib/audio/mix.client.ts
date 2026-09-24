@@ -1,6 +1,6 @@
 import type { Track, TrackPlayhead } from '../../common/types'
 import { t } from '../i18n'
-import { ensureAudioContext, getBufferCache } from './runtime.client'
+import { ensureAudioContext, getBufferCache, getAudioContext } from './runtime.client'
 
 export const SKIP_COUNT_IN_PAD_S = 0.1
 export const TRACK_VOLUME_MAX = 1.5
@@ -11,9 +11,15 @@ export async function decodeTrack(track: Track): Promise<AudioBuffer> {
   const cached = bufferCache.get(track.id)
   if (cached) return cached
 
-  const ctx = await ensureAudioContext()
   const copy = await track.blob.arrayBuffer()
-  const buffer = await ctx.decodeAudioData(copy)
+  // Prefer a running live context; otherwise decode offline (no autoplay/resume).
+  const live = getAudioContext()
+  const buffer =
+    live && live.state === 'running'
+      ? await live.decodeAudioData(copy.slice(0))
+      : await new OfflineAudioContext(1, 1, 44100).decodeAudioData(
+          copy.slice(0),
+        )
   bufferCache.set(track.id, buffer)
   return buffer
 }

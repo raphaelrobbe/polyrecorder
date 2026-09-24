@@ -237,6 +237,10 @@ export const en: Record<MessageKey, string> = {
     'Next track: replays this take and records the next one at the same time.',
   'capture.discard': 'Discard take and start over',
   'capture.record': 'Record',
+  'capture.import': 'Import an audio file',
+  'capture.import.hint':
+    'Import an audio file from this device (becomes a track)',
+  'capture.dropHint': 'Drop to import',
   'capture.stop': 'Stop',
 
   'mix.restart': 'Back to start',
@@ -300,11 +304,15 @@ export const en: Record<MessageKey, string> = {
 
   'warn.attention': 'Warning',
   'warn.openAlignMode': 'Open align mode',
+  'warn.beat.chip.aria':
+    'Warning: count-in issue on the reference track. Open align mode.',
   'warn.skew.tooltip':
     'An auto-align over 300 ms often means a sync problem (unclear markers, latency, etc.). Open align mode to inspect and adjust.',
   'warn.skew.short': 'High auto-align on {names}.',
   'warn.skew.long':
     'High auto-align on {names}. Check sync in align mode.',
+  'warn.skew.chip.aria':
+    'High auto-align on {name}. Open align mode.',
   'warn.beat.irregular':
     'Irregular or undetected 1-2-3-4 count-in on the reference track ({name}).',
   'warn.beat.missing':
@@ -411,6 +419,10 @@ export const en: Record<MessageKey, string> = {
   'settings.theme.light': 'Light',
   'settings.theme.dark': 'Dark',
   'settings.autoplay': 'Play automatically when recording ends',
+  'settings.showCalageWarnings': 'Show alignment-related warnings',
+  'settings.showCalageWarnings.about': 'About alignment warnings',
+  'settings.showCalageWarnings.tip':
+    '“!” alerts when the reference 1-2-3-4 count-in looks irregular, or when auto-align exceeds 300 ms. Turns off automatically if a song’s first track is an audio import (usually no count-in).',
   'settings.autoCloudSave': 'Automatically save tracks to the cloud',
   'settings.autoCloudSave.hint':
     'If unchecked, a button appears on each local track to upload it manually.',
@@ -473,6 +485,12 @@ export const en: Record<MessageKey, string> = {
   'error.noAudioData': 'No audio captured. Try recording again.',
   'error.discardFailed': 'Could not restart the take.',
   'error.micAccess': 'Could not access the microphone.',
+  'error.importFailed': 'Could not import the audio file.',
+  'error.importNoAudio': 'No recognized audio file.',
+  'error.importDecodeFailed':
+    'This audio file cannot be decoded by the browser.',
+  'error.importTooLong':
+    'File too long (5 minutes max, same as a recording).',
   'error.nextTrackFailed': 'Could not move to the next track.',
   'error.stopFailed': 'Could not stop cleanly.',
   'error.playbackFailed': 'Playback failed.',

@@ -17,6 +17,8 @@ import {
   stopPlayback,
   syncLatencyDisplay,
 } from '../lib/sessionActions.client'
+import { setCloudSignedIn } from '../lib/cloudUpload.client'
+import { hydrateFileSystemMemory } from '../lib/fileSystemMemory.client'
 import type { loader as rootLoader } from '../root'
 import { useSessionStore } from '../store/sessionStore'
 
@@ -38,12 +40,14 @@ export function RecorderApp({
   const rootData = useRouteLoaderData<typeof rootLoader>('root')
   const user = rootData?.user ?? null
   const wasSignedIn = useRef(Boolean(user))
+  setCloudSignedIn(Boolean(user))
 
   useEffect(() => {
     useSessionStore.getState().patch({
       autoCloudSave: readAutoCloudSave(),
       activeSongId: readActiveSongId(),
     })
+    void hydrateFileSystemMemory()
     void initLatencyProbe()
     void refreshDeviceSnapshot()
     syncLatencyDisplay()
@@ -77,7 +81,7 @@ export function RecorderApp({
   }, [user])
 
   return (
-    <AppShell showMarkingHelp={showMarkingHelp}>
+    <AppShell showMarkingHelp={showMarkingHelp} enableAudioDrop>
       {children ?? <DeckMain />}
     </AppShell>
   )

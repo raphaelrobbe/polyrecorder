@@ -55,13 +55,15 @@ export type SessionStoreState = {
   autoplayAfterStop: boolean
   skipCountInPlayback: boolean
   skipCountInDownload: boolean
+  /** Show beat/skew alignment warnings (session memory; default on). */
+  showCalageWarnings: boolean
   /** Persist takes to Scaleway S3 when signed in (localStorage). */
   autoCloudSave: boolean
   /** Current cloud song id for new uploads (localStorage). */
   activeSongId: string | null
   /** Cloud song currently loaded on the deck (may be empty). */
   deckSongId: string | null
-  /** Shared public song viewed without ownership (no mutate / record). */
+  /** Shared public song viewed without ownership (local overdub ok; no cloud mutate). */
   readOnlySession: boolean
   /** Breadcrumb for the owned cloud song on the deck. */
   songLibraryPath: string | null
@@ -102,6 +104,7 @@ export type SessionStoreState = {
   setAutoplayAfterStop: (on: boolean) => void
   setSkipCountInPlayback: (on: boolean) => void
   setSkipCountInDownload: (on: boolean) => void
+  setShowCalageWarnings: (on: boolean) => void
   setAutoCloudSave: (on: boolean) => void
   setActiveSongId: (songId: string | null) => void
   setKeyboardHintsEnabled: (on: boolean) => void
@@ -156,6 +159,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   autoplayAfterStop: true,
   skipCountInPlayback: true,
   skipCountInDownload: true,
+  showCalageWarnings: true,
   autoCloudSave: true,
   activeSongId: null,
   deckSongId: null,
@@ -201,6 +205,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setAutoplayAfterStop: (on) => set({ autoplayAfterStop: on }),
   setSkipCountInPlayback: (on) => set({ skipCountInPlayback: on }),
   setSkipCountInDownload: (on) => set({ skipCountInDownload: on }),
+  setShowCalageWarnings: (on) => set({ showCalageWarnings: on }),
   setAutoCloudSave: (on) => set({ autoCloudSave: on }),
   setActiveSongId: (songId) => set({ activeSongId: songId }),
   setKeyboardHintsEnabled: (on) => set({ keyboardHintsEnabled: on }),

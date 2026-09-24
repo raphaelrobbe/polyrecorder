@@ -13,6 +13,13 @@ export {
   writeActiveSongId,
 } from './cloudPrefs'
 
+/** Set from RecorderApp when root auth user changes (HttpOnly cookie is not JS-readable). */
+let cloudSignedIn = false
+
+export function setCloudSignedIn(signedIn: boolean): void {
+  cloudSignedIn = signedIn
+}
+
 function patchTrack(trackId: number, partial: Partial<Track>): void {
   const tracks = useSessionStore
     .getState()
@@ -128,6 +135,8 @@ export async function uploadTrackToCloud(
 }
 
 export async function maybeAutoUploadTrack(trackId: number): Promise<void> {
+  if (!cloudSignedIn) return
+  if (useSessionStore.getState().readOnlySession) return
   const { autoCloudSave } = useSessionStore.getState()
   if (!autoCloudSave) return
   await uploadTrackToCloud(trackId, { quietIfUnauthorized: true })

@@ -1,9 +1,13 @@
+import { useRef, type ChangeEvent } from 'react'
 import {
   discard,
+  importAudioFiles,
   nextTrack,
   startSession,
   stopSession,
 } from '../lib/sessionActions.client'
+import { ensureAudioContext } from '../lib/audio/runtime.client'
+import { pickAudioFilesWithMemory } from '../lib/fileSystemMemory.client'
 import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
 import { useLocale } from '../hooks/useLocale'
@@ -12,6 +16,7 @@ import { useSessionStore } from '../store/sessionStore'
 import { Button } from './Button'
 import {
   IconDiscard,
+  IconImportAudio,
   IconNext,
   IconRecord,
   IconStop,
@@ -28,10 +33,19 @@ export function CaptureBar({ className }: CaptureBarProps) {
   const tracks = useSessionStore((s) => s.tracks)
   const meterLevel = useSessionStore((s) => s.meterLevel)
   const keyboardHintsEnabled = useSessionStore((s) => s.keyboardHintsEnabled)
-  const readOnlySession = useSessionStore((s) => s.readOnlySession)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const recording = state === 'recording'
-  const recordOnly = !recording && tracks.length === 0 && !readOnlySession
+  const recordOnly = !recording && tracks.length === 0
+  const showImport = !recording
+
+  const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    // FileList is live: clearing `value` empties it — copy first.
+    const files = Array.from(event.target.files ?? [])
+    event.target.value = ''
+    if (files.length === 0) return
+    void importAudioFiles(files)
+  }
 
   return (
     <div
@@ -40,6 +54,16 @@ export function CaptureBar({ className }: CaptureBarProps) {
         className,
       )}
     >
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="audio/*,.mp3,.wav,.ogg,.m4a,.aac,.flac,.webm,.aiff,.aif"
+        multiple
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden="true"
+        onChange={onFileChange}
+      />
       <div
         className="relative col-[1/3] min-w-0 h-[0.7rem] overflow-hidden rounded-full bg-ink/10"
         hidden={!recording}
@@ -52,8 +76,30 @@ export function CaptureBar({ className }: CaptureBarProps) {
           }}
         />
       </div>
+      {showImport ? (
+        <div className="col-start-1 justify-self-start">
+          <Button
+            variant="utility"
+            className="px-[0.65rem] py-[0.45rem] text-ink/55 hover:text-ink-soft [&_svg]:size-[1.25rem]"
+            icon={<IconImportAudio />}
+            aria-label={t('capture.import')}
+            title={t('capture.import.hint')}
+            onClick={() => {
+              void ensureAudioContext().catch(() => {})
+              // Keep showOpenFilePicker as the first await (user gesture).
+              void pickAudioFilesWithMemory().then((picked) => {
+                if (picked === null) {
+                  fileInputRef.current?.click()
+                  return
+                }
+                if (picked.length === 0) return
+                void importAudioFiles(picked)
+              })
+            }}
+          />
+        </div>
+      ) : null}
       <MixTransport />
-      {!readOnlySession ? (
       <div
         className={cn(
           'inline-flex shrink-0 items-center justify-end gap-[0.65rem]',
@@ -120,7 +166,6 @@ export function CaptureBar({ className }: CaptureBarProps) {
           onClick={() => void stopSession()}
         />
       </div>
-      ) : null}
     </div>
   )
 }

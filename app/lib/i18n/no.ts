@@ -238,6 +238,10 @@ export const no: Record<MessageKey, string> = {
     'Neste spor: spiller av dette opptaket og tar opp det neste samtidig.',
   'capture.discard': 'Forkast opptaket og start på nytt',
   'capture.record': 'Ta opp',
+  'capture.import': 'Importer en lydfil',
+  'capture.import.hint':
+    'Importer en lydfil fra denne enheten (blir et spor)',
+  'capture.dropHint': 'Slipp for å importere',
   'capture.stop': 'Stopp',
 
   'mix.restart': 'Tilbake til start',
@@ -301,11 +305,15 @@ export const no: Record<MessageKey, string> = {
 
   'warn.attention': 'Obs',
   'warn.openAlignMode': 'Åpne justeringsmodus',
+  'warn.beat.chip.aria':
+    'Obs: problem med opptakten på referansesporet. Åpne justeringsmodus.',
   'warn.skew.tooltip':
     'Autojustering over 300 ms tyder ofte på synkproblemer (uklare markører, latens osv.). Åpne justeringsmodus for å sjekke og justere.',
   'warn.skew.short': 'Høy autojustering på {names}.',
   'warn.skew.long':
     'Høy autojustering på {names}. Sjekk synk i justeringsmodus.',
+  'warn.skew.chip.aria':
+    'Høy autojustering på {name}. Åpne justeringsmodus.',
   'warn.beat.irregular':
     'Uregelmessig eller uoppdaget 1-2-3-4-opptakt på referansesporet ({name}).',
   'warn.beat.missing':
@@ -413,6 +421,10 @@ export const no: Record<MessageKey, string> = {
   'settings.theme.light': 'Lyst',
   'settings.theme.dark': 'Mørkt',
   'settings.autoplay': 'Spill av automatisk når opptaket er ferdig',
+  'settings.showCalageWarnings': 'Vis justeringsrelaterte advarsler',
+  'settings.showCalageWarnings.about': 'Om justeringsadvarsler',
+  'settings.showCalageWarnings.tip':
+    '«!»-varsler når referansens 1-2-3-4-opptakt virker uregelmessig, eller når autojustering overstiger 300 ms. Skrur av automatisk hvis første spor i en sang er en lydimport (vanligvis uten opptakt).',
   'settings.autoCloudSave': 'Lagre spor automatisk i skyen',
   'settings.autoCloudSave.hint':
     'Hvis avkrysset, vises en knapp på hvert lokalt spor for manuell opplasting.',
@@ -475,6 +487,12 @@ export const no: Record<MessageKey, string> = {
   'error.noAudioData': 'Ingen lyd fanget. Prøv å ta opp på nytt.',
   'error.discardFailed': 'Kunne ikke starte opptaket på nytt.',
   'error.micAccess': 'Fikk ikke tilgang til mikrofonen.',
+  'error.importFailed': 'Kunne ikke importere lydfilen.',
+  'error.importNoAudio': 'Ingen gjenkjent lydfil.',
+  'error.importDecodeFailed':
+    'Denne lydfilen kan ikke avkodes av nettleseren.',
+  'error.importTooLong':
+    'Filen er for lang (maks 5 minutter, som et opptak).',
   'error.nextTrackFailed': 'Kunne ikke gå til neste spor.',
   'error.stopFailed': 'Kunne ikke stoppe rent.',
   'error.playbackFailed': 'Avspilling mislyktes.',
