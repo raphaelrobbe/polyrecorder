@@ -20,6 +20,121 @@ export const de: Record<MessageKey, string> = {
   'nav.signOut': 'Abmelden',
   'nav.accountMenu': 'Kontomenü',
   'nav.accountSettings': 'Kontoeinstellungen',
+  'nav.legal': 'Impressum',
+  'nav.privacy': 'Datenschutz',
+  'nav.terms': 'AGB',
+  'nav.sitemap': 'Sitemap',
+
+  'legal.title': 'Impressum',
+  'legal.close': 'Impressum schließen',
+  'legal.publisher.title': 'Herausgeber',
+  'legal.publisher.status.ei':
+    'Einzelunternehmer im französischen Micro-entreprise-Regime',
+  'legal.publisher.intro': '{name}, {status}.',
+  'legal.publisher.siret': 'SIRET: {siret}.',
+  'legal.publicationDirector': 'Verantwortlich für den Inhalt: {name}.',
+  'legal.contact': 'Kontakt: {email}.',
+  'legal.host.title': 'Hosting',
+  'legal.host.intro':
+    'Die Website wird gehostet von {name}, {address} (SIREN {siren}).',
+  'legal.host.location':
+    'Daten und Dienste werden in Frankreich und den Niederlanden gespeichert.',
+  'legal.ip.title': 'Geistiges Eigentum',
+  'legal.ip.intro':
+    'Der Name „{site}“, das Design und die Anwendungsinhalte (ohne Nutzerinhalte) sind geschützt.',
+  'legal.ip.reproduction':
+    'Unerlaubte Vervielfältigung ist untersagt.',
+  'legal.privacyLink': 'Zur Verarbeitung personenbezogener Daten siehe die',
+  'legal.termsLink': 'Die Nutzungsbedingungen stehen in den',
+
+  'privacy.title': 'Datenschutzerklärung',
+  'privacy.close': 'Datenschutzerklärung schließen',
+  'privacy.controller.title': 'Verantwortlicher',
+  'privacy.controller.body':
+    '{name} ({site}), {address}, erreichbar unter {email}, ist Verantwortlicher für die über die Anwendung erhobenen personenbezogenen Daten.',
+  'privacy.data.title': 'Erhobene Daten',
+  'privacy.data.account':
+    'Konto (bei Anmeldung): E-Mail-Adresse, optionaler Anzeigename, Authentifizierungssitzungen.',
+  'privacy.data.cloud':
+    'Cloud-Bibliothek (bei Nutzung eines Kontos): Gruppen, Repertoires, Lieder, Metadaten und Audiodateien hochgeladener Spuren.',
+  'privacy.data.technical':
+    'Minimale technische Daten für den Betrieb des Dienstes (z. B. serverseitige Fehlerprotokolle).',
+  'privacy.purposes.title': 'Zwecke und Rechtsgrundlagen',
+  'privacy.purposes.body':
+    'Die Daten dienen der Anmeldung, dem Speichern und Abrufen von Spuren in der Cloud sowie der Sicherheit des Dienstes. Rechtsgrundlagen: Vertragserfüllung (Bereitstellung des Dienstes gemäß den AGB) und gegebenenfalls berechtigtes Interesse (Sicherheit, Missbrauchsprävention).',
+  'privacy.processors.title': 'Auftragsverarbeiter',
+  'privacy.processors.body':
+    'Hosting und Speicherung werden von {host} bereitgestellt. Daten und Dienste werden in Frankreich und den Niederlanden gespeichert.',
+  'privacy.retention.title': 'Speicherdauer',
+  'privacy.retention.body':
+    'Konto- und Bibliotheksdaten werden so lange gespeichert, wie das Konto besteht. Du kannst dein Konto in der App löschen; zugehörige Daten werden dann gelöscht. Technische Protokolle werden nur so lange wie für die Diagnose nötig aufbewahrt.',
+  'privacy.rights.title': 'Deine Rechte',
+  'privacy.rights.body':
+    'Du hast Rechte auf Auskunft, Berichtigung, Löschung, Widerspruch, Einschränkung und Datenübertragbarkeit. Du kannst sie über {email} ausüben oder indem du dein Konto in den Einstellungen löschst. Du kannst auch eine Beschwerde bei einer Aufsichtsbehörde einreichen (in Frankreich: CNIL, cnil.fr).',
+  'privacy.cookies.title': 'Cookies und lokaler Speicher',
+  'privacy.cookies.guest':
+    'Als Gast setzt PolyRecorder keine Cookies.',
+  'privacy.cookies.signedIn':
+    'Nach der Anmeldung wird ein einziges httpOnly-Sitzungscookie ({cookie}) verwendet, das für die Authentifizierung unbedingt erforderlich ist. Es dient nicht dem Werbe-Tracking.',
+  'privacy.cookies.localStorage':
+    'Oberflächeneinstellungen (Sprache, Theme, Aufnahmeoptionen, aktives Lied) werden im localStorage des Browsers gespeichert, nicht in Cookies.',
+  'privacy.legalLink': 'Siehe auch das',
+  'privacy.termsLink': 'und die',
+
+  'terms.title': 'Nutzungsbedingungen',
+  'terms.close': 'Nutzungsbedingungen schließen',
+  'terms.effective': 'Gültig ab {date}.',
+  'terms.object.title': 'Gegenstand',
+  'terms.object.body':
+    'Diese Nutzungsbedingungen regeln den Zugang zu und die Nutzung von {site}, einem von {name} herausgegebenen Dienst. Sie bilden den vertraglichen Rahmen zwischen dir und dem Herausgeber für die Nutzung des Dienstes.',
+  'terms.acceptance.title': 'Annahme',
+  'terms.acceptance.body':
+    'Durch die Nutzung des Dienstes (als Gast oder mit Konto) akzeptierst du diese Bedingungen. Wenn du sie nicht akzeptierst, darfst du den Dienst nicht nutzen.',
+  'terms.service.title': 'Leistungsbeschreibung',
+  'terms.service.guest':
+    'Ohne Konto kannst du den Rekorder im Browser nutzen. Aufnahmen bleiben dann lokal auf deinem Gerät (sofern du nicht ausdrücklich eine andere Aktion auslöst).',
+  'terms.service.account':
+    'Mit einem Konto kannst du Spuren in der Cloud speichern (Gruppen, Repertoires, Lieder) und später wieder öffnen sowie bestimmte Lieder öffentlich teilen, wenn du das freigibst.',
+  'terms.service.free':
+    'Der Dienst wird derzeit kostenlos angeboten, im Rahmen der technischen Möglichkeiten des Herausgebers.',
+  'terms.service.futurePaid':
+    'Kostenpflichtige Angebote (z. B. ein Abonnement) können später eingeführt werden. In diesem Fall werden diese Bedingungen, das Impressum und die Datenschutzerklärung vor jeder Abrechnung aktualisiert, und die Preise werden bei der Buchung klar dargestellt.',
+  'terms.account.title': 'Konto',
+  'terms.account.body':
+    'Du bist für den Schutz des Zugangs zu deiner E-Mail und für die Nutzung deines Kontos verantwortlich. Angaben müssen korrekt sein. Du kannst dein Konto in den Einstellungen löschen; damit werden zugehörige Daten gemäß der Datenschutzerklärung gelöscht.',
+  'terms.content.title': 'Nutzerinhalte',
+  'terms.content.ownership':
+    'Du bleibst Eigentümer der Aufnahmen und Inhalte, die du erstellst oder hochlädst.',
+  'terms.content.license':
+    'Du räumst dem Herausgeber eine nicht ausschließliche, weltweite, kostenlose Lizenz ein, beschränkt auf Hosting, Sicherung, Anzeige und technische Bereitstellung für den Betrieb des Dienstes (einschließlich von dir freigegebenem öffentlichen Teilen).',
+  'terms.content.responsibility':
+    'Du versicherst, über die erforderlichen Rechte an hochgeladenen Inhalten zu verfügen (Stimmen, Werke usw.), und verpflichtest dich, keine rechtswidrigen Inhalte hochzuladen.',
+  'terms.use.title': 'Zulässige Nutzung',
+  'terms.use.body':
+    'Missbrauch des Dienstes ist untersagt (Eindringen, vorsätzliche Überlastung, Schädigung anderer Nutzer, illegale Inhalte, Umgehung von Sicherheitsmaßnahmen). Bei schwerwiegendem Verstoß kann der Herausgeber ein Konto sperren oder löschen.',
+  'terms.availability.title': 'Verfügbarkeit',
+  'terms.availability.body':
+    'Der Herausgeber bemüht sich um einen kontinuierlichen Dienst, gewährleistet aber keine ununterbrochene Verfügbarkeit. Wartung, Ausfälle oder Änderungen können vorkommen. Der Dienst wird „wie besehen“ bereitgestellt.',
+  'terms.liability.title': 'Haftung',
+  'terms.liability.body':
+    'Soweit gesetzlich zulässig haftet der Herausgeber nicht für indirekte Schäden, Verlust lokaler nicht synchronisierter Daten oder Folgen nicht konformer Nutzung. Nichts in diesen Bedingungen schließt die Haftung für Vorsatz oder grobe Fahrlässigkeit oder zwingende Verbraucherrechte aus.',
+  'terms.privacy.title': 'Personenbezogene Daten',
+  'terms.privacy.body':
+    'Die Verarbeitung personenbezogener Daten ist beschrieben in der',
+  'terms.changes.title': 'Änderungen der Bedingungen',
+  'terms.changes.body':
+    'Der Herausgeber kann diese Bedingungen ändern. Das Inkrafttreten steht oben auf der Seite. Weiterbenutzung nach einer Aktualisierung gilt als Annahme. Bei einer wesentlichen Änderung im Zusammenhang mit einem kostenpflichtigen Angebot erfolgt vor dem Kauf eine klare Information.',
+  'terms.law.title': 'Anwendbares Recht',
+  'terms.law.body':
+    'Diese Bedingungen unterliegen französischem Recht. Bei Streitigkeiten kannst du {email} kontaktieren. Scheitert eine einvernehmliche Lösung, sind die zuständigen französischen Gerichte angerufen, vorbehaltlich zwingender Verbraucherschutzvorschriften.',
+  'terms.legalLink': 'Siehe auch das',
+
+  'sitemap.title': 'Sitemap',
+  'sitemap.close': 'Sitemap schließen',
+  'sitemap.app.title': 'Anwendung',
+  'sitemap.app.home': 'Rekorder',
+  'sitemap.account.title': 'Konto',
+  'sitemap.legal.title': 'Rechtliches',
 
   'account.title': 'Konto',
   'account.close': 'Kontoeinstellungen schließen',

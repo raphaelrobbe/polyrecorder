@@ -14,7 +14,7 @@ type AccountMenuProps = {
   className?: string
 }
 
-/** Footer account dropdown: label = pseudo || email; settings + sign out. */
+/** Top account dropdown: label = pseudo || email; settings + sign out. */
 export function AccountMenu({ user, className }: AccountMenuProps) {
   useLocale()
   const navigate = useNavigate()
@@ -78,7 +78,7 @@ export function AccountMenu({ user, className }: AccountMenuProps) {
           role="menu"
           aria-label={t('nav.accountMenu')}
           className={cn(
-            'absolute bottom-[calc(100%+0.3rem)] right-0 z-20 min-w-[11.5rem] overflow-hidden rounded-[12px] border border-line bg-surface p-[0.25rem]',
+            'absolute left-0 top-[calc(100%+0.3rem)] z-20 min-w-[11.5rem] overflow-hidden rounded-[12px] border border-line bg-surface p-[0.25rem]',
             'shadow-[0_10px_28px_var(--shadow)]',
           )}
         >

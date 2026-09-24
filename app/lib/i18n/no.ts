@@ -20,6 +20,121 @@ export const no: Record<MessageKey, string> = {
   'nav.signOut': 'Logg ut',
   'nav.accountMenu': 'Kontomeny',
   'nav.accountSettings': 'Kontoinnstillinger',
+  'nav.legal': 'Juridisk',
+  'nav.privacy': 'Personvern',
+  'nav.terms': 'Vilkår',
+  'nav.sitemap': 'Nettstedskart',
+
+  'legal.title': 'Juridisk informasjon',
+  'legal.close': 'Lukk juridisk informasjon',
+  'legal.publisher.title': 'Utgiver',
+  'legal.publisher.status.ei':
+    'enkeltpersonforetak under fransk micro-entreprise-ordning',
+  'legal.publisher.intro': '{name}, {status}.',
+  'legal.publisher.siret': 'SIRET: {siret}.',
+  'legal.publicationDirector': 'Redaktøransvarlig: {name}.',
+  'legal.contact': 'Kontakt: {email}.',
+  'legal.host.title': 'Hosting',
+  'legal.host.intro':
+    'Nettstedet hostes av {name}, {address} (SIREN {siren}).',
+  'legal.host.location':
+    'Data og tjenester lagres i Frankrike og Nederland.',
+  'legal.ip.title': 'Immaterielle rettigheter',
+  'legal.ip.intro':
+    'Navnet «{site}», designet og applikasjonsinnholdet (unntatt brukerinnhold) er beskyttet.',
+  'legal.ip.reproduction':
+    'Uautorisert gjengivelse er forbudt.',
+  'legal.privacyLink': 'For behandling av personopplysninger, se',
+  'legal.termsLink': 'Bruksvilkårene er beskrevet i',
+
+  'privacy.title': 'Personvernerklæring',
+  'privacy.close': 'Lukk personvernerklæringen',
+  'privacy.controller.title': 'Behandlingsansvarlig',
+  'privacy.controller.body':
+    '{name} ({site}), {address}, kontaktbar på {email}, er behandlingsansvarlig for personopplysninger samlet inn via applikasjonen.',
+  'privacy.data.title': 'Opplysninger som samles inn',
+  'privacy.data.account':
+    'Konto (hvis du logger inn): e-postadresse, valgfritt visningsnavn, autentiseringsøkter.',
+  'privacy.data.cloud':
+    'Skybibliotek (hvis du bruker konto): grupper, repertoarer, sanger, metadata og lydfiler for opplastede spor.',
+  'privacy.data.technical':
+    'Minimale tekniske data for drift av tjenesten (f.eks. feillogger på serveren).',
+  'privacy.purposes.title': 'Formål og rettslig grunnlag',
+  'privacy.purposes.body':
+    'Opplysningene brukes for at du skal kunne logge inn, lagre og hente spor i skyen, og for å sikre tjenesten. Rettslig grunnlag: oppfyllelse av avtale (levering av tjenesten etter vilkårene) og, der det er aktuelt, berettiget interesse (sikkerhet, forebygging av misbruk).',
+  'privacy.processors.title': 'Databehandlere',
+  'privacy.processors.body':
+    'Hosting og lagring leveres av {host}. Data og tjenester lagres i Frankrike og Nederland.',
+  'privacy.retention.title': 'Lagringstid',
+  'privacy.retention.body':
+    'Konto- og bibliotekdata lagres så lenge kontoen eksisterer. Du kan slette kontoen i appen; tilhørende data slettes da. Tekniske logger lagres bare så lenge det er nødvendig for diagnostikk.',
+  'privacy.rights.title': 'Dine rettigheter',
+  'privacy.rights.body':
+    'Du har rett til innsyn, retting, sletting, protest, begrensning og dataportabilitet. Du kan utøve dem via {email}, eller ved å slette kontoen i innstillingene. Du kan også klage til en tilsynsmyndighet (i Frankrike: CNIL, cnil.fr).',
+  'privacy.cookies.title': 'Informasjonskapsler og lokal lagring',
+  'privacy.cookies.guest':
+    'Som gjest setter PolyRecorder ingen informasjonskapsler.',
+  'privacy.cookies.signedIn':
+    'Etter innlogging brukes én httpOnly-sesjonskapsel ({cookie}), strengt nødvendig for autentisering. Den brukes ikke til reklamesporing.',
+  'privacy.cookies.localStorage':
+    'Grensesnittpreferanser (språk, tema, opptaksvalg, aktiv sang) lagres i nettleserens localStorage, ikke i informasjonskapsler.',
+  'privacy.legalLink': 'Se også',
+  'privacy.termsLink': 'og',
+
+  'terms.title': 'Bruksvilkår',
+  'terms.close': 'Lukk bruksvilkårene',
+  'terms.effective': 'Gjeldende fra {date}.',
+  'terms.object.title': 'Formål',
+  'terms.object.body':
+    'Disse bruksvilkårene regulerer tilgang til og bruk av {site}, en tjeneste utgitt av {name}. De utgjør den avtalemessige rammen mellom deg og utgiveren for bruk av tjenesten.',
+  'terms.acceptance.title': 'Aksept',
+  'terms.acceptance.body':
+    'Ved å bruke tjenesten (som gjest eller med konto) godtar du disse vilkårene. Hvis du ikke godtar dem, må du ikke bruke tjenesten.',
+  'terms.service.title': 'Tjenestebeskrivelse',
+  'terms.service.guest':
+    'Uten konto kan du bruke opptakeren i nettleseren. Opptak forblir da lokale på enheten din (med mindre du eksplisitt utløser en annen handling).',
+  'terms.service.account':
+    'Med konto kan du lagre spor i skyen (grupper, repertoarer, sanger) og åpne dem senere, samt dele enkelte sanger offentlig hvis du aktiverer deling.',
+  'terms.service.free':
+    'Tjenesten tilbys for tiden gratis, innenfor utgiverens tekniske muligheter.',
+  'terms.service.futurePaid':
+    'Betalte tilbud (for eksempel et abonnement) kan innføres senere. I så fall oppdateres disse vilkårene, den juridiske informasjonen og personvernerklæringen før fakturering, og prisene presenteres tydelig ved kjøp.',
+  'terms.account.title': 'Konto',
+  'terms.account.body':
+    'Du er ansvarlig for å beskytte tilgangen til e-posten din og for bruken av kontoen. Opplysninger må være korrekte. Du kan slette kontoen i innstillingene; da slettes tilhørende data som beskrevet i personvernerklæringen.',
+  'terms.content.title': 'Brukerinnhold',
+  'terms.content.ownership':
+    'Du beholder eierskapet til opptak og innhold du lager eller laster opp.',
+  'terms.content.license':
+    'Du gir utgiveren en ikke-eksklusiv, verdensomspennende, vederlagsfri lisens begrenset til hosting, sikkerhetskopiering, visning og teknisk levering som trengs for å drive tjenesten (inkl. offentlig deling du aktiverer).',
+  'terms.content.responsibility':
+    'Du garanterer å ha nødvendige rettigheter til opplastet innhold (stemmer, verk osv.) og forplikter deg til ikke å laste opp ulovlig innhold.',
+  'terms.use.title': 'Akseptabel bruk',
+  'terms.use.body':
+    'Det er forbudt å misbruke tjenesten (inntrenging, bevisst overbelastning, skade på andre brukere, ulovlig innhold, omgåelse av sikkerhet). Ved alvorlig brudd kan utgiveren suspendere eller slette en konto.',
+  'terms.availability.title': 'Tilgjengelighet',
+  'terms.availability.body':
+    'Utgiveren tilstreber kontinuerlig tjeneste, men garanterer ikke uavbrutt tilgjengelighet. Vedlikehold, feil eller endringer kan forekomme. Tjenesten leveres «som den er».',
+  'terms.liability.title': 'Ansvar',
+  'terms.liability.body':
+    'Så langt loven tillater, er utgiveren ikke ansvarlig for indirekte skader, tap av lokale data som ikke var synkronisert, eller følger av ikke-konform bruk. Ingenting i disse vilkårene utelukker ansvar for forsett eller grov uaktsomhet, eller ufravikelige forbrukerrettigheter.',
+  'terms.privacy.title': 'Personopplysninger',
+  'terms.privacy.body':
+    'Behandling av personopplysninger er beskrevet i',
+  'terms.changes.title': 'Endring av vilkårene',
+  'terms.changes.body':
+    'Utgiveren kan endre disse vilkårene. Ikrafttredelsesdato står øverst på siden. Fortsatt bruk etter en oppdatering betyr at du godtar de nye vilkårene. Ved vesentlig endring knyttet til et betalt tilbud gis klar informasjon før kjøp.',
+  'terms.law.title': 'Lovvalg',
+  'terms.law.body':
+    'Disse vilkårene er underlagt fransk rett. Ved tvist kan du kontakte {email}. Dersom minnelig løsning ikke oppnås, er franske domstoler kompetente, med forbehold om ufravikelige forbrukervernregler.',
+  'terms.legalLink': 'Se også',
+
+  'sitemap.title': 'Nettstedskart',
+  'sitemap.close': 'Lukk nettstedskartet',
+  'sitemap.app.title': 'Applikasjon',
+  'sitemap.app.home': 'Opptaker',
+  'sitemap.account.title': 'Konto',
+  'sitemap.legal.title': 'Juridisk',
 
   'account.title': 'Konto',
   'account.close': 'Lukk kontoinnstillinger',

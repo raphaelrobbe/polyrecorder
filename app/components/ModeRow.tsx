@@ -1,9 +1,7 @@
-import { useNavigate, useRouteLoaderData } from '@remix-run/react'
+import { useNavigate } from '@remix-run/react'
 import { useLocale } from '../hooks/useLocale'
 import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
-import type { loader as rootLoader } from '../root'
-import { AccountMenu } from './AccountMenu'
 import { Button } from './Button'
 import { IconHelp, IconSettings } from './icons'
 import { LocaleSelect } from './LocaleSelect'
@@ -13,57 +11,38 @@ type ModeRowProps = {
   className?: string
 }
 
-/** Footer utilities (locale, theme, aide, paramètres) + account row below. */
+/** Footer utilities (locale, theme, aide, paramètres). */
 export function ModeRow({ className }: ModeRowProps) {
   useLocale()
   const navigate = useNavigate()
-  const rootData = useRouteLoaderData<typeof rootLoader>('root')
-  const user = rootData?.user ?? null
 
   return (
     <div
       className={cn(
-        'mt-[0.35rem] flex w-full flex-col items-stretch gap-[0.55rem]',
+        'mt-[0.35rem] flex w-full flex-wrap items-center justify-end gap-[0.35rem]',
         className,
       )}
     >
-      <div className="flex flex-wrap items-center justify-end gap-[0.35rem]">
-        <LocaleSelect />
-        <ThemeToggle />
-        <Button
-          variant="utility"
-          icon={<IconHelp />}
-          aria-label={t('nav.help')}
-          title={t('nav.help')}
-          onClick={() => navigate('/aide')}
-        >
-          {t('nav.help')}
-        </Button>
-        <Button
-          variant="utility"
-          icon={<IconSettings />}
-          aria-label={t('nav.settings')}
-          title={t('nav.settings')}
-          onClick={() => navigate('/parametres')}
-        >
-          {t('nav.settings')}
-        </Button>
-      </div>
-
-      <div className="flex items-center justify-end gap-[0.4rem]">
-        {user ? (
-          <AccountMenu user={user} />
-        ) : (
-          <Button
-            variant="utility"
-            aria-label={t('nav.signIn')}
-            title={t('nav.signIn')}
-            onClick={() => navigate('/connexion')}
-          >
-            {t('nav.signIn')}
-          </Button>
-        )}
-      </div>
+      <LocaleSelect />
+      <ThemeToggle />
+      <Button
+        variant="utility"
+        icon={<IconHelp />}
+        aria-label={t('nav.help')}
+        title={t('nav.help')}
+        onClick={() => navigate('/aide')}
+      >
+        {t('nav.help')}
+      </Button>
+      <Button
+        variant="utility"
+        icon={<IconSettings />}
+        aria-label={t('nav.settings')}
+        title={t('nav.settings')}
+        onClick={() => navigate('/parametres')}
+      >
+        {t('nav.settings')}
+      </Button>
     </div>
   )
 }

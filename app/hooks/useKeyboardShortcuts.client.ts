@@ -35,12 +35,20 @@ function isOverlayPath(pathname: string): boolean {
     pathname === '/compte' ||
     pathname === '/bibliotheque' ||
     pathname === '/connexion' ||
+    pathname === '/legal' ||
+    pathname === '/privacy' ||
+    pathname === '/terms' ||
+    pathname === '/sitemap' ||
     pathname.startsWith('/connexion/') ||
     pathname.endsWith('/aide') ||
     pathname.endsWith('/parametres') ||
     pathname.endsWith('/compte') ||
     pathname.endsWith('/bibliotheque') ||
-    pathname.endsWith('/connexion')
+    pathname.endsWith('/connexion') ||
+    pathname.endsWith('/legal') ||
+    pathname.endsWith('/privacy') ||
+    pathname.endsWith('/terms') ||
+    pathname.endsWith('/sitemap')
   )
 }
 

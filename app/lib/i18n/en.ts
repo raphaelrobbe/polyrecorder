@@ -19,6 +19,121 @@ export const en: Record<MessageKey, string> = {
   'nav.signOut': 'Sign out',
   'nav.accountMenu': 'Account menu',
   'nav.accountSettings': 'Account settings',
+  'nav.legal': 'Legal notice',
+  'nav.privacy': 'Privacy',
+  'nav.terms': 'Terms',
+  'nav.sitemap': 'Sitemap',
+
+  'legal.title': 'Legal notice',
+  'legal.close': 'Close legal notice',
+  'legal.publisher.title': 'Publisher',
+  'legal.publisher.status.ei':
+    'sole trader under the French micro-enterprise scheme',
+  'legal.publisher.intro': '{name}, {status}.',
+  'legal.publisher.siret': 'SIRET: {siret}.',
+  'legal.publicationDirector': 'Publication director: {name}.',
+  'legal.contact': 'Contact: {email}.',
+  'legal.host.title': 'Hosting',
+  'legal.host.intro':
+    'The site is hosted by {name}, {address} (SIREN {siren}).',
+  'legal.host.location':
+    'Data and services are stored in France and the Netherlands.',
+  'legal.ip.title': 'Intellectual property',
+  'legal.ip.intro':
+    'The name “{site}”, the design and application content (excluding user content) are protected.',
+  'legal.ip.reproduction':
+    'Unauthorised reproduction is prohibited.',
+  'legal.privacyLink': 'For personal data processing, see the',
+  'legal.termsLink': 'The terms of use are set out in the',
+
+  'privacy.title': 'Privacy policy',
+  'privacy.close': 'Close privacy policy',
+  'privacy.controller.title': 'Data controller',
+  'privacy.controller.body':
+    '{name} ({site}), {address}, reachable at {email}, is the controller of personal data collected through the application.',
+  'privacy.data.title': 'Data collected',
+  'privacy.data.account':
+    'Account (if you sign in): email address, optional display name, authentication sessions.',
+  'privacy.data.cloud':
+    'Cloud library (if you use an account): groups, repertoires, songs, metadata and audio files of uploaded tracks.',
+  'privacy.data.technical':
+    'Minimal technical data needed to run the service (e.g. server-side error logs).',
+  'privacy.purposes.title': 'Purposes and legal bases',
+  'privacy.purposes.body':
+    'Data is used to let you sign in, save and retrieve tracks in the cloud, and keep the service secure. Legal bases: performance of the contract (providing the service under the Terms of Use) and, where applicable, legitimate interest (security, abuse prevention).',
+  'privacy.processors.title': 'Processors',
+  'privacy.processors.body':
+    'Hosting and storage are provided by {host}. Data and services are stored in France and the Netherlands.',
+  'privacy.retention.title': 'Retention',
+  'privacy.retention.body':
+    'Account and library data are kept for as long as the account exists. You can delete your account in the app; associated data is then erased. Technical logs are kept only as long as needed for diagnostics.',
+  'privacy.rights.title': 'Your rights',
+  'privacy.rights.body':
+    'You have rights of access, rectification, erasure, objection, restriction and portability. You can exercise them via {email}, or by deleting your account in settings. You may also lodge a complaint with your supervisory authority (in France: CNIL, cnil.fr).',
+  'privacy.cookies.title': 'Cookies and local storage',
+  'privacy.cookies.guest':
+    'As a guest, PolyRecorder sets no cookies.',
+  'privacy.cookies.signedIn':
+    'After sign-in, a single httpOnly session cookie ({cookie}) is used, strictly necessary for authentication. It is not used for advertising tracking.',
+  'privacy.cookies.localStorage':
+    'Interface preferences (language, theme, recording options, active song) are stored in the browser’s localStorage, not in cookies.',
+  'privacy.legalLink': 'See also the',
+  'privacy.termsLink': 'and the',
+
+  'terms.title': 'Terms of use',
+  'terms.close': 'Close terms of use',
+  'terms.effective': 'Effective as of {date}.',
+  'terms.object.title': 'Purpose',
+  'terms.object.body':
+    'These terms of use govern access to and use of {site}, a service published by {name}. They form the contractual framework between you and the publisher for use of the service.',
+  'terms.acceptance.title': 'Acceptance',
+  'terms.acceptance.body':
+    'By using the service (as a guest or with an account), you accept these terms. If you do not accept them, you must not use the service.',
+  'terms.service.title': 'Service description',
+  'terms.service.guest':
+    'Without an account, you can use the recorder in your browser. Takes then remain local to your device (unless you explicitly trigger another action).',
+  'terms.service.account':
+    'With an account, you can save tracks in the cloud (groups, repertoires, songs) and reopen them later, and share certain songs if you enable public sharing.',
+  'terms.service.free':
+    'The service is currently offered free of charge, within the publisher’s technical means.',
+  'terms.service.futurePaid':
+    'Paid offers (for example a subscription) may be introduced later. If so, these terms, the legal notice and the privacy policy will be updated before any billing, and pricing will be clearly presented at the time of purchase.',
+  'terms.account.title': 'Account',
+  'terms.account.body':
+    'You are responsible for keeping access to your email secure and for use of your account. Information you provide must be accurate. You may delete your account in settings; deletion removes associated data as described in the privacy policy.',
+  'terms.content.title': 'User content',
+  'terms.content.ownership':
+    'You retain ownership of the recordings and content you create or upload.',
+  'terms.content.license':
+    'You grant the publisher a non-exclusive, worldwide, royalty-free licence limited to hosting, backup, display and technical delivery needed to operate the service (including public sharing you enable).',
+  'terms.content.responsibility':
+    'You warrant that you hold the rights needed for uploaded content (voices, works, etc.) and agree not to upload unlawful content.',
+  'terms.use.title': 'Acceptable use',
+  'terms.use.body':
+    'You must not abuse the service (intrusion, deliberate overload, harm to other users, illegal content, bypassing security). The publisher may suspend or delete an account in case of serious breach.',
+  'terms.availability.title': 'Availability',
+  'terms.availability.body':
+    'The publisher aims for continuous service but does not guarantee uninterrupted availability. Maintenance, outages or changes may occur. The service is provided “as is”.',
+  'terms.liability.title': 'Liability',
+  'terms.liability.body':
+    'To the extent permitted by law, the publisher is not liable for indirect damage, loss of local data that was not synced, or consequences of non-compliant use. Nothing in these terms excludes liability for wilful misconduct or gross negligence, or mandatory consumer rights.',
+  'terms.privacy.title': 'Personal data',
+  'terms.privacy.body':
+    'Personal data processing is described in the',
+  'terms.changes.title': 'Changes to the terms',
+  'terms.changes.body':
+    'The publisher may update these terms. The effective date is shown at the top of the page. Continued use after an update means you accept the new terms. For a material change linked to a paid offer, clear information will be provided before purchase.',
+  'terms.law.title': 'Governing law',
+  'terms.law.body':
+    'These terms are governed by French law. In case of dispute, you may contact {email}. Failing amicable settlement, the competent French courts shall have jurisdiction, subject to mandatory consumer protection rules.',
+  'terms.legalLink': 'See also the',
+
+  'sitemap.title': 'Sitemap',
+  'sitemap.close': 'Close sitemap',
+  'sitemap.app.title': 'Application',
+  'sitemap.app.home': 'Recorder',
+  'sitemap.account.title': 'Account',
+  'sitemap.legal.title': 'Legal',
 
   'account.title': 'Account',
   'account.close': 'Close account settings',

@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react'
+import { AuthBar } from './AuthBar'
 import { Brand } from './Brand'
 import { Deck } from './Deck'
+import { Hint } from './StatusMessage'
+import { LegalFooter } from './LegalFooter'
 import { MarkingHelp } from './MarkingHelp'
 import { ModeRow } from './ModeRow'
-import { Hint } from './StatusMessage'
 import { cn } from '../lib/utils'
 import { useSessionStore } from '../store/sessionStore'
 
@@ -16,7 +18,7 @@ type AppShellProps = {
 }
 
 /**
- * SSR-safe chrome: brand, deck slot, footer utilities, hints.
+ * SSR-safe chrome: auth stuck top-left, brand/deck centered, legal footer at bottom.
  * Audio bootstrap stays in RecorderApp (client-only home).
  */
 export function AppShell({
@@ -28,18 +30,22 @@ export function AppShell({
   const hint = useSessionStore((s) => s.hint)
 
   return (
-    <main
+    <div
       className={cn(
-        'flex flex-col gap-7 animate-rise',
-        wide ? 'w-[min(560px,100%)]' : 'w-[min(440px,100%)]',
+        'flex min-h-[calc(100dvh-5rem)] w-[min(440px,100%)] flex-col max-sm:min-h-[calc(100dvh-2.5rem)]',
+        wide && 'w-[min(560px,100%)]',
         className,
       )}
     >
-      <Brand />
-      <Deck>{children}</Deck>
-      {showMarkingHelp ? <MarkingHelp /> : null}
-      <ModeRow />
-      <Hint>{hint}</Hint>
-    </main>
+      <AuthBar className="shrink-0" />
+      <main className="flex flex-1 flex-col justify-center gap-7 animate-rise">
+        <Brand />
+        <Deck>{children}</Deck>
+        {showMarkingHelp ? <MarkingHelp /> : null}
+        <ModeRow />
+        <Hint>{hint}</Hint>
+      </main>
+      <LegalFooter />
+    </div>
   )
 }

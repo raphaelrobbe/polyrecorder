@@ -18,6 +18,121 @@ export const fr = {
   'nav.signOut': 'Déconnexion',
   'nav.accountMenu': 'Menu du compte',
   'nav.accountSettings': 'Paramètres du compte',
+  'nav.legal': 'Mentions légales',
+  'nav.privacy': 'Confidentialité',
+  'nav.terms': 'CGU',
+  'nav.sitemap': 'Plan du site',
+
+  'legal.title': 'Mentions légales',
+  'legal.close': 'Fermer les mentions légales',
+  'legal.publisher.title': 'Éditeur',
+  'legal.publisher.status.ei':
+    'entrepreneur individuel sous le régime de la micro-entreprise',
+  'legal.publisher.intro': '{name}, {status}.',
+  'legal.publisher.siret': 'SIRET : {siret}.',
+  'legal.publicationDirector': 'Directeur de la publication : {name}.',
+  'legal.contact': 'Contact : {email}.',
+  'legal.host.title': 'Hébergement',
+  'legal.host.intro':
+    'Le site est hébergé par {name}, {address} (SIREN {siren}).',
+  'legal.host.location':
+    'Les données et services sont stockés en France et aux Pays-Bas.',
+  'legal.ip.title': 'Propriété intellectuelle',
+  'legal.ip.intro':
+    'Le nom «\u00a0{site}\u00a0», le design et les contenus de l’application (hors contenus utilisateurs) sont protégés.',
+  'legal.ip.reproduction':
+    'Toute reproduction non autorisée est interdite.',
+  'legal.privacyLink': 'Pour le traitement des données personnelles, voir la',
+  'legal.termsLink': 'Les conditions d’utilisation sont décrites dans les',
+
+  'privacy.title': 'Politique de confidentialité',
+  'privacy.close': 'Fermer la politique de confidentialité',
+  'privacy.controller.title': 'Responsable du traitement',
+  'privacy.controller.body':
+    '{name} ({site}), {address}, joignable à {email}, est responsable du traitement des données personnelles collectées via l’application.',
+  'privacy.data.title': 'Données collectées',
+  'privacy.data.account':
+    'Compte (si tu te connectes) : adresse e-mail, pseudo optionnel, sessions d’authentification.',
+  'privacy.data.cloud':
+    'Bibliothèque cloud (si tu utilises le compte) : groupes, répertoires, chansons, métadonnées et fichiers audio des pistes téléversées.',
+  'privacy.data.technical':
+    'Données techniques minimales liées au fonctionnement du service (par ex. journaux d’erreur côté serveur).',
+  'privacy.purposes.title': 'Finalités et bases légales',
+  'privacy.purposes.body':
+    'Les données servent à te permettre de te connecter, d’enregistrer et de retrouver tes pistes dans le cloud, et à assurer la sécurité du service. Bases légales : exécution du contrat (fourniture du service selon les CGU) et, le cas échéant, intérêt légitime (sécurité, prévention des abus).',
+  'privacy.processors.title': 'Sous-traitants',
+  'privacy.processors.body':
+    'L’hébergement et le stockage sont assurés par {host}. Les données et services sont stockés en France et aux Pays-Bas.',
+  'privacy.retention.title': 'Durées de conservation',
+  'privacy.retention.body':
+    'Les données de compte et de bibliothèque sont conservées tant que le compte existe. Tu peux supprimer ton compte depuis l’application ; les données associées sont alors effacées. Les journaux techniques sont conservés le temps nécessaire au diagnostic.',
+  'privacy.rights.title': 'Tes droits',
+  'privacy.rights.body':
+    'Tu disposes des droits d’accès, de rectification, d’effacement, d’opposition, de limitation et de portabilité. Tu peux les exercer via {email}, ou en supprimant ton compte dans les paramètres. Tu peux aussi introduire une réclamation auprès de la CNIL (cnil.fr).',
+  'privacy.cookies.title': 'Cookies et stockage local',
+  'privacy.cookies.guest':
+    'En navigation en invité, PolyRecorder ne dépose aucun cookie.',
+  'privacy.cookies.signedIn':
+    'Après connexion, un seul cookie de session httpOnly ({cookie}) est utilisé, strictement nécessaire à l’authentification. Il ne sert pas au suivi publicitaire.',
+  'privacy.cookies.localStorage':
+    'Les préférences d’interface (langue, thème, options d’enregistrement, chanson active) sont stockées dans le localStorage du navigateur, pas dans des cookies.',
+  'privacy.legalLink': 'Voir aussi les',
+  'privacy.termsLink': 'et les',
+
+  'terms.title': 'Conditions générales d’utilisation',
+  'terms.close': 'Fermer les CGU',
+  'terms.effective': 'En vigueur au {date}.',
+  'terms.object.title': 'Objet',
+  'terms.object.body':
+    'Les présentes conditions générales d’utilisation (CGU) régissent l’accès et l’usage de {site}, service édité par {name}. Elles constituent le cadre contractuel entre toi et l’éditeur pour l’utilisation du service.',
+  'terms.acceptance.title': 'Acceptation',
+  'terms.acceptance.body':
+    'En utilisant le service (en invité ou avec un compte), tu acceptes les présentes CGU. Si tu n’acceptes pas ces conditions, tu ne dois pas utiliser le service.',
+  'terms.service.title': 'Description du service',
+  'terms.service.guest':
+    'Sans compte, tu peux utiliser l’enregistreur dans ton navigateur. Les prises restent alors locales à ton appareil (sauf actions que tu déclenches explicitement).',
+  'terms.service.account':
+    'Avec un compte, tu peux enregistrer des pistes dans le cloud (groupes, répertoires, chansons) et les rouvrir plus tard, ainsi que partager certaines chansons si tu actives le partage public.',
+  'terms.service.free':
+    'Le service est actuellement proposé gratuitement, dans la limite des moyens techniques de l’éditeur.',
+  'terms.service.futurePaid':
+    'Des offres payantes (par exemple un abonnement) pourront être proposées ultérieurement. Le cas échéant, les présentes CGU, les mentions légales et la politique de confidentialité seront mises à jour avant toute facturation, et les conditions tarifaires te seront présentées clairement au moment de la souscription.',
+  'terms.account.title': 'Compte',
+  'terms.account.body':
+    'Tu es responsable de la confidentialité de l’accès à ton adresse e-mail et de l’usage de ton compte. Les informations fournies doivent être exactes. Tu peux supprimer ton compte depuis les paramètres ; cette suppression entraîne l’effacement des données associées dans les conditions prévues par la politique de confidentialité.',
+  'terms.content.title': 'Contenus utilisateurs',
+  'terms.content.ownership':
+    'Tu restes propriétaire des enregistrements et contenus que tu crées ou téléverses.',
+  'terms.content.license':
+    'Tu accordes à l’éditeur une licence non exclusive, mondiale et gratuite, limitée à l’hébergement, à la sauvegarde, à l’affichage et à la diffusion technique nécessaires au fonctionnement du service (y compris le partage public que tu actives).',
+  'terms.content.responsibility':
+    'Tu garantis disposer des droits nécessaires sur les contenus déposés (voix, œuvres, etc.) et t’engages à ne pas téléverser de contenus illicites.',
+  'terms.use.title': 'Usage acceptable',
+  'terms.use.body':
+    'Il est interdit d’utiliser le service de manière abusive (intrusion, surcharge volontaire, atteinte aux autres utilisateurs, contenu illégal, contournement des mesures de sécurité). L’éditeur peut suspendre ou supprimer un compte en cas de manquement grave.',
+  'terms.availability.title': 'Disponibilité',
+  'terms.availability.body':
+    'L’éditeur s’efforce d’assurer un service continu, sans garantir une disponibilité ininterrompue. Des maintenances, pannes ou évolutions peuvent survenir. Le service est fourni «\u00a0en l’état\u00a0».',
+  'terms.liability.title': 'Responsabilité',
+  'terms.liability.body':
+    'Dans les limites autorisées par la loi, l’éditeur ne saurait être responsable des dommages indirects, de la perte de données locales non synchronisées, ou des conséquences d’un usage non conforme. Rien dans les présentes CGU n’exclut la responsabilité pour faute lourde ou dolosive, ni les droits irréductibles du consommateur.',
+  'terms.privacy.title': 'Données personnelles',
+  'terms.privacy.body':
+    'Le traitement des données personnelles est décrit dans la',
+  'terms.changes.title': 'Modification des CGU',
+  'terms.changes.body':
+    'L’éditeur peut modifier les CGU. La date d’entrée en vigueur est indiquée en tête de page. En continuant à utiliser le service après une mise à jour, tu acceptes les nouvelles conditions. Pour un changement substantiel lié à une offre payante, une information claire sera fournie avant souscription.',
+  'terms.law.title': 'Droit applicable',
+  'terms.law.body':
+    'Les présentes CGU sont régies par le droit français. En cas de litige, tu peux contacter {email}. À défaut d’accord amiable, les tribunaux français compétents seront saisis, sous réserve des règles protectrices applicables au consommateur.',
+  'terms.legalLink': 'Voir aussi les',
+
+  'sitemap.title': 'Plan du site',
+  'sitemap.close': 'Fermer le plan du site',
+  'sitemap.app.title': 'Application',
+  'sitemap.app.home': 'Enregistreur',
+  'sitemap.account.title': 'Compte',
+  'sitemap.legal.title': 'Informations légales',
 
   'account.title': 'Compte',
   'account.close': 'Fermer les paramètres du compte',
