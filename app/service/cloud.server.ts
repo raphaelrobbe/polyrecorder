@@ -609,7 +609,6 @@ export async function openSong(
   songId: string,
 ): Promise<OpenSongResult> {
   try {
-    if (!isS3Configured()) return { ok: false, reason: 's3_not_configured' }
     if (!songId) return { ok: false, reason: 'invalid' }
 
     const user = await getUserFromRequest(request)
@@ -645,6 +644,11 @@ export async function openSong(
         where: { id: song.id },
         data: { lastOpenedAt: new Date() },
       })
+    }
+
+    // Empty songs are metadata-only — S3 is only required to fetch audio.
+    if (song.tracks.length > 0 && !isS3Configured()) {
+      return { ok: false, reason: 's3_not_configured' }
     }
 
     const tracks = await Promise.all(

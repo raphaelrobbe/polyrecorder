@@ -14,6 +14,7 @@ import { useSessionStore } from '../store/sessionStore'
 import { Button } from './Button'
 import { DeckOverlayPanel } from './DeckOverlayPanel'
 import { IconChevron, IconGlobe, IconShare, IconTrash } from './icons'
+import { ErrorBanner } from './StatusMessage'
 
 type LibraryTree = {
   groups: Array<{
@@ -780,6 +781,7 @@ export function LibraryPanel({ className }: LibraryPanelProps) {
   const user = rootData?.user ?? null
   const activeSongId = useSessionStore((s) => s.activeSongId)
   const setSessionTitle = useSessionStore((s) => s.setSessionTitle)
+  const error = useSessionStore((s) => s.error)
   const setError = useSessionStore((s) => s.setError)
 
   const [tree, setTree] = useState<LibraryTree | null>(null)
@@ -893,6 +895,7 @@ export function LibraryPanel({ className }: LibraryPanelProps) {
 
   const onOpenSong = async (songId: string) => {
     setBusySongId(songId)
+    setError(null)
     try {
       const ok = await loadCloudSongIntoSession(songId)
       if (ok) navigate('/')
@@ -922,6 +925,7 @@ export function LibraryPanel({ className }: LibraryPanelProps) {
       bodyClassName="flex flex-col gap-4"
       closeAriaLabel={t('library.close')}
     >
+      {error ? <ErrorBanner className="mt-0">{error}</ErrorBanner> : null}
       {loading ? (
         <p className="m-0 text-[0.9rem] text-ink-soft">{t('library.opening')}</p>
       ) : !tree ? (

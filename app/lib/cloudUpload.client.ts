@@ -183,7 +183,9 @@ export async function fetchAndHydrateSong(
     useSessionStore.getState().setError(
       data.reason === 'unauthorized'
         ? t('cloud.error.unauthorized')
-        : t('cloud.error.openFailed'),
+        : data.reason === 's3_not_configured'
+          ? t('cloud.error.s3NotConfigured')
+          : t('cloud.error.openFailed'),
     )
     return null
   }

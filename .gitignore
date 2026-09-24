@@ -32,3 +32,9 @@ dist-ssr
 generated/prisma
 
 /app/generated/prisma
+
+# Local agent skills / IDE tooling (not part of the app)
+.agents/
+.claude/
+.windsurf/
+skills-lock.json
