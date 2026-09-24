@@ -1,6 +1,5 @@
 import type { LinksFunction, LoaderFunctionArgs } from '@remix-run/node'
 import {
-  isRouteErrorResponse,
   Links,
   Meta,
   Outlet,
@@ -82,16 +81,14 @@ export default function App() {
 /** Catch route/render failures so the user never sees a blank Application Error. */
 export function ErrorBoundary() {
   const error = useRouteError()
+
+  useEffect(() => {
+    console.error('[ErrorBoundary]', error)
+  }, [error])
+
   const title = t('error.title')
   const lead = t('error.lead')
   const home = t('error.home')
-
-  let detail: string | null = null
-  if (isRouteErrorResponse(error)) {
-    detail = `${error.status} ${error.statusText}`
-  } else if (error instanceof Error && process.env.NODE_ENV !== 'production') {
-    detail = error.message
-  }
 
   return (
     <main className="mx-auto flex w-[min(440px,100%)] flex-col gap-5 px-4 py-10 animate-rise">
@@ -99,11 +96,6 @@ export function ErrorBoundary() {
         {title}
       </h1>
       <p className="m-0 text-[0.95rem] leading-[1.45] text-ink-soft">{lead}</p>
-      {detail ? (
-        <p className="m-0 text-[0.85rem] font-medium text-ink-soft" role="status">
-          {detail}
-        </p>
-      ) : null}
       <p className="m-0">
         <a href="/" className="text-ink underline-offset-2 hover:underline">
           {home}

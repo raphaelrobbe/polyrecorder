@@ -254,34 +254,42 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
             {t('account.pseudo')}
           </label>
           <div className="flex items-center gap-2.5">
-            <input
-              id="account-pseudo"
-              type="text"
-              name="pseudo"
-              value={pseudo}
-              maxLength={40}
-              autoComplete="nickname"
-              placeholder={t('account.pseudoPlaceholder')}
-              aria-invalid={
-                pseudoFocused &&
-                (liveEmpty ||
-                  liveHasAt ||
-                  liveTooShort ||
-                  liveTooLong ||
-                  liveTaken)
-                  ? true
-                  : undefined
-              }
-              aria-describedby={
-                !user.pseudoCustomizedAt || pseudoFocused
-                  ? 'account-pseudo-hint'
-                  : undefined
-              }
-              className="min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 py-2.5 text-[0.95rem] font-medium text-ink outline-none focus-visible:border-ink/35 focus-visible:shadow-[0_0_0_3px_color-mix(in_srgb,var(--ink)_12%,transparent)]"
-              onChange={(event) => setPseudo(event.target.value)}
-              onFocus={() => setPseudoFocused(true)}
-              onBlur={() => setPseudoFocused(false)}
-            />
+            <div className="relative min-w-0 flex-1">
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[0.95rem] font-medium text-ink-soft"
+              >
+                @
+              </span>
+              <input
+                id="account-pseudo"
+                type="text"
+                name="pseudo"
+                value={pseudo}
+                maxLength={40}
+                autoComplete="nickname"
+                placeholder={t('account.pseudoPlaceholder')}
+                aria-invalid={
+                  pseudoFocused &&
+                  (liveEmpty ||
+                    liveHasAt ||
+                    liveTooShort ||
+                    liveTooLong ||
+                    liveTaken)
+                    ? true
+                    : undefined
+                }
+                aria-describedby={
+                  !user.pseudoCustomizedAt || pseudoFocused
+                    ? 'account-pseudo-hint'
+                    : undefined
+                }
+                className="w-full rounded-xl border border-line bg-surface py-2.5 pl-7 pr-3 text-[0.95rem] font-medium text-ink outline-none focus-visible:border-ink/35 focus-visible:shadow-[0_0_0_3px_color-mix(in_srgb,var(--ink)_12%,transparent)]"
+                onChange={(event) => setPseudo(event.target.value)}
+                onFocus={() => setPseudoFocused(true)}
+                onBlur={() => setPseudoFocused(false)}
+              />
+            </div>
             {sideStatus === 'unavailable' ? (
               <span
                 role="status"

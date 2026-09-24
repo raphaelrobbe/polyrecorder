@@ -176,11 +176,11 @@ export const en: Record<MessageKey, string> = {
   'auth.close': 'Close sign-in',
   'auth.signIn.title': 'Sign in or create an account',
   'auth.signIn.lead':
-    'Enter your email or display name: we’ll create an account if needed (email), then send a one-time magic link (valid 30 minutes). No password.',
+    'No password.\nEnter your email or display name.\nYour account will be created if it doesn’t exist yet.\nOpen the link in the email (valid 30 minutes, one-time use).\nYou’ll stay signed in on this device until you sign out.',
   'auth.signIn.email': 'Email',
   'auth.signIn.emailPlaceholder': 'you@example.com',
   'auth.signIn.identifier': 'Email or display name',
-  'auth.signIn.identifierPlaceholder': 'you@example.com or raf_prague',
+  'auth.signIn.identifierPlaceholder': 'you@example.com or max22',
   'auth.signIn.submit': 'Continue',
   'auth.signIn.sending': 'Sending…',
   'auth.sent.title': 'Check your inbox',
@@ -204,9 +204,9 @@ export const en: Record<MessageKey, string> = {
   'auth.error.linkUsed': 'This link was already used. Request a new one.',
   'auth.email.welcome.subject': 'Welcome to PolyRecorder',
   'auth.email.welcome.text':
-    'Welcome! Your PolyRecorder account is ready.\n\nTo activate it and sign in, open this link (valid 30 minutes, one-time use):\n\n{link}\n\nThen you can record, layer, and download your takes.\n\nIf you did not request this, you can ignore this email.',
+    'Welcome! Your PolyRecorder account is ready.\nRemember to change your display name (it was generated automatically).\n\nTo activate your account and sign in, open this link (valid 30 minutes, one-time use):\n\n{link}\n\nThen you can record, layer, and download your takes.\n\nIf you did not request this, you can ignore this email.',
   'auth.email.welcome.html':
-    '<p>Welcome! Your <strong>PolyRecorder</strong> account is ready.</p><p>To activate it and sign in, open this link (valid 30&nbsp;minutes, one-time use):</p><p><a href="{link}">Activate my account</a></p><p>Then you can record, layer, and download your takes.</p><p>If you did not request this, you can ignore this email.</p>',
+    '<p>Welcome! Your <strong>PolyRecorder</strong> account is ready.</p><p>Remember to change your display name (it was generated automatically).</p><p>To activate your account and sign in, open this link (valid 30&nbsp;minutes, one-time use):</p><p><a href="{link}">Activate my account</a></p><p>Then you can record, layer, and download your takes.</p><p>If you did not request this, you can ignore this email.</p>',
   'auth.email.signIn.subject': 'Your PolyRecorder sign-in link',
   'auth.email.signIn.text':
     'Here is your PolyRecorder sign-in link (valid 30 minutes, one-time use):\n\n{link}\n\nIf you did not request this, you can ignore this email.',

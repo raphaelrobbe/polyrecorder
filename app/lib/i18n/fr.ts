@@ -175,11 +175,11 @@ export const fr = {
   'auth.close': 'Fermer la connexion',
   'auth.signIn.title': 'Connexion ou création de compte',
   'auth.signIn.lead':
-    'Entre ton email ou ton pseudo : on crée le compte s’il n’existe pas encore (email), puis on t’envoie un lien magique (valable 30 minutes, usage unique). Pas de mot de passe.',
+    'Pas de mot de passe.\nEntre ton email ou ton pseudo.\nTon compte sera créé s’il n’existe pas.\nClique sur le lien reçu par mail (valable 30 minutes, usage unique).\nTu resteras connecté sur l’appareil tant que tu ne te déconnectes pas.',
   'auth.signIn.email': 'Email',
   'auth.signIn.emailPlaceholder': 'vous@exemple.com',
   'auth.signIn.identifier': 'Email ou pseudo',
-  'auth.signIn.identifierPlaceholder': 'vous@exemple.com ou raf_prague',
+  'auth.signIn.identifierPlaceholder': 'vous@exemple.com ou max22',
   'auth.signIn.submit': 'Continuer',
   'auth.signIn.sending': 'Envoi…',
   'auth.sent.title': 'Vérifie ta boîte mail',
@@ -188,7 +188,7 @@ export const fr = {
   'auth.sent.bodyWithEmail':
     'Un email avec un lien de connexion vient d’être envoyé à {email}. Ouvre-le pour te connecter — ton compte sera créé au premier clic si besoin.',
   'auth.sent.hint':
-    'Le lien expire dans 30 minutes et ne peut être utilisé qu’une fois. Pense à regarder les indésirables.',
+    'Le lien expire dans 30 minutes et ne peut être utilisé qu’une fois. Pense à regarder les courriers indésirables (spams).',
   'auth.sent.retry': 'Utiliser un autre identifiant',
   'auth.sent.devHint':
     'En local, l’email peut ne pas arriver : utilise le bouton ci-dessous pour te connecter tout de suite.',
@@ -203,9 +203,9 @@ export const fr = {
   'auth.error.linkUsed': 'Ce lien a déjà été utilisé. Demande-en un nouveau.',
   'auth.email.welcome.subject': 'Bienvenue sur PolyRecorder',
   'auth.email.welcome.text':
-    'Bienvenue ! Ton compte PolyRecorder est prêt.\n\nPour l’activer et te connecter, ouvre ce lien (valable 30 minutes, usage unique) :\n\n{link}\n\nEnsuite tu pourras enregistrer, superposer et télécharger tes prises.\n\nSi tu n’es pas à l’origine de cette demande, ignore cet email.',
+    'Bienvenue ! Ton compte PolyRecorder est prêt.\nPense à modifier ton pseudo (généré automatiquement).\n\nPour activer ton compte et te connecter, ouvre ce lien (valable 30 minutes, usage unique) :\n\n{link}\n\nEnsuite tu pourras enregistrer, superposer et télécharger tes prises.\n\nSi tu n’es pas à l’origine de cette demande, ignore cet email.',
   'auth.email.welcome.html':
-    '<p>Bienvenue&nbsp;! Ton compte <strong>PolyRecorder</strong> est prêt.</p><p>Pour l’activer et te connecter, ouvre ce lien (valable 30&nbsp;minutes, usage unique)&nbsp;:</p><p><a href="{link}">Activer mon compte</a></p><p>Ensuite tu pourras enregistrer, superposer et télécharger tes prises.</p><p>Si tu n’es pas à l’origine de cette demande, ignore cet email.</p>',
+    '<p>Bienvenue&nbsp;! Ton compte <strong>PolyRecorder</strong> est prêt.</p><p>Pense à modifier ton pseudo (généré automatiquement).</p><p>Pour activer ton compte et te connecter, ouvre ce lien (valable 30&nbsp;minutes, usage unique)&nbsp;:</p><p><a href="{link}">Activer mon compte</a></p><p>Ensuite tu pourras enregistrer, superposer et télécharger tes prises.</p><p>Si tu n’es pas à l’origine de cette demande, ignore cet email.</p>',
   'auth.email.signIn.subject': 'Ton lien de connexion PolyRecorder',
   'auth.email.signIn.text':
     'Voici ton lien de connexion à PolyRecorder (valable 30 minutes, usage unique) :\n\n{link}\n\nSi tu n’es pas à l’origine de cette demande, ignore cet email.',

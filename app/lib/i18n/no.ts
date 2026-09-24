@@ -177,11 +177,11 @@ export const no: Record<MessageKey, string> = {
   'auth.close': 'Lukk innlogging',
   'auth.signIn.title': 'Logg inn eller opprett konto',
   'auth.signIn.lead':
-    'Skriv inn e-post eller visningsnavn: vi oppretter kontoen om den mangler (e-post), og sender en engangs magisk lenke (gyldig i 30 minutter). Ingen passord.',
+    'Ingen passord.\nSkriv inn e-post eller visningsnavn.\nKontoen opprettes hvis den ikke finnes.\nÅpne lenken i e-posten (gyldig i 30 minutter, engangsbruk).\nDu forblir innlogget på enheten til du logger ut.',
   'auth.signIn.email': 'E-post',
   'auth.signIn.emailPlaceholder': 'deg@eksempel.com',
   'auth.signIn.identifier': 'E-post eller visningsnavn',
-  'auth.signIn.identifierPlaceholder': 'deg@eksempel.com eller raf_prague',
+  'auth.signIn.identifierPlaceholder': 'deg@eksempel.com eller max22',
   'auth.signIn.submit': 'Fortsett',
   'auth.signIn.sending': 'Sender…',
   'auth.sent.title': 'Sjekk innboksen',
@@ -205,9 +205,9 @@ export const no: Record<MessageKey, string> = {
   'auth.error.linkUsed': 'Denne lenken er allerede brukt. Be om en ny.',
   'auth.email.welcome.subject': 'Velkommen til PolyRecorder',
   'auth.email.welcome.text':
-    'Velkommen! PolyRecorder-kontoen din er klar.\n\nFor å aktivere den og logge inn, åpne denne lenken (gyldig i 30 minutter, engangsbruk):\n\n{link}\n\nDeretter kan du ta opp, legge lag på lag og laste ned.\n\nHvis du ikke ba om dette, kan du ignorere denne e-posten.',
+    'Velkommen! PolyRecorder-kontoen din er klar.\nHusk å endre visningsnavnet (det ble generert automatisk).\n\nFor å aktivere kontoen din og logge inn, åpne denne lenken (gyldig i 30 minutter, engangsbruk):\n\n{link}\n\nDeretter kan du ta opp, legge lag på lag og laste ned.\n\nHvis du ikke ba om dette, kan du ignorere denne e-posten.',
   'auth.email.welcome.html':
-    '<p>Velkommen&nbsp;! <strong>PolyRecorder</strong>-kontoen din er klar.</p><p>For å aktivere den og logge inn, åpne denne lenken (gyldig i 30&nbsp;minutter, engangsbruk):</p><p><a href="{link}">Aktiver kontoen min</a></p><p>Deretter kan du ta opp, legge lag på lag og laste ned.</p><p>Hvis du ikke ba om dette, kan du ignorere denne e-posten.</p>',
+    '<p>Velkommen&nbsp;! <strong>PolyRecorder</strong>-kontoen din er klar.</p><p>Husk å endre visningsnavnet (det ble generert automatisk).</p><p>For å aktivere kontoen din og logge inn, åpne denne lenken (gyldig i 30&nbsp;minutter, engangsbruk):</p><p><a href="{link}">Aktiver kontoen min</a></p><p>Deretter kan du ta opp, legge lag på lag og laste ned.</p><p>Hvis du ikke ba om dette, kan du ignorere denne e-posten.</p>',
   'auth.email.signIn.subject': 'Innloggingslenken din til PolyRecorder',
   'auth.email.signIn.text':
     'Her er innloggingslenken din til PolyRecorder (gyldig i 30 minutter, engangsbruk):\n\n{link}\n\nHvis du ikke ba om dette, kan du ignorere denne e-posten.',

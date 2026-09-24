@@ -177,11 +177,11 @@ export const de: Record<MessageKey, string> = {
   'auth.close': 'Anmeldung schließen',
   'auth.signIn.title': 'Anmelden oder Konto erstellen',
   'auth.signIn.lead':
-    'Gib deine E-Mail oder deinen Anzeigenamen ein: wir erstellen bei Bedarf ein Konto (E-Mail) und senden dir einen einmaligen Magie-Link (30 Minuten gültig). Kein Passwort.',
+    'Kein Passwort.\nGib deine E-Mail oder deinen Anzeigenamen ein.\nDein Konto wird erstellt, falls es noch nicht existiert.\nÖffne den Link in der E-Mail (30 Minuten gültig, einmalig).\nDu bleibst auf diesem Gerät angemeldet, bis du dich abmeldest.',
   'auth.signIn.email': 'E-Mail',
   'auth.signIn.emailPlaceholder': 'du@beispiel.com',
   'auth.signIn.identifier': 'E-Mail oder Anzeigename',
-  'auth.signIn.identifierPlaceholder': 'du@beispiel.com oder raf_prague',
+  'auth.signIn.identifierPlaceholder': 'du@beispiel.com oder max22',
   'auth.signIn.submit': 'Weiter',
   'auth.signIn.sending': 'Wird gesendet…',
   'auth.sent.title': 'Posteingang prüfen',
@@ -205,9 +205,9 @@ export const de: Record<MessageKey, string> = {
   'auth.error.linkUsed': 'Dieser Link wurde bereits verwendet. Fordere einen neuen an.',
   'auth.email.welcome.subject': 'Willkommen bei PolyRecorder',
   'auth.email.welcome.text':
-    'Willkommen! Dein PolyRecorder-Konto ist bereit.\n\nZum Aktivieren und Anmelden öffne diesen Link (30 Minuten gültig, einmalig):\n\n{link}\n\nDanach kannst du Aufnahmen machen, überlagern und herunterladen.\n\nWenn du das nicht angefordert hast, ignoriere diese E-Mail.',
+    'Willkommen! Dein PolyRecorder-Konto ist bereit.\nDenk daran, deinen Anzeigenamen zu ändern (er wurde automatisch erzeugt).\n\nUm dein Konto zu aktivieren und dich anzumelden, öffne diesen Link (30 Minuten gültig, einmalig):\n\n{link}\n\nDanach kannst du Aufnahmen machen, überlagern und herunterladen.\n\nWenn du das nicht angefordert hast, ignoriere diese E-Mail.',
   'auth.email.welcome.html':
-    '<p>Willkommen&nbsp;! Dein <strong>PolyRecorder</strong>-Konto ist bereit.</p><p>Zum Aktivieren und Anmelden öffne diesen Link (30&nbsp;Minuten gültig, einmalig):</p><p><a href="{link}">Konto aktivieren</a></p><p>Danach kannst du Aufnahmen machen, überlagern und herunterladen.</p><p>Wenn du das nicht angefordert hast, ignoriere diese E-Mail.</p>',
+    '<p>Willkommen&nbsp;! Dein <strong>PolyRecorder</strong>-Konto ist bereit.</p><p>Denk daran, deinen Anzeigenamen zu ändern (er wurde automatisch erzeugt).</p><p>Um dein Konto zu aktivieren und dich anzumelden, öffne diesen Link (30&nbsp;Minuten gültig, einmalig):</p><p><a href="{link}">Konto aktivieren</a></p><p>Danach kannst du Aufnahmen machen, überlagern und herunterladen.</p><p>Wenn du das nicht angefordert hast, ignoriere diese E-Mail.</p>',
   'auth.email.signIn.subject': 'Dein PolyRecorder-Anmelde-Link',
   'auth.email.signIn.text':
     'Hier ist dein Anmelde-Link für PolyRecorder (30 Minuten gültig, einmalig):\n\n{link}\n\nWenn du das nicht angefordert hast, ignoriere diese E-Mail.',
