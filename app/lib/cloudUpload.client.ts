@@ -149,6 +149,7 @@ export type OpenedCloudSong = {
 
 export async function fetchAndHydrateSong(
   songId: string,
+  options?: { quiet?: boolean },
 ): Promise<OpenedCloudSong | null> {
   const res = await fetch('/api/cloud/library', {
     method: 'POST',
@@ -180,13 +181,15 @@ export async function fetchAndHydrateSong(
     | { ok: false; reason: string }
 
   if (!data.ok) {
-    useSessionStore.getState().setError(
-      data.reason === 'unauthorized'
-        ? t('cloud.error.unauthorized')
-        : data.reason === 's3_not_configured'
-          ? t('cloud.error.s3NotConfigured')
-          : t('cloud.error.openFailed'),
-    )
+    if (!options?.quiet) {
+      useSessionStore.getState().setError(
+        data.reason === 'unauthorized'
+          ? t('cloud.error.unauthorized')
+          : data.reason === 's3_not_configured'
+            ? t('cloud.error.s3NotConfigured')
+            : t('cloud.error.openFailed'),
+      )
+    }
     return null
   }
 
@@ -195,7 +198,9 @@ export async function fetchAndHydrateSong(
   for (const remote of data.tracks) {
     const response = await fetch(remote.url)
     if (!response.ok) {
-      useSessionStore.getState().setError(t('cloud.error.openFailed'))
+      if (!options?.quiet) {
+        useSessionStore.getState().setError(t('cloud.error.openFailed'))
+      }
       return null
     }
     const blob = await response.blob()

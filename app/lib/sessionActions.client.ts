@@ -1818,12 +1818,15 @@ export function resetDeckOnSignOut() {
 }
 
 /** Replace the deck with tracks loaded from a cloud song. */
-export async function loadCloudSongIntoSession(songId: string): Promise<boolean> {
+export async function loadCloudSongIntoSession(
+  songId: string,
+  options?: { quiet?: boolean },
+): Promise<boolean> {
   if (get().state === 'recording') return false
   const { fetchAndHydrateSong, writeActiveSongId } = await import(
     './cloudUpload.client'
   )
-  const opened = await fetchAndHydrateSong(songId)
+  const opened = await fetchAndHydrateSong(songId, options)
   if (!opened) return false
 
   stopPlayback({ resetSeek: true })
@@ -1895,6 +1898,7 @@ export async function loadCloudSongIntoSession(songId: string): Promise<boolean>
 /**
  * If a cloud song is the upload target but not loaded on the deck yet,
  * hydrate it (e.g. after refresh or closing the library).
+ * Stale ids (deleted song, empty library) are cleared quietly.
  */
 export async function hydrateActiveSongIfNeeded(): Promise<void> {
   const { activeSongId, deckSongId, state, readOnlySession } = get()
@@ -1906,7 +1910,16 @@ export async function hydrateActiveSongIfNeeded(): Promise<void> {
   ) {
     return
   }
-  await loadCloudSongIntoSession(activeSongId)
+  const ok = await loadCloudSongIntoSession(activeSongId, { quiet: true })
+  if (!ok) {
+    writeActiveSongId(null)
+    patch({
+      activeSongId: null,
+      deckSongId: null,
+      songLibraryPath: null,
+      error: null,
+    })
+  }
 }
 
 

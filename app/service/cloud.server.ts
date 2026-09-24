@@ -74,27 +74,30 @@ async function assertOwnedTrackAsset(userId: string, trackAssetId: string) {
 }
 
 async function ensureDefaultTree(userId: string) {
-  let group = await prisma.group.findFirst({
-    where: { userId },
-    orderBy: { createdAt: 'asc' },
+  // Prefer the most recently used repertoire rather than the oldest defaults.
+  const recent = await prisma.repertoire.findFirst({
+    where: { group: { userId } },
+    orderBy: { updatedAt: 'desc' },
+    include: { group: true },
   })
-  if (!group) {
-    group = await prisma.group.create({
-      data: { userId, name: DEFAULT_GROUP_NAME },
-    })
+  if (recent) {
+    return { group: recent.group, repertoire: recent }
   }
 
-  let repertoire = await prisma.repertoire.findFirst({
-    where: { groupId: group.id },
-    orderBy: { createdAt: 'asc' },
+  const group = await prisma.group.create({
+    data: { userId, name: DEFAULT_GROUP_NAME },
   })
-  if (!repertoire) {
-    repertoire = await prisma.repertoire.create({
-      data: { groupId: group.id, name: DEFAULT_REPERTOIRE_NAME },
-    })
-  }
-
+  const repertoire = await prisma.repertoire.create({
+    data: { groupId: group.id, name: DEFAULT_REPERTOIRE_NAME },
+  })
   return { group, repertoire }
+}
+
+async function touchRepertoire(repertoireId: string) {
+  await prisma.repertoire.update({
+    where: { id: repertoireId },
+    data: { updatedAt: new Date() },
+  })
 }
 
 async function resolveSongForUpload(
@@ -109,6 +112,7 @@ async function resolveSongForUpload(
         where: { id: song.id },
         data: { lastOpenedAt: new Date() },
       })
+      await touchRepertoire(song.repertoireId)
       return song
     }
   }
@@ -122,6 +126,7 @@ async function resolveSongForUpload(
       where: { id: recent.id },
       data: { lastOpenedAt: new Date() },
     })
+    await touchRepertoire(recent.repertoireId)
     return recent
   }
 
@@ -129,13 +134,15 @@ async function resolveSongForUpload(
   const name =
     sessionTitle?.trim() ||
     `Session ${new Date().toLocaleDateString('fr-FR')}`
-  return prisma.song.create({
+  const song = await prisma.song.create({
     data: {
       repertoireId: repertoire.id,
       name,
       lastOpenedAt: new Date(),
     },
   })
+  await touchRepertoire(repertoire.id)
+  return song
 }
 
 export type PresignResult =
@@ -406,6 +413,7 @@ export async function createSong(
       lastOpenedAt: new Date(),
     },
   })
+  await touchRepertoire(repertoire.id)
   return {
     ok: true,
     id: song.id,
@@ -533,7 +541,9 @@ export async function deleteLibraryNode(
         .map((t) => t.objectKey)
         .filter((key) => key && key !== 'pending'),
     )
+    const repertoireId = song.repertoireId
     await prisma.song.delete({ where: { id: song.id } })
+    await touchRepertoire(repertoireId)
     return { ok: true }
   }
 
@@ -644,6 +654,7 @@ export async function openSong(
         where: { id: song.id },
         data: { lastOpenedAt: new Date() },
       })
+      await touchRepertoire(song.repertoireId)
     }
 
     // Empty songs are metadata-only — S3 is only required to fetch audio.

@@ -6,6 +6,7 @@ import {
   useState,
 } from 'react'
 import { useLocale } from '../hooks/useLocale'
+import { writeActiveSongId } from '../lib/cloudPrefs'
 import { t, tp } from '../lib/i18n'
 import { loadCloudSongIntoSession } from '../lib/sessionActions.client'
 import { cn } from '../lib/utils'
@@ -780,6 +781,7 @@ export function LibraryPanel({ className }: LibraryPanelProps) {
   const rootData = useRouteLoaderData<typeof rootLoader>('root')
   const user = rootData?.user ?? null
   const activeSongId = useSessionStore((s) => s.activeSongId)
+  const setActiveSongId = useSessionStore((s) => s.setActiveSongId)
   const setSessionTitle = useSessionStore((s) => s.setSessionTitle)
   const error = useSessionStore((s) => s.error)
   const setError = useSessionStore((s) => s.setError)
@@ -1098,8 +1100,15 @@ export function LibraryPanel({ className }: LibraryPanelProps) {
                                       kind: 'song',
                                       id: song.id,
                                     }).then((r) => {
-                                      if (!r.ok) setError(t('library.error'))
-                                      else void reload()
+                                      if (!r.ok) {
+                                        setError(t('library.error'))
+                                        return
+                                      }
+                                      if (song.id === activeSongId) {
+                                        writeActiveSongId(null)
+                                        setActiveSongId(null)
+                                      }
+                                      void reload()
                                     })
                                   }}
                                   onVisibilityError={() =>
