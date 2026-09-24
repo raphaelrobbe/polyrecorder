@@ -54,7 +54,7 @@ export const de: Record<MessageKey, string> = {
     '{name} ({site}), {address}, erreichbar unter {email}, ist Verantwortlicher für die über die Anwendung erhobenen personenbezogenen Daten.',
   'privacy.data.title': 'Erhobene Daten',
   'privacy.data.account':
-    'Konto (bei Anmeldung): E-Mail-Adresse, optionaler Anzeigename, Authentifizierungssitzungen.',
+    'Konto (bei Anmeldung): E-Mail-Adresse, Anzeigename, Authentifizierungssitzungen.',
   'privacy.data.cloud':
     'Cloud-Bibliothek (bei Nutzung eines Kontos): Gruppen, Repertoires, Lieder, Metadaten und Audiodateien hochgeladener Spuren.',
   'privacy.data.technical':
@@ -146,7 +146,9 @@ export const de: Record<MessageKey, string> = {
   'account.email.openConfirmLink': 'Bestätigungslink öffnen',
   'account.pseudo': 'Anzeigename',
   'account.pseudoPlaceholder': 'Dein Anzeigename',
-  'account.pseudo.lengthHint': '3–40 Zeichen',
+  'account.pseudo.lengthHint': '3–40 Zeichen, ohne @',
+  'account.pseudo.customizeHint':
+    'Dein Anzeigename wurde automatisch erzeugt. Passe ihn an, damit er unter deinen geteilten Songs erscheint.',
   'account.pseudo.available': 'verfügbar',
   'account.pseudo.unavailable': 'nicht verfügbar',
   'account.pseudo.current': 'mein aktueller Name',
@@ -155,6 +157,8 @@ export const de: Record<MessageKey, string> = {
   'account.saved': 'Gespeichert.',
   'account.error.pseudoTooShort': 'Anzeigename muss mindestens 3 Zeichen haben.',
   'account.error.pseudoTooLong': 'Anzeigename zu lang (max. 40 Zeichen).',
+  'account.error.pseudoInvalidChars':
+    'Der Anzeigename darf kein @ enthalten.',
   'account.error.pseudoTaken': 'Dieser Anzeigename ist bereits vergeben.',
   'account.error.invalidEmail': 'Ungültige E-Mail-Adresse.',
   'account.error.emailTaken': 'Diese E-Mail-Adresse wird bereits verwendet.',
@@ -173,9 +177,11 @@ export const de: Record<MessageKey, string> = {
   'auth.close': 'Anmeldung schließen',
   'auth.signIn.title': 'Anmelden oder Konto erstellen',
   'auth.signIn.lead':
-    'Gib deine E-Mail ein: wir erstellen bei Bedarf ein Konto und senden dir einen einmaligen Magie-Link (30 Minuten gültig). Kein Passwort.',
+    'Gib deine E-Mail oder deinen Anzeigenamen ein: wir erstellen bei Bedarf ein Konto (E-Mail) und senden dir einen einmaligen Magie-Link (30 Minuten gültig). Kein Passwort.',
   'auth.signIn.email': 'E-Mail',
   'auth.signIn.emailPlaceholder': 'du@beispiel.com',
+  'auth.signIn.identifier': 'E-Mail oder Anzeigename',
+  'auth.signIn.identifierPlaceholder': 'du@beispiel.com oder raf_prague',
   'auth.signIn.submit': 'Weiter',
   'auth.signIn.sending': 'Wird gesendet…',
   'auth.sent.title': 'Posteingang prüfen',
@@ -185,11 +191,12 @@ export const de: Record<MessageKey, string> = {
     'Eine E-Mail mit einem Anmelde-Link wurde gerade an {email} gesendet. Öffne ihn, um fortzufahren — dein Konto wird beim ersten Klick erstellt, falls nötig.',
   'auth.sent.hint':
     'Der Link läuft in 30 Minuten ab und kann nur einmal verwendet werden. Schau auch im Spam nach.',
-  'auth.sent.retry': 'Andere E-Mail verwenden',
+  'auth.sent.retry': 'Andere Kennung verwenden',
   'auth.sent.devHint':
     'Lokal kommt die E-Mail möglicherweise nicht an — nutze den Button unten, um dich sofort anzumelden.',
   'auth.sent.openLink': 'Anmelde-Link öffnen',
   'auth.error.invalidEmail': 'Ungültige E-Mail-Adresse.',
+  'auth.error.invalidIdentifier': 'Ungültige E-Mail oder Anzeigename.',
   'auth.error.rateLimited':
     'Zu viele Anfragen für diese E-Mail. Versuche es in einer Stunde erneut.',
   'auth.error.emailFailed': 'E-Mail konnte nicht gesendet werden. Später erneut versuchen.',

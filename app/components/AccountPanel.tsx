@@ -33,6 +33,7 @@ type PseudoCheckData = {
     | 'empty'
     | 'too_short'
     | 'too_long'
+    | 'invalid_chars'
     | 'taken'
     | 'ok'
     | 'unchanged'
@@ -51,7 +52,7 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
   const pseudoFetcher = useFetcher<PseudoCheckData>()
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [email, setEmail] = useState(user.email)
-  const [pseudo, setPseudo] = useState(user.pseudo ?? '')
+  const [pseudo, setPseudo] = useState(user.pseudo)
   const [emailFocused, setEmailFocused] = useState(false)
   const [pseudoFocused, setPseudoFocused] = useState(false)
 
@@ -70,7 +71,7 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
 
   useEffect(() => {
     if (actionData?.ok === true && actionData.intent === 'save') {
-      setPseudo(actionData.user.pseudo ?? '')
+      setPseudo(actionData.user.pseudo)
       if (!actionData.emailChangePending) {
         setEmail(actionData.user.email)
       }
@@ -78,7 +79,7 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
   }, [actionData])
 
   useEffect(() => {
-    setPseudo(user.pseudo ?? '')
+    setPseudo(user.pseudo)
   }, [user.pseudo])
 
   useEffect(() => {
@@ -103,14 +104,17 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
   }, [pseudo])
 
   const trimmedLive = pseudo.trim().replace(/\s+/g, ' ')
-  const storedPseudo = (user.pseudo ?? '').trim().replace(/\s+/g, ' ')
+  const storedPseudo = user.pseudo.trim().replace(/\s+/g, ' ')
   const emailLive = email.trim().toLowerCase()
   const emailUnchanged = emailLive === user.email
   const pseudoUnchanged = trimmedLive === storedPseudo
   const unchanged = emailUnchanged && pseudoUnchanged
 
   const emailInvalid = emailLive.length > 0 && !looksLikeEmail(emailLive)
-  const liveTooShort = trimmedLive.length > 0 && trimmedLive.length < 3
+  const liveEmpty = trimmedLive.length === 0
+  const liveHasAt = trimmedLive.includes('@')
+  const liveTooShort =
+    trimmedLive.length > 0 && trimmedLive.length < 3 && !liveHasAt
   const liveTooLong = trimmedLive.length > 40
   const check = pseudoFetcher.data
   const checkMatches =
@@ -119,6 +123,7 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
   const checking =
     trimmedLive.length >= 3 &&
     !liveTooLong &&
+    !liveHasAt &&
     !pseudoUnchanged &&
     (pseudoFetcher.state === 'loading' || !checkMatches)
 
@@ -143,10 +148,12 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
     unchanged ||
     emailInvalid ||
     emailLive.length === 0 ||
+    liveEmpty ||
+    liveHasAt ||
     liveTooShort ||
     liveTooLong ||
     liveTaken ||
-    (!matchesCurrent && trimmedLive.length >= 3 && checking)
+    (!matchesCurrent && trimmedLive.length >= 3 && !liveHasAt && checking)
 
   const saveError =
     actionData && actionData.ok === false && actionData.intent === 'save'
@@ -154,17 +161,19 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
         ? t('account.error.pseudoTooShort')
         : actionData.reason === 'too_long'
           ? t('account.error.pseudoTooLong')
-          : actionData.reason === 'taken'
-            ? t('account.error.pseudoTaken')
-            : actionData.reason === 'invalid_email'
-              ? t('account.error.invalidEmail')
-              : actionData.reason === 'email_taken'
-                ? t('account.error.emailTaken')
-                : actionData.reason === 'rate_limited'
-                  ? t('account.error.emailRateLimited')
-                  : actionData.reason === 'email_failed'
-                    ? t('account.error.emailFailed')
-                    : t('account.error.saveFailed')
+          : actionData.reason === 'invalid_chars'
+            ? t('account.error.pseudoInvalidChars')
+            : actionData.reason === 'taken'
+              ? t('account.error.pseudoTaken')
+              : actionData.reason === 'invalid_email'
+                ? t('account.error.invalidEmail')
+                : actionData.reason === 'email_taken'
+                  ? t('account.error.emailTaken')
+                  : actionData.reason === 'rate_limited'
+                    ? t('account.error.emailRateLimited')
+                    : actionData.reason === 'email_failed'
+                      ? t('account.error.emailFailed')
+                      : t('account.error.saveFailed')
       : null
 
   const deleteError =
@@ -254,12 +263,19 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
               autoComplete="nickname"
               placeholder={t('account.pseudoPlaceholder')}
               aria-invalid={
-                pseudoFocused && (liveTooShort || liveTooLong || liveTaken)
+                pseudoFocused &&
+                (liveEmpty ||
+                  liveHasAt ||
+                  liveTooShort ||
+                  liveTooLong ||
+                  liveTaken)
                   ? true
                   : undefined
               }
               aria-describedby={
-                pseudoFocused ? 'account-pseudo-hint' : undefined
+                !user.pseudoCustomizedAt || pseudoFocused
+                  ? 'account-pseudo-hint'
+                  : undefined
               }
               className="min-w-0 flex-1 rounded-xl border border-line bg-surface px-3 py-2.5 text-[0.95rem] font-medium text-ink outline-none focus-visible:border-ink/35 focus-visible:shadow-[0_0_0_3px_color-mix(in_srgb,var(--ink)_12%,transparent)]"
               onChange={(event) => setPseudo(event.target.value)}
@@ -289,7 +305,14 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
               </span>
             ) : null}
           </div>
-          {pseudoFocused ? (
+          {!user.pseudoCustomizedAt ? (
+            <p
+              id="account-pseudo-hint"
+              className="m-0 text-[0.82rem] leading-[1.4] text-ink-soft"
+            >
+              {t('account.pseudo.customizeHint')}
+            </p>
+          ) : pseudoFocused ? (
             <span
               id="account-pseudo-hint"
               className="text-[0.78rem] font-medium text-ink-soft"

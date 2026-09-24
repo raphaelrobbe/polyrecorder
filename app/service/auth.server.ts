@@ -19,6 +19,80 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 254
 }
 
+const USER_SELECT = {
+  id: true,
+  email: true,
+  pseudo: true,
+  pseudoCustomizedAt: true,
+} as const
+
+function toAppUser(user: {
+  id: string
+  email: string
+  pseudo: string
+  pseudoCustomizedAt: Date | null
+}): AppUser {
+  return {
+    id: user.id,
+    email: user.email,
+    pseudo: user.pseudo,
+    pseudoCustomizedAt: user.pseudoCustomizedAt?.toISOString() ?? null,
+  }
+}
+
+const PSEUDO_MIN_LEN = 3
+const PSEUDO_MAX_LEN = 40
+
+export function normalizePseudo(raw: string): string {
+  return raw.trim().replace(/\s+/g, ' ')
+}
+
+export type PseudoParseResult =
+  | { ok: true; pseudo: string }
+  | { ok: false; reason: 'too_short' | 'too_long' | 'invalid_chars' }
+
+/** Require 3–40 characters; `@` is reserved (email login / @handle display). */
+export function parsePseudoInput(raw: string): PseudoParseResult {
+  const pseudo = normalizePseudo(raw)
+  if (pseudo.includes('@')) return { ok: false, reason: 'invalid_chars' }
+  if (pseudo.length < PSEUDO_MIN_LEN) return { ok: false, reason: 'too_short' }
+  if (pseudo.length > PSEUDO_MAX_LEN) return { ok: false, reason: 'too_long' }
+  return { ok: true, pseudo }
+}
+
+/** Case-insensitive availability (excluding the current user when provided). */
+export async function isPseudoAvailable(
+  pseudo: string,
+  exceptUserId?: string,
+): Promise<boolean> {
+  const existing = await prisma.user.findFirst({
+    where: {
+      pseudo: { equals: pseudo, mode: 'insensitive' },
+      ...(exceptUserId ? { NOT: { id: exceptUserId } } : {}),
+    },
+    select: { id: true },
+  })
+  return existing == null
+}
+
+/** Unique default pseudo from the email local-part (no `@`). */
+export async function allocateDefaultPseudo(email: string): Promise<string> {
+  const local = email.split('@')[0] ?? 'user'
+  let base = normalizePseudo(local.replace(/@/g, ''))
+  if (base.length < PSEUDO_MIN_LEN) base = 'user'
+  if (base.length > PSEUDO_MAX_LEN) base = base.slice(0, PSEUDO_MAX_LEN)
+
+  for (let n = 0; n < 500; n += 1) {
+    const suffix = n === 0 ? '' : String(n + 1)
+    const maxBase = PSEUDO_MAX_LEN - suffix.length
+    const candidate =
+      suffix.length === 0 ? base : `${base.slice(0, Math.max(1, maxBase))}${suffix}`
+    if (await isPseudoAvailable(candidate)) return candidate
+  }
+
+  return `user${Date.now().toString(36)}`.slice(0, PSEUDO_MAX_LEN)
+}
+
 /** Only same-origin relative paths (blocks open redirects). */
 export function safeRedirectPath(
   raw: string | null | undefined,
@@ -41,17 +115,13 @@ export async function getUserFromRequest(
   const tokenHash = hashToken(raw)
   const session = await prisma.session.findUnique({
     where: { tokenHash },
-    include: { user: { select: { id: true, email: true, pseudo: true } } },
+    include: { user: { select: USER_SELECT } },
   })
   if (!session) return null
   if (session.revokedAt) return null
   if (session.expiresAt.getTime() <= Date.now()) return null
 
-  return {
-    id: session.user.id,
-    email: session.user.email,
-    pseudo: session.user.pseudo,
-  }
+  return toAppUser(session.user)
 }
 
 export type MagicLinkFailureReason =
@@ -91,20 +161,21 @@ function failureFromUnknown(error: unknown): {
 }
 
 /**
- * Creates the User on first request, then emails a one-time link.
- * HTTP response shape is identical for new vs existing emails (no enumeration).
- * Email copy differs: welcome for first-time accounts, simpler for sign-in.
- * In non-production, also returns `previewLink` so the UI can complete
- * sign-up without relying on SMTP.
+ * Creates the User on first email request, then emails a one-time link.
+ * Accepts an e-mail or a pseudo (leading @ stripped). HTTP response shape is
+ * identical for unknown identifiers (no enumeration). Welcome copy + next=/compte
+ * for brand-new accounts only.
  */
 export async function requestMagicLink(
-  rawEmail: string,
+  rawIdentifier: string,
 ): Promise<RequestMagicLinkResult> {
   try {
-    const email = normalizeEmail(rawEmail)
-    if (!isValidEmail(email)) {
+    const resolved = await resolveLoginIdentifier(rawIdentifier)
+    if (!resolved.ok) {
       return { ok: false, reason: 'invalid_email' }
     }
+
+    const { email, isNewAccount } = resolved
 
     const since = new Date(Date.now() - MAGIC_LINK_RATE_WINDOW_MS)
     const recentCount = await prisma.magicLink.count({
@@ -114,17 +185,20 @@ export async function requestMagicLink(
       return { ok: false, reason: 'rate_limited' }
     }
 
-    const existing = await prisma.user.findUnique({
-      where: { email },
-      select: { id: true },
-    })
-    const isNewAccount = existing == null
+    // Unknown pseudo: pretend success (no email, no user creation).
+    if (resolved.kind === 'pseudo_unknown') {
+      return { ok: true }
+    }
 
-    const user = await prisma.user.upsert({
-      where: { email },
-      create: { email },
-      update: {},
-    })
+    let userId = resolved.userId
+    if (!userId) {
+      const pseudo = await allocateDefaultPseudo(email)
+      const user = await prisma.user.create({
+        data: { email, pseudo },
+        select: { id: true },
+      })
+      userId = user.id
+    }
 
     const rawToken = createOpaqueToken(32)
     const tokenHash = hashToken(rawToken)
@@ -136,7 +210,7 @@ export async function requestMagicLink(
         purpose: 'login',
         tokenHash,
         expiresAt,
-        userId: user.id,
+        userId,
       },
     })
 
@@ -146,7 +220,10 @@ export async function requestMagicLink(
       return { ok: false, reason: 'app_url_missing' }
     }
 
-    const link = `${appUrl}/auth/callback?token=${encodeURIComponent(rawToken)}`
+    const tokenParam = `token=${encodeURIComponent(rawToken)}`
+    const link = isNewAccount
+      ? `${appUrl}/auth/callback?${tokenParam}&next=${encodeURIComponent('/compte')}`
+      : `${appUrl}/auth/callback?${tokenParam}`
     // Emails default to French until we persist a preferred locale on User.
     const locale = 'fr' as const
     const keys = isNewAccount
@@ -196,6 +273,73 @@ export async function requestMagicLink(
   }
 }
 
+type ResolvedLogin =
+  | {
+      ok: true
+      kind: 'email'
+      email: string
+      userId: string | null
+      isNewAccount: boolean
+    }
+  | {
+      ok: true
+      kind: 'pseudo'
+      email: string
+      userId: string
+      isNewAccount: false
+    }
+  | { ok: true; kind: 'pseudo_unknown'; email: string; userId: null; isNewAccount: false }
+  | { ok: false }
+
+/**
+ * E-mail if the identifier still contains `@` after stripping one leading `@`;
+ * otherwise treat as pseudo.
+ */
+async function resolveLoginIdentifier(raw: string): Promise<ResolvedLogin> {
+  let value = raw.trim()
+  if (value.startsWith('@')) value = value.slice(1).trim()
+
+  if (value.includes('@')) {
+    const email = normalizeEmail(value)
+    if (!isValidEmail(email)) return { ok: false }
+    const existing = await prisma.user.findUnique({
+      where: { email },
+      select: { id: true },
+    })
+    return {
+      ok: true,
+      kind: 'email',
+      email,
+      userId: existing?.id ?? null,
+      isNewAccount: existing == null,
+    }
+  }
+
+  const pseudo = normalizePseudo(value)
+  if (pseudo.length < PSEUDO_MIN_LEN) return { ok: false }
+
+  const existing = await prisma.user.findFirst({
+    where: { pseudo: { equals: pseudo, mode: 'insensitive' } },
+    select: { id: true, email: true },
+  })
+  if (!existing) {
+    return {
+      ok: true,
+      kind: 'pseudo_unknown',
+      email: '',
+      userId: null,
+      isNewAccount: false,
+    }
+  }
+  return {
+    ok: true,
+    kind: 'pseudo',
+    email: existing.email,
+    userId: existing.id,
+    isNewAccount: false,
+  }
+}
+
 export type ConsumeMagicLinkResult =
   | { ok: true; sessionToken: string; user: AppUser }
   | { ok: false; reason: 'invalid' | 'expired' | 'used' }
@@ -210,7 +354,7 @@ export async function consumeMagicLink(
   const tokenHash = hashToken(rawToken)
   const magic = await prisma.magicLink.findUnique({
     where: { tokenHash },
-    include: { user: { select: { id: true, email: true, pseudo: true } } },
+    include: { user: { select: USER_SELECT } },
   })
 
   if (!magic) return { ok: false, reason: 'invalid' }
@@ -241,7 +385,7 @@ export async function consumeMagicLink(
       prisma.user.update({
         where: { id: magic.userId },
         data: { email: magic.email },
-        select: { id: true, email: true, pseudo: true },
+        select: USER_SELECT,
       }),
       prisma.magicLink.update({
         where: { id: magic.id },
@@ -259,17 +403,18 @@ export async function consumeMagicLink(
     return {
       ok: true,
       sessionToken,
-      user,
+      user: toAppUser(user),
     }
   }
 
   let user = magic.user
   if (!user) {
+    const pseudo = await allocateDefaultPseudo(magic.email)
     user = await prisma.user.upsert({
       where: { email: magic.email },
-      create: { email: magic.email },
+      create: { email: magic.email, pseudo },
       update: {},
-      select: { id: true, email: true, pseudo: true },
+      select: USER_SELECT,
     })
   }
 
@@ -294,43 +439,8 @@ export async function consumeMagicLink(
   return {
     ok: true,
     sessionToken,
-    user: { id: user.id, email: user.email, pseudo: user.pseudo },
+    user: toAppUser(user),
   }
-}
-
-const PSEUDO_MIN_LEN = 3
-const PSEUDO_MAX_LEN = 40
-
-export function normalizePseudo(raw: string): string {
-  return raw.trim().replace(/\s+/g, ' ')
-}
-
-export type PseudoParseResult =
-  | { ok: true; pseudo: string | null }
-  | { ok: false; reason: 'too_short' | 'too_long' }
-
-/** Empty clears the display name; otherwise require 3–40 characters. */
-export function parsePseudoInput(raw: string): PseudoParseResult {
-  const pseudo = normalizePseudo(raw)
-  if (pseudo.length === 0) return { ok: true, pseudo: null }
-  if (pseudo.length < PSEUDO_MIN_LEN) return { ok: false, reason: 'too_short' }
-  if (pseudo.length > PSEUDO_MAX_LEN) return { ok: false, reason: 'too_long' }
-  return { ok: true, pseudo }
-}
-
-/** Case-insensitive availability (excluding the current user when provided). */
-export async function isPseudoAvailable(
-  pseudo: string,
-  exceptUserId?: string,
-): Promise<boolean> {
-  const existing = await prisma.user.findFirst({
-    where: {
-      pseudo: { equals: pseudo, mode: 'insensitive' },
-      ...(exceptUserId ? { NOT: { id: exceptUserId } } : {}),
-    },
-    select: { id: true },
-  })
-  return existing == null
 }
 
 export type UpdatePseudoResult =
@@ -341,11 +451,12 @@ export type UpdatePseudoResult =
         | 'unauthorized'
         | 'too_short'
         | 'too_long'
+        | 'invalid_chars'
         | 'taken'
         | 'invalid_pseudo'
     }
 
-/** Normalize and persist optional display name for the current session user. */
+/** Persist required display name for the current session user. */
 export async function updatePseudoForRequest(
   request: Request,
   rawPseudo: string,
@@ -356,20 +467,23 @@ export async function updatePseudoForRequest(
   const parsed = parsePseudoInput(rawPseudo)
   if (!parsed.ok) return { ok: false, reason: parsed.reason }
 
-  if (parsed.pseudo != null) {
-    const available = await isPseudoAvailable(parsed.pseudo, current.id)
-    if (!available) return { ok: false, reason: 'taken' }
-  }
+  const available = await isPseudoAvailable(parsed.pseudo, current.id)
+  if (!available) return { ok: false, reason: 'taken' }
 
   try {
     const user = await prisma.user.update({
       where: { id: current.id },
-      data: { pseudo: parsed.pseudo },
-      select: { id: true, email: true, pseudo: true },
+      data: {
+        pseudo: parsed.pseudo,
+        ...(current.pseudoCustomizedAt == null &&
+        parsed.pseudo.toLowerCase() !== current.pseudo.toLowerCase()
+          ? { pseudoCustomizedAt: new Date() }
+          : {}),
+      },
+      select: USER_SELECT,
     })
-    return { ok: true, user }
+    return { ok: true, user: toAppUser(user) }
   } catch (error) {
-    // Race against the unique index on LOWER(pseudo).
     if (
       error &&
       typeof error === 'object' &&
@@ -396,6 +510,7 @@ export type UpdateProfileResult =
         | 'unauthorized'
         | 'too_short'
         | 'too_long'
+        | 'invalid_chars'
         | 'taken'
         | 'invalid_email'
         | 'email_taken'
@@ -419,10 +534,8 @@ export async function updateProfileForRequest(
   const parsed = parsePseudoInput(rawPseudo)
   if (!parsed.ok) return { ok: false, reason: parsed.reason }
 
-  if (parsed.pseudo != null) {
-    const available = await isPseudoAvailable(parsed.pseudo, current.id)
-    if (!available) return { ok: false, reason: 'taken' }
-  }
+  const available = await isPseudoAvailable(parsed.pseudo, current.id)
+  if (!available) return { ok: false, reason: 'taken' }
 
   const email = normalizeEmail(rawEmail)
   if (!isValidEmail(email)) {
@@ -452,11 +565,18 @@ export async function updateProfileForRequest(
 
   let user: AppUser
   try {
-    user = await prisma.user.update({
+    const row = await prisma.user.update({
       where: { id: current.id },
-      data: { pseudo: parsed.pseudo },
-      select: { id: true, email: true, pseudo: true },
+      data: {
+        pseudo: parsed.pseudo,
+        ...(current.pseudoCustomizedAt == null &&
+        parsed.pseudo.toLowerCase() !== current.pseudo.toLowerCase()
+          ? { pseudoCustomizedAt: new Date() }
+          : {}),
+      },
+      select: USER_SELECT,
     })
+    user = toAppUser(row)
   } catch (error) {
     if (
       error &&

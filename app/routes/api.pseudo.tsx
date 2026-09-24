@@ -25,7 +25,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
   if (normalized.length === 0) {
     return {
-      available: true as const,
+      available: false as const,
       reason: 'empty' as const,
       pseudo: '',
     }
@@ -41,11 +41,7 @@ export async function loader({ request }: LoaderFunctionArgs) {
   }
 
   // Same as current (case-insensitive) → fine.
-  if (
-    user.pseudo &&
-    parsed.pseudo &&
-    user.pseudo.toLowerCase() === parsed.pseudo.toLowerCase()
-  ) {
+  if (user.pseudo.toLowerCase() === parsed.pseudo.toLowerCase()) {
     return {
       available: true as const,
       reason: 'unchanged' as const,
@@ -53,10 +49,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     }
   }
 
-  const available = await isPseudoAvailable(parsed.pseudo!, user.id)
+  const available = await isPseudoAvailable(parsed.pseudo, user.id)
   return {
     available,
     reason: available ? ('ok' as const) : ('taken' as const),
-    pseudo: parsed.pseudo!,
+    pseudo: parsed.pseudo,
   }
 }

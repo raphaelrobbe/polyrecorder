@@ -11,9 +11,11 @@ datasource db {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  /// Optional display name shown in the account menu.
-  /// Uniqueness is case-insensitive via index `User_pseudo_lower_key`.
-  pseudo    String?
+  /// Display name (required). Uniqueness is case-insensitive via index `User_pseudo_lower_key`.
+  /// Must not contain `@` (reserved for email login / @handle display).
+  pseudo    String
+  /// Null until the user first changes their pseudo from the auto-assigned default.
+  pseudoCustomizedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

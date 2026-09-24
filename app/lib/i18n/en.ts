@@ -53,7 +53,7 @@ export const en: Record<MessageKey, string> = {
     '{name} ({site}), {address}, reachable at {email}, is the controller of personal data collected through the application.',
   'privacy.data.title': 'Data collected',
   'privacy.data.account':
-    'Account (if you sign in): email address, optional display name, authentication sessions.',
+    'Account (if you sign in): email address, display name, authentication sessions.',
   'privacy.data.cloud':
     'Cloud library (if you use an account): groups, repertoires, songs, metadata and audio files of uploaded tracks.',
   'privacy.data.technical':
@@ -145,7 +145,9 @@ export const en: Record<MessageKey, string> = {
   'account.email.openConfirmLink': 'Open confirmation link',
   'account.pseudo': 'Display name',
   'account.pseudoPlaceholder': 'Your display name',
-  'account.pseudo.lengthHint': '3–40 characters',
+  'account.pseudo.lengthHint': '3–40 characters, no @',
+  'account.pseudo.customizeHint':
+    'Your display name was generated automatically. Customize it so it appears under your shared songs.',
   'account.pseudo.available': 'available',
   'account.pseudo.unavailable': 'unavailable',
   'account.pseudo.current': 'my current name',
@@ -154,6 +156,8 @@ export const en: Record<MessageKey, string> = {
   'account.saved': 'Saved.',
   'account.error.pseudoTooShort': 'Display name must be at least 3 characters.',
   'account.error.pseudoTooLong': 'Display name too long (40 characters max).',
+  'account.error.pseudoInvalidChars':
+    'Display name cannot contain the @ character.',
   'account.error.pseudoTaken': 'This display name is already taken.',
   'account.error.invalidEmail': 'Invalid email address.',
   'account.error.emailTaken': 'This email address is already in use.',
@@ -172,9 +176,11 @@ export const en: Record<MessageKey, string> = {
   'auth.close': 'Close sign-in',
   'auth.signIn.title': 'Sign in or create an account',
   'auth.signIn.lead':
-    'Enter your email: we’ll create an account if needed, then send a one-time magic link (valid 30 minutes). No password.',
+    'Enter your email or display name: we’ll create an account if needed (email), then send a one-time magic link (valid 30 minutes). No password.',
   'auth.signIn.email': 'Email',
   'auth.signIn.emailPlaceholder': 'you@example.com',
+  'auth.signIn.identifier': 'Email or display name',
+  'auth.signIn.identifierPlaceholder': 'you@example.com or raf_prague',
   'auth.signIn.submit': 'Continue',
   'auth.signIn.sending': 'Sending…',
   'auth.sent.title': 'Check your inbox',
@@ -184,11 +190,12 @@ export const en: Record<MessageKey, string> = {
     'A sign-in link has just been emailed to {email}. Open it to continue — your account is created on first click if needed.',
   'auth.sent.hint':
     'The link expires in 30 minutes and can only be used once. Check spam if needed.',
-  'auth.sent.retry': 'Use a different email',
+  'auth.sent.retry': 'Use a different identifier',
   'auth.sent.devHint':
     'Locally, the email may not arrive — use the button below to sign in right away.',
   'auth.sent.openLink': 'Open sign-in link',
   'auth.error.invalidEmail': 'Invalid email address.',
+  'auth.error.invalidIdentifier': 'Invalid email or display name.',
   'auth.error.rateLimited':
     'Too many requests for this email. Try again in an hour.',
   'auth.error.emailFailed': 'Could not send the email. Try again later.',

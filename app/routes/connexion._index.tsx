@@ -39,8 +39,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 export async function action({ request }: ActionFunctionArgs) {
   try {
     const form = await request.formData()
-    const email = String(form.get('email') ?? '')
-    const result = await requestMagicLink(email)
+    const identifier = String(form.get('identifier') ?? form.get('email') ?? '')
+    const result = await requestMagicLink(identifier)
 
     if (!result.ok) {
       console.error('[connexion] magic link failed', {
@@ -55,8 +55,12 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     const params = new URLSearchParams()
-    const normalized = email.trim().toLowerCase()
-    if (normalized) params.set('email', normalized)
+    const trimmed = identifier.trim()
+    // Only echo back as email query when it still looks like an email after @ strip.
+    let display = trimmed.startsWith('@') ? trimmed.slice(1).trim() : trimmed
+    if (display.includes('@')) {
+      params.set('email', display.toLowerCase())
+    }
     return redirectWithMagicLinkPreview(
       `/connexion/envoye?${params}`,
       request,
@@ -96,7 +100,7 @@ export default function ConnexionRoute() {
   const errorMessage =
     actionData && actionData.ok === false
       ? actionData.reason === 'invalid_email'
-        ? t('auth.error.invalidEmail')
+        ? t('auth.error.invalidIdentifier')
         : actionData.reason === 'rate_limited'
           ? t('auth.error.rateLimited')
           : t('auth.error.emailFailed')
@@ -123,14 +127,16 @@ export default function ConnexionRoute() {
           </p>
           <Form method="post" className="flex flex-col gap-4">
             <label className="flex flex-col gap-1.5 text-[0.84rem] font-semibold text-ink-soft">
-              {t('auth.signIn.email')}
+              {t('auth.signIn.identifier')}
               <input
-                type="email"
-                name="email"
+                type="text"
+                name="identifier"
                 required
-                autoComplete="email"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
                 className="rounded-xl border border-line bg-surface px-3 py-2.5 text-[0.95rem] font-medium text-ink outline-none focus-visible:border-ink/35 focus-visible:shadow-[0_0_0_3px_color-mix(in_srgb,var(--ink)_12%,transparent)]"
-                placeholder={t('auth.signIn.emailPlaceholder')}
+                placeholder={t('auth.signIn.identifierPlaceholder')}
               />
             </label>
             {errorMessage ? (

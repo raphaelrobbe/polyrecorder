@@ -52,7 +52,7 @@ export const fr = {
     '{name} ({site}), {address}, joignable à {email}, est responsable du traitement des données personnelles collectées via l’application.',
   'privacy.data.title': 'Données collectées',
   'privacy.data.account':
-    'Compte (si tu te connectes) : adresse e-mail, pseudo optionnel, sessions d’authentification.',
+    'Compte (si tu te connectes) : adresse e-mail, pseudo, sessions d’authentification.',
   'privacy.data.cloud':
     'Bibliothèque cloud (si tu utilises le compte) : groupes, répertoires, chansons, métadonnées et fichiers audio des pistes téléversées.',
   'privacy.data.technical':
@@ -144,7 +144,9 @@ export const fr = {
   'account.email.openConfirmLink': 'Ouvrir le lien de confirmation',
   'account.pseudo': 'Pseudo',
   'account.pseudoPlaceholder': 'Ton nom affiché',
-  'account.pseudo.lengthHint': '3 à 40 caractères',
+  'account.pseudo.lengthHint': '3 à 40 caractères, sans @',
+  'account.pseudo.customizeHint':
+    'Ton pseudo a été généré automatiquement. Personnalise-le pour apparaître sous tes chansons partagées.',
   'account.pseudo.available': 'disponible',
   'account.pseudo.unavailable': 'indisponible',
   'account.pseudo.current': 'mon pseudo actuel',
@@ -153,6 +155,8 @@ export const fr = {
   'account.saved': 'Enregistré.',
   'account.error.pseudoTooShort': 'Le pseudo doit faire au moins 3 caractères.',
   'account.error.pseudoTooLong': 'Pseudo trop long (40 caractères max).',
+  'account.error.pseudoInvalidChars':
+    'Le pseudo ne peut pas contenir le caractère @.',
   'account.error.pseudoTaken': 'Ce pseudo est déjà pris.',
   'account.error.invalidEmail': 'Adresse email invalide.',
   'account.error.emailTaken': 'Cette adresse email est déjà utilisée.',
@@ -171,9 +175,11 @@ export const fr = {
   'auth.close': 'Fermer la connexion',
   'auth.signIn.title': 'Connexion ou création de compte',
   'auth.signIn.lead':
-    'Entre ton email : on crée le compte s’il n’existe pas encore, puis on t’envoie un lien magique (valable 30 minutes, usage unique). Pas de mot de passe.',
+    'Entre ton email ou ton pseudo : on crée le compte s’il n’existe pas encore (email), puis on t’envoie un lien magique (valable 30 minutes, usage unique). Pas de mot de passe.',
   'auth.signIn.email': 'Email',
   'auth.signIn.emailPlaceholder': 'vous@exemple.com',
+  'auth.signIn.identifier': 'Email ou pseudo',
+  'auth.signIn.identifierPlaceholder': 'vous@exemple.com ou raf_prague',
   'auth.signIn.submit': 'Continuer',
   'auth.signIn.sending': 'Envoi…',
   'auth.sent.title': 'Vérifie ta boîte mail',
@@ -183,11 +189,12 @@ export const fr = {
     'Un email avec un lien de connexion vient d’être envoyé à {email}. Ouvre-le pour te connecter — ton compte sera créé au premier clic si besoin.',
   'auth.sent.hint':
     'Le lien expire dans 30 minutes et ne peut être utilisé qu’une fois. Pense à regarder les indésirables.',
-  'auth.sent.retry': 'Utiliser un autre email',
+  'auth.sent.retry': 'Utiliser un autre identifiant',
   'auth.sent.devHint':
     'En local, l’email peut ne pas arriver : utilise le bouton ci-dessous pour te connecter tout de suite.',
   'auth.sent.openLink': 'Ouvrir le lien de connexion',
   'auth.error.invalidEmail': 'Adresse email invalide.',
+  'auth.error.invalidIdentifier': 'Email ou pseudo invalide.',
   'auth.error.rateLimited':
     'Trop de demandes pour cet email. Réessaie dans une heure.',
   'auth.error.emailFailed': 'Impossible d’envoyer l’email. Réessaie plus tard.',

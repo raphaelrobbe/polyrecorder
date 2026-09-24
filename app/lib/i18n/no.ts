@@ -54,7 +54,7 @@ export const no: Record<MessageKey, string> = {
     '{name} ({site}), {address}, kontaktbar på {email}, er behandlingsansvarlig for personopplysninger samlet inn via applikasjonen.',
   'privacy.data.title': 'Opplysninger som samles inn',
   'privacy.data.account':
-    'Konto (hvis du logger inn): e-postadresse, valgfritt visningsnavn, autentiseringsøkter.',
+    'Konto (hvis du logger inn): e-postadresse, visningsnavn, autentiseringsøkter.',
   'privacy.data.cloud':
     'Skybibliotek (hvis du bruker konto): grupper, repertoarer, sanger, metadata og lydfiler for opplastede spor.',
   'privacy.data.technical':
@@ -146,7 +146,9 @@ export const no: Record<MessageKey, string> = {
   'account.email.openConfirmLink': 'Åpne bekreftelseslenken',
   'account.pseudo': 'Visningsnavn',
   'account.pseudoPlaceholder': 'Visningsnavnet ditt',
-  'account.pseudo.lengthHint': '3–40 tegn',
+  'account.pseudo.lengthHint': '3–40 tegn, uten @',
+  'account.pseudo.customizeHint':
+    'Visningsnavnet ditt ble generert automatisk. Tilpass det så det vises under delte sanger.',
   'account.pseudo.available': 'ledig',
   'account.pseudo.unavailable': 'opptatt',
   'account.pseudo.current': 'mitt nåværende navn',
@@ -155,6 +157,8 @@ export const no: Record<MessageKey, string> = {
   'account.saved': 'Lagret.',
   'account.error.pseudoTooShort': 'Visningsnavn må ha minst 3 tegn.',
   'account.error.pseudoTooLong': 'Visningsnavn for langt (maks 40 tegn).',
+  'account.error.pseudoInvalidChars':
+    'Visningsnavn kan ikke inneholde tegnet @.',
   'account.error.pseudoTaken': 'Dette visningsnavnet er allerede tatt.',
   'account.error.invalidEmail': 'Ugyldig e-postadresse.',
   'account.error.emailTaken': 'Denne e-postadressen er allerede i bruk.',
@@ -173,9 +177,11 @@ export const no: Record<MessageKey, string> = {
   'auth.close': 'Lukk innlogging',
   'auth.signIn.title': 'Logg inn eller opprett konto',
   'auth.signIn.lead':
-    'Skriv inn e-posten din: vi oppretter kontoen om den mangler, og sender en engangs magisk lenke (gyldig i 30 minutter). Ingen passord.',
+    'Skriv inn e-post eller visningsnavn: vi oppretter kontoen om den mangler (e-post), og sender en engangs magisk lenke (gyldig i 30 minutter). Ingen passord.',
   'auth.signIn.email': 'E-post',
   'auth.signIn.emailPlaceholder': 'deg@eksempel.com',
+  'auth.signIn.identifier': 'E-post eller visningsnavn',
+  'auth.signIn.identifierPlaceholder': 'deg@eksempel.com eller raf_prague',
   'auth.signIn.submit': 'Fortsett',
   'auth.signIn.sending': 'Sender…',
   'auth.sent.title': 'Sjekk innboksen',
@@ -185,11 +191,12 @@ export const no: Record<MessageKey, string> = {
     'En e-post med innloggingslenke er nettopp sendt til {email}. Åpne den for å fortsette — kontoen opprettes ved første klikk om nødvendig.',
   'auth.sent.hint':
     'Lenken utløper om 30 minutter og kan bare brukes én gang. Sjekk søppelpost om nødvendig.',
-  'auth.sent.retry': 'Bruk en annen e-post',
+  'auth.sent.retry': 'Bruk en annen identifikator',
   'auth.sent.devHint':
     'Lokalt kan e-posten utebli — bruk knappen under for å logge inn med en gang.',
   'auth.sent.openLink': 'Åpne innloggingslenken',
   'auth.error.invalidEmail': 'Ugyldig e-postadresse.',
+  'auth.error.invalidIdentifier': 'Ugyldig e-post eller visningsnavn.',
   'auth.error.rateLimited':
     'For mange forespørsler for denne e-posten. Prøv igjen om en time.',
   'auth.error.emailFailed': 'Kunne ikke sende e-posten. Prøv igjen senere.',

@@ -2,12 +2,23 @@
 export type User = {
   id: string
   email: string
-  /** Optional display name; falls back to email in the UI. */
-  pseudo: string | null
+  /** Required display name (no leading @ in storage). */
+  pseudo: string
+  /** ISO timestamp of first pseudo customization, or null if still the default. */
+  pseudoCustomizedAt: string | null
 }
 
-/** Label for account chrome: pseudo if set, otherwise email. */
+/** Label for account chrome: @pseudo when set. */
 export function userDisplayLabel(user: Pick<User, 'email' | 'pseudo'>): string {
-  const pseudo = user.pseudo?.trim()
-  return pseudo && pseudo.length > 0 ? pseudo : user.email
+  const handle = formatPseudoHandle(user.pseudo)
+  return handle ?? user.email
+}
+
+/** Public @handle for share / consultation UI. */
+export function formatPseudoHandle(
+  pseudo: string | null | undefined,
+): string | null {
+  const trimmed = pseudo?.trim()
+  if (!trimmed) return null
+  return trimmed.startsWith('@') ? trimmed : `@${trimmed}`
 }

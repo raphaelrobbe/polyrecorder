@@ -14,7 +14,7 @@ type AccountMenuProps = {
   className?: string
 }
 
-/** Top account dropdown: label = pseudo || email; settings + sign out. */
+/** Top account dropdown: label = @pseudo (fallback email); settings + sign out. */
 export function AccountMenu({ user, className }: AccountMenuProps) {
   useLocale()
   const navigate = useNavigate()

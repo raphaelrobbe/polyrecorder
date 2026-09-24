@@ -1,4 +1,5 @@
 import type { ActiveRecording, AppState, Track, TrackPlayhead } from '../common/types'
+import { formatPseudoHandle } from '../common/user'
 import {
   defaultSessionTitle,
   defaultTrackName,
@@ -1850,7 +1851,7 @@ export async function loadCloudSongIntoSession(
     ? `${opened.song.groupName} / ${opened.song.repertoireName}`
     : null
   const sharedOwnerLabel = readOnly
-    ? opened.song.ownerPseudo
+    ? formatPseudoHandle(opened.song.ownerPseudo)
     : null
 
   patch({

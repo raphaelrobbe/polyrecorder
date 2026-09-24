@@ -683,7 +683,7 @@ export async function openSong(
         isPublic: song.isPublic,
         groupName: song.repertoire.group.name,
         repertoireName: song.repertoire.name,
-        ownerPseudo: song.repertoire.group.user.pseudo?.trim() || null,
+        ownerPseudo: song.repertoire.group.user.pseudo.trim() || null,
       },
       tracks,
     }
