@@ -11,6 +11,7 @@ import {
   setCalageMode,
   setError,
   setMasterVolume,
+  flushVolumeCloudPersist,
 } from '../../lib/sessionActions.client'
 import { MASTER_VOLUME_MAX } from '../../lib/audio/mix.client'
 import { useLocale } from '../../hooks/useLocale'
@@ -239,6 +240,7 @@ export function TracksList({ className }: TracksListProps) {
               value={masterVolume}
               max={MASTER_VOLUME_MAX}
               onChange={setMasterVolume}
+              onChangeEnd={() => flushVolumeCloudPersist()}
               onReset={() => setMasterVolume(1)}
             />
           </div>

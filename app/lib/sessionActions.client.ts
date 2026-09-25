@@ -464,6 +464,7 @@ export function setTrackVolume(trackId: number, volume: number) {
   if (gain) {
     gain.gain.value = liveTrackGainValue(trackId)
   }
+  schedulePersistTrackVolume(trackId)
 }
 
 export function setMasterVolume(volume: number) {
@@ -473,6 +474,134 @@ export function setMasterVolume(volume: number) {
   if (master) {
     master.gain.value = next
   }
+  schedulePersistMasterVolume()
+}
+
+/** Flush pending volume POSTs (call on slider pointer-up / blur). */
+export function flushVolumeCloudPersist(trackId?: number) {
+  if (trackId == null) {
+    flushPersistMasterVolume()
+    return
+  }
+  flushPersistTrackVolume(trackId)
+}
+
+const VOLUME_PERSIST_MS = 400
+const trackVolumePersistTimers = new Map<number, ReturnType<typeof setTimeout>>()
+let masterVolumePersistTimer: ReturnType<typeof setTimeout> | null = null
+
+function canPersistCloudMix(): boolean {
+  return !get().readOnlySession
+}
+
+function postLibraryIntent(body: Record<string, unknown>, label: string) {
+  void fetch('/api/cloud/library', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+    .then(async (res) => {
+      const data = (await res.json()) as { ok: boolean }
+      if (!data.ok) console.error(`[cloud] failed to ${label}`)
+    })
+    .catch((error) => {
+      console.error(`[cloud] failed to ${label}`, error)
+    })
+}
+
+function persistCloudTrackOffset(trackId: number) {
+  if (!canPersistCloudMix()) return
+  const track = get().tracks.find((t) => t.id === trackId)
+  if (!track?.cloudTrackId) return
+  postLibraryIntent(
+    {
+      intent: 'updateTrackOffset',
+      id: track.cloudTrackId,
+      offsetMs: Math.round(track.offsetMs),
+    },
+    'update track offset',
+  )
+}
+
+function persistCloudTrackOffsets(trackIds: number[]) {
+  if (!canPersistCloudMix()) return
+  const updates = trackIds
+    .map((id) => {
+      const track = get().tracks.find((t) => t.id === id)
+      if (!track?.cloudTrackId) return null
+      return {
+        id: track.cloudTrackId,
+        offsetMs: Math.round(track.offsetMs),
+      }
+    })
+    .filter((u): u is { id: string; offsetMs: number } => u != null)
+  if (updates.length === 0) return
+  postLibraryIntent(
+    { intent: 'syncTrackOffsets', updates },
+    'sync track offsets',
+  )
+}
+
+function flushPersistTrackVolume(trackId: number) {
+  const existing = trackVolumePersistTimers.get(trackId)
+  if (existing) {
+    clearTimeout(existing)
+    trackVolumePersistTimers.delete(trackId)
+  }
+  if (!canPersistCloudMix()) return
+  const track = get().tracks.find((t) => t.id === trackId)
+  if (!track?.cloudTrackId) return
+  postLibraryIntent(
+    {
+      intent: 'updateTrackVolume',
+      id: track.cloudTrackId,
+      volume: getTrackVolume(trackId),
+    },
+    'update track volume',
+  )
+}
+
+function schedulePersistTrackVolume(trackId: number) {
+  if (!canPersistCloudMix()) return
+  const track = get().tracks.find((t) => t.id === trackId)
+  if (!track?.cloudTrackId) return
+  const existing = trackVolumePersistTimers.get(trackId)
+  if (existing) clearTimeout(existing)
+  trackVolumePersistTimers.set(
+    trackId,
+    setTimeout(() => {
+      trackVolumePersistTimers.delete(trackId)
+      flushPersistTrackVolume(trackId)
+    }, VOLUME_PERSIST_MS),
+  )
+}
+
+function flushPersistMasterVolume() {
+  if (masterVolumePersistTimer) {
+    clearTimeout(masterVolumePersistTimer)
+    masterVolumePersistTimer = null
+  }
+  if (!canPersistCloudMix()) return
+  const songId = get().activeSongId
+  if (!songId) return
+  postLibraryIntent(
+    {
+      intent: 'updateSongMasterVolume',
+      songId,
+      masterVolume: clampMasterVolume(get().masterVolume),
+    },
+    'update master volume',
+  )
+}
+
+function schedulePersistMasterVolume() {
+  if (!canPersistCloudMix()) return
+  if (!get().activeSongId) return
+  if (masterVolumePersistTimer) clearTimeout(masterVolumePersistTimer)
+  masterVolumePersistTimer = setTimeout(() => {
+    masterVolumePersistTimer = null
+    flushPersistMasterVolume()
+  }, VOLUME_PERSIST_MS)
 }
 
 export function syncLatencyDisplay() {
@@ -706,6 +835,7 @@ export function applyManualTrackOffset(trackId: number, offsetMs: number) {
   delete trackAlignDetails[trackId]
   patch({ tracks, autoAlignTrackIds, trackAlignDetails })
   refreshSkewWarning()
+  persistCloudTrackOffset(trackId)
 }
 
 export async function evaluateReferenceBeat(): Promise<void> {
@@ -827,6 +957,11 @@ export async function autoAlignTracksFromCounts(): Promise<void> {
 
   patch({ tracks: nextTracks, trackAlignDetails: nextDetails })
   refreshSkewWarning()
+  persistCloudTrackOffsets(
+    nextTracks
+      .filter((track) => track.id !== reference.id && autoAlign.has(track.id))
+      .map((track) => track.id),
+  )
 }
 
 async function maybeAutoAlignAfterTake(): Promise<void> {
@@ -1727,6 +1862,7 @@ export function setAllAutoAlign(on: boolean) {
       trackAlignDetails,
     })
     refreshSkewWarning()
+    persistCloudTrackOffsets([...clearIds])
     return
   }
 
@@ -1962,8 +2098,7 @@ export async function loadCloudSongIntoSession(
   trackPlayheads.clear()
 
   const enabledTrackIds = opened.tracks.map((t) => t.id)
-  const trackVolumes: Record<number, number> = {}
-  for (const track of opened.tracks) trackVolumes[track.id] = 1
+  const trackVolumes = { ...opened.trackVolumes }
 
   const readOnly = !opened.isOwner
   if (opened.isOwner) {
@@ -1987,7 +2122,7 @@ export async function loadCloudSongIntoSession(
     referenceTrackId: opened.tracks[0]?.id ?? null,
     trackAlignDetails: {},
     trackVolumes,
-    masterVolume: 1,
+    masterVolume: opened.song.masterVolume,
     sessionTitle: opened.song.name,
     activeSongId: opened.isOwner ? opened.song.id : null,
     deckSongId: opened.isOwner ? opened.song.id : null,

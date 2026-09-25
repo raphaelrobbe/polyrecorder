@@ -21,6 +21,7 @@ import {
   setTrackEnabled,
   setTrackVolume,
   setCalageMode,
+  flushVolumeCloudPersist,
   toggleTrackHighlight,
 } from '../../lib/sessionActions.client'
 import { uploadTrackToCloud } from '../../lib/cloudUpload.client'
@@ -276,6 +277,7 @@ export function TrackRow({
                 value={volume}
                 max={TRACK_VOLUME_MAX}
                 onChange={(next) => setTrackVolume(track.id, next)}
+                onChangeEnd={() => flushVolumeCloudPersist(track.id)}
                 onReset={() => setTrackVolume(track.id, 1)}
               />
             </div>

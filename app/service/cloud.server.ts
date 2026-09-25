@@ -32,6 +32,19 @@ function extensionForContentType(contentType: string): string {
   return 'webm'
 }
 
+const TRACK_VOLUME_MAX = 1.5
+const MASTER_VOLUME_MAX = 2
+
+function clampStoredTrackVolume(value: number): number | null {
+  if (!Number.isFinite(value)) return null
+  return Math.min(TRACK_VOLUME_MAX, Math.max(0, value))
+}
+
+function clampStoredMasterVolume(value: number): number | null {
+  if (!Number.isFinite(value)) return null
+  return Math.min(MASTER_VOLUME_MAX, Math.max(0, value))
+}
+
 async function requireUser(
   request: Request,
 ): Promise<AppUser | { ok: false; reason: 'unauthorized' }> {
@@ -164,6 +177,7 @@ export async function presignTrackUpload(
     byteSize: number
     durationMs: number
     offsetMs: number
+    volume?: number | null
     clientTrackId?: number | null
     sessionTitle?: string | null
   },
@@ -202,6 +216,7 @@ export async function presignTrackUpload(
         byteSize,
         durationMs,
         offsetMs,
+        volume: clampStoredTrackVolume(input.volume ?? 1) ?? 1,
         clientTrackId: input.clientTrackId ?? null,
       },
     })
@@ -479,6 +494,100 @@ export async function renameTrackAsset(
   return { ok: true }
 }
 
+export async function updateTrackAssetOffset(
+  request: Request,
+  trackAssetId: string,
+  offsetMs: number,
+): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  if (!trackAssetId || !Number.isFinite(offsetMs)) {
+    return { ok: false, reason: 'invalid' }
+  }
+
+  const asset = await assertOwnedTrackAsset(user.id, trackAssetId)
+  if (!asset) return { ok: false, reason: 'not_found' }
+
+  await prisma.trackAsset.update({
+    where: { id: asset.id },
+    data: { offsetMs: Math.round(offsetMs) },
+  })
+  return { ok: true }
+}
+
+export async function updateTrackAssetOffsets(
+  request: Request,
+  updates: Array<{ id: string; offsetMs: number }>,
+): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  if (!Array.isArray(updates) || updates.length === 0) {
+    return { ok: false, reason: 'invalid' }
+  }
+
+  for (const update of updates) {
+    if (!update?.id || !Number.isFinite(update.offsetMs)) {
+      return { ok: false, reason: 'invalid' }
+    }
+    const asset = await assertOwnedTrackAsset(user.id, update.id)
+    if (!asset) return { ok: false, reason: 'not_found' }
+  }
+
+  await prisma.$transaction(
+    updates.map((update) =>
+      prisma.trackAsset.update({
+        where: { id: update.id },
+        data: { offsetMs: Math.round(update.offsetMs) },
+      }),
+    ),
+  )
+  return { ok: true }
+}
+
+export async function updateTrackAssetVolume(
+  request: Request,
+  trackAssetId: string,
+  volume: number,
+): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  const next = clampStoredTrackVolume(volume)
+  if (!trackAssetId || next == null) return { ok: false, reason: 'invalid' }
+
+  const asset = await assertOwnedTrackAsset(user.id, trackAssetId)
+  if (!asset) return { ok: false, reason: 'not_found' }
+
+  await prisma.trackAsset.update({
+    where: { id: asset.id },
+    data: { volume: next },
+  })
+  return { ok: true }
+}
+
+export async function updateSongMasterVolume(
+  request: Request,
+  songId: string,
+  masterVolume: number,
+): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  const next = clampStoredMasterVolume(masterVolume)
+  if (!songId || next == null) return { ok: false, reason: 'invalid' }
+
+  const song = await assertOwnedSong(user.id, songId)
+  if (!song) return { ok: false, reason: 'not_found' }
+
+  await prisma.song.update({
+    where: { id: song.id },
+    data: { masterVolume: next },
+  })
+  return { ok: true }
+}
+
 export async function deleteTrackAsset(
   request: Request,
   trackAssetId: string,
@@ -602,6 +711,7 @@ export type OpenSongResult =
         groupName: string
         repertoireName: string
         ownerPseudo: string | null
+        masterVolume: number
       }
       tracks: Array<{
         id: string
@@ -609,6 +719,7 @@ export type OpenSongResult =
         url: string
         durationMs: number
         offsetMs: number
+        volume: number
         contentType: string
       }>
     }
@@ -669,6 +780,7 @@ export async function openSong(
         url: await createPresignedGetUrl({ objectKey: track.objectKey }),
         durationMs: track.durationMs,
         offsetMs: track.offsetMs,
+        volume: track.volume,
         contentType: track.contentType,
       })),
     )
@@ -684,6 +796,7 @@ export async function openSong(
         groupName: song.repertoire.group.name,
         repertoireName: song.repertoire.name,
         ownerPseudo: song.repertoire.group.user.pseudo.trim() || null,
+        masterVolume: song.masterVolume,
       },
       tracks,
     }

@@ -22,6 +22,7 @@ export async function action({ request }: ActionFunctionArgs) {
       byteSize?: number
       durationMs?: number
       offsetMs?: number
+      volume?: number | null
       clientTrackId?: number | null
       sessionTitle?: string | null
     }
@@ -32,6 +33,7 @@ export async function action({ request }: ActionFunctionArgs) {
       byteSize: Number(body.byteSize ?? 0),
       durationMs: Number(body.durationMs ?? 0),
       offsetMs: Number(body.offsetMs ?? 0),
+      volume: body.volume == null ? null : Number(body.volume),
       clientTrackId: body.clientTrackId ?? null,
       sessionTitle: body.sessionTitle ?? null,
     })

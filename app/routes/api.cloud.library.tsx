@@ -11,6 +11,10 @@ import {
   renameLibraryNode,
   renameTrackAsset,
   setSongPublic,
+  updateSongMasterVolume,
+  updateTrackAssetOffset,
+  updateTrackAssetOffsets,
+  updateTrackAssetVolume,
 } from '~/service/cloud.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -34,6 +38,10 @@ export async function action({ request }: ActionFunctionArgs) {
       repertoireId?: string
       songId?: string
       isPublic?: boolean
+      offsetMs?: number
+      volume?: number
+      masterVolume?: number
+      updates?: Array<{ id: string; offsetMs: number }>
     }
     const intent = String(body.intent ?? '')
 
@@ -75,6 +83,37 @@ export async function action({ request }: ActionFunctionArgs) {
         request,
         String(body.id ?? ''),
         String(body.name ?? ''),
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'updateTrackOffset') {
+      const result = await updateTrackAssetOffset(
+        request,
+        String(body.id ?? ''),
+        Number(body.offsetMs),
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'syncTrackOffsets') {
+      const result = await updateTrackAssetOffsets(
+        request,
+        Array.isArray(body.updates) ? body.updates : [],
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'updateTrackVolume') {
+      const result = await updateTrackAssetVolume(
+        request,
+        String(body.id ?? ''),
+        Number(body.volume),
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'updateSongMasterVolume') {
+      const result = await updateSongMasterVolume(
+        request,
+        String(body.songId ?? body.id ?? ''),
+        Number(body.masterVolume),
       )
       return json(result, { status: result.ok ? 200 : 400 })
     }

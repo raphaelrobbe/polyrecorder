@@ -58,6 +58,7 @@ export async function uploadTrackToCloud(
         byteSize: track.blob.size,
         durationMs: track.durationMs,
         offsetMs: track.offsetMs,
+        volume: useSessionStore.getState().trackVolumes[trackId] ?? 1,
         clientTrackId: track.id,
         sessionTitle,
       }),
@@ -151,8 +152,11 @@ export type OpenedCloudSong = {
     groupName: string
     repertoireName: string
     ownerPseudo: string | null
+    masterVolume: number
   }
   tracks: Track[]
+  /** Local track id → mix volume (from cloud). */
+  trackVolumes: Record<number, number>
   isOwner: boolean
 }
 
@@ -177,6 +181,7 @@ export async function fetchAndHydrateSong(
           groupName: string
           repertoireName: string
           ownerPseudo: string | null
+          masterVolume: number
         }
         tracks: Array<{
           id: string
@@ -184,6 +189,7 @@ export async function fetchAndHydrateSong(
           url: string
           durationMs: number
           offsetMs: number
+          volume: number
           contentType: string
         }>
       }
@@ -203,6 +209,7 @@ export async function fetchAndHydrateSong(
   }
 
   const tracks: Track[] = []
+  const trackVolumes: Record<number, number> = {}
   let counter = 0
   for (const remote of data.tracks) {
     const response = await fetch(remote.url)
@@ -224,7 +231,21 @@ export async function fetchAndHydrateSong(
       cloudStatus: 'synced',
       cloudTrackId: remote.id,
     })
+    const vol = Number(remote.volume)
+    trackVolumes[counter] = Number.isFinite(vol)
+      ? Math.min(1.5, Math.max(0, vol))
+      : 1
   }
 
-  return { song: data.song, tracks, isOwner: data.isOwner }
+  const masterRaw = Number(data.song.masterVolume)
+  const masterVolume = Number.isFinite(masterRaw)
+    ? Math.min(2, Math.max(0, masterRaw))
+    : 1
+
+  return {
+    song: { ...data.song, masterVolume },
+    tracks,
+    trackVolumes,
+    isOwner: data.isOwner,
+  }
 }

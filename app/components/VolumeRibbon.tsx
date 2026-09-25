@@ -15,6 +15,8 @@ type VolumeRibbonProps = {
   value: number
   max: number
   onChange: (value: number) => void
+  /** Fired after drag ends, keyboard adjust, or percent commit (for cloud persist). */
+  onChangeEnd?: () => void
   onReset?: () => void
   label: string
   className?: string
@@ -30,6 +32,7 @@ export function VolumeRibbon({
   value,
   max,
   onChange,
+  onChangeEnd,
   onReset,
   label,
   className,
@@ -57,7 +60,10 @@ export function VolumeRibbon({
         ? percent
         : Math.min(maxPercent, Math.max(0, parsed))
     setDraft(String(nextPercent))
-    if (nextPercent !== percent) onChange(nextPercent / 100)
+    if (nextPercent !== percent) {
+      onChange(nextPercent / 100)
+      onChangeEnd?.()
+    }
   }
 
   const valueFromClientX = useCallback(
@@ -93,6 +99,12 @@ export function VolumeRibbon({
     } catch {
       // ignore
     }
+    onChangeEnd?.()
+  }
+
+  const changeAndEnd = (next: number) => {
+    onChange(next)
+    onChangeEnd?.()
   }
 
   return (
@@ -120,24 +132,28 @@ export function VolumeRibbon({
         onPointerMove={onPointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
-        onDoubleClick={() => onReset?.()}
+        onDoubleClick={() => {
+          onReset?.()
+          onChangeEnd?.()
+        }}
         onKeyDown={(event) => {
           const step = event.shiftKey ? 0.1 : 0.05
           if (event.key === 'ArrowRight' || event.key === 'ArrowUp') {
             event.preventDefault()
-            onChange(Math.min(max, value + step))
+            changeAndEnd(Math.min(max, value + step))
           } else if (event.key === 'ArrowLeft' || event.key === 'ArrowDown') {
             event.preventDefault()
-            onChange(Math.max(0, value - step))
+            changeAndEnd(Math.max(0, value - step))
           } else if (event.key === 'Home') {
             event.preventDefault()
-            onChange(0)
+            changeAndEnd(0)
           } else if (event.key === 'End') {
             event.preventDefault()
-            onChange(max)
+            changeAndEnd(max)
           } else if (event.key === '0' || event.key === 'Delete') {
             event.preventDefault()
             onReset?.()
+            onChangeEnd?.()
           }
         }}
       >

@@ -97,6 +97,8 @@ model Song {
   lastOpenedAt DateTime @default(now())
   /// When true, anyone with the URL can open the song read-only.
   isPublic  Boolean  @default(false)
+  /// Master mix bus level (1 = 100%). Owner-editable.
+  masterVolume Float @default(1)
 
   repertoireId String
   repertoire   Repertoire @relation(fields: [repertoireId], references: [id], onDelete: Cascade)
@@ -117,6 +119,8 @@ model TrackAsset {
   byteSize      Int
   durationMs    Int
   offsetMs      Int       @default(0)
+  /// Per-track mix level (1 = 100%). Owner-editable.
+  volume        Float     @default(1)
   /// Client-side track id at upload time (best-effort).
   clientTrackId Int?
   /// Null until the browser PUT + complete succeeds.
