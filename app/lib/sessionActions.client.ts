@@ -163,8 +163,7 @@ export function clearRefPeaks() {
 }
 
 export function syncReferenceTrackRules() {
-  const { tracks, referenceTrackId, autoAlignTrackIds, trackAlignDetails } =
-    get()
+  const { tracks, referenceTrackId, trackAlignDetails } = get()
 
   if (tracks.length === 0) {
     patch({
@@ -188,7 +187,6 @@ export function syncReferenceTrackRules() {
     clearRefPeaks()
   }
 
-  const nextAutoAlign = autoAlignTrackIds.filter((id) => id !== nextReferenceId)
   const nextDetails = { ...trackAlignDetails }
   delete nextDetails[nextReferenceId!]
   if (tracks.length < 2) {
@@ -199,7 +197,6 @@ export function syncReferenceTrackRules() {
 
   patch({
     referenceTrackId: nextReferenceId,
-    autoAlignTrackIds: nextAutoAlign,
     trackAlignDetails: nextDetails,
   })
 }
@@ -495,7 +492,7 @@ function canPersistCloudMix(): boolean {
   return !get().readOnlySession || get().canCloudContribute
 }
 
-/** Foreign owner cloud take — immutable while consulting / collaborating. */
+/** Foreign cloud take — local edits OK; never persist to the server. */
 function isForeignCloudTrack(track: { cloudTrackId?: string; cloudOwnedByMe?: boolean }) {
   return (
     Boolean(track.cloudTrackId) &&
@@ -549,6 +546,40 @@ function persistCloudTrackOffsets(trackIds: number[]) {
   postLibraryIntent(
     { intent: 'syncTrackOffsets', updates },
     'sync track offsets',
+  )
+}
+
+function persistCloudTrackMuted(trackId: number) {
+  if (!canPersistCloudMix()) return
+  const track = get().tracks.find((t) => t.id === trackId)
+  if (!track?.cloudTrackId || isForeignCloudTrack(track)) return
+  postLibraryIntent(
+    {
+      intent: 'updateTrackMuted',
+      id: track.cloudTrackId,
+      muted: !get().enabledTrackIds.includes(trackId),
+    },
+    'update track mute',
+  )
+}
+
+function persistCloudTrackMutes(trackIds: number[]) {
+  if (!canPersistCloudMix()) return
+  const enabled = new Set(get().enabledTrackIds)
+  const updates = trackIds
+    .map((id) => {
+      const track = get().tracks.find((t) => t.id === id)
+      if (!track?.cloudTrackId || isForeignCloudTrack(track)) return null
+      return {
+        id: track.cloudTrackId,
+        muted: !enabled.has(id),
+      }
+    })
+    .filter((u): u is { id: string; muted: boolean } => u != null)
+  if (updates.length === 0) return
+  postLibraryIntent(
+    { intent: 'syncTrackMutes', updates },
+    'sync track mutes',
   )
 }
 
@@ -871,12 +902,9 @@ export function applyManualTrackOffset(trackId: number, offsetMs: number) {
   const tracks = get().tracks.map((track) =>
     track.id === trackId ? { ...track, offsetMs } : track,
   )
-  const autoAlignTrackIds = get().autoAlignTrackIds.filter(
-    (id) => id !== trackId,
-  )
   const trackAlignDetails = { ...get().trackAlignDetails }
   delete trackAlignDetails[trackId]
-  patch({ tracks, autoAlignTrackIds, trackAlignDetails })
+  patch({ tracks, trackAlignDetails })
   refreshSkewWarning()
   persistCloudTrackOffset(trackId)
 }
@@ -937,11 +965,20 @@ export async function evaluateReferenceBeat(): Promise<void> {
 }
 
 /**
- * Align later takes on the reference using shared "3-4" counts.
+ * Align takes on the reference using shared "3-4" counts.
  * Reference must contain 1-2-3-4; later tracks should contain 3-4 in sync.
+ * Only the given track ids are measured — existing offsets on other takes
+ * are left untouched.
  */
-export async function autoAlignTracksFromCounts(): Promise<void> {
-  const { tracks, autoAlignTrackIds, trackAlignDetails } = get()
+export async function autoAlignTracksFromCounts(
+  trackIds: ReadonlyArray<number>,
+): Promise<void> {
+  const targets = [...new Set(trackIds)].filter((id) =>
+    get().tracks.some((track) => track.id === id),
+  )
+  if (targets.length === 0) return
+
+  const { tracks, trackAlignDetails } = get()
   if (tracks.length < 2) {
     throw new Error(t('error.needTwoTracks'))
   }
@@ -966,13 +1003,14 @@ export async function autoAlignTracksFromCounts(): Promise<void> {
   const refFour = refPeaks[3]!
   applyReferencePeaksLabel(reference, refPeaks)
 
-  const autoAlign = new Set(autoAlignTrackIds)
+  const targetSet = new Set(targets)
   const nextTracks = tracks.map((track) => ({ ...track }))
   const nextDetails = { ...trackAlignDetails }
+  const alignedIds: number[] = []
 
   for (const track of nextTracks) {
     if (track.id === reference.id) continue
-    if (!autoAlign.has(track.id)) continue
+    if (!targetSet.has(track.id)) continue
 
     const buffer = await decodeTrack(track)
     const peaks = findVolumePeaks(buffer, 8)
@@ -996,25 +1034,20 @@ export async function autoAlignTracksFromCounts(): Promise<void> {
       delta3Ms: Math.round((refThree - takeThree) * 1000),
       delta4Ms: Math.round((refFour - takeFour) * 1000),
     }
+    alignedIds.push(track.id)
   }
 
   patch({ tracks: nextTracks, trackAlignDetails: nextDetails })
   refreshSkewWarning()
-  persistCloudTrackOffsets(
-    nextTracks
-      .filter((track) => track.id !== reference.id && autoAlign.has(track.id))
-      .map((track) => track.id),
-  )
+  persistCloudTrackOffsets(alignedIds)
 }
 
-async function maybeAutoAlignAfterTake(): Promise<void> {
+/** After a new take: always auto-align that take (never reshuffle others). */
+async function maybeAutoAlignAfterTake(newTrackId: number): Promise<void> {
   if (get().tracks.length < 2) return
-  const hasTargets = alignableTracks().some((track) =>
-    get().autoAlignTrackIds.includes(track.id),
-  )
-  if (!hasTargets) return
+  if (get().referenceTrackId === newTrackId) return
   try {
-    await autoAlignTracksFromCounts()
+    await autoAlignTracksFromCounts([newTrackId])
   } catch (error) {
     setError(
       error instanceof Error
@@ -1022,6 +1055,18 @@ async function maybeAutoAlignAfterTake(): Promise<void> {
         : t('error.autoAlignDeferredGeneric'),
     )
   }
+}
+
+/** Manual action: recalculate auto-align for one non-reference track. */
+export async function realignTrack(trackId: number): Promise<void> {
+  setError(null)
+  await autoAlignTracksFromCounts([trackId])
+}
+
+/** Manual action: recalculate auto-align for every non-reference track. */
+export async function realignAllTracks(): Promise<void> {
+  setError(null)
+  await autoAlignTracksFromCounts(alignableTracks().map((track) => track.id))
 }
 
 /** Mix-timeline cut just after the reference "4", with pad (seconds). */
@@ -1517,20 +1562,16 @@ async function appendTrackFromBlob(
 
   const becameReference = get().referenceTrackId == null
   const enabledTrackIds = [...get().enabledTrackIds, track.id]
-  let autoAlignTrackIds = get().autoAlignTrackIds
   let referenceTrackId = get().referenceTrackId
 
   if (becameReference) {
     referenceTrackId = track.id
-  } else {
-    autoAlignTrackIds = [...autoAlignTrackIds, track.id]
   }
 
   patch({
     trackCounter,
     tracks: [...tracks, track],
     enabledTrackIds,
-    autoAlignTrackIds,
     referenceTrackId,
     trackVolumes: { ...get().trackVolumes, [track.id]: 1 },
   })
@@ -1539,7 +1580,7 @@ async function appendTrackFromBlob(
   if (becameReference || track.id === referenceTrackId) {
     await evaluateReferenceBeat()
   }
-  await maybeAutoAlignAfterTake()
+  await maybeAutoAlignAfterTake(track.id)
   void import('./cloudUpload.client').then((mod) =>
     mod.maybeAutoUploadTrack(track.id),
   )
@@ -1862,6 +1903,8 @@ export function setTrackEnabled(trackId: number, enabled: boolean) {
   else enabledSet.delete(trackId)
   patch({ enabledTrackIds: [...enabledSet] })
   setTrackAudible(trackId, enabled)
+  // Song owner or track uploader: persist; others keep a local mute only.
+  persistCloudTrackMuted(trackId)
 }
 
 export function setAllTracksEnabled(enabled: boolean) {
@@ -1871,68 +1914,12 @@ export function setAllTracksEnabled(enabled: boolean) {
   for (const track of tracks) {
     setTrackAudible(track.id, enabled)
   }
-}
-
-export function setTrackAutoAlign(trackId: number, on: boolean) {
-  const autoAlign = new Set(get().autoAlignTrackIds)
-  if (on) autoAlign.add(trackId)
-  else autoAlign.delete(trackId)
-  const trackAlignDetails = { ...get().trackAlignDetails }
-  if (!on) delete trackAlignDetails[trackId]
-  patch({
-    autoAlignTrackIds: [...autoAlign],
-    trackAlignDetails,
-  })
-}
-
-export function setAllAutoAlign(on: boolean) {
-  const alignable = alignableTracks()
-  if (!on) {
-    const wasListening =
-      get().mixListenActive || get().playingTrackIds.length > 0
-    if (wasListening) stopPlayback({ resetSeek: false })
-    const clearIds = new Set(alignable.map((track) => track.id))
-    const tracks = get().tracks.map((track) =>
-      clearIds.has(track.id) ? { ...track, offsetMs: 0 } : track,
-    )
-    const trackAlignDetails = { ...get().trackAlignDetails }
-    for (const id of clearIds) delete trackAlignDetails[id]
-    patch({
-      tracks,
-      autoAlignTrackIds: get().autoAlignTrackIds.filter(
-        (id) => !clearIds.has(id),
-      ),
-      trackAlignDetails,
-    })
-    refreshSkewWarning()
-    persistCloudTrackOffsets([...clearIds])
-    return
-  }
-
-  const autoAlignTrackIds = [
-    ...new Set([
-      ...get().autoAlignTrackIds,
-      ...alignable.map((track) => track.id),
-    ]),
-  ]
-  patch({ autoAlignTrackIds })
-  void (async () => {
-    try {
-      setError(null)
-      await autoAlignTracksFromCounts()
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : t('error.autoAlignFailed'),
-      )
-    }
-  })()
+  persistCloudTrackMutes(tracks.map((track) => track.id))
 }
 
 export function renameTrack(trackId: number, name: string) {
   const track = get().tracks.find((t) => t.id === trackId)
   if (!track) return
-  // Consultation / collab: foreign cloud tracks stay immutable.
-  if (isForeignCloudTrack(track)) return
   const trimmed = name.trim().slice(0, 40) || defaultTrackName(1)
   patch({
     tracks: get().tracks.map((t) =>
@@ -1940,6 +1927,7 @@ export function renameTrack(trackId: number, name: string) {
     ),
   })
 
+  // Shared / collab: only persist renames for the current user's takes.
   const cloudTrackId = track.cloudTrackId
   if (!cloudTrackId || isForeignCloudTrack(track)) return
   if (get().readOnlySession && !track.cloudOwnedByMe) return
@@ -1967,8 +1955,6 @@ export function renameTrack(trackId: number, name: string) {
 export function deleteTrack(trackId: number) {
   const track = get().tracks.find((t) => t.id === trackId)
   if (!track) return
-  // Consultation / collab: never remove foreign owner cloud tracks.
-  if (isForeignCloudTrack(track)) return
   if (get().playingTrackIds.length > 0 || get().mixListenActive) {
     stopPlayback({ resetSeek: false })
   }
@@ -1986,7 +1972,6 @@ export function deleteTrack(trackId: number) {
   patch({
     tracks,
     enabledTrackIds: get().enabledTrackIds.filter((id) => id !== trackId),
-    autoAlignTrackIds: get().autoAlignTrackIds.filter((id) => id !== trackId),
     highlightedTrackIds: nextHighlights,
     trackAlignDetails,
     trackVolumes,
@@ -2002,6 +1987,7 @@ export function deleteTrack(trackId: number) {
   refreshSkewWarning()
   if (get().referenceTrackId != null) void evaluateReferenceBeat()
 
+  // Shared / collab: never delete someone else's take in the database.
   const cloudTrackId = track.cloudTrackId
   if (!cloudTrackId) return
   if (get().readOnlySession && !track.cloudOwnedByMe) return
@@ -2026,12 +2012,10 @@ export function deleteTrack(trackId: number) {
 
 export function deleteAllTracks() {
   if (get().state === 'recording') return
-  // Consultation / collab: only drop local + own cloud takes — never foreign.
+  // Shared / collab: wipe the local deck; cloud deletes only own takes.
   if (get().readOnlySession) {
-    const removableIds = get()
-      .tracks.filter((track) => !track.cloudTrackId || track.cloudOwnedByMe)
-      .map((track) => track.id)
-    for (const id of removableIds) {
+    const ids = get().tracks.map((track) => track.id)
+    for (const id of ids) {
       deleteTrack(id)
     }
     return
@@ -2049,7 +2033,6 @@ export function deleteAllTracks() {
   patch({
     tracks: [],
     enabledTrackIds: [],
-    autoAlignTrackIds: [],
     playingTrackIds: [],
     highlightedTrackIds: [],
     referenceTrackId: null,
@@ -2146,7 +2129,7 @@ export async function loadCloudSongIntoSession(
   trackGains.clear()
   trackPlayheads.clear()
 
-  const enabledTrackIds = opened.tracks.map((t) => t.id)
+  const enabledTrackIds = opened.enabledTrackIds
   const trackVolumes = { ...opened.trackVolumes }
 
   const readOnly = !opened.isOwner
@@ -2167,7 +2150,6 @@ export async function loadCloudSongIntoSession(
     tracks: opened.tracks,
     trackCounter: opened.tracks.length,
     enabledTrackIds,
-    autoAlignTrackIds: opened.tracks.slice(1).map((t) => t.id),
     playingTrackIds: [],
     highlightedTrackIds: [],
     referenceTrackId: opened.tracks[0]?.id ?? null,

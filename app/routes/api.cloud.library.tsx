@@ -19,6 +19,8 @@ import {
   updateTrackAssetOffsets,
   updateTrackAssetVolume,
   updateTrackAssetVolumes,
+  updateTrackAssetMuted,
+  updateTrackAssetMutes,
 } from '~/service/cloud.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -48,8 +50,14 @@ export async function action({ request }: ActionFunctionArgs) {
       allowsCollaboration?: boolean
       offsetMs?: number
       volume?: number
+      muted?: boolean
       masterVolume?: number
-      updates?: Array<{ id: string; offsetMs?: number; volume?: number }>
+      updates?: Array<{
+        id: string
+        offsetMs?: number
+        volume?: number
+        muted?: boolean
+      }>
     }
     const intent = String(body.intent ?? '')
     /** `songId` used to carry a session id — it is a part id on legacy clients. */
@@ -163,6 +171,26 @@ export async function action({ request }: ActionFunctionArgs) {
           ? body.updates.map((u) => ({
               id: String(u.id ?? ''),
               volume: Number(u.volume),
+            }))
+          : [],
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'updateTrackMuted') {
+      const result = await updateTrackAssetMuted(
+        request,
+        String(body.id ?? ''),
+        Boolean(body.muted),
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'syncTrackMutes') {
+      const result = await updateTrackAssetMutes(
+        request,
+        Array.isArray(body.updates)
+          ? body.updates.map((u) => ({
+              id: String(u.id ?? ''),
+              muted: Boolean(u.muted),
             }))
           : [],
       )

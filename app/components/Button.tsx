@@ -36,7 +36,7 @@ const variants: Record<ButtonVariant, string> = {
     'active:enabled:translate-y-px active:enabled:scale-[0.98]',
   ),
   nudge: cn(
-    'h-[1.7rem] w-[1.7rem] rounded-lg border-[1.5px] border-line bg-transparent p-0 text-[0.95rem] font-bold leading-none text-ink',
+    'grid h-[1.7rem] w-[1.7rem] place-items-center rounded-lg border-[1.5px] border-line bg-transparent p-0 text-[0.95rem] font-bold leading-none text-ink',
     'max-sm:h-[1.4rem] max-sm:w-[1.4rem] max-sm:rounded-md max-sm:text-[0.82rem]',
     'hover:enabled:-translate-y-px hover:enabled:bg-ink/6',
     'active:enabled:translate-y-px active:enabled:scale-[0.98]',

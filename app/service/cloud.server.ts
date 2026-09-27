@@ -272,6 +272,7 @@ export async function presignTrackUpload(
     durationMs: number
     offsetMs: number
     volume?: number | null
+    muted?: boolean | null
     clientTrackId?: number | null
     sessionTitle?: string | null
   },
@@ -312,6 +313,7 @@ export async function presignTrackUpload(
         durationMs,
         offsetMs,
         volume: clampStoredTrackVolume(input.volume ?? 1) ?? 1,
+        muted: Boolean(input.muted),
         clientTrackId: input.clientTrackId ?? null,
         uploadedByUserId: user.id,
       },
@@ -919,6 +921,56 @@ export async function updateTrackAssetVolumes(
   return { ok: true }
 }
 
+export async function updateTrackAssetMuted(
+  request: Request,
+  trackAssetId: string,
+  muted: boolean,
+): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  if (!trackAssetId) return { ok: false, reason: 'invalid' }
+
+  const asset = await assertMutableTrackAsset(user.id, trackAssetId)
+  if (!asset) return { ok: false, reason: 'not_found' }
+
+  await prisma.trackAsset.update({
+    where: { id: asset.id },
+    data: { muted: Boolean(muted) },
+  })
+  return { ok: true }
+}
+
+export async function updateTrackAssetMutes(
+  request: Request,
+  updates: Array<{ id: string; muted: boolean }>,
+): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  if (!Array.isArray(updates) || updates.length === 0) {
+    return { ok: false, reason: 'invalid' }
+  }
+
+  const normalized: Array<{ id: string; muted: boolean }> = []
+  for (const update of updates) {
+    if (!update?.id) return { ok: false, reason: 'invalid' }
+    const asset = await assertMutableTrackAsset(user.id, update.id)
+    if (!asset) return { ok: false, reason: 'not_found' }
+    normalized.push({ id: update.id, muted: Boolean(update.muted) })
+  }
+
+  await prisma.$transaction(
+    normalized.map((update) =>
+      prisma.trackAsset.update({
+        where: { id: update.id },
+        data: { muted: update.muted },
+      }),
+    ),
+  )
+  return { ok: true }
+}
+
 export async function updateSongPartMasterVolume(
   request: Request,
   songPartId: string,
@@ -1147,8 +1199,11 @@ export type OpenSongResult =
         durationMs: number
         offsetMs: number
         volume: number
+        muted: boolean
         contentType: string
         uploadedByMe: boolean
+        /** Uploader pseudo (no leading @), or null if unknown. */
+        uploadedByPseudo: string | null
       }>
     }
   | { ok: false; reason: CloudFailureReason }
@@ -1215,6 +1270,25 @@ export async function openSong(
       select: { id: true, name: true },
     })
 
+    const ownerPseudo = song.repertoire.group.user.pseudo.trim() || null
+    const uploaderIds = [
+      ...new Set(
+        part.tracks
+          .map((track) => track.uploadedByUserId)
+          .filter((id): id is string => Boolean(id)),
+      ),
+    ]
+    const uploaders =
+      uploaderIds.length > 0
+        ? await prisma.user.findMany({
+            where: { id: { in: uploaderIds } },
+            select: { id: true, pseudo: true },
+          })
+        : []
+    const pseudoByUserId = new Map(
+      uploaders.map((u) => [u.id, u.pseudo.trim() || null] as const),
+    )
+
     const tracks = await Promise.all(
       part.tracks.map(async (track) => ({
         id: track.id,
@@ -1223,10 +1297,14 @@ export async function openSong(
         durationMs: track.durationMs,
         offsetMs: track.offsetMs,
         volume: track.volume,
+        muted: Boolean(track.muted),
         contentType: track.contentType,
         uploadedByMe: Boolean(
           user && track.uploadedByUserId === user.id,
         ),
+        uploadedByPseudo: track.uploadedByUserId
+          ? (pseudoByUserId.get(track.uploadedByUserId) ?? null)
+          : ownerPseudo,
       })),
     )
 
@@ -1242,7 +1320,7 @@ export async function openSong(
         allowsCollaboration: song.allowsCollaboration,
         groupName: song.repertoire.group.name,
         repertoireName: song.repertoire.name,
-        ownerPseudo: song.repertoire.group.user.pseudo.trim() || null,
+        ownerPseudo,
       },
       part: {
         id: part.id,

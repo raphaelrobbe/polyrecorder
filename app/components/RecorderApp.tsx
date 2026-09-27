@@ -40,7 +40,7 @@ export function RecorderApp({
   const rootData = useRouteLoaderData<typeof rootLoader>('root')
   const user = rootData?.user ?? null
   const wasSignedIn = useRef(Boolean(user))
-  setCloudSignedIn(Boolean(user))
+  setCloudSignedIn(Boolean(user), user?.pseudo)
 
   useEffect(() => {
     useSessionStore.getState().patch({

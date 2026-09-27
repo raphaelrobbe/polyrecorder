@@ -15,9 +15,14 @@ export {
 
 /** Set from RecorderApp when root auth user changes (HttpOnly cookie is not JS-readable). */
 let cloudSignedIn = false
+let cloudUserPseudo: string | null = null
 
-export function setCloudSignedIn(signedIn: boolean): void {
+export function setCloudSignedIn(
+  signedIn: boolean,
+  pseudo?: string | null,
+): void {
   cloudSignedIn = signedIn
+  cloudUserPseudo = signedIn ? (pseudo?.trim() || null) : null
 }
 
 function patchTrack(trackId: number, partial: Partial<Track>): void {
@@ -64,6 +69,7 @@ export async function uploadTrackToCloud(
         durationMs: track.durationMs,
         offsetMs: track.offsetMs,
         volume: useSessionStore.getState().trackVolumes[trackId] ?? 1,
+        muted: !useSessionStore.getState().enabledTrackIds.includes(trackId),
         clientTrackId: track.id,
         sessionTitle,
       }),
@@ -132,6 +138,7 @@ export async function uploadTrackToCloud(
       cloudStatus: 'synced',
       cloudTrackId: presign.trackAssetId,
       cloudOwnedByMe: true,
+      uploadedByPseudo: cloudUserPseudo,
     })
     return true
   } catch (error) {
@@ -171,6 +178,8 @@ export type OpenedCloudSong = {
   tracks: Track[]
   /** Local track id → mix volume (from cloud). */
   trackVolumes: Record<number, number>
+  /** Local track ids that are audible (not muted in cloud). */
+  enabledTrackIds: number[]
   isOwner: boolean
   canCollaborate: boolean
 }
@@ -212,8 +221,10 @@ export async function fetchAndHydrateSong(
           durationMs: number
           offsetMs: number
           volume: number
+          muted: boolean
           contentType: string
           uploadedByMe: boolean
+          uploadedByPseudo: string | null
         }>
       }
     | { ok: false; reason: string }
@@ -233,6 +244,7 @@ export async function fetchAndHydrateSong(
 
   const tracks: Track[] = []
   const trackVolumes: Record<number, number> = {}
+  const enabledTrackIds: number[] = []
   let counter = 0
   for (const remote of data.tracks) {
     const response = await fetch(remote.url)
@@ -254,11 +266,13 @@ export async function fetchAndHydrateSong(
       cloudStatus: 'synced',
       cloudTrackId: remote.id,
       cloudOwnedByMe: Boolean(remote.uploadedByMe),
+      uploadedByPseudo: remote.uploadedByPseudo,
     })
     const vol = Number(remote.volume)
     trackVolumes[counter] = Number.isFinite(vol)
       ? Math.min(1.5, Math.max(0, vol))
       : 1
+    if (!remote.muted) enabledTrackIds.push(counter)
   }
 
   const masterRaw = Number(data.part.masterVolume)
@@ -272,6 +286,7 @@ export async function fetchAndHydrateSong(
     siblings: data.siblings,
     tracks,
     trackVolumes,
+    enabledTrackIds,
     isOwner: data.isOwner,
     canCollaborate: Boolean(data.canCollaborate),
   }

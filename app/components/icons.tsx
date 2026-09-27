@@ -363,3 +363,22 @@ export function IconCollaborate(props: Omit<IconProps, 'children'>) {
     </Icon>
   )
 }
+
+/** Recalculate count-in auto-align (timeline + dual cursors facing the line). */
+export function IconAutoAlign(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        d="M3.5 12h17"
+      />
+      <path
+        fill="currentColor"
+        d="M12 9.6 8.7 4.4h6.6L12 9.6zm0 4.8 3.3 5.2H8.7L12 14.4z"
+      />
+    </Icon>
+  )
+}

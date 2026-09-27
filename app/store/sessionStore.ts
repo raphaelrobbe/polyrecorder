@@ -19,7 +19,6 @@ export type SessionStoreState = {
   sessionStopping: boolean
 
   enabledTrackIds: number[]
-  autoAlignTrackIds: number[]
   playingTrackIds: number[]
   referenceTrackId: number | null
   trackAlignDetails: Record<number, TrackAlignDetail>
@@ -138,7 +137,6 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   sessionStopping: false,
 
   enabledTrackIds: [],
-  autoAlignTrackIds: [],
   playingTrackIds: [],
   referenceTrackId: null,
   trackAlignDetails: {},

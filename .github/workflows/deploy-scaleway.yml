@@ -2,11 +2,10 @@ name: Deploy Scaleway
 
 # Build the Remix SSR image on GitHub Actions and push it to Scaleway Container
 # Registry, then trigger a Serverless Container redeploy.
-# Go-live: switch `branches` to `main` and retire deploy-pages.yml.
 
 on:
   push:
-    branches: [refacto-remix]
+    branches: [main]
   workflow_dispatch:
 
 permissions:

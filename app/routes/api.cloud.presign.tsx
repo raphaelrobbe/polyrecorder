@@ -25,6 +25,7 @@ export async function action({ request }: ActionFunctionArgs) {
       durationMs?: number
       offsetMs?: number
       volume?: number | null
+      muted?: boolean | null
       clientTrackId?: number | null
       sessionTitle?: string | null
     }
@@ -36,6 +37,7 @@ export async function action({ request }: ActionFunctionArgs) {
       durationMs: Number(body.durationMs ?? 0),
       offsetMs: Number(body.offsetMs ?? 0),
       volume: body.volume == null ? null : Number(body.volume),
+      muted: body.muted == null ? null : Boolean(body.muted),
       clientTrackId: body.clientTrackId ?? null,
       sessionTitle: body.sessionTitle ?? null,
     })

@@ -20,6 +20,8 @@ export type Track = {
   cloudTrackId?: string
   /** True when the current user uploaded this cloud take (owner or collaborator). */
   cloudOwnedByMe?: boolean
+  /** Uploader display name (no @); set for shared / collaborative cloud takes. */
+  uploadedByPseudo?: string | null
 }
 
 

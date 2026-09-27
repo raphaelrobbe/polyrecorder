@@ -152,8 +152,10 @@ model TrackAsset {
   byteSize      Int
   durationMs    Int
   offsetMs      Int       @default(0)
-  /// Per-track mix level (1 = 100%). Owner-editable.
+  /// Per-track mix level (1 = 100%). Song owner or uploader editable.
   volume        Float     @default(1)
+  /// Mute in the mix. Song owner or uploader editable.
+  muted         Boolean   @default(false)
   /// Client-side track id at upload time (best-effort).
   clientTrackId Int?
   /// User who uploaded this take (owner or collaborator). Null on legacy rows.

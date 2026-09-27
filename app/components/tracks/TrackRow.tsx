@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { formatPseudoHandle } from '../../common/user'
 import type { Track } from '../../common/types'
 import {
   defaultTrackName,
@@ -11,13 +12,12 @@ import { TRACK_VOLUME_MAX } from '../../lib/audio/mix.client'
 import { OFFSET_WARN_MS } from '../../lib/audio/runtime.client'
 import {
   applyManualTrackOffset,
-  autoAlignTracksFromCounts,
   deleteTrack,
   getTrackPositionMs,
   getTrackVolume,
+  realignTrack,
   renameTrack,
   setError,
-  setTrackAutoAlign,
   setTrackEnabled,
   setTrackVolume,
   setCalageMode,
@@ -32,10 +32,9 @@ import type { loader as rootLoader } from '../../root'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRouteLoaderData } from '@remix-run/react'
 import { Button } from '../Button'
-import { IconCloudSave, IconHighlight, IconTrash } from '../icons'
+import { IconAutoAlign, IconCloudSave, IconHighlight, IconTrash } from '../icons'
 import { MsOffsetEditor } from '../MsOffsetEditor'
 import { VolumeRibbon } from '../VolumeRibbon'
-import { TrackAlignCheck } from './TrackAlignCheck'
 import { TrackDragHandle } from './TrackDragHandle'
 import { TrackMute } from './TrackMute'
 import { TrackNameInput } from './TrackNameInput'
@@ -63,7 +62,6 @@ export function TrackRow({
   const readOnlySession = useSessionStore((s) => s.readOnlySession)
   const canCloudContribute = useSessionStore((s) => s.canCloudContribute)
   const enabledTrackIds = useSessionStore((s) => s.enabledTrackIds)
-  const autoAlignTrackIds = useSessionStore((s) => s.autoAlignTrackIds)
   const referenceTrackId = useSessionStore((s) => s.referenceTrackId)
   const trackAlignDetails = useSessionStore((s) => s.trackAlignDetails)
   const trackVolumes = useSessionStore((s) => s.trackVolumes)
@@ -81,7 +79,6 @@ export function TrackRow({
   useSessionStore((s) => s.mixClockText)
 
   const isEnabled = enabledTrackIds.includes(track.id)
-  const autoAlign = autoAlignTrackIds.includes(track.id)
   const isReference = track.id === referenceTrackId
   const isHighlighted = highlightedTrackIds.includes(track.id)
   const alignDetail = trackAlignDetails[track.id]
@@ -91,11 +88,23 @@ export function TrackRow({
       : ''
   const clock = formatCentis(getTrackPositionMs(track.id))
   const volume = trackVolumes[track.id] ?? getTrackVolume(track.id)
-  const foreignCloudTrack =
-    readOnlySession && Boolean(track.cloudTrackId) && !track.cloudOwnedByMe
-  const hideDelete =
-    calageMode || mixMode || foreignCloudTrack
-  const nameReadOnly = foreignCloudTrack
+  const hideDelete = calageMode || mixMode
+  const uploaderHandle = formatPseudoHandle(track.uploadedByPseudo)
+  const uploaderIsMe =
+    track.cloudOwnedByMe === true ||
+    (user != null &&
+      Boolean(track.uploadedByPseudo) &&
+      user.pseudo.trim().toLowerCase() ===
+        track.uploadedByPseudo!.trim().toLowerCase())
+  const uploaderLabel = uploaderIsMe
+    ? t('tracks.uploadedBy.me')
+    : uploaderHandle
+  const showUploader =
+    Boolean(uploaderLabel) &&
+    (readOnlySession ||
+      tracks.some(
+        (t) => Boolean(t.uploadedByPseudo) && t.cloudOwnedByMe === false,
+      ))
   const showBeatAttention =
     showCalageWarnings &&
     isReference &&
@@ -137,7 +146,7 @@ export function TrackRow({
       className={cn(
         'relative grid grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] grid-rows-[auto] items-center gap-x-[0.1rem] touch-manipulation animate-rise max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]',
         calageMode &&
-          'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)_2.2rem_7.1rem] grid-rows-[auto_auto] gap-y-[0.1rem] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)_1.9rem_6rem]',
+          'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)_2.6rem_7.1rem] grid-rows-[auto_auto] gap-y-[0.1rem] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)_2.3rem_6rem]',
         isDragging && 'opacity-45 touch-none',
         dragOver === 'before' &&
           'before:pointer-events-none before:absolute before:left-0 before:right-0 before:-top-[0.2rem] before:h-0.5 before:rounded-sm before:bg-ink before:content-[""]',
@@ -191,63 +200,73 @@ export function TrackRow({
       </div>
       <div
         className={cn(
-          'col-start-3 row-start-1 flex w-full min-w-0 items-center gap-[0.4rem] rounded-[14px] border border-transparent bg-ink/4 box-border py-[0.45rem] pr-[0.45rem] pl-[0.55rem]',
-          'max-sm:gap-[0.25rem] max-sm:rounded-[12px] max-sm:py-[0.35rem] max-sm:pr-[0.3rem] max-sm:pl-[0.35rem]',
-          (calageMode || mixMode) && 'items-start',
+          'col-start-3 row-start-1 flex w-full min-w-0 items-center gap-[0.35rem] rounded-[14px] border border-transparent bg-ink/4 box-border py-[0.28rem] pr-[0.4rem] pl-[0.5rem]',
+          'max-sm:gap-[0.2rem] max-sm:rounded-[12px] max-sm:py-[0.22rem] max-sm:pr-[0.28rem] max-sm:pl-[0.32rem]',
+          (calageMode || mixMode || showUploader) && 'items-start',
           !isEnabled && 'opacity-55',
         )}
       >
         <div
           className={cn(
-            'flex min-w-0 flex-auto items-center gap-[0.45rem]',
-            (calageMode || mixMode) && 'flex-col items-stretch gap-[0.35rem]',
+            'flex min-w-0 flex-auto items-center gap-[0.4rem]',
+            (calageMode || mixMode || showUploader) &&
+              'flex-col items-stretch gap-[0.15rem]',
           )}
         >
           <div
             className={cn(
-              'flex min-w-0 items-center gap-[0.45rem]',
-              calageMode && 'w-full',
-              mixMode && 'w-full',
+              'flex min-w-0 items-center gap-[0.4rem]',
+              (calageMode || mixMode || showUploader) && 'w-full',
             )}
           >
-            <TrackNameInput
-              isDefault={isDefaultTrackName(nameDraft)}
-              data-rename-track={track.id}
-              value={nameDraft}
-              readOnly={nameReadOnly}
-              aria-label={t('tracks.name.aria')}
-              maxLength={40}
-              onChange={(event) => {
-                if (nameReadOnly) return
-                setNameDraft(event.target.value)
-              }}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault()
-                  event.currentTarget.blur()
-                }
-              }}
-              onFocus={(event) => {
-                if (nameReadOnly) return
-                if (!isDefaultTrackName(event.currentTarget.value)) return
-                event.currentTarget.select()
-                event.currentTarget.addEventListener(
-                  'mouseup',
-                  (mouseupEvent) => {
-                    mouseupEvent.preventDefault()
-                    event.currentTarget.select()
-                  },
-                  { once: true },
-                )
-              }}
-              onBlur={() => {
-                if (nameReadOnly) return
-                const next =
-                  nameDraft.trim().slice(0, 40) || defaultTrackName(index + 1)
-                setNameDraft(next)
-                renameTrack(track.id, next)
-              }}
-            />
+            <div className="flex min-w-0 flex-auto flex-col gap-0">
+              <TrackNameInput
+                isDefault={isDefaultTrackName(nameDraft)}
+                data-rename-track={track.id}
+                value={nameDraft}
+                aria-label={t('tracks.name.aria')}
+                maxLength={40}
+                className={cn(showUploader && 'py-0')}
+                onChange={(event) => {
+                  setNameDraft(event.target.value)
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    event.currentTarget.blur()
+                  }
+                }}
+                onFocus={(event) => {
+                  if (!isDefaultTrackName(event.currentTarget.value)) return
+                  event.currentTarget.select()
+                  event.currentTarget.addEventListener(
+                    'mouseup',
+                    (mouseupEvent) => {
+                      mouseupEvent.preventDefault()
+                      event.currentTarget.select()
+                    },
+                    { once: true },
+                  )
+                }}
+                onBlur={() => {
+                  const next =
+                    nameDraft.trim().slice(0, 40) ||
+                    defaultTrackName(index + 1)
+                  setNameDraft(next)
+                  renameTrack(track.id, next)
+                }}
+              />
+              {showUploader ? (
+                <span
+                  className="truncate px-[0.15rem] text-[0.62rem] font-medium leading-[1.1] text-ink-soft/80"
+                  title={t('tracks.uploadedBy', {
+                    pseudo: uploaderHandle ?? uploaderLabel!,
+                  })}
+                >
+                  {uploaderLabel}
+                </span>
+              ) : null}
+            </div>
             <span
               className={cn(
                 'ml-auto inline-flex shrink-0 flex-col items-end gap-[0.1rem] leading-[1.15]',
@@ -356,31 +375,26 @@ export function TrackRow({
               {t('tracks.ref.badge')}
             </span>
           ) : (
-            <TrackAlignCheck
-              className="col-start-4 row-start-1 justify-self-center"
+            <Button
+              variant="nudge"
+              className="col-start-4 row-start-1 justify-self-center [&_svg]:size-[1.28rem]"
+              icon={<IconAutoAlign />}
               title={t('tracks.autoAlign')}
-              ariaLabel={t('tracks.autoAlign.named', { name: track.name })}
-              checked={autoAlign}
-              onCheckedChange={(on) => {
-                if (on) {
-                  setTrackAutoAlign(track.id, true)
-                  void (async () => {
-                    try {
-                      setError(null)
-                      await autoAlignTracksFromCounts()
-                    } catch (error) {
-                      setError(
-                        error instanceof Error
-                          ? error.message
-                          : t('error.autoAlignFailed'),
-                      )
-                    }
-                  })()
-                  return
-                }
-                applyManualTrackOffset(track.id, 0)
+              aria-label={t('tracks.autoAlign.named', { name: track.name })}
+              data-auto-align-track={track.id}
+              onClick={() => {
+                void (async () => {
+                  try {
+                    await realignTrack(track.id)
+                  } catch (error) {
+                    setError(
+                      error instanceof Error
+                        ? error.message
+                        : t('error.autoAlignFailed'),
+                    )
+                  }
+                })()
               }}
-              inputProps={{ 'data-auto-align-track': track.id }}
             />
           )}
           <MsOffsetEditor

@@ -280,13 +280,20 @@ export const de: Record<MessageKey, string> = {
   'tracks.deleteAll.confirm':
     '{count} Spuren löschen? Sie gehen unwiderruflich verloren.',
   'tracks.alignAll.hint':
-    'Auto-Ausrichtung ein-/ausschalten (außer Spur 1)',
-  'tracks.alignAll.aria': 'Alle Spuren automatisch ausrichten',
+    'Auto-Ausrichtung für alle Spuren neu berechnen (außer Spur 1)',
+  'tracks.alignAll.aria':
+    'Auto-Ausrichtung für alle Spuren neu berechnen',
+  'tracks.alignCol': 'Auto',
+  'tracks.offsetCol': 'Manuell',
+  'tracks.align.legend':
+    'Auto: Ausrichtung neu aus den 3–4-Markierungen berechnen. Manuell: Spur von Hand verschieben (± ms).',
   'tracks.reorder': '{name} neu anordnen',
   'tracks.audible': 'Hörbar',
   'tracks.muted': 'Stumm',
   'tracks.listen': '{name} anhören',
   'tracks.name.aria': 'Spurname',
+  'tracks.uploadedBy': 'Aufgenommen von {pseudo}',
+  'tracks.uploadedBy.me': 'Ich',
   'tracks.defaultName': 'Spur {index}',
   'tracks.filenameFallback': 'spur',
   'tracks.volume': 'Lautstärke {name}',
@@ -298,8 +305,8 @@ export const de: Record<MessageKey, string> = {
   'tracks.ref.hint': 'Referenzspur (Markierungen 1–2–3–4)',
   'tracks.ref.aria': 'Referenz',
   'tracks.ref.badge': 'Ref.',
-  'tracks.autoAlign': 'Auto-Ausrichtung',
-  'tracks.autoAlign.named': 'Auto-Ausrichtung {name}',
+  'tracks.autoAlign': 'Ausrichtung neu berechnen',
+  'tracks.autoAlign.named': 'Ausrichtung für {name} neu berechnen',
   'tracks.offset.hint': 'Diese Spur bei der Wiedergabe verschieben',
   'tracks.offset.minus': '{name} um 5 ms früher',
   'tracks.offset.plus': '{name} um 5 ms später',

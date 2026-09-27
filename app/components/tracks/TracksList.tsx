@@ -4,9 +4,9 @@ import {
   alignableTracks,
   deleteAllTracks,
   dismissSkewWarning,
+  realignAllTracks,
   reorderTrack,
   seekMixTo,
-  setAllAutoAlign,
   setAllTracksEnabled,
   setCalageMode,
   setError,
@@ -19,15 +19,14 @@ import { t } from '../../lib/i18n'
 import { cn } from '../../lib/utils'
 import { useSessionStore } from '../../store/sessionStore'
 import { Button } from '../Button'
-import { IconTrash } from '../icons'
+import { IconAutoAlign, IconTrash } from '../icons'
 import { VolumeRibbon } from '../VolumeRibbon'
-import { TrackAlignCheck } from './TrackAlignCheck'
 import { TrackMute } from './TrackMute'
 import { TrackRow } from './TrackRow'
 
 const TOUCH_REORDER_THRESHOLD_PX = 8
 const TOUCH_REORDER_EXCLUDE =
-  'input, textarea, select, button:not([data-drag-track]), [data-track-mute], [data-track-align], [data-rename-track], [data-ms-nudge], [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-toggle-track], [data-highlight-track], [data-volume-ribbon], [data-volume-percent]'
+  'input, textarea, select, button:not([data-drag-track]), [data-track-mute], [data-rename-track], [data-ms-nudge], [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-align-all], [data-toggle-track], [data-highlight-track], [data-volume-ribbon], [data-volume-percent]'
 
 type DragOverState = { trackId: number; edge: 'before' | 'after' } | null
 
@@ -41,10 +40,8 @@ export function TracksList({ className }: TracksListProps) {
   const state = useSessionStore((s) => s.state)
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
-  const readOnlySession = useSessionStore((s) => s.readOnlySession)
   const masterVolume = useSessionStore((s) => s.masterVolume)
   const enabledTrackIds = useSessionStore((s) => s.enabledTrackIds)
-  const autoAlignTrackIds = useSessionStore((s) => s.autoAlignTrackIds)
   const mixClockText = useSessionStore((s) => s.mixClockText)
   const mixSeekMs = useSessionStore((s) => s.mixSeekMs)
   const skewWarningMessage = useSessionStore((s) => s.skewWarningMessage)
@@ -70,17 +67,9 @@ export function TracksList({ className }: TracksListProps) {
   const alignable = alignableTracks()
   const selectedCount = enabledTrackIds.length
   const allSelected = tracks.length > 0 && selectedCount === tracks.length
-  const allAutoAlign =
-    alignable.length > 0 &&
-    alignable.every((track) => autoAlignTrackIds.includes(track.id))
-  const someAutoAlign = alignable.some((track) =>
-    autoAlignTrackIds.includes(track.id),
-  )
   const masterMuteIndeterminate =
     selectedCount > 0 && selectedCount < tracks.length
-  const hasDeletableTracks = readOnlySession
-    ? tracks.some((track) => !track.cloudTrackId || track.cloudOwnedByMe)
-    : tracks.length > 0
+  const hasDeletableTracks = tracks.length > 0
 
   const duration = getMixDurationMs(tracks)
   const seekPosition = mixSeekMs
@@ -225,6 +214,14 @@ export function TracksList({ className }: TracksListProps) {
             style={{ width: pct }}
           />
         </div>
+        {calageMode && alignable.length > 0 ? (
+          <p
+            className="mb-[0.55rem] mt-[-0.45rem] text-[0.68rem] leading-[1.3] text-ink-soft max-sm:text-[0.64rem]"
+            data-align-legend
+          >
+            {t('tracks.align.legend')}
+          </p>
+        ) : null}
         {mixMode ? (
           <div
             className="mb-[0.75rem] flex items-center gap-[0.55rem] max-sm:gap-[0.35rem]"
@@ -245,12 +242,34 @@ export function TracksList({ className }: TracksListProps) {
             />
           </div>
         ) : null}
+        {calageMode && alignable.length > 0 ? (
+          <div
+            className="mb-[0.08rem] grid grid-cols-[1.35rem_1.55rem_minmax(0,1fr)_2.6rem_7.1rem] items-end gap-x-[0.1rem] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)_2.3rem_6rem]"
+            aria-hidden="true"
+          >
+            <span className="col-start-1" />
+            <span className="col-start-2" />
+            <span className="col-start-3" />
+            <span
+              className="col-start-4 text-center text-[0.58rem] font-extrabold uppercase tracking-[0.06em] text-ink-soft select-none"
+              title={t('tracks.alignAll.hint')}
+            >
+              {t('tracks.alignCol')}
+            </span>
+            <span
+              className="col-start-5 text-center text-[0.58rem] font-extrabold uppercase tracking-[0.06em] text-ink-soft select-none"
+              title={t('tracks.offset.hint')}
+            >
+              {t('tracks.offsetCol')}
+            </span>
+          </div>
+        ) : null}
         <div
           className={cn(
             'mb-[0.45rem] grid min-h-[2rem] grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] items-center gap-x-[0.1rem] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]',
             calageMode &&
               alignable.length > 0 &&
-              'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)_2.2rem_7.1rem] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)_1.9rem_6rem]',
+              'mb-[0.2rem] grid-cols-[1.35rem_1.55rem_minmax(0,1fr)_2.6rem_7.1rem] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)_2.3rem_6rem]',
           )}
         >
           <span className="col-start-1" aria-hidden="true" />
@@ -273,16 +292,11 @@ export function TracksList({ className }: TracksListProps) {
               hidden={calageMode || mixMode || !hasDeletableTracks}
               disabled={state === 'recording' || !hasDeletableTracks}
               onClick={() => {
-                const deletable = readOnlySession
-                  ? tracks.filter(
-                      (track) => !track.cloudTrackId || track.cloudOwnedByMe,
-                    )
-                  : tracks
-                const count = deletable.length
+                const count = tracks.length
                 const ok = window.confirm(
                   count === 1
                     ? t('tracks.deleteOne.confirm', {
-                        name: deletable[0]!.name,
+                        name: tracks[0]!.name,
                       })
                     : t('tracks.deleteAll.confirm', { count }),
                 )
@@ -291,17 +305,29 @@ export function TracksList({ className }: TracksListProps) {
               }}
             />
           </div>
-          <TrackAlignCheck
-            className="col-start-4 justify-self-center"
+          <Button
+            variant="nudge"
+            className="col-start-4 justify-self-center [&_svg]:size-[1.28rem]"
+            icon={<IconAutoAlign />}
             hidden={!calageMode || alignable.length === 0}
-            title={t('tracks.alignAll.hint')}
-            ariaLabel={t('tracks.alignAll.aria')}
-            checked={allAutoAlign}
-            indeterminate={someAutoAlign && !allAutoAlign}
             disabled={alignable.length === 0 || !calageMode}
-            onCheckedChange={(on) => setAllAutoAlign(on)}
-            inputProps={{ 'data-align-all': true }}
-            labelProps={{ 'data-align-header': true }}
+            title={t('tracks.alignAll.hint')}
+            aria-label={t('tracks.alignAll.aria')}
+            data-align-all
+            data-align-header
+            onClick={() => {
+              void (async () => {
+                try {
+                  await realignAllTracks()
+                } catch (error) {
+                  setError(
+                    error instanceof Error
+                      ? error.message
+                      : t('error.autoAlignFailed'),
+                  )
+                }
+              })()
+            }}
           />
           <span
             className="col-start-5 w-full shrink-0 justify-self-center"
@@ -312,8 +338,8 @@ export function TracksList({ className }: TracksListProps) {
         </div>
         <ul
           className={cn(
-            'm-0 flex list-none flex-col gap-[0.45rem] p-0',
-            calageMode && 'gap-[0.15rem]',
+            'm-0 flex list-none flex-col gap-[0.3rem] p-0',
+            calageMode && 'gap-[0.1rem]',
           )}
           data-tracks
           ref={listRef}
