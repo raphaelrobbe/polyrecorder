@@ -7,6 +7,13 @@ import {
   normalizeAndSetSongWorkName,
 } from '../lib/sessionActions.client'
 import { t } from '../lib/i18n'
+import {
+  libraryGroupPath,
+  libraryRepertoirePath,
+  librarySessionPath,
+  librarySongPath,
+  libraryUserPath,
+} from '../lib/libraryPaths'
 import { cn } from '../lib/utils'
 import { useLocale } from '../hooks/useLocale'
 import { withShortcut } from '../lib/withShortcut'
@@ -15,6 +22,7 @@ import { useSessionStore } from '../store/sessionStore'
 import { CaptureBar } from './CaptureBar'
 import { CalagePanel } from './CalagePanel'
 import { IconChevron } from './icons'
+import { LibraryBreadcrumb } from './library/LibraryBreadcrumb'
 import { ModeTools } from './ModeTools'
 import { ErrorBanner } from './StatusMessage'
 import { TracksList } from './tracks/TracksList'
@@ -76,10 +84,11 @@ export function DeckMain({ className }: DeckMainProps) {
   const tracks = useSessionStore((s) => s.tracks)
   const readOnlySession = useSessionStore((s) => s.readOnlySession)
   const canCloudContribute = useSessionStore((s) => s.canCloudContribute)
-  const songLibraryPath = useSessionStore((s) => s.songLibraryPath)
+  const deckLibraryPath = useSessionStore((s) => s.deckLibraryPath)
   const sharedOwnerLabel = useSessionStore((s) => s.sharedOwnerLabel)
   const state = useSessionStore((s) => s.state)
   const deckSongPartId = useSessionStore((s) => s.deckSongPartId)
+  const deckSongId = useSessionStore((s) => s.deckSongId)
   const deckSongPartSiblings = useSessionStore((s) => s.deckSongPartSiblings)
   const songTitleRef = useRef<HTMLTextAreaElement>(null)
   const sessionTitleRef = useRef<HTMLTextAreaElement>(null)
@@ -124,6 +133,7 @@ export function DeckMain({ className }: DeckMainProps) {
 
   const goToSibling = (songPartId: string) => {
     setSessionNavBusy(true)
+    navigate(librarySessionPath(songPartId))
     void loadCloudSongIntoSession(songPartId).finally(() => {
       setSessionNavBusy(false)
     })
@@ -139,14 +149,31 @@ export function DeckMain({ className }: DeckMainProps) {
 
   return (
     <div className={cn(className)}>
+      {deckLibraryPath ? (
+        <LibraryBreadcrumb
+          items={[
+            {
+              label: deckLibraryPath.ownerPseudo,
+              to: libraryUserPath(deckLibraryPath.ownerPseudo),
+              isPseudo: true,
+            },
+            {
+              label: deckLibraryPath.groupName,
+              to: libraryGroupPath(deckLibraryPath.groupId),
+            },
+            {
+              label: deckLibraryPath.repertoireName,
+              to: libraryRepertoirePath(deckLibraryPath.repertoireId),
+            },
+            {
+              label: deckLibraryPath.songName,
+              to: librarySongPath(deckLibraryPath.songId),
+            },
+          ]}
+        />
+      ) : null}
       <div className="relative mb-6 grid grid-cols-[1fr_auto_1fr] items-start gap-3">
         <div className="col-start-2 flex w-[min(100%,22rem)] min-w-0 flex-col items-center justify-self-center">
-          {songLibraryPath && !readOnlySession ? (
-            <p className="m-0 mb-1 max-w-full truncate text-center text-[0.72rem] font-semibold tracking-[0.02em] text-ink-soft">
-              {songLibraryPath}
-            </p>
-          ) : null}
-
           {cloudSongLoaded ? (
             <>
               <textarea
@@ -349,7 +376,15 @@ export function DeckMain({ className }: DeckMainProps) {
               )}
               aria-label={t('nav.library')}
               title={t('nav.library')}
-              onClick={() => navigate('/bibliotheque')}
+              onClick={() =>
+                navigate(
+                  deckSongId
+                    ? librarySongPath(deckSongId)
+                    : user
+                      ? libraryUserPath(user.pseudo)
+                      : '/',
+                )
+              }
             >
               <span>{t('nav.library')}</span>
               <span

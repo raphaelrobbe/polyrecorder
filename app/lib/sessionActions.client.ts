@@ -2120,7 +2120,7 @@ export function resetDeckOnSignOut() {
     deckSongId: null,
     readOnlySession: false,
     canCloudContribute: false,
-    songLibraryPath: null,
+    deckLibraryPath: null,
     songWorkName: null,
     sharedOwnerLabel: null,
     sessionTitle: defaultSessionTitle(),
@@ -2158,9 +2158,18 @@ export async function loadCloudSongIntoSession(
     writeActiveSongPartId(opened.part.id)
   }
 
-  const songLibraryPath = opened.isOwner
-    ? `${opened.song.groupName} / ${opened.song.repertoireName}`
-    : null
+  const deckLibraryPath =
+    opened.song.ownerPseudo && opened.song.groupId
+      ? {
+          ownerPseudo: opened.song.ownerPseudo,
+          groupId: opened.song.groupId,
+          groupName: opened.song.groupName,
+          repertoireId: opened.song.repertoireId,
+          repertoireName: opened.song.repertoireName,
+          songId: opened.song.id,
+          songName: opened.song.name,
+        }
+      : null
   const songWorkName = opened.song.name
   const sharedOwnerLabel = readOnly
     ? formatPseudoHandle(opened.song.ownerPseudo)
@@ -2185,7 +2194,7 @@ export async function loadCloudSongIntoSession(
     deckSongId: opened.song.id,
     readOnlySession: readOnly,
     canCloudContribute,
-    songLibraryPath,
+    deckLibraryPath,
     songWorkName,
     sharedOwnerLabel,
     calageMode: false,
@@ -2237,7 +2246,7 @@ export async function hydrateActiveSongIfNeeded(): Promise<void> {
       deckSongPartSiblings: [],
       deckSongId: null,
       canCloudContribute: false,
-      songLibraryPath: null,
+      deckLibraryPath: null,
       songWorkName: null,
       error: null,
     })
@@ -2281,7 +2290,11 @@ export function normalizeAndSetSessionTitle(raw: string) {
 /** Rename the cloud song (œuvre) from the deck’s highlighted title. */
 export function normalizeAndSetSongWorkName(raw: string) {
   const name = normalizeSessionTitle(raw)
-  patch({ songWorkName: name })
+  const path = get().deckLibraryPath
+  patch({
+    songWorkName: name,
+    deckLibraryPath: path ? { ...path, songName: name } : null,
+  })
 
   if (get().readOnlySession) return
   const songId = get().deckSongId

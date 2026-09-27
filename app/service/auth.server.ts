@@ -1,4 +1,6 @@
 import type { User as AppUser } from '~/common/user'
+import { hasValidPseudoChars } from '~/common/pseudo'
+import { isReservedPseudo } from '~/common/reservedPseudos'
 import { t } from '~/lib/i18n'
 import { createOpaqueToken, hashToken } from './crypto.server'
 import { prisma } from './db.server'
@@ -41,22 +43,31 @@ function toAppUser(user: {
 }
 
 const PSEUDO_MIN_LEN = 3
-const PSEUDO_MAX_LEN = 40
+const PSEUDO_MAX_LEN = 20
 
 export function normalizePseudo(raw: string): string {
-  return raw.trim().replace(/\s+/g, ' ')
+  return raw.trim()
 }
 
 export type PseudoParseResult =
   | { ok: true; pseudo: string }
-  | { ok: false; reason: 'too_short' | 'too_long' | 'invalid_chars' }
+  | {
+      ok: false
+      reason: 'too_short' | 'too_long' | 'invalid_chars' | 'reserved'
+    }
 
-/** Require 3–40 characters; `@` is reserved (email login / @handle display). */
+/**
+ * Require 3–20 characters: letters, digits, `_` (not consecutive, not at ends).
+ * Case is preserved for storage; uniqueness checks are case-insensitive.
+ */
 export function parsePseudoInput(raw: string): PseudoParseResult {
   const pseudo = normalizePseudo(raw)
-  if (pseudo.includes('@')) return { ok: false, reason: 'invalid_chars' }
+  if (!hasValidPseudoChars(pseudo)) {
+    return { ok: false, reason: 'invalid_chars' }
+  }
   if (pseudo.length < PSEUDO_MIN_LEN) return { ok: false, reason: 'too_short' }
   if (pseudo.length > PSEUDO_MAX_LEN) return { ok: false, reason: 'too_long' }
+  if (isReservedPseudo(pseudo)) return { ok: false, reason: 'reserved' }
   return { ok: true, pseudo }
 }
 
@@ -78,7 +89,9 @@ export async function isPseudoAvailable(
 /** Unique default pseudo from the email local-part (no `@`). */
 export async function allocateDefaultPseudo(email: string): Promise<string> {
   const local = email.split('@')[0] ?? 'user'
-  let base = normalizePseudo(local.replace(/@/g, ''))
+  let base = normalizePseudo(
+    local.replace(/[^a-zA-Z0-9_]+/g, '_').replace(/_+/g, '_'),
+  ).replace(/^_+|_+$/g, '')
   if (base.length < PSEUDO_MIN_LEN) base = 'user'
   if (base.length > PSEUDO_MAX_LEN) base = base.slice(0, PSEUDO_MAX_LEN)
 
@@ -87,6 +100,7 @@ export async function allocateDefaultPseudo(email: string): Promise<string> {
     const maxBase = PSEUDO_MAX_LEN - suffix.length
     const candidate =
       suffix.length === 0 ? base : `${base.slice(0, Math.max(1, maxBase))}${suffix}`
+    if (isReservedPseudo(candidate)) continue
     if (await isPseudoAvailable(candidate)) return candidate
   }
 
@@ -452,6 +466,7 @@ export type UpdatePseudoResult =
         | 'too_short'
         | 'too_long'
         | 'invalid_chars'
+        | 'reserved'
         | 'taken'
         | 'invalid_pseudo'
     }
@@ -511,6 +526,7 @@ export type UpdateProfileResult =
         | 'too_short'
         | 'too_long'
         | 'invalid_chars'
+        | 'reserved'
         | 'taken'
         | 'invalid_email'
         | 'email_taken'
