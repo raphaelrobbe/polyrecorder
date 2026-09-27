@@ -411,6 +411,12 @@ export const en: Record<MessageKey, string> = {
   'library.private': 'Make private',
   'library.public.on': 'Public',
   'library.public.off': 'Private',
+  'library.collaborate.enable': 'Allow collaboration',
+  'library.collaborate.disable': 'Turn off collaboration',
+  'library.collaborate.on':
+    'Collaboration on: signed-in users can add tracks',
+  'library.collaborate.off':
+    'Collaboration off — visitors can listen only',
   'library.share': 'Share',
   'library.share.disabled': 'Make the song public to share it.',
   'library.share.copy': 'Copy link',
@@ -421,6 +427,7 @@ export const en: Record<MessageKey, string> = {
 
   'song.view.notFound': 'This song is missing or private.',
   'song.view.shared': 'shared',
+  'song.view.collaborate': 'open to collaboration',
   'song.og.description': '{tracks} · Listen on PolyRecorder',
 
   'settings.title': 'Settings',

@@ -492,7 +492,16 @@ const trackVolumePersistTimers = new Map<number, ReturnType<typeof setTimeout>>(
 let masterVolumePersistTimer: ReturnType<typeof setTimeout> | null = null
 
 function canPersistCloudMix(): boolean {
-  return !get().readOnlySession
+  return !get().readOnlySession || get().canCloudContribute
+}
+
+/** Foreign owner cloud take — immutable while consulting / collaborating. */
+function isForeignCloudTrack(track: { cloudTrackId?: string; cloudOwnedByMe?: boolean }) {
+  return (
+    Boolean(track.cloudTrackId) &&
+    get().readOnlySession &&
+    !track.cloudOwnedByMe
+  )
 }
 
 function postLibraryIntent(body: Record<string, unknown>, label: string) {
@@ -513,7 +522,7 @@ function postLibraryIntent(body: Record<string, unknown>, label: string) {
 function persistCloudTrackOffset(trackId: number) {
   if (!canPersistCloudMix()) return
   const track = get().tracks.find((t) => t.id === trackId)
-  if (!track?.cloudTrackId) return
+  if (!track?.cloudTrackId || isForeignCloudTrack(track)) return
   postLibraryIntent(
     {
       intent: 'updateTrackOffset',
@@ -529,7 +538,7 @@ function persistCloudTrackOffsets(trackIds: number[]) {
   const updates = trackIds
     .map((id) => {
       const track = get().tracks.find((t) => t.id === id)
-      if (!track?.cloudTrackId) return null
+      if (!track?.cloudTrackId || isForeignCloudTrack(track)) return null
       return {
         id: track.cloudTrackId,
         offsetMs: Math.round(track.offsetMs),
@@ -551,7 +560,7 @@ function flushPersistTrackVolume(trackId: number) {
   }
   if (!canPersistCloudMix()) return
   const track = get().tracks.find((t) => t.id === trackId)
-  if (!track?.cloudTrackId) return
+  if (!track?.cloudTrackId || isForeignCloudTrack(track)) return
   postLibraryIntent(
     {
       intent: 'updateTrackVolume',
@@ -565,7 +574,7 @@ function flushPersistTrackVolume(trackId: number) {
 function schedulePersistTrackVolume(trackId: number) {
   if (!canPersistCloudMix()) return
   const track = get().tracks.find((t) => t.id === trackId)
-  if (!track?.cloudTrackId) return
+  if (!track?.cloudTrackId || isForeignCloudTrack(track)) return
   const existing = trackVolumePersistTimers.get(trackId)
   if (existing) clearTimeout(existing)
   trackVolumePersistTimers.set(
@@ -582,7 +591,8 @@ function flushPersistMasterVolume() {
     clearTimeout(masterVolumePersistTimer)
     masterVolumePersistTimer = null
   }
-  if (!canPersistCloudMix()) return
+  // Master bus is owner-only (collaborators keep a local mix).
+  if (get().readOnlySession || !canPersistCloudMix()) return
   const songPartId = get().activeSongPartId
   if (!songPartId) return
   postLibraryIntent(
@@ -596,7 +606,7 @@ function flushPersistMasterVolume() {
 }
 
 function schedulePersistMasterVolume() {
-  if (!canPersistCloudMix()) return
+  if (get().readOnlySession || !canPersistCloudMix()) return
   if (!get().activeSongPartId) return
   if (masterVolumePersistTimer) clearTimeout(masterVolumePersistTimer)
   masterVolumePersistTimer = setTimeout(() => {
@@ -620,7 +630,7 @@ function persistCloudMixVolumes() {
 
   const updates = get()
     .tracks.map((track) => {
-      if (!track.cloudTrackId) return null
+      if (!track.cloudTrackId || isForeignCloudTrack(track)) return null
       return {
         id: track.cloudTrackId,
         volume: getTrackVolume(track.id),
@@ -1921,8 +1931,8 @@ export function setAllAutoAlign(on: boolean) {
 export function renameTrack(trackId: number, name: string) {
   const track = get().tracks.find((t) => t.id === trackId)
   if (!track) return
-  // Consultation: owner cloud tracks stay immutable; local overlay takes ok.
-  if (get().readOnlySession && track.cloudTrackId) return
+  // Consultation / collab: foreign cloud tracks stay immutable.
+  if (isForeignCloudTrack(track)) return
   const trimmed = name.trim().slice(0, 40) || defaultTrackName(1)
   patch({
     tracks: get().tracks.map((t) =>
@@ -1931,7 +1941,8 @@ export function renameTrack(trackId: number, name: string) {
   })
 
   const cloudTrackId = track.cloudTrackId
-  if (!cloudTrackId || get().readOnlySession) return
+  if (!cloudTrackId || isForeignCloudTrack(track)) return
+  if (get().readOnlySession && !track.cloudOwnedByMe) return
 
   void fetch('/api/cloud/library', {
     method: 'POST',
@@ -1956,8 +1967,8 @@ export function renameTrack(trackId: number, name: string) {
 export function deleteTrack(trackId: number) {
   const track = get().tracks.find((t) => t.id === trackId)
   if (!track) return
-  // Consultation: never remove or mutate the owner's cloud tracks.
-  if (get().readOnlySession && track.cloudTrackId) return
+  // Consultation / collab: never remove foreign owner cloud tracks.
+  if (isForeignCloudTrack(track)) return
   if (get().playingTrackIds.length > 0 || get().mixListenActive) {
     stopPlayback({ resetSeek: false })
   }
@@ -1992,7 +2003,8 @@ export function deleteTrack(trackId: number) {
   if (get().referenceTrackId != null) void evaluateReferenceBeat()
 
   const cloudTrackId = track.cloudTrackId
-  if (!cloudTrackId || get().readOnlySession) return
+  if (!cloudTrackId) return
+  if (get().readOnlySession && !track.cloudOwnedByMe) return
   void fetch('/api/cloud/library', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -2014,12 +2026,12 @@ export function deleteTrack(trackId: number) {
 
 export function deleteAllTracks() {
   if (get().state === 'recording') return
-  // Consultation: only drop local overlay takes — never owner cloud tracks/API.
+  // Consultation / collab: only drop local + own cloud takes — never foreign.
   if (get().readOnlySession) {
-    const localIds = get()
-      .tracks.filter((track) => !track.cloudTrackId)
+    const removableIds = get()
+      .tracks.filter((track) => !track.cloudTrackId || track.cloudOwnedByMe)
       .map((track) => track.id)
-    for (const id of localIds) {
+    for (const id of removableIds) {
       deleteTrack(id)
     }
     return
@@ -2104,6 +2116,7 @@ export function resetDeckOnSignOut() {
     deckSongPartSiblings: [],
     deckSongId: null,
     readOnlySession: false,
+    canCloudContribute: false,
     songLibraryPath: null,
     songWorkName: null,
     sharedOwnerLabel: null,
@@ -2137,7 +2150,8 @@ export async function loadCloudSongIntoSession(
   const trackVolumes = { ...opened.trackVolumes }
 
   const readOnly = !opened.isOwner
-  if (opened.isOwner) {
+  const canCloudContribute = opened.canCollaborate
+  if (opened.isOwner || canCloudContribute) {
     writeActiveSongPartId(opened.part.id)
   }
 
@@ -2161,16 +2175,19 @@ export async function loadCloudSongIntoSession(
     trackVolumes,
     masterVolume: opened.part.masterVolume,
     sessionTitle: opened.part.name ?? '',
-    activeSongPartId: opened.isOwner ? opened.part.id : null,
-    deckSongPartId: opened.isOwner ? opened.part.id : null,
+    activeSongPartId:
+      opened.isOwner || canCloudContribute ? opened.part.id : null,
+    deckSongPartId:
+      opened.isOwner || canCloudContribute ? opened.part.id : null,
     deckSongPartSiblings: opened.siblings,
     deckSongId: opened.song.id,
     readOnlySession: readOnly,
+    canCloudContribute,
     songLibraryPath,
     songWorkName,
     sharedOwnerLabel,
     calageMode: false,
-    mixMode: readOnly,
+    mixMode: readOnly && !canCloudContribute,
     mixSeekMs: 0,
     mixClockText: '00:00.000',
     error: null,
@@ -2194,9 +2211,15 @@ export async function loadCloudSongIntoSession(
  * Stale ids (deleted part, empty library) are cleared quietly.
  */
 export async function hydrateActiveSongIfNeeded(): Promise<void> {
-  const { activeSongPartId, deckSongPartId, state, readOnlySession } = get()
+  const {
+    activeSongPartId,
+    deckSongPartId,
+    state,
+    readOnlySession,
+    canCloudContribute,
+  } = get()
   if (
-    readOnlySession ||
+    (readOnlySession && !canCloudContribute) ||
     !activeSongPartId ||
     activeSongPartId === deckSongPartId ||
     state === 'recording'
@@ -2211,6 +2234,7 @@ export async function hydrateActiveSongIfNeeded(): Promise<void> {
       deckSongPartId: null,
       deckSongPartSiblings: [],
       deckSongId: null,
+      canCloudContribute: false,
       songLibraryPath: null,
       songWorkName: null,
       error: null,

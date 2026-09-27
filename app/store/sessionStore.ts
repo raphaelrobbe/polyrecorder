@@ -67,6 +67,11 @@ export type SessionStoreState = {
   deckSongPartSiblings: Array<{ id: string; name: string | null }>
   /** Shared public song viewed without ownership (local overdub ok; no cloud mutate). */
   readOnlySession: boolean
+  /**
+   * Signed-in collaborator on a public collaborative song: may upload new
+   * tracks (and mutate their own), but not owner metadata.
+   */
+  canCloudContribute: boolean
   /** Cloud song (œuvre) id of the deck session, when loaded from library. */
   deckSongId: string | null
   /** Breadcrumb group / repertoire for the owned cloud song on the deck. */
@@ -172,6 +177,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   deckSongPartId: null,
   deckSongPartSiblings: [],
   readOnlySession: false,
+  canCloudContribute: false,
   deckSongId: null,
   songLibraryPath: null,
   songWorkName: null,

@@ -29,11 +29,16 @@ function patchTrack(trackId: number, partial: Partial<Track>): void {
   useSessionStore.getState().patch({ tracks })
 }
 
+function canContributeCloudTracks(): boolean {
+  const state = useSessionStore.getState()
+  return !state.readOnlySession || state.canCloudContribute
+}
+
 export async function uploadTrackToCloud(
   trackId: number,
   options?: { quietIfUnauthorized?: boolean },
 ): Promise<boolean> {
-  if (useSessionStore.getState().readOnlySession) return false
+  if (!canContributeCloudTracks()) return false
   const track = useSessionStore.getState().tracks.find((t) => t.id === trackId)
   if (!track || track.blob.size === 0) return false
   if (track.cloudStatus === 'uploading' || track.cloudStatus === 'synced') {
@@ -126,6 +131,7 @@ export async function uploadTrackToCloud(
     patchTrack(trackId, {
       cloudStatus: 'synced',
       cloudTrackId: presign.trackAssetId,
+      cloudOwnedByMe: true,
     })
     return true
   } catch (error) {
@@ -138,7 +144,7 @@ export async function uploadTrackToCloud(
 
 export async function maybeAutoUploadTrack(trackId: number): Promise<void> {
   if (!cloudSignedIn) return
-  if (useSessionStore.getState().readOnlySession) return
+  if (!canContributeCloudTracks()) return
   const { autoCloudSave } = useSessionStore.getState()
   if (!autoCloudSave) return
   await uploadTrackToCloud(trackId, { quietIfUnauthorized: true })
@@ -150,6 +156,7 @@ export type OpenedCloudSong = {
     name: string
     repertoireId: string
     isPublic: boolean
+    allowsCollaboration: boolean
     groupName: string
     repertoireName: string
     ownerPseudo: string | null
@@ -165,6 +172,7 @@ export type OpenedCloudSong = {
   /** Local track id → mix volume (from cloud). */
   trackVolumes: Record<number, number>
   isOwner: boolean
+  canCollaborate: boolean
 }
 
 export async function fetchAndHydrateSong(
@@ -180,11 +188,13 @@ export async function fetchAndHydrateSong(
     | {
         ok: true
         isOwner: boolean
+        canCollaborate: boolean
         song: {
           id: string
           name: string
           repertoireId: string
           isPublic: boolean
+          allowsCollaboration: boolean
           groupName: string
           repertoireName: string
           ownerPseudo: string | null
@@ -203,6 +213,7 @@ export async function fetchAndHydrateSong(
           offsetMs: number
           volume: number
           contentType: string
+          uploadedByMe: boolean
         }>
       }
     | { ok: false; reason: string }
@@ -242,6 +253,7 @@ export async function fetchAndHydrateSong(
       offsetMs: remote.offsetMs,
       cloudStatus: 'synced',
       cloudTrackId: remote.id,
+      cloudOwnedByMe: Boolean(remote.uploadedByMe),
     })
     const vol = Number(remote.volume)
     trackVolumes[counter] = Number.isFinite(vol)
@@ -261,5 +273,6 @@ export async function fetchAndHydrateSong(
     tracks,
     trackVolumes,
     isOwner: data.isOwner,
+    canCollaborate: Boolean(data.canCollaborate),
   }
 }

@@ -61,6 +61,7 @@ export function TrackRow({
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
   const readOnlySession = useSessionStore((s) => s.readOnlySession)
+  const canCloudContribute = useSessionStore((s) => s.canCloudContribute)
   const enabledTrackIds = useSessionStore((s) => s.enabledTrackIds)
   const autoAlignTrackIds = useSessionStore((s) => s.autoAlignTrackIds)
   const referenceTrackId = useSessionStore((s) => s.referenceTrackId)
@@ -90,11 +91,11 @@ export function TrackRow({
       : ''
   const clock = formatCentis(getTrackPositionMs(track.id))
   const volume = trackVolumes[track.id] ?? getTrackVolume(track.id)
+  const foreignCloudTrack =
+    readOnlySession && Boolean(track.cloudTrackId) && !track.cloudOwnedByMe
   const hideDelete =
-    calageMode ||
-    mixMode ||
-    (readOnlySession && Boolean(track.cloudTrackId))
-  const nameReadOnly = readOnlySession && Boolean(track.cloudTrackId)
+    calageMode || mixMode || foreignCloudTrack
+  const nameReadOnly = foreignCloudTrack
   const showBeatAttention =
     showCalageWarnings &&
     isReference &&
@@ -118,7 +119,7 @@ export function TrackRow({
     !calageMode &&
     Math.abs(track.offsetMs) > OFFSET_WARN_MS
   const showCloudSave =
-    !readOnlySession &&
+    (!readOnlySession || canCloudContribute) &&
     user != null &&
     (track.cloudStatus === 'local' ||
       track.cloudStatus === 'error' ||

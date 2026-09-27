@@ -16,6 +16,7 @@ import { Button } from './Button'
 import { DeckOverlayPanel } from './DeckOverlayPanel'
 import {
   IconChevron,
+  IconCollaborate,
   IconDragDots,
   IconGlobe,
   IconShare,
@@ -35,6 +36,7 @@ type LibrarySong = {
   id: string
   name: string
   isPublic: boolean
+  allowsCollaboration: boolean
   lastOpenedAt: string
   updatedAt: string
   parts: LibrarySongPart[]
@@ -358,6 +360,54 @@ function SongVisibilityButton({
       }}
     >
       <IconGlobe />
+    </button>
+  )
+}
+
+function SongCollaborationButton({
+  songId,
+  allowsCollaboration,
+  onChanged,
+  onError,
+}: {
+  songId: string
+  allowsCollaboration: boolean
+  onChanged: () => void
+  onError: () => void
+}) {
+  useLocale()
+  const label = allowsCollaboration
+    ? t('library.collaborate.disable')
+    : t('library.collaborate.enable')
+  return (
+    <button
+      type="button"
+      className={cn(
+        songActionBtnClass,
+        'pointer-events-auto',
+        allowsCollaboration &&
+          'border-ink/40 bg-ink text-on-ink hover:border-ink hover:bg-ink hover:text-on-ink',
+      )}
+      aria-label={label}
+      title={
+        allowsCollaboration
+          ? t('library.collaborate.on')
+          : t('library.collaborate.off')
+      }
+      aria-pressed={allowsCollaboration}
+      onClick={(event) => {
+        event.stopPropagation()
+        void postLibrary({
+          intent: 'setSongCollaboration',
+          songId,
+          allowsCollaboration: !allowsCollaboration,
+        }).then((r) => {
+          if (!r.ok) onError()
+          else onChanged()
+        })
+      }}
+    >
+      <IconCollaborate />
     </button>
   )
 }
@@ -776,6 +826,14 @@ function SongCard({
             onError={onVisibilityError}
             onChanged={onVisibilityChanged}
           />
+          {song.isPublic ? (
+            <SongCollaborationButton
+              songId={song.id}
+              allowsCollaboration={song.allowsCollaboration}
+              onError={onVisibilityError}
+              onChanged={onVisibilityChanged}
+            />
+          ) : null}
           <SongShareButton
             songPartId={shareTargetPartId(song, activeSongPartId)}
             songName={song.name}

@@ -413,6 +413,12 @@ export const no: Record<MessageKey, string> = {
   'library.private': 'Gjør privat',
   'library.public.on': 'Offentlig',
   'library.public.off': 'Privat',
+  'library.collaborate.enable': 'Tillat samarbeid',
+  'library.collaborate.disable': 'Slå av samarbeid',
+  'library.collaborate.on':
+    'Samarbeid på: innloggede brukere kan legge til spor',
+  'library.collaborate.off':
+    'Samarbeid av — besøkende kan bare lytte',
   'library.share': 'Del',
   'library.share.disabled': 'Gjør sangen offentlig for å dele den.',
   'library.share.copy': 'Kopier lenke',
@@ -423,6 +429,7 @@ export const no: Record<MessageKey, string> = {
 
   'song.view.notFound': 'Denne sangen mangler eller er privat.',
   'song.view.shared': 'delt',
+  'song.view.collaborate': 'åpen for samarbeid',
   'song.og.description': '{tracks} · Lytt på PolyRecorder',
 
   'settings.title': 'Innstillinger',

@@ -347,3 +347,19 @@ export function IconShare(props: Omit<IconProps, 'children'>) {
     </Icon>
   )
 }
+
+/** Two people — collaboration / multi-user recording. */
+export function IconCollaborate(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M9.2 10.2a2.6 2.6 0 1 0 0-5.2 2.6 2.6 0 0 0 0 5.2zM16.2 10.8a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4zM4.5 19.2v-.6c0-2.4 2-4.3 4.5-4.3h.8c2.5 0 4.5 1.9 4.5 4.3v.6M14.2 14.5c1.9.2 3.5 1.7 3.5 3.7v1"
+      />
+    </Icon>
+  )
+}

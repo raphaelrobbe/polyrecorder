@@ -75,6 +75,7 @@ export function DeckMain({ className }: DeckMainProps) {
   const keyboardHintsEnabled = useSessionStore((s) => s.keyboardHintsEnabled)
   const tracks = useSessionStore((s) => s.tracks)
   const readOnlySession = useSessionStore((s) => s.readOnlySession)
+  const canCloudContribute = useSessionStore((s) => s.canCloudContribute)
   const songLibraryPath = useSessionStore((s) => s.songLibraryPath)
   const sharedOwnerLabel = useSessionStore((s) => s.sharedOwnerLabel)
   const state = useSessionStore((s) => s.state)
@@ -91,7 +92,12 @@ export function DeckMain({ className }: DeckMainProps) {
   const sessionTitleAria = t('session.title.aria')
   const showModes = tracks.length > 0
   const consultationCredit = readOnlySession
-    ? sharedOwnerLabel?.trim() || t('song.view.shared')
+    ? [
+        sharedOwnerLabel?.trim() || t('song.view.shared'),
+        canCloudContribute ? t('song.view.collaborate') : null,
+      ]
+        .filter(Boolean)
+        .join(' · ')
     : null
 
   const siblingIndex = deckSongPartId

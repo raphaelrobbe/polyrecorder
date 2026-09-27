@@ -12,6 +12,7 @@ import {
   renameLibraryNode,
   renameTrackAsset,
   reorderLibraryNode,
+  setSongCollaboration,
   setSongPublic,
   updateSongPartMasterVolume,
   updateTrackAssetOffset,
@@ -44,6 +45,7 @@ export async function action({ request }: ActionFunctionArgs) {
       songId?: string
       songPartId?: string
       isPublic?: boolean
+      allowsCollaboration?: boolean
       offsetMs?: number
       volume?: number
       masterVolume?: number
@@ -183,6 +185,14 @@ export async function action({ request }: ActionFunctionArgs) {
         request,
         String(body.songId ?? body.id ?? ''),
         Boolean(body.isPublic),
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'setSongCollaboration') {
+      const result = await setSongCollaboration(
+        request,
+        String(body.songId ?? body.id ?? ''),
+        Boolean(body.allowsCollaboration),
       )
       return json(result, { status: result.ok ? 200 : 400 })
     }

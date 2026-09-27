@@ -97,6 +97,33 @@ async function assertOwnedTrackAsset(userId: string, trackAssetId: string) {
   })
 }
 
+/** Song owner, or the user who uploaded the take (collaborator). */
+async function assertMutableTrackAsset(userId: string, trackAssetId: string) {
+  const owned = await assertOwnedTrackAsset(userId, trackAssetId)
+  if (owned) return owned
+  return prisma.trackAsset.findFirst({
+    where: { id: trackAssetId, uploadedByUserId: userId },
+  })
+}
+
+/** Public collaborative session a signed-in non-owner may contribute to. */
+async function assertCollaborativeSongPart(
+  userId: string,
+  songPartId: string,
+) {
+  return prisma.songPart.findFirst({
+    where: {
+      id: songPartId,
+      song: {
+        isPublic: true,
+        allowsCollaboration: true,
+        // Contributors are never the owner of this part.
+        repertoire: { group: { userId: { not: userId } } },
+      },
+    },
+  })
+}
+
 /** Next free `sortOrder` at the end of a sibling list. */
 async function nextGroupSortOrder(userId: string): Promise<number> {
   const last = await prisma.group.findFirst({
@@ -187,8 +214,11 @@ async function resolveSongPartForUpload(
   sessionTitle: string | null | undefined,
 ) {
   if (songPartId) {
-    const part = await assertOwnedSongPart(userId, songPartId)
-    if (part) return touchSongPart(part)
+    const owned = await assertOwnedSongPart(userId, songPartId)
+    if (owned) return touchSongPart(owned)
+    const collaborative = await assertCollaborativeSongPart(userId, songPartId)
+    if (collaborative) return collaborative
+    return null
   }
 
   // "Recent" upload target stays driven by usage, not by the manual order.
@@ -270,6 +300,7 @@ export async function presignTrackUpload(
       input.songPartId,
       input.sessionTitle,
     )
+    if (!part) return { ok: false, reason: 'not_found' }
 
     const trackAsset = await prisma.trackAsset.create({
       data: {
@@ -282,6 +313,7 @@ export async function presignTrackUpload(
         offsetMs,
         volume: clampStoredTrackVolume(input.volume ?? 1) ?? 1,
         clientTrackId: input.clientTrackId ?? null,
+        uploadedByUserId: user.id,
       },
     })
 
@@ -326,7 +358,7 @@ export async function completeTrackUpload(
     if (!isS3Configured()) return { ok: false, reason: 's3_not_configured' }
     if (!trackAssetId.trim()) return { ok: false, reason: 'invalid' }
 
-    const asset = await assertOwnedTrackAsset(user.id, trackAssetId)
+    const asset = await assertMutableTrackAsset(user.id, trackAssetId)
     if (!asset) return { ok: false, reason: 'not_found' }
     if (!asset.objectKey || asset.objectKey === 'pending') {
       return { ok: false, reason: 'incomplete' }
@@ -364,6 +396,7 @@ export type LibraryTree = {
         id: string
         name: string
         isPublic: boolean
+        allowsCollaboration: boolean
         lastOpenedAt: string
         updatedAt: string
         parts: Array<{
@@ -438,6 +471,7 @@ export async function getLibraryTree(
               id: song.id,
               name: song.name,
               isPublic: song.isPublic,
+              allowsCollaboration: song.allowsCollaboration,
               lastOpenedAt: lastOpenedAt.toISOString(),
               updatedAt: song.updatedAt.toISOString(),
               parts: song.parts.map((part) => ({
@@ -770,7 +804,7 @@ export async function renameTrackAsset(
   const trimmed = name.trim().slice(0, 40)
   if (!trimmed || !trackAssetId) return { ok: false, reason: 'invalid' }
 
-  const asset = await assertOwnedTrackAsset(user.id, trackAssetId)
+  const asset = await assertMutableTrackAsset(user.id, trackAssetId)
   if (!asset) return { ok: false, reason: 'not_found' }
 
   await prisma.trackAsset.update({
@@ -792,7 +826,7 @@ export async function updateTrackAssetOffset(
     return { ok: false, reason: 'invalid' }
   }
 
-  const asset = await assertOwnedTrackAsset(user.id, trackAssetId)
+  const asset = await assertMutableTrackAsset(user.id, trackAssetId)
   if (!asset) return { ok: false, reason: 'not_found' }
 
   await prisma.trackAsset.update({
@@ -817,7 +851,7 @@ export async function updateTrackAssetOffsets(
     if (!update?.id || !Number.isFinite(update.offsetMs)) {
       return { ok: false, reason: 'invalid' }
     }
-    const asset = await assertOwnedTrackAsset(user.id, update.id)
+    const asset = await assertMutableTrackAsset(user.id, update.id)
     if (!asset) return { ok: false, reason: 'not_found' }
   }
 
@@ -843,7 +877,7 @@ export async function updateTrackAssetVolume(
   const next = clampStoredTrackVolume(volume)
   if (!trackAssetId || next == null) return { ok: false, reason: 'invalid' }
 
-  const asset = await assertOwnedTrackAsset(user.id, trackAssetId)
+  const asset = await assertMutableTrackAsset(user.id, trackAssetId)
   if (!asset) return { ok: false, reason: 'not_found' }
 
   await prisma.trackAsset.update({
@@ -869,7 +903,7 @@ export async function updateTrackAssetVolumes(
     if (!update?.id) return { ok: false, reason: 'invalid' }
     const next = clampStoredTrackVolume(update.volume)
     if (next == null) return { ok: false, reason: 'invalid' }
-    const asset = await assertOwnedTrackAsset(user.id, update.id)
+    const asset = await assertMutableTrackAsset(user.id, update.id)
     if (!asset) return { ok: false, reason: 'not_found' }
     normalized.push({ id: update.id, volume: next })
   }
@@ -915,7 +949,7 @@ export async function deleteTrackAsset(
   const user = userOrErr
   if (!trackAssetId) return { ok: false, reason: 'invalid' }
 
-  const asset = await assertOwnedTrackAsset(user.id, trackAssetId)
+  const asset = await assertMutableTrackAsset(user.id, trackAssetId)
   if (!asset) return { ok: false, reason: 'not_found' }
 
   const { deleteObjectsByKeys } = await import('./s3.server')
@@ -930,7 +964,10 @@ export async function setSongPublic(
   request: Request,
   songId: string,
   isPublic: boolean,
-): Promise<{ ok: true; isPublic: boolean } | { ok: false; reason: CloudFailureReason }> {
+): Promise<
+  | { ok: true; isPublic: boolean; allowsCollaboration: boolean }
+  | { ok: false; reason: CloudFailureReason }
+> {
   const userOrErr = await requireUser(request)
   if (!isUser(userOrErr)) return userOrErr
   const user = userOrErr
@@ -939,11 +976,46 @@ export async function setSongPublic(
   const song = await assertOwnedSong(user.id, songId)
   if (!song) return { ok: false, reason: 'not_found' }
 
+  const nextPublic = Boolean(isPublic)
   const updated = await prisma.song.update({
     where: { id: song.id },
-    data: { isPublic: Boolean(isPublic) },
+    data: {
+      isPublic: nextPublic,
+      // Collaboration only makes sense on a public song.
+      ...(nextPublic ? {} : { allowsCollaboration: false }),
+    },
   })
-  return { ok: true, isPublic: updated.isPublic }
+  return {
+    ok: true,
+    isPublic: updated.isPublic,
+    allowsCollaboration: updated.allowsCollaboration,
+  }
+}
+
+export async function setSongCollaboration(
+  request: Request,
+  songId: string,
+  allowsCollaboration: boolean,
+): Promise<
+  | { ok: true; allowsCollaboration: boolean }
+  | { ok: false; reason: CloudFailureReason }
+> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  if (!songId) return { ok: false, reason: 'invalid' }
+
+  const song = await assertOwnedSong(user.id, songId)
+  if (!song) return { ok: false, reason: 'not_found' }
+  if (allowsCollaboration && !song.isPublic) {
+    return { ok: false, reason: 'invalid' }
+  }
+
+  const updated = await prisma.song.update({
+    where: { id: song.id },
+    data: { allowsCollaboration: Boolean(allowsCollaboration) },
+  })
+  return { ok: true, allowsCollaboration: updated.allowsCollaboration }
 }
 
 function uploadedObjectKeys(
@@ -1049,11 +1121,14 @@ export type OpenSongResult =
   | {
       ok: true
       isOwner: boolean
+      /** Signed-in non-owner may upload new tracks on this public collaborative song. */
+      canCollaborate: boolean
       song: {
         id: string
         name: string
         repertoireId: string
         isPublic: boolean
+        allowsCollaboration: boolean
         groupName: string
         repertoireName: string
         ownerPseudo: string | null
@@ -1073,6 +1148,7 @@ export type OpenSongResult =
         offsetMs: number
         volume: number
         contentType: string
+        uploadedByMe: boolean
       }>
     }
   | { ok: false; reason: CloudFailureReason }
@@ -1117,6 +1193,12 @@ export async function openSong(
     if (!isOwner && !song.isPublic) {
       return { ok: false, reason: 'not_found' }
     }
+    const canCollaborate = Boolean(
+      user &&
+        !isOwner &&
+        song.isPublic &&
+        song.allowsCollaboration,
+    )
 
     if (isOwner) {
       await touchSongPart(part)
@@ -1142,17 +1224,22 @@ export async function openSong(
         offsetMs: track.offsetMs,
         volume: track.volume,
         contentType: track.contentType,
+        uploadedByMe: Boolean(
+          user && track.uploadedByUserId === user.id,
+        ),
       })),
     )
 
     return {
       ok: true,
       isOwner,
+      canCollaborate,
       song: {
         id: song.id,
         name: song.name,
         repertoireId: song.repertoireId,
         isPublic: song.isPublic,
+        allowsCollaboration: song.allowsCollaboration,
         groupName: song.repertoire.group.name,
         repertoireName: song.repertoire.name,
         ownerPseudo: song.repertoire.group.user.pseudo.trim() || null,

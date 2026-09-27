@@ -18,6 +18,8 @@ export type Track = {
   cloudStatus?: TrackCloudStatus
   /** Server TrackAsset id once reserved / synced. */
   cloudTrackId?: string
+  /** True when the current user uploaded this cloud take (owner or collaborator). */
+  cloudOwnedByMe?: boolean
 }
 
 

@@ -79,7 +79,7 @@ export function TracksList({ className }: TracksListProps) {
   const masterMuteIndeterminate =
     selectedCount > 0 && selectedCount < tracks.length
   const hasDeletableTracks = readOnlySession
-    ? tracks.some((track) => !track.cloudTrackId)
+    ? tracks.some((track) => !track.cloudTrackId || track.cloudOwnedByMe)
     : tracks.length > 0
 
   const duration = getMixDurationMs(tracks)
@@ -274,7 +274,9 @@ export function TracksList({ className }: TracksListProps) {
               disabled={state === 'recording' || !hasDeletableTracks}
               onClick={() => {
                 const deletable = readOnlySession
-                  ? tracks.filter((track) => !track.cloudTrackId)
+                  ? tracks.filter(
+                      (track) => !track.cloudTrackId || track.cloudOwnedByMe,
+                    )
                   : tracks
                 const count = deletable.length
                 const ok = window.confirm(

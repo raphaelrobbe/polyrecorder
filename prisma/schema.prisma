@@ -103,6 +103,8 @@ model Song {
   lastOpenedAt DateTime @default(now())
   /// When true, anyone with the URL can open this song's parts read-only.
   isPublic  Boolean  @default(false)
+  /// When true (and public), signed-in users may upload new tracks on this song.
+  allowsCollaboration Boolean @default(false)
   /// Manual order among the repertoire's songs.
   sortOrder Int      @default(0)
 
@@ -154,6 +156,8 @@ model TrackAsset {
   volume        Float     @default(1)
   /// Client-side track id at upload time (best-effort).
   clientTrackId Int?
+  /// User who uploaded this take (owner or collaborator). Null on legacy rows.
+  uploadedByUserId String?
   /// Null until the browser PUT + complete succeeds.
   uploadedAt    DateTime?
   createdAt     DateTime  @default(now())
@@ -164,4 +168,5 @@ model TrackAsset {
 
   @@unique([objectKey])
   @@index([songPartId])
+  @@index([uploadedByUserId])
 }

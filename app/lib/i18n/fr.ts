@@ -414,6 +414,12 @@ export const fr = {
   'library.private': 'Rendre privée',
   'library.public.on': 'Publique',
   'library.public.off': 'Privée',
+  'library.collaborate.enable': 'Autoriser la collaboration',
+  'library.collaborate.disable': 'Désactiver la collaboration',
+  'library.collaborate.on':
+    'Collaboration : les utilisateurs connectés peuvent ajouter des pistes',
+  'library.collaborate.off':
+    'Collaboration désactivée — écoute seule pour les visiteurs',
   'library.share': 'Partager',
   'library.share.disabled': 'Passe la chanson en public pour la partager.',
   'library.share.copy': 'Copier le lien',
@@ -424,6 +430,7 @@ export const fr = {
 
   'song.view.notFound': 'Cette chanson est introuvable ou privée.',
   'song.view.shared': 'partagé',
+  'song.view.collaborate': 'collaboration ouverte',
   'song.og.description': '{tracks} · Écoute sur PolyRecorder',
 
   'settings.title': 'Paramètres',
