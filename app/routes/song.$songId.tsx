@@ -13,8 +13,9 @@ import { getAppUrl } from '~/service/env.server'
 import { useSessionStore } from '~/store/sessionStore'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
-  const songId = String(params.songId ?? '')
-  const result = await getSongShareMeta(request, songId)
+  // The route param is a song part (recording session) id.
+  const songPartId = String(params.songId ?? '')
+  const result = await getSongShareMeta(request, songPartId)
   if (!result.ok) {
     throw json(
       { ok: false as const, reason: result.reason },
@@ -73,14 +74,14 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ]
 }
 
-function SongViewClient({ songId }: { songId: string }) {
+function SongViewClient({ songPartId }: { songPartId: string }) {
   useLocale()
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const setError = useSessionStore((s) => s.setError)
 
   useEffect(() => {
     let cancelled = false
-    void loadCloudSongIntoSession(songId).then((ok) => {
+    void loadCloudSongIntoSession(songPartId).then((ok) => {
       if (cancelled) return
       if (!ok) {
         setStatus('error')
@@ -92,7 +93,7 @@ function SongViewClient({ songId }: { songId: string }) {
     return () => {
       cancelled = true
     }
-  }, [songId, setError])
+  }, [songPartId, setError])
 
   if (status === 'loading') {
     return (
@@ -114,7 +115,7 @@ function SongViewClient({ songId }: { songId: string }) {
 export default function SongRoute() {
   const data = useLoaderData<typeof loader>()
   const params = useParams()
-  const songId = data.ok ? data.song.id : String(params.songId ?? '')
+  const songPartId = data.ok ? data.song.id : String(params.songId ?? '')
 
   return (
     <ClientOnly
@@ -126,7 +127,7 @@ export default function SongRoute() {
     >
       {() => (
         <RecorderApp>
-          <SongViewClient songId={songId} />
+          <SongViewClient songPartId={songPartId} />
         </RecorderApp>
       )}
     </ClientOnly>

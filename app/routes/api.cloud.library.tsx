@@ -4,17 +4,20 @@ import {
   createGroup,
   createRepertoire,
   createSong,
+  createSongPart,
   deleteLibraryNode,
   deleteTrackAsset,
   getLibraryTree,
   openSong,
   renameLibraryNode,
   renameTrackAsset,
+  reorderLibraryNode,
   setSongPublic,
-  updateSongMasterVolume,
+  updateSongPartMasterVolume,
   updateTrackAssetOffset,
   updateTrackAssetOffsets,
   updateTrackAssetVolume,
+  updateTrackAssetVolumes,
 } from '~/service/cloud.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -31,19 +34,24 @@ export async function action({ request }: ActionFunctionArgs) {
   try {
     const body = (await request.json()) as {
       intent?: string
-      kind?: 'group' | 'repertoire' | 'song'
+      kind?: 'group' | 'repertoire' | 'song' | 'songPart'
       id?: string
+      beforeId?: string | null
       name?: string
+      partName?: string
       groupId?: string
       repertoireId?: string
       songId?: string
+      songPartId?: string
       isPublic?: boolean
       offsetMs?: number
       volume?: number
       masterVolume?: number
-      updates?: Array<{ id: string; offsetMs: number }>
+      updates?: Array<{ id: string; offsetMs?: number; volume?: number }>
     }
     const intent = String(body.intent ?? '')
+    /** `songId` used to carry a session id — it is a part id on legacy clients. */
+    const songPartId = String(body.songPartId ?? body.songId ?? '')
 
     if (intent === 'createGroup') {
       const result = await createGroup(request, String(body.name ?? ''))
@@ -62,12 +70,26 @@ export async function action({ request }: ActionFunctionArgs) {
         request,
         String(body.repertoireId ?? ''),
         String(body.name ?? ''),
+        body.partName == null ? null : String(body.partName),
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'createSongPart') {
+      const result = await createSongPart(
+        request,
+        String(body.songId ?? ''),
+        String(body.name ?? ''),
       )
       return json(result, { status: result.ok ? 200 : 400 })
     }
     if (intent === 'rename') {
       const kind = body.kind
-      if (kind !== 'group' && kind !== 'repertoire' && kind !== 'song') {
+      if (
+        kind !== 'group' &&
+        kind !== 'repertoire' &&
+        kind !== 'song' &&
+        kind !== 'songPart'
+      ) {
         return json({ ok: false as const, reason: 'invalid' as const }, { status: 400 })
       }
       const result = await renameLibraryNode(
@@ -75,6 +97,24 @@ export async function action({ request }: ActionFunctionArgs) {
         kind,
         String(body.id ?? ''),
         String(body.name ?? ''),
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'reorder') {
+      const kind = body.kind
+      if (
+        kind !== 'group' &&
+        kind !== 'repertoire' &&
+        kind !== 'song' &&
+        kind !== 'songPart'
+      ) {
+        return json({ ok: false as const, reason: 'invalid' as const }, { status: 400 })
+      }
+      const result = await reorderLibraryNode(
+        request,
+        kind,
+        String(body.id ?? ''),
+        body.beforeId == null ? null : String(body.beforeId),
       )
       return json(result, { status: result.ok ? 200 : 400 })
     }
@@ -97,7 +137,12 @@ export async function action({ request }: ActionFunctionArgs) {
     if (intent === 'syncTrackOffsets') {
       const result = await updateTrackAssetOffsets(
         request,
-        Array.isArray(body.updates) ? body.updates : [],
+        Array.isArray(body.updates)
+          ? body.updates.map((u) => ({
+              id: String(u.id ?? ''),
+              offsetMs: Number(u.offsetMs),
+            }))
+          : [],
       )
       return json(result, { status: result.ok ? 200 : 400 })
     }
@@ -109,10 +154,22 @@ export async function action({ request }: ActionFunctionArgs) {
       )
       return json(result, { status: result.ok ? 200 : 400 })
     }
-    if (intent === 'updateSongMasterVolume') {
-      const result = await updateSongMasterVolume(
+    if (intent === 'syncTrackVolumes') {
+      const result = await updateTrackAssetVolumes(
         request,
-        String(body.songId ?? body.id ?? ''),
+        Array.isArray(body.updates)
+          ? body.updates.map((u) => ({
+              id: String(u.id ?? ''),
+              volume: Number(u.volume),
+            }))
+          : [],
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'updateSongMasterVolume') {
+      const result = await updateSongPartMasterVolume(
+        request,
+        songPartId || String(body.id ?? ''),
         Number(body.masterVolume),
       )
       return json(result, { status: result.ok ? 200 : 400 })
@@ -131,14 +188,19 @@ export async function action({ request }: ActionFunctionArgs) {
     }
     if (intent === 'delete') {
       const kind = body.kind
-      if (kind !== 'group' && kind !== 'repertoire' && kind !== 'song') {
+      if (
+        kind !== 'group' &&
+        kind !== 'repertoire' &&
+        kind !== 'song' &&
+        kind !== 'songPart'
+      ) {
         return json({ ok: false as const, reason: 'invalid' as const }, { status: 400 })
       }
       const result = await deleteLibraryNode(request, kind, String(body.id ?? ''))
       return json(result, { status: result.ok ? 200 : 400 })
     }
     if (intent === 'openSong') {
-      const result = await openSong(request, String(body.songId ?? ''))
+      const result = await openSong(request, songPartId)
       return json(result, {
         status: result.ok
           ? 200

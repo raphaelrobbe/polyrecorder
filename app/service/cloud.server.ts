@@ -12,6 +12,8 @@ import { getUserFromRequest } from './auth.server'
 
 const DEFAULT_GROUP_NAME = 'Personnel'
 const DEFAULT_REPERTOIRE_NAME = 'Général'
+/** Fallback song name when first upload creates a work with no title yet. */
+const DEFAULT_SONG_NAME_PREFIX = 'Session'
 
 export type CloudFailureReason =
   | 'unauthorized'
@@ -77,13 +79,59 @@ async function assertOwnedSong(userId: string, songId: string) {
   })
 }
 
+async function assertOwnedSongPart(userId: string, songPartId: string) {
+  return prisma.songPart.findFirst({
+    where: {
+      id: songPartId,
+      song: { repertoire: { group: { userId } } },
+    },
+  })
+}
+
 async function assertOwnedTrackAsset(userId: string, trackAssetId: string) {
   return prisma.trackAsset.findFirst({
     where: {
       id: trackAssetId,
-      song: { repertoire: { group: { userId } } },
+      songPart: { song: { repertoire: { group: { userId } } } },
     },
   })
+}
+
+/** Next free `sortOrder` at the end of a sibling list. */
+async function nextGroupSortOrder(userId: string): Promise<number> {
+  const last = await prisma.group.findFirst({
+    where: { userId },
+    orderBy: { sortOrder: 'desc' },
+    select: { sortOrder: true },
+  })
+  return last ? last.sortOrder + 1 : 0
+}
+
+async function nextRepertoireSortOrder(groupId: string): Promise<number> {
+  const last = await prisma.repertoire.findFirst({
+    where: { groupId },
+    orderBy: { sortOrder: 'desc' },
+    select: { sortOrder: true },
+  })
+  return last ? last.sortOrder + 1 : 0
+}
+
+async function nextSongSortOrder(repertoireId: string): Promise<number> {
+  const last = await prisma.song.findFirst({
+    where: { repertoireId },
+    orderBy: { sortOrder: 'desc' },
+    select: { sortOrder: true },
+  })
+  return last ? last.sortOrder + 1 : 0
+}
+
+async function nextSongPartSortOrder(songId: string): Promise<number> {
+  const last = await prisma.songPart.findFirst({
+    where: { songId },
+    orderBy: { sortOrder: 'desc' },
+    select: { sortOrder: true },
+  })
+  return last ? last.sortOrder + 1 : 0
 }
 
 async function ensureDefaultTree(userId: string) {
@@ -98,7 +146,11 @@ async function ensureDefaultTree(userId: string) {
   }
 
   const group = await prisma.group.create({
-    data: { userId, name: DEFAULT_GROUP_NAME },
+    data: {
+      userId,
+      name: DEFAULT_GROUP_NAME,
+      sortOrder: await nextGroupSortOrder(userId),
+    },
   })
   const repertoire = await prisma.repertoire.create({
     data: { groupId: group.id, name: DEFAULT_REPERTOIRE_NAME },
@@ -113,49 +165,60 @@ async function touchRepertoire(repertoireId: string) {
   })
 }
 
-async function resolveSongForUpload(
+/** Bump the part, its song and the enclosing repertoire as "just used". */
+async function touchSongPart(part: { id: string; songId: string }) {
+  const now = new Date()
+  const updated = await prisma.songPart.update({
+    where: { id: part.id },
+    data: { lastOpenedAt: now },
+    include: { song: { select: { repertoireId: true } } },
+  })
+  await prisma.song.update({
+    where: { id: part.songId },
+    data: { lastOpenedAt: now },
+  })
+  await touchRepertoire(updated.song.repertoireId)
+  return updated
+}
+
+async function resolveSongPartForUpload(
   userId: string,
-  songId: string | null | undefined,
+  songPartId: string | null | undefined,
   sessionTitle: string | null | undefined,
 ) {
-  if (songId) {
-    const song = await assertOwnedSong(userId, songId)
-    if (song) {
-      await prisma.song.update({
-        where: { id: song.id },
-        data: { lastOpenedAt: new Date() },
-      })
-      await touchRepertoire(song.repertoireId)
-      return song
-    }
+  if (songPartId) {
+    const part = await assertOwnedSongPart(userId, songPartId)
+    if (part) return touchSongPart(part)
   }
 
-  const recent = await prisma.song.findFirst({
-    where: { repertoire: { group: { userId } } },
+  // "Recent" upload target stays driven by usage, not by the manual order.
+  const recent = await prisma.songPart.findFirst({
+    where: { song: { repertoire: { group: { userId } } } },
     orderBy: { lastOpenedAt: 'desc' },
   })
-  if (recent) {
-    await prisma.song.update({
-      where: { id: recent.id },
-      data: { lastOpenedAt: new Date() },
-    })
-    await touchRepertoire(recent.repertoireId)
-    return recent
-  }
+  if (recent) return touchSongPart(recent)
 
   const { repertoire } = await ensureDefaultTree(userId)
-  const name =
+  const songName =
     sessionTitle?.trim() ||
-    `Session ${new Date().toLocaleDateString('fr-FR')}`
+    `${DEFAULT_SONG_NAME_PREFIX} ${new Date().toLocaleDateString('fr-FR')}`
   const song = await prisma.song.create({
     data: {
       repertoireId: repertoire.id,
-      name,
+      name: songName,
+      lastOpenedAt: new Date(),
+      sortOrder: await nextSongSortOrder(repertoire.id),
+    },
+  })
+  const part = await prisma.songPart.create({
+    data: {
+      songId: song.id,
+      name: null,
       lastOpenedAt: new Date(),
     },
   })
   await touchRepertoire(repertoire.id)
-  return song
+  return part
 }
 
 export type PresignResult =
@@ -164,6 +227,7 @@ export type PresignResult =
       uploadUrl: string
       trackAssetId: string
       objectKey: string
+      songPartId: string
       songId: string
     }
   | { ok: false; reason: CloudFailureReason }
@@ -171,7 +235,7 @@ export type PresignResult =
 export async function presignTrackUpload(
   request: Request,
   input: {
-    songId?: string | null
+    songPartId?: string | null
     name: string
     contentType: string
     byteSize: number
@@ -201,15 +265,15 @@ export async function presignTrackUpload(
       return { ok: false, reason: 'too_large' }
     }
 
-    const song = await resolveSongForUpload(
+    const part = await resolveSongPartForUpload(
       user.id,
-      input.songId,
+      input.songPartId,
       input.sessionTitle,
     )
 
     const trackAsset = await prisma.trackAsset.create({
       data: {
-        songId: song.id,
+        songPartId: part.id,
         name,
         objectKey: 'pending',
         contentType,
@@ -238,7 +302,8 @@ export async function presignTrackUpload(
       uploadUrl,
       trackAssetId: trackAsset.id,
       objectKey,
-      songId: song.id,
+      songPartId: part.id,
+      songId: part.songId,
     }
   } catch (error) {
     console.error('[cloud] presign failed', error)
@@ -247,7 +312,7 @@ export async function presignTrackUpload(
 }
 
 export type CompleteUploadResult =
-  | { ok: true; trackAssetId: string; songId: string }
+  | { ok: true; trackAssetId: string; songPartId: string; songId: string }
   | { ok: false; reason: CloudFailureReason }
 
 export async function completeTrackUpload(
@@ -273,12 +338,14 @@ export async function completeTrackUpload(
     const updated = await prisma.trackAsset.update({
       where: { id: asset.id },
       data: { uploadedAt: new Date() },
+      include: { songPart: { select: { songId: true } } },
     })
 
     return {
       ok: true,
       trackAssetId: updated.id,
-      songId: updated.songId,
+      songPartId: updated.songPartId,
+      songId: updated.songPart.songId,
     }
   } catch (error) {
     console.error('[cloud] complete failed', error)
@@ -297,9 +364,16 @@ export type LibraryTree = {
         id: string
         name: string
         isPublic: boolean
-        trackNames: string[]
         lastOpenedAt: string
         updatedAt: string
+        parts: Array<{
+          id: string
+          name: string | null
+          trackNames: string[]
+          masterVolume: number
+          lastOpenedAt: string
+          updatedAt: string
+        }>
       }>
     }>
   }>
@@ -319,18 +393,23 @@ export async function getLibraryTree(
 
   const groups = await prisma.group.findMany({
     where: { userId: user.id },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { sortOrder: 'asc' },
     include: {
       repertoires: {
-        orderBy: { createdAt: 'asc' },
+        orderBy: { sortOrder: 'asc' },
         include: {
           songs: {
-            orderBy: { lastOpenedAt: 'desc' },
+            orderBy: { sortOrder: 'asc' },
             include: {
-              tracks: {
-                where: { uploadedAt: { not: null } },
-                orderBy: { createdAt: 'asc' },
-                select: { name: true },
+              parts: {
+                orderBy: { sortOrder: 'asc' },
+                include: {
+                  tracks: {
+                    where: { uploadedAt: { not: null } },
+                    orderBy: { createdAt: 'asc' },
+                    select: { name: true },
+                  },
+                },
               },
             },
           },
@@ -348,14 +427,29 @@ export async function getLibraryTree(
         repertoires: group.repertoires.map((rep) => ({
           id: rep.id,
           name: rep.name,
-          songs: rep.songs.map((song) => ({
-            id: song.id,
-            name: song.name,
-            isPublic: song.isPublic,
-            trackNames: song.tracks.map((track) => track.name),
-            lastOpenedAt: song.lastOpenedAt.toISOString(),
-            updatedAt: song.updatedAt.toISOString(),
-          })),
+          songs: rep.songs.map((song) => {
+            // Parts may be touched without the song (older rows) — keep the max.
+            const lastOpenedAt = song.parts.reduce(
+              (latest, part) =>
+                part.lastOpenedAt > latest ? part.lastOpenedAt : latest,
+              song.lastOpenedAt,
+            )
+            return {
+              id: song.id,
+              name: song.name,
+              isPublic: song.isPublic,
+              lastOpenedAt: lastOpenedAt.toISOString(),
+              updatedAt: song.updatedAt.toISOString(),
+              parts: song.parts.map((part) => ({
+                id: part.id,
+                name: part.name,
+                trackNames: part.tracks.map((track) => track.name),
+                masterVolume: part.masterVolume,
+                lastOpenedAt: part.lastOpenedAt.toISOString(),
+                updatedAt: part.updatedAt.toISOString(),
+              })),
+            }
+          }),
         })),
       })),
     },
@@ -375,7 +469,11 @@ export async function createGroup(
   const trimmed = name.trim()
   if (!trimmed) return { ok: false, reason: 'invalid' }
   const group = await prisma.group.create({
-    data: { userId: user.id, name: trimmed },
+    data: {
+      userId: user.id,
+      name: trimmed,
+      sortOrder: await nextGroupSortOrder(user.id),
+    },
   })
   return { ok: true, id: group.id, name: group.name }
 }
@@ -396,7 +494,11 @@ export async function createRepertoire(
   const group = await assertOwnedGroup(user.id, groupId)
   if (!group) return { ok: false, reason: 'not_found' }
   const repertoire = await prisma.repertoire.create({
-    data: { groupId: group.id, name: trimmed },
+    data: {
+      groupId: group.id,
+      name: trimmed,
+      sortOrder: await nextRepertoireSortOrder(group.id),
+    },
   })
   return {
     ok: true,
@@ -410,8 +512,15 @@ export async function createSong(
   request: Request,
   repertoireId: string,
   name: string,
+  partName?: string | null,
 ): Promise<
-  | { ok: true; id: string; name: string; repertoireId: string }
+  | {
+      ok: true
+      id: string
+      name: string
+      repertoireId: string
+      defaultPartId: string
+    }
   | { ok: false; reason: CloudFailureReason }
 > {
   const userOrErr = await requireUser(request)
@@ -426,6 +535,15 @@ export async function createSong(
       repertoireId: repertoire.id,
       name: trimmed,
       lastOpenedAt: new Date(),
+      sortOrder: await nextSongSortOrder(repertoire.id),
+    },
+  })
+  const trimmedPart = partName?.trim() || null
+  const part = await prisma.songPart.create({
+    data: {
+      songId: song.id,
+      name: trimmedPart,
+      lastOpenedAt: new Date(),
     },
   })
   await touchRepertoire(repertoire.id)
@@ -434,12 +552,40 @@ export async function createSong(
     id: song.id,
     name: song.name,
     repertoireId: song.repertoireId,
+    defaultPartId: part.id,
   }
+}
+
+export async function createSongPart(
+  request: Request,
+  songId: string,
+  name: string,
+): Promise<
+  | { ok: true; id: string; name: string | null; songId: string }
+  | { ok: false; reason: CloudFailureReason }
+> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  const trimmed = name.trim() || null
+  if (!songId) return { ok: false, reason: 'invalid' }
+  const song = await assertOwnedSong(user.id, songId)
+  if (!song) return { ok: false, reason: 'not_found' }
+  const part = await prisma.songPart.create({
+    data: {
+      songId: song.id,
+      name: trimmed,
+      lastOpenedAt: new Date(),
+      sortOrder: await nextSongPartSortOrder(song.id),
+    },
+  })
+  await touchRepertoire(song.repertoireId)
+  return { ok: true, id: part.id, name: part.name, songId: song.id }
 }
 
 export async function renameLibraryNode(
   request: Request,
-  kind: 'group' | 'repertoire' | 'song',
+  kind: 'group' | 'repertoire' | 'song' | 'songPart',
   id: string,
   name: string,
 ): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
@@ -447,7 +593,19 @@ export async function renameLibraryNode(
   if (!isUser(userOrErr)) return userOrErr
   const user = userOrErr
   const trimmed = name.trim()
-  if (!trimmed || !id) return { ok: false, reason: 'invalid' }
+  if (!id) return { ok: false, reason: 'invalid' }
+
+  if (kind === 'songPart') {
+    const part = await assertOwnedSongPart(user.id, id)
+    if (!part) return { ok: false, reason: 'not_found' }
+    await prisma.songPart.update({
+      where: { id: part.id },
+      data: { name: trimmed || null },
+    })
+    return { ok: true }
+  }
+
+  if (!trimmed) return { ok: false, reason: 'invalid' }
 
   if (kind === 'group') {
     const group = await assertOwnedGroup(user.id, id)
@@ -470,6 +628,134 @@ export async function renameLibraryNode(
   const song = await assertOwnedSong(user.id, id)
   if (!song) return { ok: false, reason: 'not_found' }
   await prisma.song.update({ where: { id: song.id }, data: { name: trimmed } })
+  return { ok: true }
+}
+
+/** Sibling ids with `id` moved before `beforeId` (to the end when null). */
+function moveBefore(
+  ids: string[],
+  id: string,
+  beforeId: string | null,
+): string[] | null {
+  if (!ids.includes(id)) return null
+  if (beforeId != null && !ids.includes(beforeId)) return null
+  const rest = ids.filter((candidate) => candidate !== id)
+  if (beforeId == null) return [...rest, id]
+  const index = rest.indexOf(beforeId)
+  return [...rest.slice(0, index), id, ...rest.slice(index)]
+}
+
+/**
+ * Drag & drop within one parent: move `id` just before `beforeId` (end of the
+ * list when null) and renumber every sibling 0..n-1.
+ */
+export async function reorderLibraryNode(
+  request: Request,
+  kind: 'group' | 'repertoire' | 'song' | 'songPart',
+  id: string,
+  beforeId: string | null,
+): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  if (!id || beforeId === id) return { ok: false, reason: 'invalid' }
+
+  if (kind === 'group') {
+    const group = await assertOwnedGroup(user.id, id)
+    if (!group) return { ok: false, reason: 'not_found' }
+    const siblings = await prisma.group.findMany({
+      where: { userId: user.id },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      select: { id: true },
+    })
+    const ordered = moveBefore(
+      siblings.map((sibling) => sibling.id),
+      group.id,
+      beforeId,
+    )
+    if (!ordered) return { ok: false, reason: 'not_found' }
+    await prisma.$transaction(
+      ordered.map((siblingId, index) =>
+        prisma.group.update({
+          where: { id: siblingId },
+          data: { sortOrder: index },
+        }),
+      ),
+    )
+    return { ok: true }
+  }
+
+  if (kind === 'repertoire') {
+    const repertoire = await assertOwnedRepertoire(user.id, id)
+    if (!repertoire) return { ok: false, reason: 'not_found' }
+    const siblings = await prisma.repertoire.findMany({
+      where: { groupId: repertoire.groupId },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      select: { id: true },
+    })
+    const ordered = moveBefore(
+      siblings.map((sibling) => sibling.id),
+      repertoire.id,
+      beforeId,
+    )
+    if (!ordered) return { ok: false, reason: 'not_found' }
+    await prisma.$transaction(
+      ordered.map((siblingId, index) =>
+        prisma.repertoire.update({
+          where: { id: siblingId },
+          data: { sortOrder: index },
+        }),
+      ),
+    )
+    return { ok: true }
+  }
+
+  if (kind === 'song') {
+    const song = await assertOwnedSong(user.id, id)
+    if (!song) return { ok: false, reason: 'not_found' }
+    const siblings = await prisma.song.findMany({
+      where: { repertoireId: song.repertoireId },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      select: { id: true },
+    })
+    const ordered = moveBefore(
+      siblings.map((sibling) => sibling.id),
+      song.id,
+      beforeId,
+    )
+    if (!ordered) return { ok: false, reason: 'not_found' }
+    await prisma.$transaction(
+      ordered.map((siblingId, index) =>
+        prisma.song.update({
+          where: { id: siblingId },
+          data: { sortOrder: index },
+        }),
+      ),
+    )
+    return { ok: true }
+  }
+
+  const part = await assertOwnedSongPart(user.id, id)
+  if (!part) return { ok: false, reason: 'not_found' }
+  const siblings = await prisma.songPart.findMany({
+    where: { songId: part.songId },
+    orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+    select: { id: true },
+  })
+  const ordered = moveBefore(
+    siblings.map((sibling) => sibling.id),
+    part.id,
+    beforeId,
+  )
+  if (!ordered) return { ok: false, reason: 'not_found' }
+  await prisma.$transaction(
+    ordered.map((siblingId, index) =>
+      prisma.songPart.update({
+        where: { id: siblingId },
+        data: { sortOrder: index },
+      }),
+    ),
+  )
   return { ok: true }
 }
 
@@ -567,22 +853,54 @@ export async function updateTrackAssetVolume(
   return { ok: true }
 }
 
-export async function updateSongMasterVolume(
+export async function updateTrackAssetVolumes(
   request: Request,
-  songId: string,
+  updates: Array<{ id: string; volume: number }>,
+): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  if (!Array.isArray(updates) || updates.length === 0) {
+    return { ok: false, reason: 'invalid' }
+  }
+
+  const normalized: Array<{ id: string; volume: number }> = []
+  for (const update of updates) {
+    if (!update?.id) return { ok: false, reason: 'invalid' }
+    const next = clampStoredTrackVolume(update.volume)
+    if (next == null) return { ok: false, reason: 'invalid' }
+    const asset = await assertOwnedTrackAsset(user.id, update.id)
+    if (!asset) return { ok: false, reason: 'not_found' }
+    normalized.push({ id: update.id, volume: next })
+  }
+
+  await prisma.$transaction(
+    normalized.map((update) =>
+      prisma.trackAsset.update({
+        where: { id: update.id },
+        data: { volume: update.volume },
+      }),
+    ),
+  )
+  return { ok: true }
+}
+
+export async function updateSongPartMasterVolume(
+  request: Request,
+  songPartId: string,
   masterVolume: number,
 ): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
   const userOrErr = await requireUser(request)
   if (!isUser(userOrErr)) return userOrErr
   const user = userOrErr
   const next = clampStoredMasterVolume(masterVolume)
-  if (!songId || next == null) return { ok: false, reason: 'invalid' }
+  if (!songPartId || next == null) return { ok: false, reason: 'invalid' }
 
-  const song = await assertOwnedSong(user.id, songId)
-  if (!song) return { ok: false, reason: 'not_found' }
+  const part = await assertOwnedSongPart(user.id, songPartId)
+  if (!part) return { ok: false, reason: 'not_found' }
 
-  await prisma.song.update({
-    where: { id: song.id },
+  await prisma.songPart.update({
+    where: { id: part.id },
     data: { masterVolume: next },
   })
   return { ok: true }
@@ -628,9 +946,17 @@ export async function setSongPublic(
   return { ok: true, isPublic: updated.isPublic }
 }
 
+function uploadedObjectKeys(
+  tracks: Array<{ objectKey: string }>,
+): string[] {
+  return tracks
+    .map((track) => track.objectKey)
+    .filter((key) => key && key !== 'pending')
+}
+
 export async function deleteLibraryNode(
   request: Request,
-  kind: 'group' | 'repertoire' | 'song',
+  kind: 'group' | 'repertoire' | 'song' | 'songPart',
   id: string,
 ): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
   const userOrErr = await requireUser(request)
@@ -638,17 +964,33 @@ export async function deleteLibraryNode(
   const user = userOrErr
   if (!id) return { ok: false, reason: 'invalid' }
 
+  if (kind === 'songPart') {
+    const part = await prisma.songPart.findFirst({
+      where: { id, song: { repertoire: { group: { userId: user.id } } } },
+      include: {
+        tracks: { select: { objectKey: true } },
+        song: { select: { repertoireId: true } },
+      },
+    })
+    if (!part) return { ok: false, reason: 'not_found' }
+    const { deleteObjectsByKeys } = await import('./s3.server')
+    await deleteObjectsByKeys(uploadedObjectKeys(part.tracks))
+    await prisma.songPart.delete({ where: { id: part.id } })
+    await touchRepertoire(part.song.repertoireId)
+    return { ok: true }
+  }
+
   if (kind === 'song') {
     const song = await prisma.song.findFirst({
       where: { id, repertoire: { group: { userId: user.id } } },
-      include: { tracks: { select: { objectKey: true } } },
+      include: {
+        parts: { include: { tracks: { select: { objectKey: true } } } },
+      },
     })
     if (!song) return { ok: false, reason: 'not_found' }
     const { deleteObjectsByKeys } = await import('./s3.server')
     await deleteObjectsByKeys(
-      song.tracks
-        .map((t) => t.objectKey)
-        .filter((key) => key && key !== 'pending'),
+      song.parts.flatMap((part) => uploadedObjectKeys(part.tracks)),
     )
     const repertoireId = song.repertoireId
     await prisma.song.delete({ where: { id: song.id } })
@@ -660,14 +1002,16 @@ export async function deleteLibraryNode(
     const repertoire = await prisma.repertoire.findFirst({
       where: { id, group: { userId: user.id } },
       include: {
-        songs: { include: { tracks: { select: { objectKey: true } } } },
+        songs: {
+          include: {
+            parts: { include: { tracks: { select: { objectKey: true } } } },
+          },
+        },
       },
     })
     if (!repertoire) return { ok: false, reason: 'not_found' }
-    const keys = repertoire.songs.flatMap((s) =>
-      s.tracks
-        .map((t) => t.objectKey)
-        .filter((key) => key && key !== 'pending'),
+    const keys = repertoire.songs.flatMap((song) =>
+      song.parts.flatMap((part) => uploadedObjectKeys(part.tracks)),
     )
     const { deleteObjectsByKeys } = await import('./s3.server')
     await deleteObjectsByKeys(keys)
@@ -680,17 +1024,19 @@ export async function deleteLibraryNode(
     include: {
       repertoires: {
         include: {
-          songs: { include: { tracks: { select: { objectKey: true } } } },
+          songs: {
+            include: {
+              parts: { include: { tracks: { select: { objectKey: true } } } },
+            },
+          },
         },
       },
     },
   })
   if (!group) return { ok: false, reason: 'not_found' }
-  const keys = group.repertoires.flatMap((r) =>
-    r.songs.flatMap((s) =>
-      s.tracks
-        .map((t) => t.objectKey)
-        .filter((key) => key && key !== 'pending'),
+  const keys = group.repertoires.flatMap((rep) =>
+    rep.songs.flatMap((song) =>
+      song.parts.flatMap((part) => uploadedObjectKeys(part.tracks)),
     ),
   )
   const { deleteObjectsByKeys } = await import('./s3.server')
@@ -711,8 +1057,14 @@ export type OpenSongResult =
         groupName: string
         repertoireName: string
         ownerPseudo: string | null
+      }
+      part: {
+        id: string
+        name: string | null
         masterVolume: number
       }
+      /** Every session of the song, in library order (deck prev / next). */
+      siblings: Array<{ id: string; name: string | null }>
       tracks: Array<{
         id: string
         name: string
@@ -725,24 +1077,29 @@ export type OpenSongResult =
     }
   | { ok: false; reason: CloudFailureReason }
 
+/** Open one recording session (part). `songPartId` is what /song/:id carries. */
 export async function openSong(
   request: Request,
-  songId: string,
+  songPartId: string,
 ): Promise<OpenSongResult> {
   try {
-    if (!songId) return { ok: false, reason: 'invalid' }
+    if (!songPartId) return { ok: false, reason: 'invalid' }
 
     const user = await getUserFromRequest(request)
-    const song = await prisma.song.findFirst({
-      where: { id: songId },
+    const part = await prisma.songPart.findFirst({
+      where: { id: songPartId },
       include: {
-        repertoire: {
+        song: {
           include: {
-            group: {
-              select: {
-                userId: true,
-                name: true,
-                user: { select: { pseudo: true } },
+            repertoire: {
+              include: {
+                group: {
+                  select: {
+                    userId: true,
+                    name: true,
+                    user: { select: { pseudo: true } },
+                  },
+                },
               },
             },
           },
@@ -753,28 +1110,31 @@ export async function openSong(
         },
       },
     })
-    if (!song) return { ok: false, reason: 'not_found' }
+    if (!part) return { ok: false, reason: 'not_found' }
 
+    const song = part.song
     const isOwner = Boolean(user && song.repertoire.group.userId === user.id)
     if (!isOwner && !song.isPublic) {
       return { ok: false, reason: 'not_found' }
     }
 
     if (isOwner) {
-      await prisma.song.update({
-        where: { id: song.id },
-        data: { lastOpenedAt: new Date() },
-      })
-      await touchRepertoire(song.repertoireId)
+      await touchSongPart(part)
     }
 
-    // Empty songs are metadata-only — S3 is only required to fetch audio.
-    if (song.tracks.length > 0 && !isS3Configured()) {
+    // Empty parts are metadata-only — S3 is only required to fetch audio.
+    if (part.tracks.length > 0 && !isS3Configured()) {
       return { ok: false, reason: 's3_not_configured' }
     }
 
+    const siblings = await prisma.songPart.findMany({
+      where: { songId: song.id },
+      orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      select: { id: true, name: true },
+    })
+
     const tracks = await Promise.all(
-      song.tracks.map(async (track) => ({
+      part.tracks.map(async (track) => ({
         id: track.id,
         name: track.name,
         url: await createPresignedGetUrl({ objectKey: track.objectKey }),
@@ -796,8 +1156,13 @@ export async function openSong(
         groupName: song.repertoire.group.name,
         repertoireName: song.repertoire.name,
         ownerPseudo: song.repertoire.group.user.pseudo.trim() || null,
-        masterVolume: song.masterVolume,
       },
+      part: {
+        id: part.id,
+        name: part.name,
+        masterVolume: part.masterVolume,
+      },
+      siblings,
       tracks,
     }
   } catch (error) {
@@ -806,16 +1171,17 @@ export async function openSong(
   }
 }
 
-/** Public song metadata for OG / route loaders (no audio URLs). */
+/** Public part metadata for OG / route loaders (no audio URLs). */
 export async function getSongShareMeta(
   request: Request,
-  songId: string,
+  songPartId: string,
 ): Promise<
   | {
       ok: true
       isOwner: boolean
       song: {
         id: string
+        songId: string
         name: string
         isPublic: boolean
         trackCount: number
@@ -823,21 +1189,26 @@ export async function getSongShareMeta(
     }
   | { ok: false; reason: CloudFailureReason }
 > {
-  if (!songId) return { ok: false, reason: 'invalid' }
+  if (!songPartId) return { ok: false, reason: 'invalid' }
 
   const user = await getUserFromRequest(request)
-  const song = await prisma.song.findFirst({
-    where: { id: songId },
+  const part = await prisma.songPart.findFirst({
+    where: { id: songPartId },
     include: {
-      repertoire: { include: { group: { select: { userId: true } } } },
+      song: {
+        include: {
+          repertoire: { include: { group: { select: { userId: true } } } },
+        },
+      },
       tracks: {
         where: { uploadedAt: { not: null } },
         select: { id: true },
       },
     },
   })
-  if (!song) return { ok: false, reason: 'not_found' }
+  if (!part) return { ok: false, reason: 'not_found' }
 
+  const song = part.song
   const isOwner = Boolean(user && song.repertoire.group.userId === user.id)
   if (!isOwner && !song.isPublic) {
     return { ok: false, reason: 'not_found' }
@@ -847,12 +1218,24 @@ export async function getSongShareMeta(
     ok: true,
     isOwner,
     song: {
-      id: song.id,
-      name: song.name,
+      id: part.id,
+      songId: song.id,
+      name: songPartDisplayName(song.name, part.name),
       isPublic: song.isPublic,
-      trackCount: song.tracks.length,
+      trackCount: part.tracks.length,
     },
   }
+}
+
+/** `Song — Part`, or just the song when unnamed / the part repeats the song. */
+export function songPartDisplayName(
+  songName: string,
+  partName: string | null | undefined,
+): string {
+  const song = songName.trim()
+  const part = partName?.trim() ?? ''
+  if (!part || part === song) return song
+  return `${song} — ${part}`
 }
 
 export async function purgeUserCloudStorage(userId: string): Promise<void> {

@@ -1,16 +1,16 @@
 import type { Track } from '../common/types'
 import { t } from './i18n'
 import {
-  readActiveSongId,
-  writeActiveSongId,
+  readActiveSongPartId,
+  writeActiveSongPartId,
 } from './cloudPrefs'
 import { useSessionStore } from '../store/sessionStore'
 
 export {
   readAutoCloudSave,
   writeAutoCloudSave,
-  readActiveSongId,
-  writeActiveSongId,
+  readActiveSongPartId,
+  writeActiveSongPartId,
 } from './cloudPrefs'
 
 /** Set from RecorderApp when root auth user changes (HttpOnly cookie is not JS-readable). */
@@ -43,8 +43,8 @@ export async function uploadTrackToCloud(
   patchTrack(trackId, { cloudStatus: 'uploading' })
 
   try {
-    const songId =
-      useSessionStore.getState().activeSongId ?? readActiveSongId()
+    const songPartId =
+      useSessionStore.getState().activeSongPartId ?? readActiveSongPartId()
     const sessionTitle = useSessionStore.getState().sessionTitle
     const contentType = track.blob.type || 'audio/webm'
 
@@ -52,7 +52,7 @@ export async function uploadTrackToCloud(
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        songId,
+        songPartId,
         name: track.name,
         contentType,
         byteSize: track.blob.size,
@@ -68,6 +68,7 @@ export async function uploadTrackToCloud(
           ok: true
           uploadUrl: string
           trackAssetId: string
+          songPartId: string
           songId: string
         }
       | { ok: false; reason: string }
@@ -93,9 +94,9 @@ export async function uploadTrackToCloud(
       return false
     }
 
-    writeActiveSongId(presign.songId)
-    useSessionStore.getState().setActiveSongId(presign.songId)
-    useSessionStore.getState().patch({ deckSongId: presign.songId })
+    writeActiveSongPartId(presign.songPartId)
+    useSessionStore.getState().setActiveSongPartId(presign.songPartId)
+    useSessionStore.getState().patch({ deckSongPartId: presign.songPartId })
     patchTrack(trackId, { cloudTrackId: presign.trackAssetId })
 
     const putRes = await fetch(presign.uploadUrl, {
@@ -152,8 +153,14 @@ export type OpenedCloudSong = {
     groupName: string
     repertoireName: string
     ownerPseudo: string | null
+  }
+  part: {
+    id: string
+    name: string | null
     masterVolume: number
   }
+  /** Every session of the song, in library order (deck prev / next). */
+  siblings: Array<{ id: string; name: string | null }>
   tracks: Track[]
   /** Local track id → mix volume (from cloud). */
   trackVolumes: Record<number, number>
@@ -161,13 +168,13 @@ export type OpenedCloudSong = {
 }
 
 export async function fetchAndHydrateSong(
-  songId: string,
+  songPartId: string,
   options?: { quiet?: boolean },
 ): Promise<OpenedCloudSong | null> {
   const res = await fetch('/api/cloud/library', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ intent: 'openSong', songId }),
+    body: JSON.stringify({ intent: 'openSong', songPartId }),
   })
   const data = (await res.json()) as
     | {
@@ -181,8 +188,13 @@ export async function fetchAndHydrateSong(
           groupName: string
           repertoireName: string
           ownerPseudo: string | null
+        }
+        part: {
+          id: string
+          name: string | null
           masterVolume: number
         }
+        siblings: Array<{ id: string; name: string | null }>
         tracks: Array<{
           id: string
           name: string
@@ -237,13 +249,15 @@ export async function fetchAndHydrateSong(
       : 1
   }
 
-  const masterRaw = Number(data.song.masterVolume)
+  const masterRaw = Number(data.part.masterVolume)
   const masterVolume = Number.isFinite(masterRaw)
     ? Math.min(2, Math.max(0, masterRaw))
     : 1
 
   return {
-    song: { ...data.song, masterVolume },
+    song: data.song,
+    part: { ...data.part, masterVolume },
+    siblings: data.siblings,
     tracks,
     trackVolumes,
     isOwner: data.isOwner,

@@ -59,14 +59,20 @@ export type SessionStoreState = {
   showCalageWarnings: boolean
   /** Persist takes to Scaleway S3 when signed in (localStorage). */
   autoCloudSave: boolean
-  /** Current cloud song id for new uploads (localStorage). */
-  activeSongId: string | null
-  /** Cloud song currently loaded on the deck (may be empty). */
-  deckSongId: string | null
+  /** Current cloud song part (session) id for new uploads (localStorage). */
+  activeSongPartId: string | null
+  /** Cloud song part currently loaded on the deck (may be empty). */
+  deckSongPartId: string | null
+  /** Every session of the deck song, in library order (prev / next nav). */
+  deckSongPartSiblings: Array<{ id: string; name: string | null }>
   /** Shared public song viewed without ownership (local overdub ok; no cloud mutate). */
   readOnlySession: boolean
-  /** Breadcrumb for the owned cloud song on the deck. */
+  /** Cloud song (œuvre) id of the deck session, when loaded from library. */
+  deckSongId: string | null
+  /** Breadcrumb group / repertoire for the owned cloud song on the deck. */
   songLibraryPath: string | null
+  /** Song (œuvre) name — highlighted title when a cloud song is loaded. */
+  songWorkName: string | null
   /** Owner display for a shared song in consultation (pseudo or null). */
   sharedOwnerLabel: string | null
 
@@ -99,6 +105,7 @@ export type SessionStoreState = {
   setError: (error: string | null) => void
   setHint: (hint: string) => void
   setSessionTitle: (title: string) => void
+  setSongWorkName: (name: string) => void
   setCalageMode: (on: boolean) => void
   setMixMode: (on: boolean) => void
   setAutoplayAfterStop: (on: boolean) => void
@@ -106,7 +113,7 @@ export type SessionStoreState = {
   setSkipCountInDownload: (on: boolean) => void
   setShowCalageWarnings: (on: boolean) => void
   setAutoCloudSave: (on: boolean) => void
-  setActiveSongId: (songId: string | null) => void
+  setActiveSongPartId: (songPartId: string | null) => void
   setKeyboardHintsEnabled: (on: boolean) => void
   setSeekDragActive: (on: boolean) => void
   setMixSeekMs: (ms: number) => void
@@ -161,10 +168,13 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   skipCountInDownload: true,
   showCalageWarnings: true,
   autoCloudSave: true,
-  activeSongId: null,
-  deckSongId: null,
+  activeSongPartId: null,
+  deckSongPartId: null,
+  deckSongPartSiblings: [],
   readOnlySession: false,
+  deckSongId: null,
   songLibraryPath: null,
+  songWorkName: null,
   sharedOwnerLabel: null,
 
   // Hydrated from audio runtime on the client (refreshDeviceSnapshot / init).
@@ -200,6 +210,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setError: (error) => set({ error }),
   setHint: (hint) => set({ hint }),
   setSessionTitle: (title) => set({ sessionTitle: title }),
+  setSongWorkName: (name) => set({ songWorkName: name }),
   setCalageMode: (on) => set({ calageMode: on }),
   setMixMode: (on) => set({ mixMode: on }),
   setAutoplayAfterStop: (on) => set({ autoplayAfterStop: on }),
@@ -207,7 +218,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setSkipCountInDownload: (on) => set({ skipCountInDownload: on }),
   setShowCalageWarnings: (on) => set({ showCalageWarnings: on }),
   setAutoCloudSave: (on) => set({ autoCloudSave: on }),
-  setActiveSongId: (songId) => set({ activeSongId: songId }),
+  setActiveSongPartId: (songPartId) => set({ activeSongPartId: songPartId }),
   setKeyboardHintsEnabled: (on) => set({ keyboardHintsEnabled: on }),
   setSeekDragActive: (on) => set({ seekDragActive: on }),
   setMixSeekMs: (ms) => set({ mixSeekMs: ms }),

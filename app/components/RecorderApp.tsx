@@ -8,7 +8,7 @@ import {
   releaseMic,
   stopMeterNodes,
 } from '../lib/audio/runtime.client'
-import { readActiveSongId, readAutoCloudSave } from '../lib/cloudPrefs'
+import { readActiveSongPartId, readAutoCloudSave } from '../lib/cloudPrefs'
 import {
   initLatencyProbe,
   hydrateActiveSongIfNeeded,
@@ -45,7 +45,7 @@ export function RecorderApp({
   useEffect(() => {
     useSessionStore.getState().patch({
       autoCloudSave: readAutoCloudSave(),
-      activeSongId: readActiveSongId(),
+      activeSongPartId: readActiveSongPartId(),
     })
     void hydrateFileSystemMemory()
     void initLatencyProbe()

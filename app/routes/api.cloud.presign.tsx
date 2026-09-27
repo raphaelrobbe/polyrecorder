@@ -16,6 +16,8 @@ export async function action({ request }: ActionFunctionArgs) {
   }
   try {
     const body = (await request.json()) as {
+      songPartId?: string | null
+      /** Legacy clients sent the session id under `songId` — it is a part id. */
       songId?: string | null
       name?: string
       contentType?: string
@@ -27,7 +29,7 @@ export async function action({ request }: ActionFunctionArgs) {
       sessionTitle?: string | null
     }
     const result = await presignTrackUpload(request, {
-      songId: body.songId,
+      songPartId: body.songPartId ?? body.songId,
       name: String(body.name ?? ''),
       contentType: String(body.contentType ?? 'audio/webm'),
       byteSize: Number(body.byteSize ?? 0),

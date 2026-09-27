@@ -1,4 +1,5 @@
 import type { LoaderFunctionArgs } from '@remix-run/node'
+import { songPartDisplayName } from '~/service/cloud.server'
 import { prisma } from '~/service/db.server'
 
 function escapeXml(value: string): string {
@@ -17,11 +18,13 @@ function truncate(value: string, max: number): string {
 }
 
 export async function loader({ params }: LoaderFunctionArgs) {
-  const songId = String(params.songId ?? '')
-  const song = songId
-    ? await prisma.song.findFirst({
-        where: { id: songId, isPublic: true },
+  // The route param is a song part (recording session) id.
+  const songPartId = String(params.songId ?? '')
+  const part = songPartId
+    ? await prisma.songPart.findFirst({
+        where: { id: songPartId, song: { isPublic: true } },
         include: {
+          song: { select: { name: true } },
           tracks: {
             where: { uploadedAt: { not: null } },
             select: { id: true },
@@ -30,11 +33,13 @@ export async function loader({ params }: LoaderFunctionArgs) {
       })
     : null
 
-  const title = song ? truncate(song.name, 42) : 'PolyRecorder'
-  const subtitle = song
-    ? song.tracks.length === 1
+  const title = part
+    ? truncate(songPartDisplayName(part.song.name, part.name), 42)
+    : 'PolyRecorder'
+  const subtitle = part
+    ? part.tracks.length === 1
       ? '1 piste'
-      : `${song.tracks.length} pistes`
+      : `${part.tracks.length} pistes`
     : 'polyrecorder.app'
 
   const svg = `<?xml version="1.0" encoding="UTF-8"?>
@@ -61,10 +66,10 @@ export async function loader({ params }: LoaderFunctionArgs) {
 </svg>`
 
   return new Response(svg, {
-    status: song ? 200 : 404,
+    status: part ? 200 : 404,
     headers: {
       'Content-Type': 'image/svg+xml; charset=utf-8',
-      'Cache-Control': song
+      'Cache-Control': part
         ? 'public, max-age=300'
         : 'public, max-age=60',
     },

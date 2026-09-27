@@ -15,7 +15,7 @@ import {
   parseDefaultTrackIndex,
 } from './format'
 import type { Locale } from './i18n'
-import { writeActiveSongId } from './cloudPrefs'
+import { writeActiveSongPartId } from './cloudPrefs'
 import {
   applyAudioSink,
   clearBufferCache,
@@ -417,6 +417,7 @@ function applyHighlightVolumes(highlighted: number[]) {
   }
   patch({ trackVolumes: volumes })
   syncLiveTrackGains()
+  persistCloudMixVolumes()
 }
 
 function clearTrackHighlights() {
@@ -582,12 +583,12 @@ function flushPersistMasterVolume() {
     masterVolumePersistTimer = null
   }
   if (!canPersistCloudMix()) return
-  const songId = get().activeSongId
-  if (!songId) return
+  const songPartId = get().activeSongPartId
+  if (!songPartId) return
   postLibraryIntent(
     {
       intent: 'updateSongMasterVolume',
-      songId,
+      songPartId,
       masterVolume: clampMasterVolume(get().masterVolume),
     },
     'update master volume',
@@ -596,12 +597,44 @@ function flushPersistMasterVolume() {
 
 function schedulePersistMasterVolume() {
   if (!canPersistCloudMix()) return
-  if (!get().activeSongId) return
+  if (!get().activeSongPartId) return
   if (masterVolumePersistTimer) clearTimeout(masterVolumePersistTimer)
   masterVolumePersistTimer = setTimeout(() => {
     masterVolumePersistTimer = null
     flushPersistMasterVolume()
   }, VOLUME_PERSIST_MS)
+}
+
+/** Persist all cloud track volumes + master (e.g. after highlight / dim). */
+function persistCloudMixVolumes() {
+  if (!canPersistCloudMix()) return
+
+  for (const [trackId, timer] of trackVolumePersistTimers) {
+    clearTimeout(timer)
+    trackVolumePersistTimers.delete(trackId)
+  }
+  if (masterVolumePersistTimer) {
+    clearTimeout(masterVolumePersistTimer)
+    masterVolumePersistTimer = null
+  }
+
+  const updates = get()
+    .tracks.map((track) => {
+      if (!track.cloudTrackId) return null
+      return {
+        id: track.cloudTrackId,
+        volume: getTrackVolume(track.id),
+      }
+    })
+    .filter((u): u is { id: string; volume: number } => u != null)
+
+  if (updates.length > 0) {
+    postLibraryIntent(
+      { intent: 'syncTrackVolumes', updates },
+      'sync track volumes',
+    )
+  }
+  flushPersistMasterVolume()
 }
 
 export function syncLatencyDisplay() {
@@ -2064,12 +2097,15 @@ export function resetDeckOnSignOut() {
   }
 
   deleteAllTracks()
-  writeActiveSongId(null)
+  writeActiveSongPartId(null)
   patch({
-    activeSongId: null,
+    activeSongPartId: null,
+    deckSongPartId: null,
+    deckSongPartSiblings: [],
     deckSongId: null,
     readOnlySession: false,
     songLibraryPath: null,
+    songWorkName: null,
     sharedOwnerLabel: null,
     sessionTitle: defaultSessionTitle(),
     error: null,
@@ -2077,16 +2113,16 @@ export function resetDeckOnSignOut() {
   })
 }
 
-/** Replace the deck with tracks loaded from a cloud song. */
+/** Replace the deck with tracks loaded from a cloud song part (session). */
 export async function loadCloudSongIntoSession(
-  songId: string,
+  songPartId: string,
   options?: { quiet?: boolean },
 ): Promise<boolean> {
   if (get().state === 'recording') return false
-  const { fetchAndHydrateSong, writeActiveSongId } = await import(
+  const { fetchAndHydrateSong, writeActiveSongPartId } = await import(
     './cloudUpload.client'
   )
-  const opened = await fetchAndHydrateSong(songId, options)
+  const opened = await fetchAndHydrateSong(songPartId, options)
   if (!opened) return false
 
   stopPlayback({ resetSeek: true })
@@ -2102,12 +2138,13 @@ export async function loadCloudSongIntoSession(
 
   const readOnly = !opened.isOwner
   if (opened.isOwner) {
-    writeActiveSongId(opened.song.id)
+    writeActiveSongPartId(opened.part.id)
   }
 
   const songLibraryPath = opened.isOwner
     ? `${opened.song.groupName} / ${opened.song.repertoireName}`
     : null
+  const songWorkName = opened.song.name
   const sharedOwnerLabel = readOnly
     ? formatPseudoHandle(opened.song.ownerPseudo)
     : null
@@ -2122,12 +2159,15 @@ export async function loadCloudSongIntoSession(
     referenceTrackId: opened.tracks[0]?.id ?? null,
     trackAlignDetails: {},
     trackVolumes,
-    masterVolume: opened.song.masterVolume,
-    sessionTitle: opened.song.name,
-    activeSongId: opened.isOwner ? opened.song.id : null,
-    deckSongId: opened.isOwner ? opened.song.id : null,
+    masterVolume: opened.part.masterVolume,
+    sessionTitle: opened.part.name ?? '',
+    activeSongPartId: opened.isOwner ? opened.part.id : null,
+    deckSongPartId: opened.isOwner ? opened.part.id : null,
+    deckSongPartSiblings: opened.siblings,
+    deckSongId: opened.song.id,
     readOnlySession: readOnly,
     songLibraryPath,
+    songWorkName,
     sharedOwnerLabel,
     calageMode: false,
     mixMode: readOnly,
@@ -2149,27 +2189,30 @@ export async function loadCloudSongIntoSession(
 }
 
 /**
- * If a cloud song is the upload target but not loaded on the deck yet,
+ * If a cloud song part is the upload target but not loaded on the deck yet,
  * hydrate it (e.g. after refresh or closing the library).
- * Stale ids (deleted song, empty library) are cleared quietly.
+ * Stale ids (deleted part, empty library) are cleared quietly.
  */
 export async function hydrateActiveSongIfNeeded(): Promise<void> {
-  const { activeSongId, deckSongId, state, readOnlySession } = get()
+  const { activeSongPartId, deckSongPartId, state, readOnlySession } = get()
   if (
     readOnlySession ||
-    !activeSongId ||
-    activeSongId === deckSongId ||
+    !activeSongPartId ||
+    activeSongPartId === deckSongPartId ||
     state === 'recording'
   ) {
     return
   }
-  const ok = await loadCloudSongIntoSession(activeSongId, { quiet: true })
+  const ok = await loadCloudSongIntoSession(activeSongPartId, { quiet: true })
   if (!ok) {
-    writeActiveSongId(null)
+    writeActiveSongPartId(null)
     patch({
-      activeSongId: null,
+      activeSongPartId: null,
+      deckSongPartId: null,
+      deckSongPartSiblings: [],
       deckSongId: null,
       songLibraryPath: null,
+      songWorkName: null,
       error: null,
     })
   }
@@ -2177,11 +2220,45 @@ export async function hydrateActiveSongIfNeeded(): Promise<void> {
 
 
 export function normalizeAndSetSessionTitle(raw: string) {
-  const name = normalizeSessionTitle(raw)
+  const songPartId = get().activeSongPartId
+  // Cloud sessions may be unnamed (null); local guest titles keep the default.
+  const name =
+    songPartId && !get().readOnlySession
+      ? raw.replace(/\s+/g, ' ').trim().slice(0, 60)
+      : normalizeSessionTitle(raw)
   patch({ sessionTitle: name })
 
   if (get().readOnlySession) return
-  const songId = get().activeSongId
+  if (!songPartId) return
+
+  void fetch('/api/cloud/library', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      intent: 'rename',
+      kind: 'songPart',
+      id: songPartId,
+      name,
+    }),
+  })
+    .then(async (res) => {
+      const data = (await res.json()) as { ok: boolean }
+      if (!data.ok) {
+        console.error('[cloud] failed to rename part from session title')
+      }
+    })
+    .catch((error) => {
+      console.error('[cloud] failed to rename part from session title', error)
+    })
+}
+
+/** Rename the cloud song (œuvre) from the deck’s highlighted title. */
+export function normalizeAndSetSongWorkName(raw: string) {
+  const name = normalizeSessionTitle(raw)
+  patch({ songWorkName: name })
+
+  if (get().readOnlySession) return
+  const songId = get().deckSongId
   if (!songId || !name) return
 
   void fetch('/api/cloud/library', {
@@ -2197,11 +2274,11 @@ export function normalizeAndSetSessionTitle(raw: string) {
     .then(async (res) => {
       const data = (await res.json()) as { ok: boolean }
       if (!data.ok) {
-        console.error('[cloud] failed to rename song from session title')
+        console.error('[cloud] failed to rename song from deck title')
       }
     })
     .catch((error) => {
-      console.error('[cloud] failed to rename song from session title', error)
+      console.error('[cloud] failed to rename song from deck title', error)
     })
 }
 

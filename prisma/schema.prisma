@@ -63,6 +63,8 @@ model Group {
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  /// Manual order among the user's groups (drag & drop in the library).
+  sortOrder Int      @default(0)
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -70,6 +72,7 @@ model Group {
   repertoires Repertoire[]
 
   @@index([userId])
+  @@index([userId, sortOrder])
 }
 
 /// Musical repertoire inside a group.
@@ -78,6 +81,8 @@ model Repertoire {
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  /// Manual order among the group's repertoires.
+  sortOrder Int      @default(0)
 
   groupId String
   group   Group  @relation(fields: [groupId], references: [id], onDelete: Cascade)
@@ -85,32 +90,58 @@ model Repertoire {
   songs Song[]
 
   @@index([groupId])
+  @@index([groupId, sortOrder])
 }
 
-/// A polyphonic song / session (tracks layered together).
+/// Musical work — a folder of recording sessions (parts).
 model Song {
   id        String   @id @default(cuid())
   name      String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  /// Last time this song was opened / used for recording.
+  /// Last time one of this song's parts was opened / used for recording.
   lastOpenedAt DateTime @default(now())
-  /// When true, anyone with the URL can open the song read-only.
+  /// When true, anyone with the URL can open this song's parts read-only.
   isPublic  Boolean  @default(false)
-  /// Master mix bus level (1 = 100%). Owner-editable.
-  masterVolume Float @default(1)
+  /// Manual order among the repertoire's songs.
+  sortOrder Int      @default(0)
 
   repertoireId String
   repertoire   Repertoire @relation(fields: [repertoireId], references: [id], onDelete: Cascade)
 
-  tracks TrackAsset[]
+  parts SongPart[]
 
   @@index([repertoireId])
+  @@index([repertoireId, sortOrder])
   @@index([lastOpenedAt])
   @@index([isPublic])
 }
 
-/// Cloud-backed audio take for a song (S3 object + metadata).
+/// Recording session / section of a song (beginning, middle, end…).
+model SongPart {
+  id        String   @id @default(cuid())
+  /// Null until the owner names the session (shown as an italic placeholder).
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  /// Last time this part was opened / used for recording.
+  lastOpenedAt DateTime @default(now())
+  /// Master mix bus level (1 = 100%). Owner-editable.
+  masterVolume Float @default(1)
+  /// Manual order among the song's parts (also drives deck prev/next).
+  sortOrder Int      @default(0)
+
+  songId String
+  song   Song   @relation(fields: [songId], references: [id], onDelete: Cascade)
+
+  tracks TrackAsset[]
+
+  @@index([songId])
+  @@index([songId, sortOrder])
+  @@index([lastOpenedAt])
+}
+
+/// Cloud-backed audio take for a song part (S3 object + metadata).
 model TrackAsset {
   id            String    @id @default(cuid())
   name          String
@@ -128,9 +159,9 @@ model TrackAsset {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  songId String
-  song   Song   @relation(fields: [songId], references: [id], onDelete: Cascade)
+  songPartId String
+  songPart   SongPart @relation(fields: [songPartId], references: [id], onDelete: Cascade)
 
   @@unique([objectKey])
-  @@index([songId])
+  @@index([songPartId])
 }

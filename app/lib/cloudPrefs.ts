@@ -1,7 +1,9 @@
 /** localStorage keys for cloud upload preferences (client-only). */
 
 const AUTO_CLOUD_SAVE_KEY = 'polyrecorder-auto-cloud-save'
-const ACTIVE_SONG_KEY = 'polyrecorder-active-song-id'
+const ACTIVE_SONG_PART_KEY = 'polyrecorder-active-song-part-id'
+/** Pre-SongPart key: the stored id already was a session (part) id. */
+const LEGACY_ACTIVE_SONG_KEY = 'polyrecorder-active-song-id'
 
 export function readAutoCloudSave(): boolean {
   try {
@@ -22,18 +24,22 @@ export function writeAutoCloudSave(on: boolean): void {
   }
 }
 
-export function readActiveSongId(): string | null {
+export function readActiveSongPartId(): string | null {
   try {
-    return localStorage.getItem(ACTIVE_SONG_KEY)
+    return (
+      localStorage.getItem(ACTIVE_SONG_PART_KEY) ??
+      localStorage.getItem(LEGACY_ACTIVE_SONG_KEY)
+    )
   } catch {
     return null
   }
 }
 
-export function writeActiveSongId(songId: string | null): void {
+export function writeActiveSongPartId(songPartId: string | null): void {
   try {
-    if (songId) localStorage.setItem(ACTIVE_SONG_KEY, songId)
-    else localStorage.removeItem(ACTIVE_SONG_KEY)
+    localStorage.removeItem(LEGACY_ACTIVE_SONG_KEY)
+    if (songPartId) localStorage.setItem(ACTIVE_SONG_PART_KEY, songPartId)
+    else localStorage.removeItem(ACTIVE_SONG_PART_KEY)
   } catch {
     // ignore
   }
