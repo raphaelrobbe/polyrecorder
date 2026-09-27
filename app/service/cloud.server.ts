@@ -502,6 +502,471 @@ export async function getLibraryTree(
   }
 }
 
+function mapLibraryGroups(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  groups: any[],
+): LibraryTree['groups'] {
+  return groups.map((group) => ({
+    id: group.id as string,
+    name: group.name as string,
+    repertoires: (
+      group.repertoires as Array<{
+        id: string
+        name: string
+        songs: Array<{
+          id: string
+          name: string
+          isPublic: boolean
+          allowsCollaboration: boolean
+          lastOpenedAt: Date
+          updatedAt: Date
+          parts: Array<{
+            id: string
+            name: string | null
+            masterVolume: number
+            lastOpenedAt: Date
+            updatedAt: Date
+            tracks: Array<{ name: string }>
+          }>
+        }>
+      }>
+    ).map((rep) => ({
+      id: rep.id,
+      name: rep.name,
+      songs: rep.songs.map((song) => {
+        const lastOpenedAt = song.parts.reduce(
+          (latest, part) =>
+            part.lastOpenedAt > latest ? part.lastOpenedAt : latest,
+          song.lastOpenedAt,
+        )
+        return {
+          id: song.id,
+          name: song.name,
+          isPublic: song.isPublic,
+          allowsCollaboration: song.allowsCollaboration,
+          lastOpenedAt: lastOpenedAt.toISOString(),
+          updatedAt: song.updatedAt.toISOString(),
+          parts: song.parts.map((part) => ({
+            id: part.id,
+            name: part.name,
+            trackNames: part.tracks.map((track) => track.name),
+            masterVolume: part.masterVolume,
+            lastOpenedAt: part.lastOpenedAt.toISOString(),
+            updatedAt: part.updatedAt.toISOString(),
+          })),
+        }
+      }),
+    })),
+  }))
+}
+
+const libraryTreeInclude = {
+  repertoires: {
+    orderBy: { sortOrder: 'asc' as const },
+    include: {
+      songs: {
+        orderBy: { sortOrder: 'asc' as const },
+        include: {
+          parts: {
+            orderBy: { sortOrder: 'asc' as const },
+            include: {
+              tracks: {
+                where: { uploadedAt: { not: null } },
+                orderBy: { createdAt: 'asc' as const },
+                select: { name: true },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+} as const
+
+/**
+ * Portfolio library for `/:pseudo`: full tree for the owner, else only
+ * branches that contain at least one public song.
+ */
+export async function getLibraryPortfolio(
+  request: Request,
+  pseudoRaw: string,
+): Promise<
+  | {
+      ok: true
+      pseudo: string
+      isOwner: boolean
+      tree: LibraryTree
+    }
+  | { ok: false; reason: CloudFailureReason }
+> {
+  const pseudo = pseudoRaw.trim().replace(/^@+/, '')
+  if (!pseudo) return { ok: false, reason: 'invalid' }
+
+  const owner = await prisma.user.findFirst({
+    where: { pseudo: { equals: pseudo, mode: 'insensitive' } },
+    select: { id: true, pseudo: true },
+  })
+  if (!owner) return { ok: false, reason: 'not_found' }
+
+  const viewer = await getUserFromRequest(request)
+  const isOwner = Boolean(viewer && viewer.id === owner.id)
+
+  if (isOwner) {
+    await ensureDefaultTree(owner.id)
+  }
+
+  const groups = await prisma.group.findMany({
+    where: {
+      userId: owner.id,
+      ...(isOwner
+        ? {}
+        : {
+            repertoires: {
+              some: { songs: { some: { isPublic: true } } },
+            },
+          }),
+    },
+    orderBy: { sortOrder: 'asc' },
+    include: libraryTreeInclude,
+  })
+
+  let treeGroups = mapLibraryGroups(groups)
+  if (!isOwner) {
+    treeGroups = treeGroups
+      .map((group) => ({
+        ...group,
+        repertoires: group.repertoires
+          .map((rep) => ({
+            ...rep,
+            songs: rep.songs.filter((song) => song.isPublic),
+          }))
+          .filter((rep) => rep.songs.length > 0),
+      }))
+      .filter((group) => group.repertoires.length > 0)
+  }
+
+  return {
+    ok: true,
+    pseudo: owner.pseudo,
+    isOwner,
+    tree: { groups: treeGroups },
+  }
+}
+
+/** Resolve breadcrumb context for a group / repertoire / song node. */
+export async function getLibraryNodeContext(
+  request: Request,
+  kind: 'group' | 'repertoire' | 'song',
+  id: string,
+): Promise<
+  | {
+      ok: true
+      isOwner: boolean
+      ownerPseudo: string
+      group: { id: string; name: string }
+      repertoire?: { id: string; name: string }
+      song?: {
+        id: string
+        name: string
+        isPublic: boolean
+        allowsCollaboration: boolean
+      }
+    }
+  | { ok: false; reason: CloudFailureReason }
+> {
+  if (!id) return { ok: false, reason: 'invalid' }
+  const viewer = await getUserFromRequest(request)
+
+  if (kind === 'group') {
+    const group = await prisma.group.findFirst({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        userId: true,
+        user: { select: { pseudo: true } },
+      },
+    })
+    if (!group) return { ok: false, reason: 'not_found' }
+    const isOwner = Boolean(viewer && viewer.id === group.userId)
+    if (!isOwner) {
+      const publicCount = await prisma.song.count({
+        where: {
+          isPublic: true,
+          repertoire: { groupId: group.id },
+        },
+      })
+      if (publicCount === 0) return { ok: false, reason: 'not_found' }
+    }
+    return {
+      ok: true,
+      isOwner,
+      ownerPseudo: group.user.pseudo,
+      group: { id: group.id, name: group.name },
+    }
+  }
+
+  if (kind === 'repertoire') {
+    const rep = await prisma.repertoire.findFirst({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        group: {
+          select: {
+            id: true,
+            name: true,
+            userId: true,
+            user: { select: { pseudo: true } },
+          },
+        },
+      },
+    })
+    if (!rep) return { ok: false, reason: 'not_found' }
+    const isOwner = Boolean(viewer && viewer.id === rep.group.userId)
+    if (!isOwner) {
+      const publicCount = await prisma.song.count({
+        where: { isPublic: true, repertoireId: rep.id },
+      })
+      if (publicCount === 0) return { ok: false, reason: 'not_found' }
+    }
+    return {
+      ok: true,
+      isOwner,
+      ownerPseudo: rep.group.user.pseudo,
+      group: { id: rep.group.id, name: rep.group.name },
+      repertoire: { id: rep.id, name: rep.name },
+    }
+  }
+
+  const song = await prisma.song.findFirst({
+    where: { id },
+    select: {
+      id: true,
+      name: true,
+      isPublic: true,
+      allowsCollaboration: true,
+      repertoire: {
+        select: {
+          id: true,
+          name: true,
+          group: {
+            select: {
+              id: true,
+              name: true,
+              userId: true,
+              user: { select: { pseudo: true } },
+            },
+          },
+        },
+      },
+    },
+  })
+  if (!song) return { ok: false, reason: 'not_found' }
+  const isOwner = Boolean(viewer && viewer.id === song.repertoire.group.userId)
+  if (!isOwner && !song.isPublic) return { ok: false, reason: 'not_found' }
+  return {
+    ok: true,
+    isOwner,
+    ownerPseudo: song.repertoire.group.user.pseudo,
+    group: {
+      id: song.repertoire.group.id,
+      name: song.repertoire.group.name,
+    },
+    repertoire: { id: song.repertoire.id, name: song.repertoire.name },
+    song: {
+      id: song.id,
+      name: song.name,
+      isPublic: song.isPublic,
+      allowsCollaboration: song.allowsCollaboration,
+    },
+  }
+}
+
+export type LibraryGroupLevelItem = {
+  id: string
+  name: string
+  songCount: number
+}
+
+export type LibraryRepertoireLevelItem = {
+  id: string
+  name: string
+  isPublic: boolean
+  allowsCollaboration: boolean
+  partCount: number
+}
+
+export type LibrarySongLevelItem = {
+  id: string
+  name: string | null
+  trackNames: string[]
+  /** Mix timeline length (offsets + durations), milliseconds. */
+  durationMs: number
+}
+
+/** Repertoires inside a group (with song counts). */
+export async function getLibraryGroupLevel(
+  request: Request,
+  groupId: string,
+): Promise<
+  | {
+      ok: true
+      isOwner: boolean
+      ownerPseudo: string
+      group: { id: string; name: string }
+      repertoires: LibraryGroupLevelItem[]
+    }
+  | { ok: false; reason: CloudFailureReason }
+> {
+  const ctx = await getLibraryNodeContext(request, 'group', groupId)
+  if (!ctx.ok) return ctx
+
+  const repertoires = await prisma.repertoire.findMany({
+    where: {
+      groupId: ctx.group.id,
+      ...(ctx.isOwner
+        ? {}
+        : { songs: { some: { isPublic: true } } }),
+    },
+    orderBy: { sortOrder: 'asc' },
+    select: {
+      id: true,
+      name: true,
+      songs: {
+        where: ctx.isOwner ? undefined : { isPublic: true },
+        select: { id: true },
+      },
+    },
+  })
+
+  return {
+    ok: true,
+    isOwner: ctx.isOwner,
+    ownerPseudo: ctx.ownerPseudo,
+    group: ctx.group,
+    repertoires: repertoires.map((rep) => ({
+      id: rep.id,
+      name: rep.name,
+      songCount: rep.songs.length,
+    })),
+  }
+}
+
+/** Songs inside a repertoire (with session counts). */
+export async function getLibraryRepertoireLevel(
+  request: Request,
+  repertoireId: string,
+): Promise<
+  | {
+      ok: true
+      isOwner: boolean
+      ownerPseudo: string
+      group: { id: string; name: string }
+      repertoire: { id: string; name: string }
+      songs: LibraryRepertoireLevelItem[]
+    }
+  | { ok: false; reason: CloudFailureReason }
+> {
+  const ctx = await getLibraryNodeContext(request, 'repertoire', repertoireId)
+  if (!ctx.ok) return ctx
+  if (!ctx.repertoire) return { ok: false, reason: 'not_found' }
+
+  const songs = await prisma.song.findMany({
+    where: {
+      repertoireId: ctx.repertoire.id,
+      ...(ctx.isOwner ? {} : { isPublic: true }),
+    },
+    orderBy: { sortOrder: 'asc' },
+    select: {
+      id: true,
+      name: true,
+      isPublic: true,
+      allowsCollaboration: true,
+      _count: { select: { parts: true } },
+    },
+  })
+
+  return {
+    ok: true,
+    isOwner: ctx.isOwner,
+    ownerPseudo: ctx.ownerPseudo,
+    group: ctx.group,
+    repertoire: ctx.repertoire,
+    songs: songs.map((song) => ({
+      id: song.id,
+      name: song.name,
+      isPublic: song.isPublic,
+      allowsCollaboration: song.allowsCollaboration,
+      partCount: song._count.parts,
+    })),
+  }
+}
+
+/** Sessions inside a song (with track names). */
+export async function getLibrarySongLevel(
+  request: Request,
+  songId: string,
+): Promise<
+  | {
+      ok: true
+      isOwner: boolean
+      ownerPseudo: string
+      group: { id: string; name: string }
+      repertoire: { id: string; name: string }
+      song: {
+        id: string
+        name: string
+        isPublic: boolean
+        allowsCollaboration: boolean
+      }
+      parts: LibrarySongLevelItem[]
+    }
+  | { ok: false; reason: CloudFailureReason }
+> {
+  const ctx = await getLibraryNodeContext(request, 'song', songId)
+  if (!ctx.ok) return ctx
+  if (!ctx.repertoire || !ctx.song) return { ok: false, reason: 'not_found' }
+
+  const parts = await prisma.songPart.findMany({
+    where: { songId: ctx.song.id },
+    orderBy: { sortOrder: 'asc' },
+    select: {
+      id: true,
+      name: true,
+      tracks: {
+        where: { uploadedAt: { not: null } },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+        select: { name: true, durationMs: true, offsetMs: true },
+      },
+    },
+  })
+
+  return {
+    ok: true,
+    isOwner: ctx.isOwner,
+    ownerPseudo: ctx.ownerPseudo,
+    group: ctx.group,
+    repertoire: ctx.repertoire,
+    song: ctx.song,
+    parts: parts.map((part) => {
+      let durationMs = 0
+      for (const track of part.tracks) {
+        const delay = Math.max(0, track.offsetMs)
+        const skip = Math.max(0, -track.offsetMs)
+        const playable = Math.max(0, track.durationMs - skip)
+        durationMs = Math.max(durationMs, delay + playable)
+      }
+      return {
+        id: part.id,
+        name: part.name,
+        trackNames: part.tracks.map((track) => track.name),
+        durationMs,
+      }
+    }),
+  }
+}
+
 export async function createGroup(
   request: Request,
   name: string,
@@ -1237,6 +1702,7 @@ export type OpenSongResult =
         repertoireId: string
         isPublic: boolean
         allowsCollaboration: boolean
+        groupId: string
         groupName: string
         repertoireName: string
         ownerPseudo: string | null
@@ -1282,6 +1748,7 @@ export async function openSong(
               include: {
                 group: {
                   select: {
+                    id: true,
                     userId: true,
                     name: true,
                     user: { select: { pseudo: true } },
@@ -1374,6 +1841,7 @@ export async function openSong(
         repertoireId: song.repertoireId,
         isPublic: song.isPublic,
         allowsCollaboration: song.allowsCollaboration,
+        groupId: song.repertoire.group.id,
         groupName: song.repertoire.group.name,
         repertoireName: song.repertoire.name,
         ownerPseudo,
@@ -1404,8 +1872,15 @@ export async function getSongShareMeta(
         id: string
         songId: string
         name: string
+        songName: string
+        partName: string | null
         isPublic: boolean
         trackCount: number
+        groupId: string
+        groupName: string
+        repertoireId: string
+        repertoireName: string
+        ownerPseudo: string
       }
     }
   | { ok: false; reason: CloudFailureReason }
@@ -1418,7 +1893,18 @@ export async function getSongShareMeta(
     include: {
       song: {
         include: {
-          repertoire: { include: { group: { select: { userId: true } } } },
+          repertoire: {
+            include: {
+              group: {
+                select: {
+                  id: true,
+                  name: true,
+                  userId: true,
+                  user: { select: { pseudo: true } },
+                },
+              },
+            },
+          },
         },
       },
       tracks: {
@@ -1442,8 +1928,15 @@ export async function getSongShareMeta(
       id: part.id,
       songId: song.id,
       name: songPartDisplayName(song.name, part.name),
+      songName: song.name,
+      partName: part.name,
       isPublic: song.isPublic,
       trackCount: part.tracks.length,
+      groupId: song.repertoire.group.id,
+      groupName: song.repertoire.group.name,
+      repertoireId: song.repertoire.id,
+      repertoireName: song.repertoire.name,
+      ownerPseudo: song.repertoire.group.user.pseudo,
     },
   }
 }

@@ -1,6 +1,8 @@
-import { Link } from '@remix-run/react'
+import { Link, useRouteLoaderData } from '@remix-run/react'
 import { useLocale } from '../hooks/useLocale'
+import { libraryUserPath } from '../lib/libraryPaths'
 import { t } from '../lib/i18n'
+import type { loader as rootLoader } from '../root'
 import { DeckOverlayPanel } from './DeckOverlayPanel'
 import { HelpSection } from './HelpSection'
 
@@ -23,6 +25,9 @@ function SitemapLink({ to, label }: { to: string; label: string }) {
 
 export function SitemapPanel({ className }: SitemapPanelProps) {
   useLocale()
+  const rootData = useRouteLoaderData<typeof rootLoader>('root')
+  const user = rootData?.user ?? null
+  const libraryTo = user ? libraryUserPath(user.pseudo) : '/bibliotheque'
 
   return (
     <DeckOverlayPanel
@@ -34,7 +39,7 @@ export function SitemapPanel({ className }: SitemapPanelProps) {
       <HelpSection title={t('sitemap.app.title')}>
         <ul className="m-0 flex list-none flex-col gap-2 p-0 text-[0.84rem] leading-[1.45] text-ink-soft">
           <SitemapLink to="/" label={t('sitemap.app.home')} />
-          <SitemapLink to="/bibliotheque" label={t('nav.library')} />
+          <SitemapLink to={libraryTo} label={t('nav.library')} />
           <SitemapLink to="/aide" label={t('nav.help')} />
           <SitemapLink to="/parametres" label={t('nav.settings')} />
         </ul>

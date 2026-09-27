@@ -5,6 +5,7 @@ import {
   type User,
 } from '../common/user'
 import { useLocale } from '../hooks/useLocale'
+import { libraryUserPath } from '../lib/libraryPaths'
 import { t } from '../lib/i18n'
 import { resetDeckOnSignOut } from '../lib/sessionActions.client'
 import { cn } from '../lib/utils'
@@ -82,6 +83,20 @@ export function AccountMenu({ user, className }: AccountMenuProps) {
             'shadow-[0_10px_28px_var(--shadow)]',
           )}
         >
+          <button
+            type="button"
+            role="menuitem"
+            className={cn(
+              'flex w-full cursor-pointer items-center rounded-[8px] border-0 bg-transparent px-[0.55rem] py-[0.45rem] text-left font-[inherit] text-[0.82rem] font-semibold leading-normal text-ink',
+              'hover:bg-ink/6',
+            )}
+            onClick={() => {
+              setOpen(false)
+              navigate(libraryUserPath(user.pseudo))
+            }}
+          >
+            {t('nav.library')}
+          </button>
           <button
             type="button"
             role="menuitem"

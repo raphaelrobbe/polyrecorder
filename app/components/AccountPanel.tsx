@@ -6,6 +6,11 @@ import {
 } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import type { User } from '~/common/user'
+import {
+  hasDoubleUnderscore,
+  hasEdgeUnderscore,
+  hasValidPseudoChars,
+} from '~/common/pseudo'
 import { useLocale } from '~/hooks/useLocale'
 import { t } from '~/lib/i18n'
 import { Button } from './Button'
@@ -34,6 +39,7 @@ type PseudoCheckData = {
     | 'too_short'
     | 'too_long'
     | 'invalid_chars'
+    | 'reserved'
     | 'taken'
     | 'ok'
     | 'unchanged'
@@ -92,8 +98,8 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
 
   // Live uniqueness check once the typed value has at least 3 characters.
   useEffect(() => {
-    const trimmed = pseudo.trim().replace(/\s+/g, ' ')
-    if (trimmed.length < 3) return
+    const trimmed = pseudo.trim()
+    if (trimmed.length < 3 || !hasValidPseudoChars(trimmed)) return
 
     const handle = window.setTimeout(() => {
       const params = new URLSearchParams({ pseudo: trimmed })
@@ -103,8 +109,8 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
     return () => window.clearTimeout(handle)
   }, [pseudo])
 
-  const trimmedLive = pseudo.trim().replace(/\s+/g, ' ')
-  const storedPseudo = user.pseudo.trim().replace(/\s+/g, ' ')
+  const trimmedLive = pseudo.trim()
+  const storedPseudo = user.pseudo.trim()
   const emailLive = email.trim().toLowerCase()
   const emailUnchanged = emailLive === user.email
   const pseudoUnchanged = trimmedLive === storedPseudo
@@ -112,10 +118,20 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
 
   const emailInvalid = emailLive.length > 0 && !looksLikeEmail(emailLive)
   const liveEmpty = trimmedLive.length === 0
-  const liveHasAt = trimmedLive.includes('@')
+  const liveDoubleUnderscore = hasDoubleUnderscore(trimmedLive)
+  const liveEdgeUnderscore =
+    !liveDoubleUnderscore && hasEdgeUnderscore(trimmedLive)
+  const liveInvalidChars =
+    trimmedLive.length > 0 && !hasValidPseudoChars(trimmedLive)
   const liveTooShort =
-    trimmedLive.length > 0 && trimmedLive.length < 3 && !liveHasAt
-  const liveTooLong = trimmedLive.length > 40
+    trimmedLive.length > 0 && trimmedLive.length < 3 && !liveInvalidChars
+  const liveTooLong = trimmedLive.length > 20
+  const liveFormatError =
+    liveDoubleUnderscore ||
+    liveEdgeUnderscore ||
+    liveInvalidChars ||
+    liveTooShort ||
+    liveTooLong
   const check = pseudoFetcher.data
   const checkMatches =
     check != null &&
@@ -123,7 +139,7 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
   const checking =
     trimmedLive.length >= 3 &&
     !liveTooLong &&
-    !liveHasAt &&
+    !liveInvalidChars &&
     !pseudoUnchanged &&
     (pseudoFetcher.state === 'loading' || !checkMatches)
 
@@ -134,6 +150,8 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
 
   const liveTaken =
     !matchesCurrent && checkMatches && check.reason === 'taken' && !checking
+  const liveReserved =
+    !matchesCurrent && checkMatches && check.reason === 'reserved' && !checking
 
   const liveOk =
     !matchesCurrent &&
@@ -149,20 +167,28 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
     emailInvalid ||
     emailLive.length === 0 ||
     liveEmpty ||
-    liveHasAt ||
+    liveInvalidChars ||
     liveTooShort ||
     liveTooLong ||
     liveTaken ||
-    (!matchesCurrent && trimmedLive.length >= 3 && !liveHasAt && checking)
+    liveReserved ||
+    (!matchesCurrent &&
+      trimmedLive.length >= 3 &&
+      !liveInvalidChars &&
+      checking)
 
   const saveError =
     actionData && actionData.ok === false && actionData.intent === 'save'
-      ? actionData.reason === 'too_short'
-        ? t('account.error.pseudoTooShort')
-        : actionData.reason === 'too_long'
-          ? t('account.error.pseudoTooLong')
-          : actionData.reason === 'invalid_chars'
-            ? t('account.error.pseudoInvalidChars')
+      ? actionData.reason === 'too_short' || actionData.reason === 'too_long'
+        ? t('account.pseudo.lengthHint')
+        : actionData.reason === 'invalid_chars'
+          ? hasDoubleUnderscore(trimmedLive)
+            ? t('account.error.pseudoDoubleUnderscore')
+            : hasEdgeUnderscore(trimmedLive)
+              ? t('account.error.pseudoEdgeUnderscore')
+              : t('account.pseudo.lengthHint')
+          : actionData.reason === 'reserved'
+            ? t('account.error.pseudoReserved')
             : actionData.reason === 'taken'
               ? t('account.error.pseudoTaken')
               : actionData.reason === 'invalid_email'
@@ -199,7 +225,7 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
       ? null
       : checking
         ? null
-        : liveTaken
+        : liveTaken || liveReserved
           ? ('unavailable' as const)
           : liveCurrent
             ? ('current' as const)
@@ -266,16 +292,15 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
                 type="text"
                 name="pseudo"
                 value={pseudo}
-                maxLength={40}
+                maxLength={20}
                 autoComplete="nickname"
                 placeholder={t('account.pseudoPlaceholder')}
                 aria-invalid={
                   pseudoFocused &&
                   (liveEmpty ||
-                    liveHasAt ||
-                    liveTooShort ||
-                    liveTooLong ||
-                    liveTaken)
+                    liveFormatError ||
+                    liveTaken ||
+                    liveReserved)
                     ? true
                     : undefined
                 }
@@ -295,7 +320,9 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
                 role="status"
                 className="shrink-0 text-[0.78rem] font-semibold text-record/75"
               >
-                {t('account.pseudo.unavailable')}
+                {liveReserved
+                  ? t('account.error.pseudoReserved')
+                  : t('account.pseudo.unavailable')}
               </span>
             ) : sideStatus === 'current' ? (
               <span
@@ -313,13 +340,34 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
               </span>
             ) : null}
           </div>
-          {!user.pseudoCustomizedAt ? (
+          {!user.pseudoCustomizedAt && !liveFormatError ? (
             <p
               id="account-pseudo-hint"
               className="m-0 text-[0.82rem] leading-[1.4] text-ink-soft"
             >
               {t('account.pseudo.customizeHint')}
             </p>
+          ) : liveDoubleUnderscore ? (
+            <span
+              id="account-pseudo-hint"
+              className="text-[0.78rem] font-medium text-record/80"
+            >
+              {t('account.error.pseudoDoubleUnderscore')}
+            </span>
+          ) : liveEdgeUnderscore ? (
+            <span
+              id="account-pseudo-hint"
+              className="text-[0.78rem] font-medium text-record/80"
+            >
+              {t('account.error.pseudoEdgeUnderscore')}
+            </span>
+          ) : liveFormatError ? (
+            <span
+              id="account-pseudo-hint"
+              className="text-[0.78rem] font-medium text-record/80"
+            >
+              {t('account.pseudo.lengthHint')}
+            </span>
           ) : pseudoFocused ? (
             <span
               id="account-pseudo-hint"

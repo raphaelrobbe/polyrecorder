@@ -1,5 +1,6 @@
 import { useLocation, useNavigate } from '@remix-run/react'
 import { useEffect } from 'react'
+import { isReservedPseudo } from '../common/reservedPseudos'
 import {
   discard,
   downloadSelectedMix,
@@ -29,7 +30,7 @@ function focusSessionTitle() {
 }
 
 function isOverlayPath(pathname: string): boolean {
-  return (
+  if (
     pathname === '/aide' ||
     pathname === '/parametres' ||
     pathname === '/compte' ||
@@ -40,6 +41,9 @@ function isOverlayPath(pathname: string): boolean {
     pathname === '/terms' ||
     pathname === '/sitemap' ||
     pathname.startsWith('/connexion/') ||
+    pathname.startsWith('/groupe/') ||
+    pathname.startsWith('/repertoire/') ||
+    pathname.startsWith('/chanson/') ||
     pathname.endsWith('/aide') ||
     pathname.endsWith('/parametres') ||
     pathname.endsWith('/compte') ||
@@ -49,6 +53,12 @@ function isOverlayPath(pathname: string): boolean {
     pathname.endsWith('/privacy') ||
     pathname.endsWith('/terms') ||
     pathname.endsWith('/sitemap')
+  ) {
+    return true
+  }
+  const segments = pathname.split('/').filter(Boolean)
+  return (
+    segments.length === 1 && !isReservedPseudo(decodeURIComponent(segments[0]!))
   )
 }
 

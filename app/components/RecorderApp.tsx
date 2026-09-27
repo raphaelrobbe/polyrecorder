@@ -74,7 +74,11 @@ export function RecorderApp({
     }
     wasSignedIn.current = Boolean(user)
     if (!user) return
-    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/song/')) {
+    if (
+      typeof window !== 'undefined' &&
+      (window.location.pathname.startsWith('/song/') ||
+        window.location.pathname.startsWith('/session/'))
+    ) {
       return
     }
     void hydrateActiveSongIfNeeded()

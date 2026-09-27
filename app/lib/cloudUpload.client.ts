@@ -164,6 +164,7 @@ export type OpenedCloudSong = {
     repertoireId: string
     isPublic: boolean
     allowsCollaboration: boolean
+    groupId: string
     groupName: string
     repertoireName: string
     ownerPseudo: string | null
@@ -204,6 +205,7 @@ export async function fetchAndHydrateSong(
           repertoireId: string
           isPublic: boolean
           allowsCollaboration: boolean
+          groupId: string
           groupName: string
           repertoireName: string
           ownerPseudo: string | null

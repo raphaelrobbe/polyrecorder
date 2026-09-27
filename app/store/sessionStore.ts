@@ -73,8 +73,19 @@ export type SessionStoreState = {
   canCloudContribute: boolean
   /** Cloud song (œuvre) id of the deck session, when loaded from library. */
   deckSongId: string | null
-  /** Breadcrumb group / repertoire for the owned cloud song on the deck. */
-  songLibraryPath: string | null
+  /**
+   * Library location for the cloud song on the deck (breadcrumb above the
+   * title). Song segment links to `/chanson/:id`.
+   */
+  deckLibraryPath: {
+    ownerPseudo: string
+    groupId: string
+    groupName: string
+    repertoireId: string
+    repertoireName: string
+    songId: string
+    songName: string
+  } | null
   /** Song (œuvre) name — highlighted title when a cloud song is loaded. */
   songWorkName: string | null
   /** Owner display for a shared song in consultation (pseudo or null). */
@@ -177,7 +188,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   readOnlySession: false,
   canCloudContribute: false,
   deckSongId: null,
-  songLibraryPath: null,
+  deckLibraryPath: null,
   songWorkName: null,
   sharedOwnerLabel: null,
 

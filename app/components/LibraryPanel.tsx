@@ -447,8 +447,8 @@ function SongShareButton({
 
   const shareUrl =
     typeof window !== 'undefined'
-      ? `${window.location.origin}/song/${songPartId}`
-      : `/song/${songPartId}`
+      ? `${window.location.origin}/session/${songPartId}`
+      : `/session/${songPartId}`
   const shareable = isPublic && Boolean(songPartId)
 
   return (
