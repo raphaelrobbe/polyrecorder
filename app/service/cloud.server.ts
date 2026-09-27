@@ -161,6 +161,15 @@ async function nextSongPartSortOrder(songId: string): Promise<number> {
   return last ? last.sortOrder + 1 : 0
 }
 
+async function nextTrackSortOrder(songPartId: string): Promise<number> {
+  const last = await prisma.trackAsset.findFirst({
+    where: { songPartId },
+    orderBy: { sortOrder: 'desc' },
+    select: { sortOrder: true },
+  })
+  return last ? last.sortOrder + 1 : 0
+}
+
 async function ensureDefaultTree(userId: string) {
   // Prefer the most recently used repertoire rather than the oldest defaults.
   const recent = await prisma.repertoire.findFirst({
@@ -314,6 +323,7 @@ export async function presignTrackUpload(
         offsetMs,
         volume: clampStoredTrackVolume(input.volume ?? 1) ?? 1,
         muted: Boolean(input.muted),
+        sortOrder: await nextTrackSortOrder(part.id),
         clientTrackId: input.clientTrackId ?? null,
         uploadedByUserId: user.id,
       },
@@ -992,6 +1002,52 @@ export async function updateSongPartMasterVolume(
   return { ok: true }
 }
 
+/** Persist deck track order for a session (song owner only). */
+export async function syncTrackAssetOrder(
+  request: Request,
+  songPartId: string,
+  orderedIds: string[],
+): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  if (!songPartId || !Array.isArray(orderedIds) || orderedIds.length === 0) {
+    return { ok: false, reason: 'invalid' }
+  }
+
+  const part = await assertOwnedSongPart(user.id, songPartId)
+  if (!part) return { ok: false, reason: 'not_found' }
+
+  const assets = await prisma.trackAsset.findMany({
+    where: { songPartId: part.id },
+    select: { id: true },
+  })
+  const allowed = new Set(assets.map((asset) => asset.id))
+  const normalized = orderedIds
+    .map((id) => String(id ?? '').trim())
+    .filter((id) => id.length > 0 && allowed.has(id))
+  if (normalized.length === 0) return { ok: false, reason: 'invalid' }
+
+  // Deduplicate while keeping first occurrence order.
+  const seen = new Set<string>()
+  const unique: string[] = []
+  for (const id of normalized) {
+    if (seen.has(id)) continue
+    seen.add(id)
+    unique.push(id)
+  }
+
+  await prisma.$transaction(
+    unique.map((id, index) =>
+      prisma.trackAsset.update({
+        where: { id },
+        data: { sortOrder: index },
+      }),
+    ),
+  )
+  return { ok: true }
+}
+
 export async function deleteTrackAsset(
   request: Request,
   trackAssetId: string,
@@ -1237,7 +1293,7 @@ export async function openSong(
         },
         tracks: {
           where: { uploadedAt: { not: null } },
-          orderBy: { createdAt: 'asc' },
+          orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
         },
       },
     })

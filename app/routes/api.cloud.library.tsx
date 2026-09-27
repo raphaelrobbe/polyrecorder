@@ -21,6 +21,7 @@ import {
   updateTrackAssetVolumes,
   updateTrackAssetMuted,
   updateTrackAssetMutes,
+  syncTrackAssetOrder,
 } from '~/service/cloud.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -52,6 +53,7 @@ export async function action({ request }: ActionFunctionArgs) {
       volume?: number
       muted?: boolean
       masterVolume?: number
+      orderedIds?: string[]
       updates?: Array<{
         id: string
         offsetMs?: number
@@ -192,6 +194,16 @@ export async function action({ request }: ActionFunctionArgs) {
               id: String(u.id ?? ''),
               muted: Boolean(u.muted),
             }))
+          : [],
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'syncTrackOrder') {
+      const result = await syncTrackAssetOrder(
+        request,
+        songPartId || String(body.id ?? ''),
+        Array.isArray(body.orderedIds)
+          ? body.orderedIds.map((id) => String(id ?? ''))
           : [],
       )
       return json(result, { status: result.ok ? 200 : 400 })

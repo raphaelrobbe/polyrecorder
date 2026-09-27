@@ -425,7 +425,7 @@ export const fr = {
   'library.collaborate.on':
     'Collaboration : les utilisateurs connectés peuvent ajouter des pistes',
   'library.collaborate.off':
-    'Collaboration désactivée — écoute seule pour les visiteurs',
+    'Collaboration désactivée — écoute seule',
   'library.share': 'Partager',
   'library.share.disabled': 'Passe la chanson en public pour la partager.',
   'library.share.copy': 'Copier le lien',

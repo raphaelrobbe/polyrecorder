@@ -549,6 +549,25 @@ function persistCloudTrackOffsets(trackIds: number[]) {
   )
 }
 
+function persistCloudTrackOrder() {
+  // Mix order is song-owner metadata (like master volume).
+  if (get().readOnlySession || !canPersistCloudMix()) return
+  const songPartId = get().activeSongPartId ?? get().deckSongPartId
+  if (!songPartId) return
+  const orderedIds = get()
+    .tracks.map((track) => track.cloudTrackId)
+    .filter((id): id is string => Boolean(id))
+  if (orderedIds.length === 0) return
+  postLibraryIntent(
+    {
+      intent: 'syncTrackOrder',
+      songPartId,
+      orderedIds,
+    },
+    'sync track order',
+  )
+}
+
 function persistCloudTrackMuted(trackId: number) {
   if (!canPersistCloudMix()) return
   const track = get().tracks.find((t) => t.id === trackId)
@@ -892,6 +911,7 @@ export function reorderTrack(fromId: number, beforeId: number | null) {
   if (get().playingTrackIds.length > 0 || get().mixListenActive) {
     stopPlayback({ resetSeek: false })
   }
+  persistCloudTrackOrder()
 }
 
 export function applyManualTrackOffset(trackId: number, offsetMs: number) {
