@@ -10,6 +10,6 @@ Every user-facing string (visible labels, `aria-label`, `title` tooltips, `confi
 - Add new keys to **both** `src/lib/i18n/fr.ts` and `src/lib/i18n/en.ts` (and any future locale files).
 - Call `useLocale()` in React components that render translated copy so they re-render when the language changes.
 - Do **not** hardcode French or English in components or `sessionActions` / runtime helpers.
-- Brand name **PolyRecorder** stays untranslated.
+- Brand name **polyrecorder** stays untranslated, always lowercase, displayed in Nunito weight 800 (`BrandInline` / `BrandWordmark`).
 - Language names in the picker stay in their native form (Français, English, …) via the locale catalog, not via `t()`.
 - Shortcut key chords (E / R, F2, …) may stay literal.

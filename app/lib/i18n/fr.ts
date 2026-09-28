@@ -1,6 +1,27 @@
 /** French UI copy (source language). */
 export const fr = {
   'brand.tagline': 'Enregistre, superpose, partage, collabore.',
+  'seo.home.title': 'polyrecorder — Enregistre, superpose, partage, collabore',
+  'seo.home.description':
+    'Enregistreur multipiste dans le navigateur : superpose tes prises, partage tes sessions et collabore en ligne. Gratuit, sans installation.',
+  'seo.help.description':
+    'Aide polyrecorder : mode d’emploi, calage des pistes, raccourcis clavier et conseils d’enregistrement.',
+  'seo.legal.description':
+    'Mentions légales de polyrecorder : éditeur, hébergement et propriété intellectuelle.',
+  'seo.privacy.description':
+    'Politique de confidentialité de polyrecorder : données collectées, finalités et tes droits.',
+  'seo.terms.description':
+    'Conditions générales d’utilisation de polyrecorder : compte, contenus et responsabilités.',
+  'seo.sitemap.description':
+    'Plan du site polyrecorder : accès aux pages de l’application, du compte et des infos légales.',
+  'seo.library.user.description':
+    'Bibliothèque publique de @{pseudo} sur polyrecorder — groupes, répertoires et sessions partagées.',
+  'seo.library.group.description':
+    'Groupe « {name} » sur polyrecorder — répertoires et chansons partagés.',
+  'seo.library.repertoire.description':
+    'Répertoire « {name} » sur polyrecorder — chansons et sessions partagées.',
+  'seo.library.song.description':
+    '« {name} » sur polyrecorder — sessions d’enregistrement partagées.',
 
   'deck.ariaLabel': 'Enregistreur',
 
@@ -71,7 +92,7 @@ export const fr = {
     'Tu disposes des droits d’accès, de rectification, d’effacement, d’opposition, de limitation et de portabilité. Tu peux les exercer via {email}, ou en supprimant ton compte dans les paramètres. Tu peux aussi introduire une réclamation auprès de la CNIL (cnil.fr).',
   'privacy.cookies.title': 'Cookies et stockage local',
   'privacy.cookies.guest':
-    'En navigation en invité, PolyRecorder ne dépose aucun cookie.',
+    'En navigation en invité, polyrecorder ne dépose aucun cookie.',
   'privacy.cookies.signedIn':
     'Après connexion, un seul cookie de session httpOnly ({cookie}) est utilisé, strictement nécessaire à l’authentification. Il ne sert pas au suivi publicitaire.',
   'privacy.cookies.localStorage':
@@ -205,21 +226,21 @@ export const fr = {
   'auth.error.linkInvalid': 'Lien de connexion invalide.',
   'auth.error.linkExpired': 'Ce lien a expiré. Demande-en un nouveau.',
   'auth.error.linkUsed': 'Ce lien a déjà été utilisé. Demande-en un nouveau.',
-  'auth.email.welcome.subject': 'Bienvenue sur PolyRecorder',
+  'auth.email.welcome.subject': 'Bienvenue sur polyrecorder',
   'auth.email.welcome.text':
-    'Bienvenue ! Ton compte PolyRecorder est prêt.\nPense à modifier ton pseudo (généré automatiquement).\n\nPour activer ton compte et te connecter, ouvre ce lien (valable 30 minutes, usage unique) :\n\n{link}\n\nEnsuite tu pourras enregistrer, superposer et télécharger tes prises.\n\nSi tu n’es pas à l’origine de cette demande, ignore cet email.',
+    'Bienvenue ! Ton compte polyrecorder est prêt.\nPense à modifier ton pseudo (généré automatiquement).\n\nPour activer ton compte et te connecter, ouvre ce lien (valable 30 minutes, usage unique) :\n\n{link}\n\nEnsuite tu pourras enregistrer, superposer et télécharger tes prises.\n\nSi tu n’es pas à l’origine de cette demande, ignore cet email.',
   'auth.email.welcome.html':
-    '<p>Bienvenue&nbsp;! Ton compte <strong>PolyRecorder</strong> est prêt.</p><p>Pense à modifier ton pseudo (généré automatiquement).</p><p>Pour activer ton compte et te connecter, ouvre ce lien (valable 30&nbsp;minutes, usage unique)&nbsp;:</p><p><a href="{link}">Activer mon compte</a></p><p>Ensuite tu pourras enregistrer, superposer et télécharger tes prises.</p><p>Si tu n’es pas à l’origine de cette demande, ignore cet email.</p>',
-  'auth.email.signIn.subject': 'Ton lien de connexion PolyRecorder',
+    '<p>Bienvenue&nbsp;! Ton compte <strong style="font-weight:800">polyrecorder</strong> est prêt.</p><p>Pense à modifier ton pseudo (généré automatiquement).</p><p>Pour activer ton compte et te connecter, ouvre ce lien (valable 30&nbsp;minutes, usage unique)&nbsp;:</p><p><a href="{link}">Activer mon compte</a></p><p>Ensuite tu pourras enregistrer, superposer et télécharger tes prises.</p><p>Si tu n’es pas à l’origine de cette demande, ignore cet email.</p>',
+  'auth.email.signIn.subject': 'Ton lien de connexion polyrecorder',
   'auth.email.signIn.text':
-    'Voici ton lien de connexion à PolyRecorder (valable 30 minutes, usage unique) :\n\n{link}\n\nSi tu n’es pas à l’origine de cette demande, ignore cet email.',
+    'Voici ton lien de connexion à polyrecorder (valable 30 minutes, usage unique) :\n\n{link}\n\nSi tu n’es pas à l’origine de cette demande, ignore cet email.',
   'auth.email.signIn.html':
-    '<p>Voici ton lien de connexion à <strong>PolyRecorder</strong> (valable 30&nbsp;minutes, usage unique)&nbsp;:</p><p><a href="{link}">Se connecter</a></p><p>Si tu n’es pas à l’origine de cette demande, ignore cet email.</p>',
-  'auth.emailChange.subject': 'Demande de modification d’email PolyRecorder',
+    '<p>Voici ton lien de connexion à <strong style="font-weight:800">polyrecorder</strong> (valable 30&nbsp;minutes, usage unique)&nbsp;:</p><p><a href="{link}">Se connecter</a></p><p>Si tu n’es pas à l’origine de cette demande, ignore cet email.</p>',
+  'auth.emailChange.subject': 'Demande de modification d’email polyrecorder',
   'auth.emailChange.text':
-    'Une demande de modification de l’adresse email liée à un compte PolyRecorder a été faite pour cette boîte mail.\n\nSi tu n’es pas à l’origine de cette demande, ignore cet email : ton adresse ne changera pas.\n\nSinon, confirme le changement en ouvrant ce lien (valable 30 minutes, usage unique) :\n\n{link}',
+    'Une demande de modification de l’adresse email liée à un compte polyrecorder a été faite pour cette boîte mail.\n\nSi tu n’es pas à l’origine de cette demande, ignore cet email : ton adresse ne changera pas.\n\nSinon, confirme le changement en ouvrant ce lien (valable 30 minutes, usage unique) :\n\n{link}',
   'auth.emailChange.html':
-    '<p>Une demande de modification de l’adresse email liée à un compte <strong>PolyRecorder</strong> a été faite pour cette boîte mail.</p><p>Si tu n’es pas à l’origine de cette demande, ignore cet email&nbsp;: ton adresse ne changera pas.</p><p>Sinon, confirme le changement en ouvrant ce lien (valable 30&nbsp;minutes, usage unique)&nbsp;:</p><p><a href="{link}">Confirmer mon nouvel email</a></p>',
+    '<p>Une demande de modification de l’adresse email liée à un compte <strong style="font-weight:800">polyrecorder</strong> a été faite pour cette boîte mail.</p><p>Si tu n’es pas à l’origine de cette demande, ignore cet email&nbsp;: ton adresse ne changera pas.</p><p>Sinon, confirme le changement en ouvrant ce lien (valable 30&nbsp;minutes, usage unique)&nbsp;:</p><p><a href="{link}">Confirmer mon nouvel email</a></p>',
 
   'locale.select.aria': 'Choisir la langue',
   'settings.language': 'Langue :',
@@ -274,7 +295,7 @@ export const fr = {
     'Démarrer le monitoring un peu plus tard (+5 ms)',
   'align.latency.input': 'Avance de lecture en millisecondes',
   'align.latency.tip':
-    "Pendant « Piste suivante », les prises déjà faites sont rejouées dans le casque avec un peu de latence matérielle. PolyRecorder démarre cette écoute un peu plus tôt pour que ta nouvelle voix tombe au bon endroit sur la timeline. Ajuste la valeur (±5 ms ou saisie directe) si le monitoring te paraît encore en retard ou en avance (réglage mémorisé sur cet appareil). Ce n'est pas le calage auto des pistes (marquages 3–4) : celui-ci sert uniquement pendant l'enregistrement.",
+    "Pendant « Piste suivante », les prises déjà faites sont rejouées dans le casque avec un peu de latence matérielle. polyrecorder démarre cette écoute un peu plus tôt pour que ta nouvelle voix tombe au bon endroit sur la timeline. Ajuste la valeur (±5 ms ou saisie directe) si le monitoring te paraît encore en retard ou en avance (réglage mémorisé sur cet appareil). Ce n'est pas le calage auto des pistes (marquages 3–4) : celui-ci sert uniquement pendant l'enregistrement.",
 
   'volume.percentAria': '{label} en pourcent',
 
@@ -348,7 +369,7 @@ export const fr = {
   'howto.tips':
     'Conseils : enregistrez-vous dans un environnement silencieux, si possible avec un casque ou une oreillette, surtout sur mobile\u00a0!',
   'howto.latency':
-    'Les navigateurs et le matériel audio introduisent une latence (casque, micro, buffer). Sans repères communs, les prises se décalent. Les quatre marquages de la piste de référence et les «\u00a03-4\u00a0» des pistes suivantes permettent à PolyRecorder de mesurer et corriger ce décalage automatiquement. Des sons nets, espacés et réguliers donnent un meilleur calage ; une battue irrégulière ou peu audible peut fausser la synchronisation.',
+    'Les navigateurs et le matériel audio introduisent une latence (casque, micro, buffer). Sans repères communs, les prises se décalent. Les quatre marquages de la piste de référence et les «\u00a03-4\u00a0» des pistes suivantes permettent à polyrecorder de mesurer et corriger ce décalage automatiquement. Des sons nets, espacés et réguliers donnent un meilleur calage ; une battue irrégulière ou peu audible peut fausser la synchronisation.',
 
   'help.title': 'Aide',
   'help.close': "Fermer l'aide",
@@ -360,7 +381,7 @@ export const fr = {
     'Ces noms servent au fichier MP3 téléchargé : le titre du projet, et — si toutes les pistes ne sont pas sélectionnées — les noms des pistes exportées, par exemple «\u00a0Ma polyphonie_Basses 1 - Basses 2.mp3\u00a0».',
   'help.sync.title': 'Synchronisation',
   'help.sync.body1':
-    'Pour caler les pistes entre elles, la première (référence) doit commencer par quatre marquages nets et réguliers (1-2-3-4, ou tout signal audible en 4 temps). Les pistes suivantes ne reprennent que les 3ème et 4ème temps, puis la voix. PolyRecorder s’en sert pour mesurer et corriger automatiquement le décalage dû à la latence audio.',
+    'Pour caler les pistes entre elles, la première (référence) doit commencer par quatre marquages nets et réguliers (1-2-3-4, ou tout signal audible en 4 temps). Les pistes suivantes ne reprennent que les 3ème et 4ème temps, puis la voix. polyrecorder s’en sert pour mesurer et corriger automatiquement le décalage dû à la latence audio.',
   'help.sync.body2':
     'Des bruits parasites peuvent empêcher la reconnaissance du 1-2-3-4. Dans ce cas, mieux vaut recommencer l’enregistrement de zéro pour repartir sur une bonne piste de référence : sinon tout devra être calé à la main. Idem pour le 3-4 des pistes suivantes : un marquage peu clair ou noyé dans le bruit fausse le calage auto de cette prise.',
   'help.shortcuts.title': 'Raccourcis clavier',
@@ -448,7 +469,7 @@ export const fr = {
   'song.view.notFound': 'Cette chanson est introuvable ou privée.',
   'song.view.shared': 'partagé',
   'song.view.collaborate': 'collaboration ouverte',
-  'song.og.description': '{tracks} · Écoute sur PolyRecorder',
+  'song.og.description': '{tracks} · Écoute sur polyrecorder',
 
   'settings.title': 'Paramètres',
   'settings.close': 'Fermer les paramètres',

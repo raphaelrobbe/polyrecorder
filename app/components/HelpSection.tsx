@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { withBrand } from './BrandInline'
 import { cn } from '../lib/utils'
 
 type HelpSectionProps = {
@@ -38,6 +39,7 @@ type HelpTextProps = {
 }
 
 export function HelpText({ children, className }: HelpTextProps) {
+  const content = typeof children === 'string' ? withBrand(children) : children
   return (
     <p
       className={cn(
@@ -45,7 +47,7 @@ export function HelpText({ children, className }: HelpTextProps) {
         className,
       )}
     >
-      {children}
+      {content}
     </p>
   )
 }

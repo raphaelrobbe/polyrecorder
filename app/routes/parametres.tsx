@@ -6,7 +6,8 @@ import { SettingsPanel } from '~/components/SettingsPanel'
 import { t } from '~/lib/i18n'
 
 export const meta: MetaFunction = () => [
-  { title: `PolyRecorder — ${t('settings.title')}` },
+  { title: `polyrecorder — ${t('settings.title')}` },
+  { name: 'robots', content: 'noindex, nofollow' },
 ]
 
 export function shouldRevalidate() {

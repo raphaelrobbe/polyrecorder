@@ -3,6 +3,27 @@ import type { MessageKey } from './fr'
 /** German UI copy — please review. */
 export const de: Record<MessageKey, string> = {
   'brand.tagline': 'Aufnehmen, überlagern, teilen, kollaborieren.',
+  'seo.home.title': 'polyrecorder — Aufnehmen, überlagern, teilen, kollaborieren',
+  'seo.home.description':
+    'Mehrspur-Rekorder im Browser: Takes überlagern, Sessions teilen und online zusammenarbeiten. Kostenlos, ohne Installation.',
+  'seo.help.description':
+    'polyrecorder-Hilfe: Anleitung, Spur-Ausrichtung, Tastenkürzel und Aufnahme-Tipps.',
+  'seo.legal.description':
+    'Impressum von polyrecorder: Herausgeber, Hosting und geistiges Eigentum.',
+  'seo.privacy.description':
+    'Datenschutzerklärung von polyrecorder: erhobene Daten, Zwecke und deine Rechte.',
+  'seo.terms.description':
+    'Nutzungsbedingungen von polyrecorder: Konto, Inhalte und Verantwortlichkeiten.',
+  'seo.sitemap.description':
+    'Sitemap von polyrecorder: App-Seiten, Konto und rechtliche Informationen.',
+  'seo.library.user.description':
+    'Öffentliche Bibliothek von @{pseudo} auf polyrecorder — geteilte Gruppen, Repertoires und Sessions.',
+  'seo.library.group.description':
+    'Gruppe „{name}“ auf polyrecorder — geteilte Repertoires und Songs.',
+  'seo.library.repertoire.description':
+    'Repertoire „{name}“ auf polyrecorder — geteilte Songs und Sessions.',
+  'seo.library.song.description':
+    '„{name}“ auf polyrecorder — geteilte Aufnahmesessions.',
 
   'deck.ariaLabel': 'Rekorder',
 
@@ -73,7 +94,7 @@ export const de: Record<MessageKey, string> = {
     'Du hast Rechte auf Auskunft, Berichtigung, Löschung, Widerspruch, Einschränkung und Datenübertragbarkeit. Du kannst sie über {email} ausüben oder indem du dein Konto in den Einstellungen löschst. Du kannst auch eine Beschwerde bei einer Aufsichtsbehörde einreichen (in Frankreich: CNIL, cnil.fr).',
   'privacy.cookies.title': 'Cookies und lokaler Speicher',
   'privacy.cookies.guest':
-    'Als Gast setzt PolyRecorder keine Cookies.',
+    'Als Gast setzt polyrecorder keine Cookies.',
   'privacy.cookies.signedIn':
     'Nach der Anmeldung wird ein einziges httpOnly-Sitzungscookie ({cookie}) verwendet, das für die Authentifizierung unbedingt erforderlich ist. Es dient nicht dem Werbe-Tracking.',
   'privacy.cookies.localStorage':
@@ -207,21 +228,21 @@ export const de: Record<MessageKey, string> = {
   'auth.error.linkInvalid': 'Ungültiger Anmelde-Link.',
   'auth.error.linkExpired': 'Dieser Link ist abgelaufen. Fordere einen neuen an.',
   'auth.error.linkUsed': 'Dieser Link wurde bereits verwendet. Fordere einen neuen an.',
-  'auth.email.welcome.subject': 'Willkommen bei PolyRecorder',
+  'auth.email.welcome.subject': 'Willkommen bei polyrecorder',
   'auth.email.welcome.text':
-    'Willkommen! Dein PolyRecorder-Konto ist bereit.\nDenk daran, deinen Anzeigenamen zu ändern (er wurde automatisch erzeugt).\n\nUm dein Konto zu aktivieren und dich anzumelden, öffne diesen Link (30 Minuten gültig, einmalig):\n\n{link}\n\nDanach kannst du Aufnahmen machen, überlagern und herunterladen.\n\nWenn du das nicht angefordert hast, ignoriere diese E-Mail.',
+    'Willkommen! Dein polyrecorder-Konto ist bereit.\nDenk daran, deinen Anzeigenamen zu ändern (er wurde automatisch erzeugt).\n\nUm dein Konto zu aktivieren und dich anzumelden, öffne diesen Link (30 Minuten gültig, einmalig):\n\n{link}\n\nDanach kannst du Aufnahmen machen, überlagern und herunterladen.\n\nWenn du das nicht angefordert hast, ignoriere diese E-Mail.',
   'auth.email.welcome.html':
-    '<p>Willkommen&nbsp;! Dein <strong>PolyRecorder</strong>-Konto ist bereit.</p><p>Denk daran, deinen Anzeigenamen zu ändern (er wurde automatisch erzeugt).</p><p>Um dein Konto zu aktivieren und dich anzumelden, öffne diesen Link (30&nbsp;Minuten gültig, einmalig):</p><p><a href="{link}">Konto aktivieren</a></p><p>Danach kannst du Aufnahmen machen, überlagern und herunterladen.</p><p>Wenn du das nicht angefordert hast, ignoriere diese E-Mail.</p>',
-  'auth.email.signIn.subject': 'Dein PolyRecorder-Anmelde-Link',
+    '<p>Willkommen&nbsp;! Dein <strong style="font-weight:800">polyrecorder</strong>-Konto ist bereit.</p><p>Denk daran, deinen Anzeigenamen zu ändern (er wurde automatisch erzeugt).</p><p>Um dein Konto zu aktivieren und dich anzumelden, öffne diesen Link (30&nbsp;Minuten gültig, einmalig):</p><p><a href="{link}">Konto aktivieren</a></p><p>Danach kannst du Aufnahmen machen, überlagern und herunterladen.</p><p>Wenn du das nicht angefordert hast, ignoriere diese E-Mail.</p>',
+  'auth.email.signIn.subject': 'Dein polyrecorder-Anmelde-Link',
   'auth.email.signIn.text':
-    'Hier ist dein Anmelde-Link für PolyRecorder (30 Minuten gültig, einmalig):\n\n{link}\n\nWenn du das nicht angefordert hast, ignoriere diese E-Mail.',
+    'Hier ist dein Anmelde-Link für polyrecorder (30 Minuten gültig, einmalig):\n\n{link}\n\nWenn du das nicht angefordert hast, ignoriere diese E-Mail.',
   'auth.email.signIn.html':
-    '<p>Hier ist dein Anmelde-Link für <strong>PolyRecorder</strong> (30&nbsp;Minuten gültig, einmalig):</p><p><a href="{link}">Anmelden</a></p><p>Wenn du das nicht angefordert hast, ignoriere diese E-Mail.</p>',
-  'auth.emailChange.subject': 'Anfrage zur E-Mail-Änderung bei PolyRecorder',
+    '<p>Hier ist dein Anmelde-Link für <strong style="font-weight:800">polyrecorder</strong> (30&nbsp;Minuten gültig, einmalig):</p><p><a href="{link}">Anmelden</a></p><p>Wenn du das nicht angefordert hast, ignoriere diese E-Mail.</p>',
+  'auth.emailChange.subject': 'Anfrage zur E-Mail-Änderung bei polyrecorder',
   'auth.emailChange.text':
-    'Es wurde beantragt, die E-Mail-Adresse eines PolyRecorder-Kontos auf dieses Postfach zu ändern.\n\nWenn du das nicht angefordert hast, ignoriere diese E-Mail — deine Adresse ändert sich nicht.\n\nAndernfalls bestätige die Änderung mit diesem Link (30 Minuten gültig, einmalig):\n\n{link}',
+    'Es wurde beantragt, die E-Mail-Adresse eines polyrecorder-Kontos auf dieses Postfach zu ändern.\n\nWenn du das nicht angefordert hast, ignoriere diese E-Mail — deine Adresse ändert sich nicht.\n\nAndernfalls bestätige die Änderung mit diesem Link (30 Minuten gültig, einmalig):\n\n{link}',
   'auth.emailChange.html':
-    '<p>Es wurde beantragt, die E-Mail-Adresse eines <strong>PolyRecorder</strong>-Kontos auf dieses Postfach zu ändern.</p><p>Wenn du das nicht angefordert hast, ignoriere diese E-Mail — deine Adresse ändert sich nicht.</p><p>Andernfalls bestätige die Änderung mit diesem Link (30&nbsp;Minuten gültig, einmalig):</p><p><a href="{link}">Neue E-Mail bestätigen</a></p>',
+    '<p>Es wurde beantragt, die E-Mail-Adresse eines <strong style="font-weight:800">polyrecorder</strong>-Kontos auf dieses Postfach zu ändern.</p><p>Wenn du das nicht angefordert hast, ignoriere diese E-Mail — deine Adresse ändert sich nicht.</p><p>Andernfalls bestätige die Änderung mit diesem Link (30&nbsp;Minuten gültig, einmalig):</p><p><a href="{link}">Neue E-Mail bestätigen</a></p>',
 
   'locale.select.aria': 'Sprache wählen',
   'settings.language': 'Sprache:',
@@ -273,7 +294,7 @@ export const de: Record<MessageKey, string> = {
   'align.latency.plus': 'Monitoring etwas später starten (+5 ms)',
   'align.latency.input': 'Wiedergabe-Vorlauf in Millisekunden',
   'align.latency.tip':
-    'Bei „Nächste Spur“ werden vorhandene Takes mit etwas Hardware-Latenz im Kopfhörer abgespielt. PolyRecorder startet dieses Monitoring etwas früher, damit deine neue Stimme an der richtigen Stelle der Timeline landet. Passe den Wert an (±5 ms oder direkt eingeben), wenn das Monitoring noch zu spät oder zu früh wirkt (auf diesem Gerät gespeichert). Das ist nicht die Auto-Ausrichtung über die 3–4-Markierungen: sie gilt nur während der Aufnahme.',
+    'Bei „Nächste Spur“ werden vorhandene Takes mit etwas Hardware-Latenz im Kopfhörer abgespielt. polyrecorder startet dieses Monitoring etwas früher, damit deine neue Stimme an der richtigen Stelle der Timeline landet. Passe den Wert an (±5 ms oder direkt eingeben), wenn das Monitoring noch zu spät oder zu früh wirkt (auf diesem Gerät gespeichert). Das ist nicht die Auto-Ausrichtung über die 3–4-Markierungen: sie gilt nur während der Aufnahme.',
 
   'volume.percentAria': '{label} in Prozent',
 
@@ -348,7 +369,7 @@ export const de: Record<MessageKey, string> = {
   'howto.tips':
     'Tipps: nimm in ruhiger Umgebung auf, möglichst mit Kopfhörer oder Ohrhörer—besonders am Handy!',
   'howto.latency':
-    'Browser und Audiogeräte erzeugen Latenz (Kopfhörer, Mikrofon, Buffer). Ohne gemeinsame Markierungen verrutschen die Takes. Die vier Markierungen der Referenzspur und die „3-4“ der folgenden Spuren lassen PolyRecorder diese Verschiebung messen und automatisch korrigieren. Klare, gleichmäßige, gut getrennte Laute richten besser aus; ein unregelmäßiger oder leiser Auftakt kann die Sync stören.',
+    'Browser und Audiogeräte erzeugen Latenz (Kopfhörer, Mikrofon, Buffer). Ohne gemeinsame Markierungen verrutschen die Takes. Die vier Markierungen der Referenzspur und die „3-4“ der folgenden Spuren lassen polyrecorder diese Verschiebung messen und automatisch korrigieren. Klare, gleichmäßige, gut getrennte Laute richten besser aus; ein unregelmäßiger oder leiser Auftakt kann die Sync stören.',
 
   'help.title': 'Hilfe',
   'help.close': 'Hilfe schließen',
@@ -360,7 +381,7 @@ export const de: Record<MessageKey, string> = {
     'Diese Namen fließen in die MP3-Datei: der Projekttitel und — wenn nicht alle Spuren ausgewählt sind — die exportierten Spurnamen, z. B. „Meine Polyphonie_Bässe 1 - Bässe 2.mp3“.',
   'help.sync.title': 'Synchronisation',
   'help.sync.body1':
-    'Zum Ausrichten der Spuren sollte die erste (Referenz) mit vier klaren, gleichmäßigen Markierungen beginnen (1-2-3-4 oder ein anderes hörbares 4er-Signal). Folgende Spuren wiederholen nur die 3. und 4. Zählzeit, dann die Stimme. PolyRecorder misst damit den Latenzversatz und korrigiert ihn automatisch.',
+    'Zum Ausrichten der Spuren sollte die erste (Referenz) mit vier klaren, gleichmäßigen Markierungen beginnen (1-2-3-4 oder ein anderes hörbares 4er-Signal). Folgende Spuren wiederholen nur die 3. und 4. Zählzeit, dann die Stimme. polyrecorder misst damit den Latenzversatz und korrigiert ihn automatisch.',
   'help.sync.body2':
     'Störgeräusche können die Erkennung von 1-2-3-4 verhindern. Dann besser von vorn aufnehmen, um eine solide Referenzspur zu haben—sonst muss alles manuell ausgerichtet werden. Dasselbe gilt für die 3-4 späterer Spuren: eine schwache oder verrauschte Markierung bricht die Auto-Ausrichtung dieses Takes.',
   'help.shortcuts.title': 'Tastenkürzel',
@@ -449,7 +470,7 @@ export const de: Record<MessageKey, string> = {
   'song.view.notFound': 'Dieses Lied fehlt oder ist privat.',
   'song.view.shared': 'geteilt',
   'song.view.collaborate': 'offen für Zusammenarbeit',
-  'song.og.description': '{tracks} · Anhören auf PolyRecorder',
+  'song.og.description': '{tracks} · Anhören auf polyrecorder',
 
   'settings.title': 'Einstellungen',
   'settings.close': 'Einstellungen schließen',

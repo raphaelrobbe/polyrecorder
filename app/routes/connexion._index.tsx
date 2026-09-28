@@ -25,7 +25,8 @@ import { redirectWithMagicLinkPreview } from '~/service/session.server'
 import { redirect } from '@remix-run/node'
 
 export const meta: MetaFunction = () => [
-  { title: `PolyRecorder — ${t('auth.signIn.title')}` },
+  { title: `polyrecorder — ${t('auth.signIn.title')}` },
+  { name: 'robots', content: 'noindex, nofollow' },
 ]
 
 export async function loader({ request }: LoaderFunctionArgs) {

@@ -25,7 +25,7 @@
 html.light {
   color-scheme: light;
   --ink: var(--color-gray-950);
-  --ink-soft: var(--color-gray-500);
+  --ink-soft: var(--color-gray-700);
   --on-ink: var(--color-gray-50);
   --paper: var(--color-gray-100);
   --foam: color-mix(in srgb, var(--brand-1) 10%, white);
@@ -71,7 +71,7 @@ html.light {
 html.dark {
   color-scheme: dark;
   --ink: var(--color-gray-50);
-  --ink-soft: var(--color-gray-400);
+  --ink-soft: var(--color-gray-300);
   --on-ink: var(--color-gray-950);
   --paper: var(--color-gray-950);
   --foam: color-mix(in srgb, var(--brand-1) 16%, var(--color-gray-950));

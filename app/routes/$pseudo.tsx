@@ -13,9 +13,11 @@ import { useLocale } from '~/hooks/useLocale'
 import { groupMetaLabel } from '~/lib/libraryCounts'
 import {
   libraryGroupPath,
+  libraryUserPath,
   normalizePathPseudo,
 } from '~/lib/libraryPaths'
 import { t } from '~/lib/i18n'
+import { absoluteUrl, appUrlFromMatches, brandLogoUrl, pageMeta } from '~/lib/seo'
 import { getLibraryPortfolio } from '~/service/cloud.server'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
@@ -33,17 +35,27 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return json(result)
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
+export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
   if (!data || !('ok' in data) || !data.ok) {
     return [
-      { title: `PolyRecorder — ${t('library.title')}` },
+      { title: `polyrecorder — ${t('library.title')}` },
       { name: 'robots', content: 'noindex' },
     ]
   }
-  return [
-    { title: `@${data.pseudo} · PolyRecorder` },
-    { name: 'robots', content: data.isOwner ? 'noindex' : 'index' },
-  ]
+  const appUrl = appUrlFromMatches(matches)
+  const title = `@${data.pseudo} · polyrecorder`
+  const description = t('seo.library.user.description', { pseudo: data.pseudo })
+  const indexable = !data.isOwner
+  return pageMeta({
+    title,
+    description,
+    url:
+      indexable && appUrl
+        ? absoluteUrl(appUrl, libraryUserPath(data.pseudo))
+        : undefined,
+    image: appUrl ? brandLogoUrl(appUrl) : undefined,
+    robots: indexable ? 'index' : 'noindex',
+  })
 }
 
 export function shouldRevalidate() {

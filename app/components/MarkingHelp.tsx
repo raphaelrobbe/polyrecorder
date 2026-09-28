@@ -2,6 +2,7 @@ import { useLocale } from '../hooks/useLocale'
 import { t } from '../lib/i18n'
 import { useSessionStore } from '../store/sessionStore'
 import { cn } from '../lib/utils'
+import { withBrand } from './BrandInline'
 
 type MarkingHelpProps = {
   className?: string
@@ -48,18 +49,18 @@ export function MarkingHelp({ className }: MarkingHelpProps) {
         hidden={!markingOpen}
       >
         <ul className="m-0 list-disc list-outside pl-[1.15rem] [&_li+li]:mt-[0.35rem]">
-          <li>{t('howto.step1')}</li>
-          <li>{t('howto.step2')}</li>
-          <li>{t('howto.step3')}</li>
-          <li>{t('howto.step4')}</li>
-          <li>{t('howto.step5')}</li>
-          <li>{t('howto.step6')}</li>
+          <li>{withBrand(t('howto.step1'))}</li>
+          <li>{withBrand(t('howto.step2'))}</li>
+          <li>{withBrand(t('howto.step3'))}</li>
+          <li>{withBrand(t('howto.step4'))}</li>
+          <li>{withBrand(t('howto.step5'))}</li>
+          <li>{withBrand(t('howto.step6'))}</li>
         </ul>
         <p className="mt-[0.85rem] mb-0 rounded-xl border border-ink/22 bg-foam px-[0.8rem] py-[0.7rem] text-[0.84rem] font-semibold leading-[1.4] text-ink shadow-[inset_0_0_0_1px_var(--highlight)]">
-          {t('howto.tips')}
+          {withBrand(t('howto.tips'))}
         </p>
         <p className="mt-[0.85rem] mb-0 rounded-xl border border-ink/10 bg-ink/6 px-[0.8rem] py-[0.7rem] text-[0.8rem] leading-[1.4] text-ink-soft">
-          {t('howto.latency')}
+          {withBrand(t('howto.latency'))}
         </p>
       </div>
     </div>

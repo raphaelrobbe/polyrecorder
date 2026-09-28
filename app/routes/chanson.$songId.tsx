@@ -15,9 +15,11 @@ import {
   libraryGroupPath,
   libraryRepertoirePath,
   librarySessionPath,
+  librarySongPath,
   libraryUserPath,
 } from '~/lib/libraryPaths'
 import { t } from '~/lib/i18n'
+import { absoluteUrl, appUrlFromMatches, brandLogoUrl, pageMeta } from '~/lib/seo'
 import { getLibrarySongLevel } from '~/service/cloud.server'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
@@ -32,20 +34,29 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return json(result)
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
+export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
   if (!data || !('ok' in data) || !data.ok) {
     return [
-      { title: `PolyRecorder — ${t('library.title')}` },
+      { title: `polyrecorder — ${t('library.title')}` },
       { name: 'robots', content: 'noindex' },
     ]
   }
-  return [
-    { title: `${data.song.name} · PolyRecorder` },
-    {
-      name: 'robots',
-      content: data.isOwner || !data.song.isPublic ? 'noindex' : 'index',
-    },
-  ]
+  const appUrl = appUrlFromMatches(matches)
+  const title = `${data.song.name} · polyrecorder`
+  const description = t('seo.library.song.description', {
+    name: data.song.name,
+  })
+  const indexable = !data.isOwner && data.song.isPublic
+  return pageMeta({
+    title,
+    description,
+    url:
+      indexable && appUrl
+        ? absoluteUrl(appUrl, librarySongPath(data.song.id))
+        : undefined,
+    image: appUrl ? brandLogoUrl(appUrl) : undefined,
+    robots: indexable ? 'index' : 'noindex',
+  })
 }
 
 function ChansonClient() {

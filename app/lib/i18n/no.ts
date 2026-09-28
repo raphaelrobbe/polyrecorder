@@ -3,6 +3,27 @@ import type { MessageKey } from './fr'
 /** Norwegian (Bokmål) UI copy — please review. */
 export const no: Record<MessageKey, string> = {
   'brand.tagline': 'Ta opp, lag på lag, del, samarbeid.',
+  'seo.home.title': 'polyrecorder — Ta opp, lag på lag, del, samarbeid',
+  'seo.home.description':
+    'Flerkanalsopptaker i nettleseren: legg spor oppå hverandre, del økter og samarbeid på nett. Gratis, uten installasjon.',
+  'seo.help.description':
+    'polyrecorder-hjelp: brukerveiledning, sporjustering, hurtigtaster og opptakstips.',
+  'seo.legal.description':
+    'Juridisk informasjon for polyrecorder: utgiver, hosting og åndsverk.',
+  'seo.privacy.description':
+    'Personvernerklæring for polyrecorder: data vi samler inn, formål og dine rettigheter.',
+  'seo.terms.description':
+    'Vilkår for bruk av polyrecorder: konto, innhold og ansvar.',
+  'seo.sitemap.description':
+    'Nettstedskart for polyrecorder: appsider, konto og juridisk informasjon.',
+  'seo.library.user.description':
+    'Offentlig bibliotek til @{pseudo} på polyrecorder — delte grupper, repertoarer og økter.',
+  'seo.library.group.description':
+    'Gruppe «{name}» på polyrecorder — delte repertoarer og sanger.',
+  'seo.library.repertoire.description':
+    'Repertoar «{name}» på polyrecorder — delte sanger og økter.',
+  'seo.library.song.description':
+    '«{name}» på polyrecorder — delte opptaksøkter.',
 
   'deck.ariaLabel': 'Opptaker',
 
@@ -73,7 +94,7 @@ export const no: Record<MessageKey, string> = {
     'Du har rett til innsyn, retting, sletting, protest, begrensning og dataportabilitet. Du kan utøve dem via {email}, eller ved å slette kontoen i innstillingene. Du kan også klage til en tilsynsmyndighet (i Frankrike: CNIL, cnil.fr).',
   'privacy.cookies.title': 'Informasjonskapsler og lokal lagring',
   'privacy.cookies.guest':
-    'Som gjest setter PolyRecorder ingen informasjonskapsler.',
+    'Som gjest setter polyrecorder ingen informasjonskapsler.',
   'privacy.cookies.signedIn':
     'Etter innlogging brukes én httpOnly-sesjonskapsel ({cookie}), strengt nødvendig for autentisering. Den brukes ikke til reklamesporing.',
   'privacy.cookies.localStorage':
@@ -207,21 +228,21 @@ export const no: Record<MessageKey, string> = {
   'auth.error.linkInvalid': 'Ugyldig innloggingslenke.',
   'auth.error.linkExpired': 'Denne lenken er utløpt. Be om en ny.',
   'auth.error.linkUsed': 'Denne lenken er allerede brukt. Be om en ny.',
-  'auth.email.welcome.subject': 'Velkommen til PolyRecorder',
+  'auth.email.welcome.subject': 'Velkommen til polyrecorder',
   'auth.email.welcome.text':
-    'Velkommen! PolyRecorder-kontoen din er klar.\nHusk å endre visningsnavnet (det ble generert automatisk).\n\nFor å aktivere kontoen din og logge inn, åpne denne lenken (gyldig i 30 minutter, engangsbruk):\n\n{link}\n\nDeretter kan du ta opp, legge lag på lag og laste ned.\n\nHvis du ikke ba om dette, kan du ignorere denne e-posten.',
+    'Velkommen! polyrecorder-kontoen din er klar.\nHusk å endre visningsnavnet (det ble generert automatisk).\n\nFor å aktivere kontoen din og logge inn, åpne denne lenken (gyldig i 30 minutter, engangsbruk):\n\n{link}\n\nDeretter kan du ta opp, legge lag på lag og laste ned.\n\nHvis du ikke ba om dette, kan du ignorere denne e-posten.',
   'auth.email.welcome.html':
-    '<p>Velkommen&nbsp;! <strong>PolyRecorder</strong>-kontoen din er klar.</p><p>Husk å endre visningsnavnet (det ble generert automatisk).</p><p>For å aktivere kontoen din og logge inn, åpne denne lenken (gyldig i 30&nbsp;minutter, engangsbruk):</p><p><a href="{link}">Aktiver kontoen min</a></p><p>Deretter kan du ta opp, legge lag på lag og laste ned.</p><p>Hvis du ikke ba om dette, kan du ignorere denne e-posten.</p>',
-  'auth.email.signIn.subject': 'Innloggingslenken din til PolyRecorder',
+    '<p>Velkommen&nbsp;! <strong style="font-weight:800">polyrecorder</strong>-kontoen din er klar.</p><p>Husk å endre visningsnavnet (det ble generert automatisk).</p><p>For å aktivere kontoen din og logge inn, åpne denne lenken (gyldig i 30&nbsp;minutter, engangsbruk):</p><p><a href="{link}">Aktiver kontoen min</a></p><p>Deretter kan du ta opp, legge lag på lag og laste ned.</p><p>Hvis du ikke ba om dette, kan du ignorere denne e-posten.</p>',
+  'auth.email.signIn.subject': 'Innloggingslenken din til polyrecorder',
   'auth.email.signIn.text':
-    'Her er innloggingslenken din til PolyRecorder (gyldig i 30 minutter, engangsbruk):\n\n{link}\n\nHvis du ikke ba om dette, kan du ignorere denne e-posten.',
+    'Her er innloggingslenken din til polyrecorder (gyldig i 30 minutter, engangsbruk):\n\n{link}\n\nHvis du ikke ba om dette, kan du ignorere denne e-posten.',
   'auth.email.signIn.html':
-    '<p>Her er innloggingslenken din til <strong>PolyRecorder</strong> (gyldig i 30&nbsp;minutter, engangsbruk):</p><p><a href="{link}">Logg inn</a></p><p>Hvis du ikke ba om dette, kan du ignorere denne e-posten.</p>',
-  'auth.emailChange.subject': 'Forespørsel om e-postendring for PolyRecorder',
+    '<p>Her er innloggingslenken din til <strong style="font-weight:800">polyrecorder</strong> (gyldig i 30&nbsp;minutter, engangsbruk):</p><p><a href="{link}">Logg inn</a></p><p>Hvis du ikke ba om dette, kan du ignorere denne e-posten.</p>',
+  'auth.emailChange.subject': 'Forespørsel om e-postendring for polyrecorder',
   'auth.emailChange.text':
-    'Det er bedt om å endre e-postadressen knyttet til en PolyRecorder-konto til denne innboksen.\n\nHvis du ikke ba om dette, kan du ignorere e-posten — adressen din endres ikke.\n\nEllers bekreft endringen ved å åpne denne lenken (gyldig i 30 minutter, engangsbruk):\n\n{link}',
+    'Det er bedt om å endre e-postadressen knyttet til en polyrecorder-konto til denne innboksen.\n\nHvis du ikke ba om dette, kan du ignorere e-posten — adressen din endres ikke.\n\nEllers bekreft endringen ved å åpne denne lenken (gyldig i 30 minutter, engangsbruk):\n\n{link}',
   'auth.emailChange.html':
-    '<p>Det er bedt om å endre e-postadressen knyttet til en <strong>PolyRecorder</strong>-konto til denne innboksen.</p><p>Hvis du ikke ba om dette, kan du ignorere e-posten — adressen din endres ikke.</p><p>Ellers bekreft endringen ved å åpne denne lenken (gyldig i 30&nbsp;minutter, engangsbruk):</p><p><a href="{link}">Bekreft ny e-post</a></p>',
+    '<p>Det er bedt om å endre e-postadressen knyttet til en <strong style="font-weight:800">polyrecorder</strong>-konto til denne innboksen.</p><p>Hvis du ikke ba om dette, kan du ignorere e-posten — adressen din endres ikke.</p><p>Ellers bekreft endringen ved å åpne denne lenken (gyldig i 30&nbsp;minutter, engangsbruk):</p><p><a href="{link}">Bekreft ny e-post</a></p>',
 
   'locale.select.aria': 'Velg språk',
   'settings.language': 'Språk:',
@@ -273,7 +294,7 @@ export const no: Record<MessageKey, string> = {
   'align.latency.plus': 'Start monitoring litt senere (+5 ms)',
   'align.latency.input': 'Avspillingsforskyvning i millisekunder',
   'align.latency.tip':
-    'Under «Neste spor» spilles tidligere opptak i hodetelefonene med litt maskinvarelatens. PolyRecorder starter denne monitoringen litt tidlig, slik at den nye stemmen lander på rett sted på tidslinjen. Juster verdien (±5 ms eller skriv den inn) hvis monitoringen fortsatt føles sen eller tidlig (lagres på denne enheten). Dette er ikke autojustering fra 3–4-markørene: det gjelder bare under opptak.',
+    'Under «Neste spor» spilles tidligere opptak i hodetelefonene med litt maskinvarelatens. polyrecorder starter denne monitoringen litt tidlig, slik at den nye stemmen lander på rett sted på tidslinjen. Juster verdien (±5 ms eller skriv den inn) hvis monitoringen fortsatt føles sen eller tidlig (lagres på denne enheten). Dette er ikke autojustering fra 3–4-markørene: det gjelder bare under opptak.',
 
   'volume.percentAria': '{label} i prosent',
 
@@ -347,7 +368,7 @@ export const no: Record<MessageKey, string> = {
   'howto.tips':
     'Tips: ta opp i rolige omgivelser, gjerne med hodetelefoner eller ørepropp—særlig på mobil!',
   'howto.latency':
-    'Nettlesere og lydutstyr gir latens (hodetelefoner, mikrofon, buffer). Uten felles markører sklir opptakene. De fire markørene på referansesporet og «3-4» på senere spor lar PolyRecorder måle og rette denne forskyvningen automatisk. Tydelige, jevne, godt adskilte lyder justerer bedre; en uregelmessig eller svak opptakt kan ødelegge synken.',
+    'Nettlesere og lydutstyr gir latens (hodetelefoner, mikrofon, buffer). Uten felles markører sklir opptakene. De fire markørene på referansesporet og «3-4» på senere spor lar polyrecorder måle og rette denne forskyvningen automatisk. Tydelige, jevne, godt adskilte lyder justerer bedre; en uregelmessig eller svak opptakt kan ødelegge synken.',
 
   'help.title': 'Hjelp',
   'help.close': 'Lukk hjelp',
@@ -359,7 +380,7 @@ export const no: Record<MessageKey, string> = {
     'Disse navnene brukes i MP3-filen: prosjekttittelen, og — hvis ikke alle spor er valgt — navnene på eksporterte spor, f.eks. «Min polyfoni_Bass 1 - Bass 2.mp3».',
   'help.sync.title': 'Synkronisering',
   'help.sync.body1':
-    'For å justere sporene bør det første (referanse) starte med fire tydelige, jevne markører (1-2-3-4, eller et annet hørbart 4-taktsignal). Senere spor tar bare 3. og 4. taktslag på nytt, deretter stemmen. PolyRecorder bruker dem til å måle og rette latensforskyvning automatisk.',
+    'For å justere sporene bør det første (referanse) starte med fire tydelige, jevne markører (1-2-3-4, eller et annet hørbart 4-taktsignal). Senere spor tar bare 3. og 4. taktslag på nytt, deretter stemmen. polyrecorder bruker dem til å måle og rette latensforskyvning automatisk.',
   'help.sync.body2':
     'Bakgrunnsstøy kan hindre gjenkjenning av 1-2-3-4. Start da opptaket på nytt for et solid referansespor—ellers må alt justeres for hånd. Det samme gjelder 3-4 på senere spor: en svak eller støyete markør ødelegger autojustering for det opptaket.',
   'help.shortcuts.title': 'Hurtigtaster',
@@ -447,7 +468,7 @@ export const no: Record<MessageKey, string> = {
   'song.view.notFound': 'Denne sangen mangler eller er privat.',
   'song.view.shared': 'delt',
   'song.view.collaborate': 'åpen for samarbeid',
-  'song.og.description': '{tracks} · Lytt på PolyRecorder',
+  'song.og.description': '{tracks} · Lytt på polyrecorder',
 
   'settings.title': 'Innstillinger',
   'settings.close': 'Lukk innstillinger',

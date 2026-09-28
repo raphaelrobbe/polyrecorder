@@ -22,6 +22,7 @@ export const RESERVED_PSEUDOS = [
   'song',
   'terms',
   'u',
+  'robots',
 ] as const
 
 const RESERVED_SET = new Set(

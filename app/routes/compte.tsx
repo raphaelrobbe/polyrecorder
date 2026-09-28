@@ -18,7 +18,8 @@ import {
 import { redirectClearingSession } from '~/service/session.server'
 
 export const meta: MetaFunction = () => [
-  { title: `PolyRecorder — ${t('account.title')}` },
+  { title: `polyrecorder — ${t('account.title')}` },
+  { name: 'robots', content: 'noindex, nofollow' },
 ]
 
 export async function loader({ request }: LoaderFunctionArgs) {

@@ -1,4 +1,4 @@
-# Local Postgres for PolyRecorder (dev only).
+# Local Postgres for polyrecorder (dev only).
 # Start:  docker compose up -d
 # Stop:   docker compose down
 # Reset:  docker compose down -v

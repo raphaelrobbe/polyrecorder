@@ -7,7 +7,7 @@
 import { getLocale, type Locale } from './i18n'
 
 export const LEGAL = {
-  siteName: 'PolyRecorder',
+  siteName: 'polyrecorder',
   siteUrl: 'https://polyrecorder.app',
 
   publisherName: 'Raphaël Robbe',

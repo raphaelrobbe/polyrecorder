@@ -12,10 +12,12 @@ import { useLocale } from '~/hooks/useLocale'
 import { songMetaLabel } from '~/lib/libraryCounts'
 import {
   libraryGroupPath,
+  libraryRepertoirePath,
   librarySongPath,
   libraryUserPath,
 } from '~/lib/libraryPaths'
 import { t } from '~/lib/i18n'
+import { absoluteUrl, appUrlFromMatches, brandLogoUrl, pageMeta } from '~/lib/seo'
 import { getLibraryRepertoireLevel } from '~/service/cloud.server'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
@@ -30,17 +32,29 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return json(result)
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
+export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
   if (!data || !('ok' in data) || !data.ok) {
     return [
-      { title: `PolyRecorder — ${t('library.title')}` },
+      { title: `polyrecorder — ${t('library.title')}` },
       { name: 'robots', content: 'noindex' },
     ]
   }
-  return [
-    { title: `${data.repertoire.name} · PolyRecorder` },
-    { name: 'robots', content: data.isOwner ? 'noindex' : 'index' },
-  ]
+  const appUrl = appUrlFromMatches(matches)
+  const title = `${data.repertoire.name} · polyrecorder`
+  const description = t('seo.library.repertoire.description', {
+    name: data.repertoire.name,
+  })
+  const indexable = !data.isOwner
+  return pageMeta({
+    title,
+    description,
+    url:
+      indexable && appUrl
+        ? absoluteUrl(appUrl, libraryRepertoirePath(data.repertoire.id))
+        : undefined,
+    image: appUrl ? brandLogoUrl(appUrl) : undefined,
+    robots: indexable ? 'index' : 'noindex',
+  })
 }
 
 function RepertoireClient() {

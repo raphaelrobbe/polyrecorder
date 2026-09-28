@@ -11,6 +11,7 @@ import { useEffect } from 'react'
 import { initLocale } from '~/hooks/useLocale'
 import { t } from '~/lib/i18n'
 import { getUserFromRequest } from '~/service/auth.server'
+import { getAppUrl } from '~/service/env.server'
 import stylesheet from '~/tailwind.css?url'
 
 export const links: LinksFunction = () => {
@@ -50,12 +51,13 @@ export const links: LinksFunction = () => {
 
 /** Cookie session → authenticated user, or null for guests. */
 export async function loader({ request }: LoaderFunctionArgs) {
+  const appUrl = getAppUrl()
   try {
     const user = await getUserFromRequest(request)
-    return { user }
+    return { user, appUrl }
   } catch (error) {
     console.error('[root] loader failed', error)
-    return { user: null }
+    return { user: null, appUrl }
   }
 }
 
@@ -69,7 +71,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="PolyRecorder" />
+        <meta name="apple-mobile-web-app-title" content="polyrecorder" />
         <Meta />
         <Links />
         <script

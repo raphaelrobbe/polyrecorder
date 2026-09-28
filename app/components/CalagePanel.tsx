@@ -5,6 +5,7 @@ import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
 import { useLocale } from '../hooks/useLocale'
 import { useSessionStore } from '../store/sessionStore'
+import { withBrand } from './BrandInline'
 import { Button } from './Button'
 import { MsOffsetEditor } from './MsOffsetEditor'
 
@@ -86,7 +87,7 @@ export function CalagePanel({ className }: CalagePanelProps) {
         id="calage-info-tip"
         hidden={!calageTipOpen}
       >
-        {t('align.latency.tip')}
+        {withBrand(t('align.latency.tip'))}
       </p>
     </div>
   )

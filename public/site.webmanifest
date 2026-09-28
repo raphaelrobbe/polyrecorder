@@ -1,7 +1,7 @@
 {
   "id": "/",
-  "name": "PolyRecorder",
-  "short_name": "PolyRecorder",
+  "name": "polyrecorder",
+  "short_name": "polyrecorder",
   "description": "Enregistre, superpose, partage, collabore.",
   "lang": "fr",
   "dir": "ltr",

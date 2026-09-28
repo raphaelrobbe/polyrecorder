@@ -11,7 +11,8 @@ import { t } from '~/lib/i18n'
 import { consumeMagicLinkPreview } from '~/service/session.server'
 
 export const meta: MetaFunction = () => [
-  { title: `PolyRecorder — ${t('auth.sent.title')}` },
+  { title: `polyrecorder — ${t('auth.sent.title')}` },
+  { name: 'robots', content: 'noindex, nofollow' },
 ]
 
 export async function loader({ request }: LoaderFunctionArgs) {

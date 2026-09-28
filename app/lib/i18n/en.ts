@@ -3,6 +3,27 @@ import type { MessageKey } from './fr'
 /** English UI copy — please review. */
 export const en: Record<MessageKey, string> = {
   'brand.tagline': 'Record, layer, share, collaborate.',
+  'seo.home.title': 'polyrecorder — Record, layer, share, collaborate',
+  'seo.home.description':
+    'Browser multitrack recorder: layer takes, share sessions, and collaborate online. Free, no install.',
+  'seo.help.description':
+    'polyrecorder help: how-to, track alignment, keyboard shortcuts, and recording tips.',
+  'seo.legal.description':
+    'polyrecorder legal notice: publisher, hosting, and intellectual property.',
+  'seo.privacy.description':
+    'polyrecorder privacy policy: data we collect, why, and your rights.',
+  'seo.terms.description':
+    'polyrecorder terms of use: account, content, and responsibilities.',
+  'seo.sitemap.description':
+    'polyrecorder site map: app pages, account, and legal information.',
+  'seo.library.user.description':
+    '@{pseudo}’s public library on polyrecorder — shared groups, repertoires, and sessions.',
+  'seo.library.group.description':
+    'Group “{name}” on polyrecorder — shared repertoires and songs.',
+  'seo.library.repertoire.description':
+    'Repertoire “{name}” on polyrecorder — shared songs and sessions.',
+  'seo.library.song.description':
+    '“{name}” on polyrecorder — shared recording sessions.',
 
   'deck.ariaLabel': 'Recorder',
 
@@ -72,7 +93,7 @@ export const en: Record<MessageKey, string> = {
     'You have rights of access, rectification, erasure, objection, restriction and portability. You can exercise them via {email}, or by deleting your account in settings. You may also lodge a complaint with your supervisory authority (in France: CNIL, cnil.fr).',
   'privacy.cookies.title': 'Cookies and local storage',
   'privacy.cookies.guest':
-    'As a guest, PolyRecorder sets no cookies.',
+    'As a guest, polyrecorder sets no cookies.',
   'privacy.cookies.signedIn':
     'After sign-in, a single httpOnly session cookie ({cookie}) is used, strictly necessary for authentication. It is not used for advertising tracking.',
   'privacy.cookies.localStorage':
@@ -206,21 +227,21 @@ export const en: Record<MessageKey, string> = {
   'auth.error.linkInvalid': 'Invalid sign-in link.',
   'auth.error.linkExpired': 'This link has expired. Request a new one.',
   'auth.error.linkUsed': 'This link was already used. Request a new one.',
-  'auth.email.welcome.subject': 'Welcome to PolyRecorder',
+  'auth.email.welcome.subject': 'Welcome to polyrecorder',
   'auth.email.welcome.text':
-    'Welcome! Your PolyRecorder account is ready.\nRemember to change your display name (it was generated automatically).\n\nTo activate your account and sign in, open this link (valid 30 minutes, one-time use):\n\n{link}\n\nThen you can record, layer, and download your takes.\n\nIf you did not request this, you can ignore this email.',
+    'Welcome! Your polyrecorder account is ready.\nRemember to change your display name (it was generated automatically).\n\nTo activate your account and sign in, open this link (valid 30 minutes, one-time use):\n\n{link}\n\nThen you can record, layer, and download your takes.\n\nIf you did not request this, you can ignore this email.',
   'auth.email.welcome.html':
-    '<p>Welcome! Your <strong>PolyRecorder</strong> account is ready.</p><p>Remember to change your display name (it was generated automatically).</p><p>To activate your account and sign in, open this link (valid 30&nbsp;minutes, one-time use):</p><p><a href="{link}">Activate my account</a></p><p>Then you can record, layer, and download your takes.</p><p>If you did not request this, you can ignore this email.</p>',
-  'auth.email.signIn.subject': 'Your PolyRecorder sign-in link',
+    '<p>Welcome! Your <strong style="font-weight:800">polyrecorder</strong> account is ready.</p><p>Remember to change your display name (it was generated automatically).</p><p>To activate your account and sign in, open this link (valid 30&nbsp;minutes, one-time use):</p><p><a href="{link}">Activate my account</a></p><p>Then you can record, layer, and download your takes.</p><p>If you did not request this, you can ignore this email.</p>',
+  'auth.email.signIn.subject': 'Your polyrecorder sign-in link',
   'auth.email.signIn.text':
-    'Here is your PolyRecorder sign-in link (valid 30 minutes, one-time use):\n\n{link}\n\nIf you did not request this, you can ignore this email.',
+    'Here is your polyrecorder sign-in link (valid 30 minutes, one-time use):\n\n{link}\n\nIf you did not request this, you can ignore this email.',
   'auth.email.signIn.html':
-    '<p>Here is your <strong>PolyRecorder</strong> sign-in link (valid 30&nbsp;minutes, one-time use):</p><p><a href="{link}">Sign in</a></p><p>If you did not request this, you can ignore this email.</p>',
-  'auth.emailChange.subject': 'PolyRecorder email change request',
+    '<p>Here is your <strong style="font-weight:800">polyrecorder</strong> sign-in link (valid 30&nbsp;minutes, one-time use):</p><p><a href="{link}">Sign in</a></p><p>If you did not request this, you can ignore this email.</p>',
+  'auth.emailChange.subject': 'polyrecorder email change request',
   'auth.emailChange.text':
-    'A request was made to change the email address linked to a PolyRecorder account to this inbox.\n\nIf you did not make this request, ignore this email — your address will not change.\n\nOtherwise, confirm the change by opening this link (valid 30 minutes, one-time use):\n\n{link}',
+    'A request was made to change the email address linked to a polyrecorder account to this inbox.\n\nIf you did not make this request, ignore this email — your address will not change.\n\nOtherwise, confirm the change by opening this link (valid 30 minutes, one-time use):\n\n{link}',
   'auth.emailChange.html':
-    '<p>A request was made to change the email address linked to a <strong>PolyRecorder</strong> account to this inbox.</p><p>If you did not make this request, ignore this email — your address will not change.</p><p>Otherwise, confirm the change by opening this link (valid 30&nbsp;minutes, one-time use):</p><p><a href="{link}">Confirm my new email</a></p>',
+    '<p>A request was made to change the email address linked to a <strong style="font-weight:800">polyrecorder</strong> account to this inbox.</p><p>If you did not make this request, ignore this email — your address will not change.</p><p>Otherwise, confirm the change by opening this link (valid 30&nbsp;minutes, one-time use):</p><p><a href="{link}">Confirm my new email</a></p>',
 
   'locale.select.aria': 'Choose language',
   'settings.language': 'Language:',
@@ -272,7 +293,7 @@ export const en: Record<MessageKey, string> = {
   'align.latency.plus': 'Start monitoring a bit later (+5 ms)',
   'align.latency.input': 'Playback lead in milliseconds',
   'align.latency.tip':
-    'During “Next track”, previous takes play in your headphones with some hardware latency. PolyRecorder starts that monitoring a little early so your new voice lands in the right place on the timeline. Adjust the value (±5 ms or type it) if monitoring still feels late or early (saved on this device). This is not auto-align from the 3–4 markers: it only applies while recording.',
+    'During “Next track”, previous takes play in your headphones with some hardware latency. polyrecorder starts that monitoring a little early so your new voice lands in the right place on the timeline. Adjust the value (±5 ms or type it) if monitoring still feels late or early (saved on this device). This is not auto-align from the 3–4 markers: it only applies while recording.',
 
   'volume.percentAria': '{label} as percent',
 
@@ -346,7 +367,7 @@ export const en: Record<MessageKey, string> = {
   'howto.tips':
     'Tips: record in a quiet place, ideally with headphones or an earbud—especially on mobile!',
   'howto.latency':
-    'Browsers and audio hardware introduce latency (headphones, mic, buffer). Without shared cues, takes drift. The four markers on the reference track and the “3-4” on later tracks let PolyRecorder measure and correct that drift automatically. Clear, spaced, steady sounds align better; an irregular or quiet count-in can throw sync off.',
+    'Browsers and audio hardware introduce latency (headphones, mic, buffer). Without shared cues, takes drift. The four markers on the reference track and the “3-4” on later tracks let polyrecorder measure and correct that drift automatically. Clear, spaced, steady sounds align better; an irregular or quiet count-in can throw sync off.',
 
   'help.title': 'Help',
   'help.close': 'Close help',
@@ -358,7 +379,7 @@ export const en: Record<MessageKey, string> = {
     'Those names feed the downloaded MP3: the project title, and — if not every track is selected — the exported track names, e.g. “My polyphony_Bass 1 - Bass 2.mp3”.',
   'help.sync.title': 'Synchronization',
   'help.sync.body1':
-    'To align tracks, the first (reference) should start with four clear, steady markers (1-2-3-4, or any audible 4-beat cue). Later tracks only redo beats 3 and 4, then the voice. PolyRecorder uses them to measure and correct latency-related drift automatically.',
+    'To align tracks, the first (reference) should start with four clear, steady markers (1-2-3-4, or any audible 4-beat cue). Later tracks only redo beats 3 and 4, then the voice. polyrecorder uses them to measure and correct latency-related drift automatically.',
   'help.sync.body2':
     'Background noise can block 1-2-3-4 detection. In that case, start the recording over so you get a solid reference track—otherwise everything must be aligned by hand. Same for later tracks’ 3-4: a weak or noisy marker breaks auto-align for that take.',
   'help.shortcuts.title': 'Keyboard shortcuts',
@@ -445,7 +466,7 @@ export const en: Record<MessageKey, string> = {
   'song.view.notFound': 'This song is missing or private.',
   'song.view.shared': 'shared',
   'song.view.collaborate': 'open to collaboration',
-  'song.og.description': '{tracks} · Listen on PolyRecorder',
+  'song.og.description': '{tracks} · Listen on polyrecorder',
 
   'settings.title': 'Settings',
   'settings.close': 'Close settings',

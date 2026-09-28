@@ -1,4 +1,4 @@
-# PolyRecorder — Remix SSR image for Scaleway Containers
+# polyrecorder — Remix SSR image for Scaleway Containers
 # Build:  docker build -t polyrecorder .
 # Run:    docker run --rm -p 8080:8080 -e PORT=8080 polyrecorder
 # App URL: http://localhost:8080/

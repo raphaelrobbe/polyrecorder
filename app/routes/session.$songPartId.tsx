@@ -5,9 +5,12 @@ import { useEffect, useState } from 'react'
 import { ClientOnly } from 'remix-utils/client-only'
 import { BrandWordmark } from '~/components/Brand'
 import { DeckMain } from '~/components/DeckMain'
+import { JsonLd } from '~/components/JsonLd'
 import { RecorderApp } from '~/components/RecorderApp'
 import { useLocale } from '~/hooks/useLocale'
 import { t, tp } from '~/lib/i18n'
+import { libraryUserPath } from '~/lib/libraryPaths'
+import { brandLogoUrl, pageMeta } from '~/lib/seo'
 import { loadCloudSongIntoSession } from '~/lib/sessionActions.client'
 import { getSongShareMeta } from '~/service/cloud.server'
 import { getAppUrl } from '~/service/env.server'
@@ -24,20 +27,20 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   }
   const appUrl = getAppUrl()
   const canonical = `${appUrl}/session/${result.song.id}`
-  const ogImage = `${appUrl}/og/song/${result.song.id}.svg`
+  const logo = brandLogoUrl(appUrl)
   return json({
     ok: true as const,
     isOwner: result.isOwner,
     song: result.song,
     canonical,
-    ogImage,
+    logo,
   })
 }
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   if (!data || !('ok' in data) || !data.ok) {
     return [
-      { title: `PolyRecorder — ${t('song.view.notFound')}` },
+      { title: `polyrecorder — ${t('song.view.notFound')}` },
       { name: 'robots', content: 'noindex' },
     ]
   }
@@ -47,31 +50,21 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
     data.song.trackCount,
   )
   const description = t('song.og.description', { tracks: tracksLabel })
-  const title = `${data.song.name} · PolyRecorder`
+  const title = `${data.song.name} · polyrecorder`
   if (!data.song.isPublic && data.isOwner) {
-    return [
-      { title },
-      { name: 'robots', content: 'noindex' },
-      { property: 'og:title', content: data.song.name },
-      { property: 'og:description', content: description },
-    ]
+    return pageMeta({
+      title,
+      description,
+      robots: 'noindex',
+    })
   }
-  return [
-    { title },
-    { name: 'description', content: description },
-    { property: 'og:type', content: 'music.song' },
-    { property: 'og:site_name', content: 'PolyRecorder' },
-    { property: 'og:url', content: data.canonical },
-    { property: 'og:title', content: data.song.name },
-    { property: 'og:description', content: description },
-    { property: 'og:image', content: data.ogImage },
-    { property: 'og:image:width', content: '1200' },
-    { property: 'og:image:height', content: '630' },
-    { name: 'twitter:card', content: 'summary_large_image' },
-    { name: 'twitter:title', content: data.song.name },
-    { name: 'twitter:description', content: description },
-    { name: 'twitter:image', content: data.ogImage },
-  ]
+  return pageMeta({
+    title,
+    description,
+    url: data.canonical,
+    image: data.logo,
+    type: 'music.song',
+  })
 }
 
 function SessionViewClient({ songPartId }: { songPartId: string }) {
@@ -117,28 +110,59 @@ export default function SessionRoute() {
   const data = useLoaderData<typeof loader>()
   const params = useParams()
   const songPartId = data.ok ? data.song.id : String(params.songPartId ?? '')
+  const tracksLabel =
+    data.ok
+      ? tp(
+          'library.count.track.one',
+          'library.count.track.other',
+          data.song.trackCount,
+        )
+      : ''
+  const description = data.ok
+    ? t('song.og.description', { tracks: tracksLabel })
+    : ''
 
   return (
-    <ClientOnly
-      fallback={
-        <main className="flex min-h-[50vh] w-[min(440px,100%)] flex-col items-center justify-center gap-3 animate-rise text-ink-soft">
-          <p className="m-0 text-[1.1rem]">
-            <BrandWordmark />
-          </p>
-        </main>
-      }
-    >
-      {() => (
-        <RecorderApp>
-          {data.ok ? (
-            <SessionViewClient songPartId={songPartId} />
-          ) : (
-            <p className="m-0 py-10 text-center text-[0.95rem] text-ink-soft">
-              {t('song.view.notFound')}
+    <>
+      {data.ok && data.song.isPublic ? (
+        <JsonLd
+          data={{
+            '@context': 'https://schema.org',
+            '@type': 'MusicRecording',
+            name: data.song.name,
+            url: data.canonical,
+            description,
+            byArtist: {
+              '@type': 'Person',
+              name: data.song.ownerPseudo,
+              url: `${new URL(data.canonical).origin}${libraryUserPath(data.song.ownerPseudo)}`,
+            },
+            image: data.logo,
+            isAccessibleForFree: true,
+          }}
+        />
+      ) : null}
+      <ClientOnly
+        fallback={
+          <main className="flex min-h-[50vh] w-[min(440px,100%)] flex-col items-center justify-center gap-3 animate-rise text-ink-soft">
+            <p className="m-0 text-[1.1rem]">
+              <BrandWordmark />
             </p>
-          )}
-        </RecorderApp>
-      )}
-    </ClientOnly>
+          </main>
+        }
+      >
+        {() => (
+          <RecorderApp>
+            {data.ok ? (
+              <SessionViewClient songPartId={songPartId} />
+            ) : (
+              <p className="m-0 py-10 text-center text-[0.95rem] text-ink-soft">
+                {t('song.view.notFound')}
+              </p>
+            )}
+          </RecorderApp>
+        )}
+      </ClientOnly>
+    </>
   )
 }

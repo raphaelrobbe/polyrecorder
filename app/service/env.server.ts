@@ -32,7 +32,7 @@ export function getSessionSecret(): string {
 }
 
 /** Fixed sender — domain must be verified in Scaleway TEM. */
-export const SMTP_FROM = 'PolyRecorder <noreply@polyrecorder.app>'
+export const SMTP_FROM = 'polyrecorder <noreply@polyrecorder.app>'
 
 export function getSmtpConfig() {
   const host = process.env.SMTP_HOST?.trim()

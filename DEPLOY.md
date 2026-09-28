@@ -1,6 +1,6 @@
 # Deploy note (branch `refacto-remix`)
 
-PolyRecorder now uses **Remix SSR** (`bun run build` → `bun run start` with `remix-serve`).
+polyrecorder now uses **Remix SSR** (`bun run build` → `bun run start` with `remix-serve`).
 
 GitHub Pages cannot host SSR. The Pages workflow on `main` remains for the legacy SPA until this branch is merged and Scaleway is the production host.
 

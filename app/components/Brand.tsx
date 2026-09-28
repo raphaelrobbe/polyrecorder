@@ -25,7 +25,8 @@ export function BrandWordmark({ className }: BrandWordmarkProps) {
         'font-brand inline-block font-extrabold lowercase leading-[1.05] tracking-[-0.03em]',
         className,
       )}
-      aria-label="PolyRecorder"
+      style={{ fontWeight: 800 }}
+      aria-label="polyrecorder"
     >
       <span style={{ color: 'var(--brand-poly)' }}>poly</span>
       {'recorder'.split('').map((letter, index) => (

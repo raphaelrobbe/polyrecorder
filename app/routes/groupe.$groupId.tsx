@@ -11,10 +11,12 @@ import OverlayShortcuts from '~/components/OverlayShortcuts.client'
 import { useLocale } from '~/hooks/useLocale'
 import { repertoireMetaLabel } from '~/lib/libraryCounts'
 import {
+  libraryGroupPath,
   libraryRepertoirePath,
   libraryUserPath,
 } from '~/lib/libraryPaths'
 import { t } from '~/lib/i18n'
+import { absoluteUrl, appUrlFromMatches, brandLogoUrl, pageMeta } from '~/lib/seo'
 import { getLibraryGroupLevel } from '~/service/cloud.server'
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
@@ -29,17 +31,29 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   return json(result)
 }
 
-export const meta: MetaFunction<typeof loader> = ({ data }) => {
+export const meta: MetaFunction<typeof loader> = ({ data, matches }) => {
   if (!data || !('ok' in data) || !data.ok) {
     return [
-      { title: `PolyRecorder — ${t('library.title')}` },
+      { title: `polyrecorder — ${t('library.title')}` },
       { name: 'robots', content: 'noindex' },
     ]
   }
-  return [
-    { title: `${data.group.name} · PolyRecorder` },
-    { name: 'robots', content: data.isOwner ? 'noindex' : 'index' },
-  ]
+  const appUrl = appUrlFromMatches(matches)
+  const title = `${data.group.name} · polyrecorder`
+  const description = t('seo.library.group.description', {
+    name: data.group.name,
+  })
+  const indexable = !data.isOwner
+  return pageMeta({
+    title,
+    description,
+    url:
+      indexable && appUrl
+        ? absoluteUrl(appUrl, libraryGroupPath(data.group.id))
+        : undefined,
+    image: appUrl ? brandLogoUrl(appUrl) : undefined,
+    robots: indexable ? 'index' : 'noindex',
+  })
 }
 
 function GroupClient() {
