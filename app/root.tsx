@@ -13,14 +13,40 @@ import { t } from '~/lib/i18n'
 import { getUserFromRequest } from '~/service/auth.server'
 import stylesheet from '~/tailwind.css?url'
 
-export const links: LinksFunction = () => [
-  { rel: 'stylesheet', href: stylesheet },
-  {
-    rel: 'icon',
-    href: `${import.meta.env.BASE_URL}favicon.svg`,
-    type: 'image/svg+xml',
-  },
-]
+export const links: LinksFunction = () => {
+  const base = import.meta.env.BASE_URL
+  return [
+    { rel: 'stylesheet', href: stylesheet },
+    {
+      rel: 'icon',
+      href: `${base}favicon.ico`,
+      sizes: '48x48',
+    },
+    {
+      rel: 'icon',
+      href: `${base}favicon.svg`,
+      type: 'image/svg+xml',
+    },
+    {
+      rel: 'icon',
+      href: `${base}favicon-32.png`,
+      type: 'image/png',
+      sizes: '32x32',
+    },
+    {
+      rel: 'icon',
+      href: `${base}favicon-16.png`,
+      type: 'image/png',
+      sizes: '16x16',
+    },
+    {
+      rel: 'apple-touch-icon',
+      href: `${base}apple-touch-icon.png`,
+      sizes: '180x180',
+    },
+    { rel: 'manifest', href: `${base}site.webmanifest` },
+  ]
+}
 
 /** Cookie session → authenticated user, or null for guests. */
 export async function loader({ request }: LoaderFunctionArgs) {
@@ -39,6 +65,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="theme-color" content="#000000" />
         <Meta />
         <Links />
         <script
