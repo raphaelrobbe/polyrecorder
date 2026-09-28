@@ -113,12 +113,16 @@ writeFileSync(join(publicDir, 'favicon.png'), png32)
 writeFileSync(join(publicDir, 'favicon.ico'), await toIco([png16, png32]))
 copyFileSync(join(publicDir, 'logo-mic.svg'), join(publicDir, 'favicon.svg'))
 
-// Large icons: PNG only (install / PWA / share thumbnail).
+// Large brand icons: mic + “polyrecorder” wordmark (OG / share previews).
 writeFileSync(join(publicDir, 'icon-512.png'), rasterSvg(buildAppIconSvg(512), 512))
 writeFileSync(join(publicDir, 'icon-192.png'), rasterSvg(buildAppIconSvg(192), 192))
 writeFileSync(
   join(publicDir, 'apple-touch-icon.png'),
   rasterSvg(buildAppIconSvg(180), 180),
 )
+
+// Installed PWA / home-screen: mic only (OS already shows the app name).
+writeFileSync(join(publicDir, 'app-icon-512.png'), rasterMic(512))
+writeFileSync(join(publicDir, 'app-icon-192.png'), rasterMic(192))
 
 console.log('Favicon + app icon assets written to public/')
