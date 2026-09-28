@@ -433,6 +433,18 @@ export function IconCollaborate(props: Omit<IconProps, 'children'>) {
   )
 }
 
+/** Simple upright piano silhouette. */
+export function IconPiano(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="currentColor"
+        d="M4 6.5c0-.8.7-1.5 1.5-1.5h13c.8 0 1.5.7 1.5 1.5V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6.5zm2 .5v4.2h2.2V7H6zm3.4 0v4.2h2.2V7H9.4zm3.4 0v4.2H15V7h-2.2zm3.4 0v4.2H19V7h-2.8zM6 12.5V18h12v-5.5H6z"
+      />
+    </Icon>
+  )
+}
+
 /** Recalculate count-in auto-align (timeline + dual cursors, slightly offset). */
 export function IconAutoAlign(props: Omit<IconProps, 'children'>) {
   return (

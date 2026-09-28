@@ -312,6 +312,12 @@ export const en: Record<MessageKey, string> = {
   'mode.align': 'Align',
   'mode.align.hint': 'Align mode: track synchronization',
 
+  'piano.toggle': 'Piano',
+  'piano.toggle.show': 'Show piano',
+  'piano.toggle.hide': 'Hide piano',
+  'piano.keyboardAria': 'Piano keyboard (two octaves)',
+  'piano.keyAria': 'Key {note}',
+
   'deck.autoAlign.label': 'Auto-align with count-in',
   'deck.autoAlign.on': 'On',
   'deck.autoAlign.off': 'Off',

@@ -313,6 +313,12 @@ export const de: Record<MessageKey, string> = {
   'mode.align': 'Ausrichten',
   'mode.align.hint': 'Ausricht-Modus: Spurensynchronisation',
 
+  'piano.toggle': 'Piano',
+  'piano.toggle.show': 'Klavier anzeigen',
+  'piano.toggle.hide': 'Klavier ausblenden',
+  'piano.keyboardAria': 'Klaviatur (zwei Oktaven)',
+  'piano.keyAria': 'Taste {note}',
+
   'deck.autoAlign.label': 'Auto-Ausrichtung per Auftakt',
   'deck.autoAlign.on': 'An',
   'deck.autoAlign.off': 'Aus',

@@ -313,6 +313,12 @@ export const no: Record<MessageKey, string> = {
   'mode.align': 'Justering',
   'mode.align.hint': 'Justeringsmodus: synkronisering av spor',
 
+  'piano.toggle': 'Piano',
+  'piano.toggle.show': 'Vis piano',
+  'piano.toggle.hide': 'Skjul piano',
+  'piano.keyboardAria': 'Pianotastatur (to oktaver)',
+  'piano.keyAria': 'Tangent {note}',
+
   'deck.autoAlign.label': 'Autojustering med opptakt',
   'deck.autoAlign.on': 'På',
   'deck.autoAlign.off': 'Av',

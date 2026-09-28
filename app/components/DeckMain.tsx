@@ -421,7 +421,7 @@ export function DeckMain({ className }: DeckMainProps) {
       </Deck>
 
       {showModes ? (
-        <ModeTools className="self-end" />
+        <ModeTools className="w-full self-stretch" />
       ) : null}
 
       {showToolsDeck || showMetronomeAdd ? (

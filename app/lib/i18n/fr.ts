@@ -311,6 +311,12 @@ export const fr = {
   'mode.align': 'Calage',
   'mode.align.hint': 'Mode calage : synchronisation des pistes',
 
+  'piano.toggle': 'Piano',
+  'piano.toggle.show': 'Afficher le piano',
+  'piano.toggle.hide': 'Masquer le piano',
+  'piano.keyboardAria': 'Clavier piano (deux octaves)',
+  'piano.keyAria': 'Touche {note}',
+
   'deck.autoAlign.label': 'Calage automatique par battue',
   'deck.autoAlign.on': 'On',
   'deck.autoAlign.off': 'Off',
