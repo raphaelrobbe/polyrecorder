@@ -219,9 +219,11 @@ export function getMixDurationMs(tracks: Track[]): number {
   return max
 }
 
+/** Longest non-metronome take (session timer). Metronome-only → 0. */
 export function getMaxTrackDurationMs(tracks: Track[]): number {
   let max = 0
   for (const track of tracks) {
+    if (track.isMetronome) continue
     max = Math.max(max, track.durationMs)
   }
   return max

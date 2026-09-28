@@ -359,9 +359,9 @@ export function TrackRow({
                 calageMode &&
                   'ml-0 flex-row items-center justify-start gap-[0.55rem]',
               )}
-              hidden={!calageMode}
+              hidden={!calageMode || Boolean(track.isMetronome)}
             >
-              {calageMode ? (
+              {calageMode && !track.isMetronome ? (
                 <>
                   <small
                     className="text-[0.8rem] font-bold tracking-[0.02em] tabular-nums text-ink"
