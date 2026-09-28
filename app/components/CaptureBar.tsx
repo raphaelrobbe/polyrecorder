@@ -19,9 +19,11 @@ import {
   IconImportAudio,
   IconNext,
   IconRecord,
-  IconStop,
 } from './icons'
 import { MixTransport } from './MixTransport'
+
+const recordButtonClassName =
+  'border-brand-5 bg-white shadow-[0_10px_28px_rgb(0_0_0_/_0.18),inset_0_1px_0_rgb(255_255_255_/_0.65)] hover:enabled:border-brand-5 hover:enabled:bg-white hover:enabled:brightness-[0.98] dark:border-brand-5 dark:bg-black dark:shadow-[0_10px_28px_rgb(0_0_0_/_0.45),inset_0_1px_0_rgb(255_255_255_/_0.1)] dark:hover:enabled:border-brand-5 dark:hover:enabled:bg-black dark:hover:enabled:brightness-125 [&_svg]:size-[2.55rem]'
 
 type CaptureBarProps = {
   className?: string
@@ -138,7 +140,7 @@ export function CaptureBar({ className }: CaptureBarProps) {
         />
         <Button
           variant="transport"
-          className="border-record/55 bg-surface text-record shadow-[0_10px_28px_var(--record-glow),inset_0_1px_0_var(--highlight)] hover:enabled:border-record hover:enabled:bg-record-soft hover:enabled:text-record-deep [&_svg]:size-[1.7rem]"
+          className={recordButtonClassName}
           icon={<IconRecord />}
           hidden={recording}
           disabled={recording}
@@ -152,13 +154,8 @@ export function CaptureBar({ className }: CaptureBarProps) {
         />
         <Button
           variant="transport"
-          className={cn(
-            '[&_svg]:size-[1.7rem]',
-            recording
-              ? 'animate-throb border-record/55 bg-surface text-record hover:enabled:border-record hover:enabled:bg-record-soft hover:enabled:text-record-deep'
-              : 'border-ink/35 bg-surface text-ink hover:enabled:border-ink/50 hover:enabled:bg-ink/6',
-          )}
-          icon={<IconStop />}
+          className={cn(recordButtonClassName, recording && 'animate-record-throb')}
+          icon={<IconRecord />}
           hidden={!recording}
           disabled={!recording}
           aria-label={t('capture.stop')}

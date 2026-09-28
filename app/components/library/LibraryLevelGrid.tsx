@@ -47,8 +47,19 @@ type LibraryLevelGridProps = {
   canEdit?: boolean
   /** Shared parent id for sibling drag scope (any stable string for this level). */
   parentId?: string
+  /**
+   * Brand border cycle: groups/songs go 1→8; repertoires/sessions go 8→1
+   * so short lists don’t look all-blue.
+   */
+  brandBorderDir?: 'asc' | 'desc'
   className?: string
   trailing?: ReactNode
+}
+
+function brandBorderVar(index: number, dir: 'asc' | 'desc'): string {
+  const step = index % 8
+  const n = dir === 'asc' ? step + 1 : 8 - step
+  return `var(--brand-${n})`
 }
 
 type DragInfo = { id: string; parentId: string }
@@ -201,6 +212,7 @@ export function LibraryLevelGrid({
   onReorder,
   canEdit = false,
   parentId = LEVEL_PARENT,
+  brandBorderDir = 'asc',
   className,
   trailing,
 }: LibraryLevelGridProps) {
@@ -359,7 +371,7 @@ export function LibraryLevelGrid({
             clearDragState()
           }}
         >
-          {orderedItems.map((item) => {
+          {orderedItems.map((item, index) => {
             const displayTitle = item.title.trim()
               ? item.title
               : (item.titlePlaceholder ?? item.title)
@@ -369,13 +381,16 @@ export function LibraryLevelGrid({
                 data-library-id={item.id}
                 data-library-parent={parentId}
                 className={cn(
-                  'relative rounded-[16px] border-[1.5px] border-line bg-surface py-[0.95rem] pr-[1.05rem] transition-[background,border-color,opacity] duration-160 hover:border-ink/28 hover:bg-ink/5',
+                  'relative rounded-[16px] border-[1.5px] bg-surface py-[0.95rem] pr-[1.05rem] transition-[background,opacity] duration-160 hover:bg-ink/5',
                   canReorder ? 'pl-[0.35rem]' : 'pl-[1.05rem]',
                   dragRowClass(
                     dragInfo?.id === item.id,
                     dragOver?.id === item.id ? dragOver.edge : null,
                   ),
                 )}
+                style={{
+                  borderColor: brandBorderVar(index, brandBorderDir),
+                }}
               >
                 <button
                   type="button"

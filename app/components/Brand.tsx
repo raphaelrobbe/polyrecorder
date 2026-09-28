@@ -48,7 +48,7 @@ export function Brand({ className }: BrandProps) {
       <h1 className="m-0 text-[clamp(2.4rem,8vw,3.2rem)]">
         <BrandWordmark />
       </h1>
-      <p className="mt-[0.65rem] mb-0 text-ink-soft text-base leading-[1.45]">
+      <p className="mt-[0.25rem] mb-0 text-ink-soft text-base leading-[1.45]">
         {t('brand.tagline')}
       </p>
     </header>

@@ -2,7 +2,7 @@ import type { MessageKey } from './fr'
 
 /** Norwegian (Bokmål) UI copy — please review. */
 export const no: Record<MessageKey, string> = {
-  'brand.tagline': 'Ta opp, lag på lag, lytt, last ned.',
+  'brand.tagline': 'Ta opp, lag på lag, del, samarbeid.',
 
   'deck.ariaLabel': 'Opptaker',
 

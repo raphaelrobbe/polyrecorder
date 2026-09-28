@@ -1,6 +1,6 @@
 /** French UI copy (source language). */
 export const fr = {
-  'brand.tagline': 'Enregistre, superpose, écoute, télécharge.',
+  'brand.tagline': 'Enregistre, superpose, partage, collabore.',
 
   'deck.ariaLabel': 'Enregistreur',
 

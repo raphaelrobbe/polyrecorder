@@ -2,7 +2,7 @@ import type { MessageKey } from './fr'
 
 /** English UI copy — please review. */
 export const en: Record<MessageKey, string> = {
-  'brand.tagline': 'Record, layer, listen, download.',
+  'brand.tagline': 'Record, layer, share, collaborate.',
 
   'deck.ariaLabel': 'Recorder',
 

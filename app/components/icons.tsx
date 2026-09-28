@@ -1,4 +1,5 @@
 import type { ReactNode, SVGProps } from 'react'
+import { useId } from 'react'
 import { cn } from '../lib/utils'
 
 type IconProps = SVGProps<SVGSVGElement> & {
@@ -53,11 +54,67 @@ export function IconTrash(props: Omit<IconProps, 'children'>) {
   )
 }
 
-export function IconRecord(props: Omit<IconProps, 'children'>) {
+export function IconRecord({
+  className,
+  ...props
+}: Omit<IconProps, 'children'>) {
+  const reactId = useId().replace(/:/g, '')
+  const maskId = `icon-record-mask-${reactId}`
+
   return (
-    <Icon {...props}>
-      <circle cx="12" cy="12" r="6.5" fill="currentColor" />
-    </Icon>
+    <svg
+      viewBox="0 0 32 32"
+      aria-hidden="true"
+      className={cn('block size-[1em] shrink-0', className)}
+      {...props}
+    >
+      <defs>
+        <mask
+          id={maskId}
+          maskUnits="userSpaceOnUse"
+          x="0"
+          y="0"
+          width="32"
+          height="32"
+        >
+          <rect width="32" height="32" fill="#000000" />
+          <rect
+            x="11"
+            y="2.75"
+            width="10"
+            height="16"
+            rx="5"
+            fill="#ffffff"
+          />
+          <path
+            d="M8.125 13.75 A7.875 7.875 0 0 0 23.875 13.75"
+            stroke="#ffffff"
+            strokeWidth="2.75"
+            strokeLinecap="round"
+            fill="none"
+          />
+          <line
+            x1="16"
+            y1="21.625"
+            x2="16"
+            y2="27.125"
+            stroke="#ffffff"
+            strokeWidth="2.75"
+            strokeLinecap="round"
+          />
+        </mask>
+      </defs>
+      <g mask={`url(#${maskId})`}>
+        <rect x="0" y="2.75" width="32" height="3.5" fill="#FDAC35" />
+        <rect x="0" y="6" width="32" height="3.5" fill="#FEA43B" />
+        <rect x="0" y="9.25" width="32" height="3.5" fill="#FD656B" />
+        <rect x="0" y="12.5" width="32" height="3.5" fill="#EB46B0" />
+        <rect x="0" y="15.75" width="32" height="3.5" fill="#D849D9" />
+        <rect x="0" y="19" width="32" height="3.5" fill="#A346F3" />
+        <rect x="0" y="22.25" width="32" height="3.5" fill="#5265FC" />
+        <rect x="0" y="25.5" width="32" height="3.5" fill="#3694FF" />
+      </g>
+    </svg>
   )
 }
 

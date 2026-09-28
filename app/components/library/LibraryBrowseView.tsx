@@ -215,6 +215,11 @@ export function LibraryBrowseView({
         canEdit={canEdit}
         addLabel={addLabel}
         parentId={reorderParentId}
+        brandBorderDir={
+          itemKind === 'repertoire' || itemKind === 'songPart'
+            ? 'desc'
+            : 'asc'
+        }
         onAdd={canEdit && onCreate ? handleAdd : undefined}
         onRename={canEdit && itemKind ? handleRename : undefined}
         onDelete={canEdit && itemKind ? handleDelete : undefined}
