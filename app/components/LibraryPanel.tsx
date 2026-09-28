@@ -8,7 +8,7 @@ import {
 import { useLocale } from '../hooks/useLocale'
 import { readAlignPrefs } from '../lib/alignPrefs'
 import { t, tp } from '../lib/i18n'
-import { clearLocalDeckSession, loadCloudSongIntoSession } from '../lib/sessionActions.client'
+import { clearLocalDeckSession, loadCloudSongIntoSession, refreshOpenDeckForSong, syncDeckLabelsAfterLibraryRename } from '../lib/sessionActions.client'
 import { librarySessionPath } from '../lib/libraryPaths'
 import { cn } from '../lib/utils'
 import type { loader as rootLoader } from '../root'
@@ -300,7 +300,10 @@ function DeleteIconButton({
     <Button
       variant="trash"
       className={cn(
-        'relative z-[1] shrink-0 border-ink/20 text-ink/60 [&_svg]:size-[1.05rem]',
+        // Match library share / visibility action chips (songActionBtnClass).
+        'relative z-[1] h-[1.65rem] w-[1.65rem] shrink-0 rounded-lg border-ink/18 p-0 text-ink/55',
+        'max-sm:h-[1.65rem] max-sm:w-[1.65rem] max-sm:rounded-lg max-sm:text-[0.95rem]',
+        '[&_svg]:size-[0.95rem]',
         className,
       )}
       icon={<IconTrash />}
@@ -429,6 +432,8 @@ function SongShareButton({
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
+  const canNativeShare =
+    typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
   const setShareOpen = (next: boolean) => {
     setOpen(next)
@@ -462,17 +467,28 @@ function SongShareButton({
           shareable ? t('library.share') : t('library.share.disabled')
         }
         disabled={!shareable}
-        aria-expanded={open}
+        aria-expanded={canNativeShare ? undefined : open}
+        aria-haspopup={canNativeShare ? undefined : 'dialog'}
         onClick={(event) => {
           event.stopPropagation()
-          if (!shareable) return
+          if (!shareable || !songPartId) return
+          if (canNativeShare) {
+            void navigator
+              .share({
+                title: songName,
+                url: shareUrl,
+                text: songName,
+              })
+              .catch(() => {})
+            return
+          }
           setShareOpen(!open)
           setCopied(false)
         }}
       >
         <IconShare />
       </button>
-      {open && shareable ? (
+      {!canNativeShare && open && shareable ? (
         <div
           className="absolute right-0 top-[calc(100%+0.35rem)] z-50 min-w-[11.5rem] rounded-[12px] border border-line bg-surface p-2 shadow-[0_12px_28px_var(--shadow)]"
           role="dialog"
@@ -492,34 +508,6 @@ function SongShareButton({
           >
             {copied ? t('library.share.copied') : t('library.share.copy')}
           </button>
-          <a
-            className="m-0 flex w-full items-center rounded-[8px] px-2 py-1.5 text-left text-[0.82rem] font-semibold text-ink no-underline hover:bg-ink/6"
-            href={`https://wa.me/?text=${encodeURIComponent(`${songName} — ${shareUrl}`)}`}
-            target="_blank"
-            rel="noreferrer"
-            onClick={() => setShareOpen(false)}
-          >
-            {t('library.share.whatsapp')}
-          </a>
-          {typeof navigator !== 'undefined' &&
-          typeof navigator.share === 'function' ? (
-            <button
-              type="button"
-              className="m-0 flex w-full cursor-pointer items-center rounded-[8px] border-0 bg-transparent px-2 py-1.5 text-left text-[0.82rem] font-semibold text-ink hover:bg-ink/6"
-              onClick={() => {
-                void navigator
-                  .share({
-                    title: songName,
-                    url: shareUrl,
-                    text: songName,
-                  })
-                  .catch(() => {})
-                setShareOpen(false)
-              }}
-            >
-              {t('library.share.native')}
-            </button>
-          ) : null}
         </div>
       ) : null}
     </div>
@@ -1298,9 +1286,7 @@ export function LibraryPanel({ className }: LibraryPanelProps) {
   const rootData = useRouteLoaderData<typeof rootLoader>('root')
   const user = rootData?.user ?? null
   const activeSongPartId = useSessionStore((s) => s.activeSongPartId)
-  const setSessionTitle = useSessionStore((s) => s.setSessionTitle)
   const deckSongId = useSessionStore((s) => s.deckSongId)
-  const setSongWorkName = useSessionStore((s) => s.setSongWorkName)
   const patch = useSessionStore((s) => s.patch)
   const error = useSessionStore((s) => s.error)
   const setError = useSessionStore((s) => s.setError)
@@ -1413,14 +1399,9 @@ export function LibraryPanel({ className }: LibraryPanelProps) {
           }),
         }
       })
-      if (kind === 'songPart' && id === activeSongPartId) {
-        setSessionTitle(name)
-      }
-      if (kind === 'song' && id === deckSongId) {
-        setSongWorkName(name)
-      }
+      syncDeckLabelsAfterLibraryRename(kind, id, name)
     },
-    [activeSongPartId, deckSongId, setSessionTitle, setSongWorkName],
+    [],
   )
 
   const renameNode = useCallback(
@@ -1897,6 +1878,7 @@ export function LibraryPanel({ className }: LibraryPanelProps) {
                                   }
                                   onVisibilityChanged={() => {
                                     void reload()
+                                    void refreshOpenDeckForSong(song.id)
                                   }}
                                 />
                               ))}

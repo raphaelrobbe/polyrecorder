@@ -10,7 +10,7 @@ type AuthBarProps = {
   className?: string
 }
 
-/** Top-left sign-in / account menu, stuck to the top of the page column. */
+/** Top-right sign-in / account menu, stuck to the top of the page column. */
 export function AuthBar({ className }: AuthBarProps) {
   useLocale()
   const navigate = useNavigate()
@@ -20,7 +20,7 @@ export function AuthBar({ className }: AuthBarProps) {
   return (
     <div
       className={cn(
-        'flex w-full items-center justify-start self-start',
+        'flex shrink-0 items-center justify-end',
         className,
       )}
     >

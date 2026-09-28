@@ -42,13 +42,14 @@ export function IconDiscard(props: Omit<IconProps, 'children'>) {
   )
 }
 
-/** Trash can with lid + vertical ribs (filled). */
+/** Trash can with lid + vertical ribs (filled, evenodd slots). */
 export function IconTrash(props: Omit<IconProps, 'children'>) {
   return (
     <Icon {...props}>
       <path
         fill="currentColor"
-        d="M9 3h6l1 2h5v2H3V5h5l1-2zm1 6h2v9h-2V9zm4 0h2v9h-2V9zM6 9h2v9H6V9zm1 12c-.6 0-1-.4-1-1l1-11h10l1 11c0 .6-.4 1-1 1H7z"
+        fillRule="evenodd"
+        d="M9 3h6l1 2h5v2H3V5h5l1-2zM6 9h12v10c0 .6-.4 1-1 1H7c-.6 0-1-.4-1-1V9zm2 2h1.5v8H8V11zm3.25 0h1.5v8h-1.5V11zm3.25 0H16v8h-1.5V11z"
       />
     </Icon>
   )
@@ -411,7 +412,7 @@ export function IconShare(props: Omit<IconProps, 'children'>) {
         strokeWidth="1.7"
         strokeLinecap="round"
         strokeLinejoin="round"
-        d="M12 3.5v11M8.2 7.2 12 3.5l3.8 3.7M6.5 13.5v4.2a1.8 1.8 0 0 0 1.8 1.8h7.4a1.8 1.8 0 0 0 1.8-1.8v-4.2"
+        d="M10 3.158V7.51c-5.428.223-8.27 3.75-8.875 11.199-.04.487-.07.975-.09 1.464l-.014.395c-.014.473.578.684.88.32.302-.368.61-.73.925-1.086l.244-.273c1.79-1.967 3-2.677 4.93-2.917a18.011 18.011 0 012-.112v4.346a1 1 0 001.646.763l9.805-8.297 1.55-1.31-1.55-1.31-9.805-8.297A1 1 0 0010 3.158Z"
       />
     </Icon>
   )

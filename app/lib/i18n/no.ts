@@ -3,6 +3,7 @@ import type { MessageKey } from './fr'
 /** Norwegian (Bokmål) UI copy — please review. */
 export const no: Record<MessageKey, string> = {
   'brand.tagline': 'Ta opp, lag på lag, del, samarbeid.',
+  'brand.homeAria': 'Tilbake til polyrecorder-startsiden',
   'seo.home.title': 'polyrecorder — Ta opp, lag på lag, del, samarbeid',
   'seo.home.description':
     'Flerkanalsopptaker i nettleseren: legg spor oppå hverandre, del økter og samarbeid på nett. Gratis, uten installasjon.',
@@ -322,6 +323,7 @@ export const no: Record<MessageKey, string> = {
   'deck.autoAlign.label': 'Autojustering med opptakt',
   'deck.autoAlign.on': 'På',
   'deck.autoAlign.off': 'Av',
+  'deck.metronome': 'Metronom',
   'deck.metronome.add': 'Legg til metronom',
   'deck.howtoLink': 'Bruksanvisning',
 
@@ -394,16 +396,24 @@ export const no: Record<MessageKey, string> = {
   'warn.beat.error': 'Kunne ikke analysere opptakten på «{name}».',
 
   'howto.title': 'Bruksanvisning for autojustering med opptakt',
-  'howto.step1': 'trykk på den røde «Ta opp»-knappen',
+  'howto.metro.off': 'Uten metronom',
+  'howto.metro.on': 'Med metronom',
+  'howto.metro.add':
+    'Legg først til metronomen med knappen «Metronom» under decket (ved siden av Piano). Den blir referansesporet (syntetisk 1-2-3-4): på hver stemme markerer du bare 3. og 4. taktslag høyt.',
+  'howto.step1': 'trykk på regnbue-mikrofonen for å ta opp',
   'howto.step2':
     'si 1-2-3-4 høyt og jevnt (eller et annet tydelig 4-taktsignal), og syng deretter første stemme',
+  'howto.step2.metro':
+    'la metronomen spille 1-2-3-4, men si 3. og 4. taktslag høyt (eller en tydelig lyd), og syng deretter første stemme',
   'howto.step3':
     'trykk «Neste spor» (chevron til høyre) for å gå rett til opptak av andre stemme',
   'howto.step4':
     'si bare 3. og 4. taktslag høyt nøyaktig når du hører dem, og syng deretter andre stemme',
+  'howto.step4.metro':
+    'samme som første stemme: på metronomens 3. og 4. klikk, marker dem høyt, og syng deretter andre stemme',
   'howto.step5': 'gjenta for flere stemmer',
   'howto.step6':
-    'trykk på den røde «Stopp»-knappen ved slutten av siste stemme',
+    'trykk på regnbue-«Stopp»-knappen ved slutten av siste stemme',
   'howto.tips':
     'Tips: ta opp i rolige omgivelser, gjerne med hodetelefoner eller ørepropp—særlig på mobil!',
   'howto.whyNeeded': 'Hvorfor er dette nødvendig',

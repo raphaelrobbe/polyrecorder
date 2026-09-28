@@ -3,6 +3,7 @@ import { Link } from '@remix-run/react'
 import { prefersHeadphonesHint } from '../lib/deviceHint'
 import { useLocale } from '../hooks/useLocale'
 import { t, type MessageKey } from '../lib/i18n'
+import { cn } from '../lib/utils'
 import { useSessionStore } from '../store/sessionStore'
 import { withBrand } from './BrandInline'
 import { Button } from './Button'
@@ -44,6 +45,7 @@ export function HelpPanel({ className }: HelpPanelProps) {
   const keyboardHintsEnabled = useSessionStore((s) => s.keyboardHintsEnabled)
   const showShortcuts = !prefersHeadphonesHint() || keyboardHintsEnabled
   const [whyNeededOpen, setWhyNeededOpen] = useState(false)
+  const [howtoWithMetro, setHowtoWithMetro] = useState(false)
 
   useEffect(() => {
     const scrollToHash = () => {
@@ -130,11 +132,41 @@ export function HelpPanel({ className }: HelpPanelProps) {
       </HelpSection>
 
       <HelpSection id={HOWTO_HASH} title={t('howto.title')}>
+        <button
+          type="button"
+          aria-pressed={howtoWithMetro}
+          title={howtoWithMetro ? t('howto.metro.on') : t('howto.metro.off')}
+          aria-label={howtoWithMetro ? t('howto.metro.on') : t('howto.metro.off')}
+          onClick={() => setHowtoWithMetro((on) => !on)}
+          className={cn(
+            'mb-[0.75rem] inline-flex items-center justify-center rounded-full px-[0.78rem] py-[0.42rem]',
+            'border-[1.5px] font-[inherit] text-[0.82rem] font-bold tracking-[0.01em]',
+            'transition-[background,color,border-color,box-shadow,transform] duration-160',
+            'cursor-pointer active:scale-[0.98]',
+            'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
+            howtoWithMetro
+              ? 'border-ink bg-ink text-on-ink shadow-[0_4px_12px_color-mix(in_srgb,var(--ink)_22%,transparent)]'
+              : 'border-line bg-surface text-ink-soft hover:text-ink',
+          )}
+        >
+          {howtoWithMetro ? t('howto.metro.on') : t('howto.metro.off')}
+        </button>
+        {howtoWithMetro ? (
+          <HelpText className="mb-[0.75rem]">{t('howto.metro.add')}</HelpText>
+        ) : null}
         <ul className="m-0 list-disc list-outside pl-[1.15rem] text-[0.84rem] leading-[1.45] text-ink-soft [&_li+li]:mt-[0.35rem]">
           <li>{withBrand(t('howto.step1'))}</li>
-          <li>{withBrand(t('howto.step2'))}</li>
+          <li>
+            {withBrand(
+              t(howtoWithMetro ? 'howto.step2.metro' : 'howto.step2'),
+            )}
+          </li>
           <li>{withBrand(t('howto.step3'))}</li>
-          <li>{withBrand(t('howto.step4'))}</li>
+          <li>
+            {withBrand(
+              t(howtoWithMetro ? 'howto.step4.metro' : 'howto.step4'),
+            )}
+          </li>
           <li>{withBrand(t('howto.step5'))}</li>
           <li>{withBrand(t('howto.step6'))}</li>
         </ul>

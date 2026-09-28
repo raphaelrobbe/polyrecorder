@@ -20,6 +20,7 @@ import {
 } from '~/lib/libraryPaths'
 import { t } from '~/lib/i18n'
 import { readAlignPrefs } from '~/lib/alignPrefs'
+import { refreshOpenDeckForSong } from '~/lib/sessionActions.client'
 import { absoluteUrl, appUrlFromMatches, brandLogoUrl, pageMeta } from '~/lib/seo'
 import { getLibrarySongLevel } from '~/service/cloud.server'
 
@@ -104,7 +105,10 @@ function ChansonClient() {
             isPublic={data.song.isPublic}
             allowsCollaboration={data.song.allowsCollaboration}
             shareSongPartId={shareSongPartId}
-            onChanged={() => revalidator.revalidate()}
+            onChanged={() => {
+              revalidator.revalidate()
+              void refreshOpenDeckForSong(data.song.id)
+            }}
             onError={() => setError(t('library.error'))}
           />
         ) : undefined

@@ -3,6 +3,7 @@ import type { MessageKey } from './fr'
 /** English UI copy — please review. */
 export const en: Record<MessageKey, string> = {
   'brand.tagline': 'Record, layer, share, collaborate.',
+  'brand.homeAria': 'Back to polyrecorder home',
   'seo.home.title': 'polyrecorder — Record, layer, share, collaborate',
   'seo.home.description':
     'Browser multitrack recorder: layer takes, share sessions, and collaborate online. Free, no install.',
@@ -321,6 +322,7 @@ export const en: Record<MessageKey, string> = {
   'deck.autoAlign.label': 'Auto-align with count-in',
   'deck.autoAlign.on': 'On',
   'deck.autoAlign.off': 'Off',
+  'deck.metronome': 'Metronome',
   'deck.metronome.add': 'Add a metronome',
   'deck.howtoLink': 'How to use',
 
@@ -393,16 +395,24 @@ export const en: Record<MessageKey, string> = {
   'warn.beat.error': 'Could not analyze the count-in on “{name}”.',
 
   'howto.title': 'How to use auto-align with count-in',
-  'howto.step1': 'tap the red “Record” button',
+  'howto.metro.off': 'Without metronome',
+  'howto.metro.on': 'With metronome',
+  'howto.metro.add':
+    'First add the metronome with the “Metronome” button under the deck (next to Piano). It becomes the reference track (synthetic 1-2-3-4): on every voice, you only mark beats 3 and 4 out loud.',
+  'howto.step1': 'tap the rainbow microphone to record',
   'howto.step2':
     'out loud and steadily, say 1-2-3-4 (or any clear 4-beat cue), then sing the first voice',
+  'howto.step2.metro':
+    'let the metronome play 1-2-3-4, but speak beats 3 and 4 out loud (or a clear sound), then sing the first voice',
   'howto.step3':
     'tap “Next track” (chevron right) to jump straight into recording the second voice',
   'howto.step4':
     'only speak beats 3 and 4 out loud exactly when you hear them, then sing the second voice',
+  'howto.step4.metro':
+    'same as the first voice: on the metronome’s 3rd and 4th clicks, mark them out loud, then sing the second voice',
   'howto.step5': 'repeat for further voices',
   'howto.step6':
-    'tap the red “Stop” button at the end of the last voice',
+    'tap the rainbow “Stop” button at the end of the last voice',
   'howto.tips':
     'Tips: record in a quiet place, ideally with headphones or an earbud—especially on mobile!',
   'howto.whyNeeded': 'Why is this needed',

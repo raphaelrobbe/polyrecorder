@@ -3,6 +3,7 @@ import type { MessageKey } from './fr'
 /** German UI copy — please review. */
 export const de: Record<MessageKey, string> = {
   'brand.tagline': 'Aufnehmen, überlagern, teilen, kollaborieren.',
+  'brand.homeAria': 'Zurück zur polyrecorder-Startseite',
   'seo.home.title': 'polyrecorder — Aufnehmen, überlagern, teilen, kollaborieren',
   'seo.home.description':
     'Mehrspur-Rekorder im Browser: Takes überlagern, Sessions teilen und online zusammenarbeiten. Kostenlos, ohne Installation.',
@@ -322,6 +323,7 @@ export const de: Record<MessageKey, string> = {
   'deck.autoAlign.label': 'Auto-Ausrichtung per Auftakt',
   'deck.autoAlign.on': 'An',
   'deck.autoAlign.off': 'Aus',
+  'deck.metronome': 'Metronom',
   'deck.metronome.add': 'Metronom hinzufügen',
   'deck.howtoLink': 'Anleitung',
 
@@ -395,16 +397,24 @@ export const de: Record<MessageKey, string> = {
   'warn.beat.error': 'Auftakt von „{name}“ konnte nicht analysiert werden.',
 
   'howto.title': 'Anleitung zur Auto-Ausrichtung per Auftakt',
-  'howto.step1': 'auf den roten Knopf „Aufnehmen“ tippen',
+  'howto.metro.off': 'Ohne Metronom',
+  'howto.metro.on': 'Mit Metronom',
+  'howto.metro.add':
+    'Füge zuerst das Metronom über den Knopf „Metronom“ unter dem Deck hinzu (neben Piano). Es wird die Referenzspur (synthetisches 1-2-3-4): bei jeder Stimme markierst du nur die 3. und 4. Zählzeit laut.',
+  'howto.step1': 'auf das Regenbogen-Mikrofon tippen, um aufzunehmen',
   'howto.step2':
     'laut und gleichmäßig 1-2-3-4 sagen (oder ein anderes klares 4er-Signal), dann die erste Stimme singen',
+  'howto.step2.metro':
+    'das Metronom 1-2-3-4 spielen lassen, aber die 3. und 4. Zählzeit laut markieren (oder ein klarer Laut), dann die erste Stimme singen',
   'howto.step3':
     'auf „Nächste Spur“ tippen (Chevron nach rechts), um direkt die zweite Stimme aufzunehmen',
   'howto.step4':
     'nur die 3. und 4. Zählzeit laut mitsprechen, genau wenn du sie hörst, dann die zweite Stimme singen',
+  'howto.step4.metro':
+    'wie bei der ersten Stimme: beim 3. und 4. Metronom-Klick laut markieren, dann die zweite Stimme singen',
   'howto.step5': 'für weitere Stimmen wiederholen',
   'howto.step6':
-    'am Ende der letzten Stimme auf den roten Knopf „Stopp“ tippen',
+    'am Ende der letzten Stimme auf den Regenbogen-Knopf „Stopp“ tippen',
   'howto.tips':
     'Tipps: nimm in ruhiger Umgebung auf, möglichst mit Kopfhörer oder Ohrhörer—besonders am Handy!',
   'howto.whyNeeded': 'Warum ist das nötig',

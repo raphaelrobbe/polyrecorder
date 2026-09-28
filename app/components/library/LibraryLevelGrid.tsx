@@ -468,7 +468,7 @@ export function LibraryLevelGrid({
                     <Button
                       type="button"
                       variant="trash"
-                      className="pointer-events-auto relative z-[1] shrink-0 border-ink/20 text-ink/60 [&_svg]:size-[1.05rem]"
+                      className="pointer-events-auto relative z-[1] h-[1.65rem] w-[1.65rem] shrink-0 rounded-lg border-ink/18 p-0 text-ink/55 max-sm:h-[1.65rem] max-sm:w-[1.65rem] max-sm:rounded-lg max-sm:text-[0.95rem] [&_svg]:size-[0.95rem]"
                       icon={<IconTrash />}
                       aria-label={t('library.delete')}
                       title={t('library.delete')}

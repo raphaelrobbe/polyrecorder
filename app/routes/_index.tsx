@@ -1,7 +1,7 @@
 import type { MetaFunction } from '@remix-run/node'
 import { useMatches } from '@remix-run/react'
 import { ClientOnly } from 'remix-utils/client-only'
-import { BrandWordmark } from '~/components/Brand'
+import { Brand } from '~/components/Brand'
 import { JsonLd } from '~/components/JsonLd'
 import RecorderMain from '~/components/RecorderMain.client'
 import { t } from '~/lib/i18n'
@@ -62,10 +62,8 @@ export default function IndexRoute() {
       ) : null}
       <ClientOnly
         fallback={
-          <main className="flex min-h-[50vh] w-[min(440px,100%)] flex-col items-center justify-center gap-3 animate-rise text-ink-soft">
-            <p className="m-0 text-[1.1rem]">
-              <BrandWordmark />
-            </p>
+          <main className="flex min-h-[50vh] w-[min(440px,100%)] flex-col items-center justify-center gap-4 animate-rise text-ink-soft">
+            <Brand variant="hero" />
           </main>
         }
       >

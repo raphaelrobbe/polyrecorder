@@ -285,6 +285,37 @@ async function ensureDefaultTree(userId: string) {
   return { group, repertoire }
 }
 
+/** Where a new home-deck recording will land (most recent repertoire). */
+export type DefaultUploadDestination = {
+  ownerPseudo: string
+  groupId: string
+  groupName: string
+  repertoireId: string
+  repertoireName: string
+}
+
+export async function getDefaultUploadDestination(
+  request: Request,
+): Promise<
+  | { ok: true; destination: DefaultUploadDestination }
+  | { ok: false; reason: CloudFailureReason }
+> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  const { group, repertoire } = await ensureDefaultTree(user.id)
+  return {
+    ok: true,
+    destination: {
+      ownerPseudo: user.pseudo,
+      groupId: group.id,
+      groupName: group.name,
+      repertoireId: repertoire.id,
+      repertoireName: repertoire.name,
+    },
+  }
+}
+
 async function touchRepertoire(repertoireId: string) {
   await prisma.repertoire.update({
     where: { id: repertoireId },

@@ -57,7 +57,7 @@ export function PianoKeyboard({ className }: PianoKeyboardProps) {
   return (
     <div
       className={cn(
-        'mt-[0.55rem] mb-[0.55rem] w-full select-none touch-none',
+        'mt-[1rem] mb-[0.55rem] w-full select-none touch-none',
         'rounded-t-[8px] border-t border-black/[0.14]',
         className,
       )}

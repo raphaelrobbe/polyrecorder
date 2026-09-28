@@ -78,12 +78,12 @@ function SessionViewClient({ songPartId }: { songPartId: string }) {
   const setError = useSessionStore((s) => s.setError)
 
   useEffect(() => {
-    if (useSessionStore.getState().deckSongPartId === songPartId) {
-      setStatus('ready')
-      return
-    }
     let cancelled = false
-    setStatus('loading')
+    // Always refetch so library mutations (public, collab, …) show up when
+    // re-opening; keep the current deck visible if this session is already loaded.
+    if (useSessionStore.getState().deckSongPartId !== songPartId) {
+      setStatus('loading')
+    }
     void loadCloudSongIntoSession(songPartId).then((ok) => {
       if (cancelled) return
       if (!ok) {

@@ -137,6 +137,8 @@ export async function uploadTrackToCloud(
               songName: presign.libraryPath.songName,
             },
             songWorkName: presign.libraryPath.songName,
+            // New uploads create private songs by default (schema).
+            songIsPublic: false,
             ...(firstCloudBinding
               ? {
                   // Match openSong: œuvre title above, unnamed single session below.
@@ -200,6 +202,53 @@ export async function maybeAutoUploadTrack(trackId: number): Promise<void> {
   const { autoCloudSave } = useSessionStore.getState()
   if (!autoCloudSave) return
   await uploadTrackToCloud(trackId, { quietIfUnauthorized: true })
+}
+
+/**
+ * Fill the deck breadcrumb with where a new home-deck recording will be saved
+ * (most recently used repertoire), before any song exists yet.
+ */
+export async function ensurePendingDeckLibraryPath(): Promise<void> {
+  if (!cloudSignedIn || !cloudUserPseudo) return
+  const state = useSessionStore.getState()
+  if (state.deckSongPartId || state.deckLibraryPath || state.readOnlySession) {
+    return
+  }
+
+  try {
+    const res = await fetch('/api/cloud/library?destination=1')
+    const data = (await res.json()) as
+      | {
+          ok: true
+          destination: {
+            ownerPseudo: string
+            groupId: string
+            groupName: string
+            repertoireId: string
+            repertoireName: string
+          }
+        }
+      | { ok: false; reason: string }
+    if (!data.ok) return
+
+    const now = useSessionStore.getState()
+    if (now.deckSongPartId || now.deckLibraryPath || now.readOnlySession) {
+      return
+    }
+    now.patch({
+      deckLibraryPath: {
+        ownerPseudo: data.destination.ownerPseudo,
+        groupId: data.destination.groupId,
+        groupName: data.destination.groupName,
+        repertoireId: data.destination.repertoireId,
+        repertoireName: data.destination.repertoireName,
+        songId: '',
+        songName: '',
+      },
+    })
+  } catch (error) {
+    console.error('[cloud] ensurePendingDeckLibraryPath failed', error)
+  }
 }
 
 /** Upload every local (unsynced) take, in deck order. */

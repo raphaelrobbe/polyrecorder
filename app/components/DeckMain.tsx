@@ -1,16 +1,20 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { useNavigate, useRouteLoaderData, Link } from '@remix-run/react'
+import { useLayoutEffect, useRef, useState } from 'react'
+import {
+  useNavigate,
+  useRevalidator,
+  useRouteLoaderData,
+  Link,
+} from '@remix-run/react'
 import { isDefaultSessionTitle } from '../lib/format'
 import {
-  createOrUpdateMetronome,
   discard,
   dismissGuestSignInPrompt,
   loadCloudSongIntoSession,
   normalizeAndSetSessionTitle,
+  setError,
   setSessionAlignPref,
 } from '../lib/sessionActions.client'
-import { DEFAULT_METRONOME_BPM } from '../lib/audio/metronome.client'
-import { ensureAudioContext } from '../lib/audio/runtime.client'
+import { postLibrary } from '../lib/libraryApi.client'
 import { t } from '../lib/i18n'
 import {
   libraryGroupPath,
@@ -29,9 +33,10 @@ import { CalagePanel } from './CalagePanel'
 import { Button } from './Button'
 import { CheckboxOption } from './CheckboxOption'
 import { Deck } from './Deck'
-import { IconChevron, IconClose, IconDiscard } from './icons'
+import { IconChevron, IconClose, IconDiscard, IconGlobe } from './icons'
 import { LibraryBreadcrumb } from './library/LibraryBreadcrumb'
-import { ModeTools } from './ModeTools'
+import { SongShareButton } from './library/SongOwnerToolbar'
+import { ModeTools, DeckModes } from './ModeTools'
 import { PianoKeyboard } from './PianoKeyboard'
 import { ErrorBanner } from './StatusMessage'
 import { TracksList } from './tracks/TracksList'
@@ -47,6 +52,21 @@ const sessionNavBtnClass = cn(
   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
   'disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:border-ink/15 disabled:hover:bg-transparent disabled:hover:text-ink/55',
   '[&_svg]:size-[0.95rem]',
+)
+
+/** Import-like chrome: border only on hover (deck title actions). */
+const deckTitleActionBtnClass = cn(
+  'm-0 inline-flex appearance-none items-center justify-center border font-[inherit] font-semibold leading-none',
+  'h-auto w-auto rounded-full border-transparent bg-transparent px-[0.45rem] py-[0.35rem]',
+  'cursor-pointer text-ink/55 transition-[background,color,border-color] duration-150',
+  'hover:border-ink/8 hover:bg-ink/6 hover:text-ink-soft',
+  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
+  '[&_svg]:size-[1rem]',
+)
+
+const deckTitleActionBtnActiveClass = cn(
+  'border-ink/40 bg-ink text-on-ink',
+  'hover:border-ink hover:bg-ink hover:text-on-ink',
 )
 
 /** Jump to the previous / next recording session of the same cloud song. */
@@ -80,6 +100,7 @@ function SessionNavButton({
 export function DeckMain({ className }: DeckMainProps) {
   useLocale()
   const navigate = useNavigate()
+  const revalidator = useRevalidator()
   const rootData = useRouteLoaderData<typeof rootLoader>('root')
   const user = rootData?.user ?? null
   const sessionTitle = useSessionStore((s) => s.sessionTitle)
@@ -99,6 +120,7 @@ export function DeckMain({ className }: DeckMainProps) {
   const readOnlySession = useSessionStore((s) => s.readOnlySession)
   const canCloudContribute = useSessionStore((s) => s.canCloudContribute)
   const deckLibraryPath = useSessionStore((s) => s.deckLibraryPath)
+  const songIsPublic = useSessionStore((s) => s.songIsPublic)
   const sharedOwnerLabel = useSessionStore((s) => s.sharedOwnerLabel)
   const state = useSessionStore((s) => s.state)
   const deckSongPartId = useSessionStore((s) => s.deckSongPartId)
@@ -132,6 +154,10 @@ export function DeckMain({ className }: DeckMainProps) {
         .filter(Boolean)
         .join(' · ')
     : null
+  const canTogglePublic =
+    Boolean(deckLibraryPath?.songId) && !readOnlySession
+  const showDeckShare = Boolean(deckSongPartId) && songIsPublic
+  const showDeckTitleActions = canTogglePublic || showDeckShare
 
   const siblingIndex = deckSongPartId
     ? deckSongPartSiblings.findIndex(
@@ -170,12 +196,10 @@ export function DeckMain({ className }: DeckMainProps) {
     el.style.height = `${el.scrollHeight}px`
   }, [sessionTitle, songWorkName])
 
-  useEffect(() => {
-    if (!showModes) setPianoOpen(false)
-  }, [showModes])
-
   return (
-    <div className={cn('flex flex-col gap-[0.85rem]', className)}>
+    <div className={cn('flex flex-col', className)}>
+      <DeckModes className="mb-[0.85rem] w-full self-stretch" />
+      <div className="flex flex-col gap-[0.85rem]">
       <Deck enableAudioDrop>
       {deckLibraryPath ? (
         <LibraryBreadcrumb
@@ -203,10 +227,62 @@ export function DeckMain({ className }: DeckMainProps) {
         />
       ) : null}
       <div className="relative mb-6 grid grid-cols-[1fr_auto_1fr] items-start gap-3">
+        {showDeckTitleActions ? (
+          <div className="col-start-1 flex items-center justify-end gap-[0.1rem] self-center">
+            {canTogglePublic ? (
+              <button
+                type="button"
+                className={cn(
+                  deckTitleActionBtnClass,
+                  songIsPublic && deckTitleActionBtnActiveClass,
+                )}
+                aria-label={
+                  songIsPublic ? t('library.private') : t('library.public')
+                }
+                title={
+                  songIsPublic
+                    ? t('library.public.on')
+                    : t('library.share.disabled')
+                }
+                aria-pressed={songIsPublic}
+                onClick={() => {
+                  const songId = deckLibraryPath?.songId
+                  if (!songId) return
+                  const nextPublic = !songIsPublic
+                  void postLibrary({
+                    intent: 'setSongPublic',
+                    songId,
+                    isPublic: nextPublic,
+                  }).then((result) => {
+                    if (!result.ok) {
+                      setError(t('library.error'))
+                      return
+                    }
+                    useSessionStore
+                      .getState()
+                      .patch({ songIsPublic: nextPublic })
+                    revalidator.revalidate()
+                  })
+                }}
+              >
+                <IconGlobe />
+              </button>
+            ) : null}
+            {showDeckShare ? (
+              <SongShareButton
+                songPartId={deckSongPartId}
+                songName={songWorkName?.trim() || sessionTitle}
+                isPublic
+                panelAlign="left"
+                buttonClassName={deckTitleActionBtnClass}
+              />
+            ) : null}
+          </div>
+        ) : null}
         <div className="col-start-2 flex w-[min(100%,22rem)] min-w-0 flex-col items-center justify-self-center">
           {cloudSongLoaded ? (
             <>
-              {deckLibraryPath ? (
+              {deckLibraryPath?.songId ? (
                 <Link
                   to={librarySongPath(deckLibraryPath.songId)}
                   className={cn(
@@ -364,7 +440,7 @@ export function DeckMain({ className }: DeckMainProps) {
       </div>
 
       <CaptureBar />
-      {showModes && pianoOpen ? <PianoKeyboard /> : null}
+      {pianoOpen ? <PianoKeyboard /> : null}
       <div
         className="relative mb-[0.55rem] rounded-[14px] border border-accent/25 bg-accent-soft px-[0.95rem] py-[0.85rem] text-center animate-rise"
         hidden={!guestSignInPrompt || Boolean(user) || state === 'recording'}
@@ -427,55 +503,39 @@ export function DeckMain({ className }: DeckMainProps) {
       <CalagePanel />
       </Deck>
 
-      {showModes ? (
-        <ModeTools
-          className="w-full self-stretch"
-          pianoOpen={pianoOpen}
-          onPianoOpenChange={setPianoOpen}
-        />
-      ) : null}
+      <ModeTools
+        className="w-full self-stretch"
+        pianoOpen={pianoOpen}
+        onPianoOpenChange={setPianoOpen}
+        showMetronomeAdd={showMetronomeAdd}
+      />
 
-      {showToolsDeck || showMetronomeAdd ? (
+      {showToolsDeck ? (
         <div
           className="px-1 max-sm:px-0.5"
           aria-label={t('deck.toolsAria')}
         >
-          <div className="flex flex-col items-start gap-[0.45rem]">
-            {showMetronomeAdd ? (
-              <button
-                type="button"
-                className="m-0 border-0 bg-transparent p-0 text-[0.84rem] font-semibold leading-none text-ink-soft underline decoration-ink/25 underline-offset-2 hover:text-ink hover:decoration-ink/55 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2"
-                onClick={() => {
-                  void ensureAudioContext().catch(() => {})
-                  void createOrUpdateMetronome(DEFAULT_METRONOME_BPM)
-                }}
-              >
-                {t('deck.metronome.add')}
-              </button>
-            ) : null}
-            {showToolsDeck ? (
-              <div className="flex flex-wrap items-center gap-x-[0.45rem] gap-y-[0.35rem]">
-                <CheckboxOption
-                  align="center"
-                  className="text-[0.84rem] leading-none"
-                  checked={autoAlignEnabled}
-                  onCheckedChange={(on) =>
-                    setSessionAlignPref('autoAlignEnabled', on)
-                  }
-                >
-                  {t('deck.autoAlign.label')}
-                </CheckboxOption>
-                <Link
-                  to="/aide#mode-emploi-calage"
-                  className="text-[0.84rem] font-semibold leading-none text-ink-soft underline decoration-ink/25 underline-offset-2 hover:text-ink hover:decoration-ink/55"
-                >
-                  {t('deck.howtoLink')}
-                </Link>
-              </div>
-            ) : null}
+          <div className="flex flex-wrap items-center gap-x-[0.45rem] gap-y-[0.35rem]">
+            <CheckboxOption
+              align="center"
+              className="text-[0.84rem] leading-none"
+              checked={autoAlignEnabled}
+              onCheckedChange={(on) =>
+                setSessionAlignPref('autoAlignEnabled', on)
+              }
+            >
+              {t('deck.autoAlign.label')}
+            </CheckboxOption>
+            <Link
+              to="/aide#mode-emploi-calage"
+              className="text-[0.84rem] font-semibold leading-none text-ink-soft underline decoration-ink/25 underline-offset-2 hover:text-ink hover:decoration-ink/55"
+            >
+              {t('deck.howtoLink')}
+            </Link>
           </div>
         </div>
       ) : null}
+      </div>
     </div>
   )
 }

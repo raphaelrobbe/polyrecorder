@@ -106,15 +106,22 @@ export function SongShareButton({
   songPartId,
   songName,
   isPublic,
+  buttonClassName,
+  panelAlign = 'right',
 }: {
   songPartId: string | null
   songName: string
   isPublic: boolean
+  /** Override trigger look (e.g. import-like utility chrome on the deck). */
+  buttonClassName?: string
+  panelAlign?: 'left' | 'right'
 }) {
   useLocale()
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
+  const canNativeShare =
+    typeof navigator !== 'undefined' && typeof navigator.share === 'function'
 
   useEffect(() => {
     if (!open) return
@@ -137,23 +144,37 @@ export function SongShareButton({
     <div className="relative" ref={panelRef}>
       <button
         type="button"
-        className={songActionBtnClass}
+        className={cn(songActionBtnClass, buttonClassName)}
         aria-label={t('library.share')}
         title={shareable ? t('library.share') : t('library.share.disabled')}
         disabled={!shareable}
-        aria-expanded={open}
+        aria-expanded={canNativeShare ? undefined : open}
+        aria-haspopup={canNativeShare ? undefined : 'dialog'}
         onClick={(event) => {
           event.stopPropagation()
-          if (!shareable) return
+          if (!shareable || !songPartId) return
+          if (canNativeShare) {
+            void navigator
+              .share({
+                title: songName,
+                url: shareUrl,
+                text: songName,
+              })
+              .catch(() => {})
+            return
+          }
           setOpen(!open)
           setCopied(false)
         }}
       >
         <IconShare />
       </button>
-      {open && shareable ? (
+      {!canNativeShare && open && shareable ? (
         <div
-          className="absolute right-0 top-[calc(100%+0.35rem)] z-50 min-w-[11.5rem] rounded-[12px] border border-line bg-surface p-2 shadow-[0_12px_28px_var(--shadow)]"
+          className={cn(
+            'absolute top-[calc(100%+0.35rem)] z-50 min-w-[11.5rem] rounded-[12px] border border-line bg-surface p-2 shadow-[0_12px_28px_var(--shadow)]',
+            panelAlign === 'left' ? 'left-0' : 'right-0',
+          )}
           role="dialog"
           aria-label={t('library.share.title', { name: songName })}
         >
@@ -171,34 +192,6 @@ export function SongShareButton({
           >
             {copied ? t('library.share.copied') : t('library.share.copy')}
           </button>
-          <a
-            className="m-0 flex w-full items-center rounded-[8px] px-2 py-1.5 text-left text-[0.82rem] font-semibold text-ink no-underline hover:bg-ink/6"
-            href={`https://wa.me/?text=${encodeURIComponent(`${songName} — ${shareUrl}`)}`}
-            target="_blank"
-            rel="noreferrer"
-            onClick={() => setOpen(false)}
-          >
-            {t('library.share.whatsapp')}
-          </a>
-          {typeof navigator !== 'undefined' &&
-          typeof navigator.share === 'function' ? (
-            <button
-              type="button"
-              className="m-0 flex w-full cursor-pointer items-center rounded-[8px] border-0 bg-transparent px-2 py-1.5 text-left text-[0.82rem] font-semibold text-ink hover:bg-ink/6"
-              onClick={() => {
-                void navigator
-                  .share({
-                    title: songName,
-                    url: shareUrl,
-                    text: songName,
-                  })
-                  .catch(() => {})
-                setOpen(false)
-              }}
-            >
-              {t('library.share.native')}
-            </button>
-          ) : null}
         </div>
       ) : null}
     </div>

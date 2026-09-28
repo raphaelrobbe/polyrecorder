@@ -3,7 +3,11 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useLocale } from '../../hooks/useLocale'
 import { postLibrary } from '../../lib/libraryApi.client'
 import { t } from '../../lib/i18n'
-import { getDeckHomePath, clearLocalDeckSession } from '../../lib/sessionActions.client'
+import {
+  getDeckHomePath,
+  clearLocalDeckSession,
+  syncDeckLabelsAfterLibraryRename,
+} from '../../lib/sessionActions.client'
 import { withShortcut } from '../../lib/withShortcut'
 import { cn } from '../../lib/utils'
 import { useSessionStore } from '../../store/sessionStore'
@@ -110,6 +114,7 @@ export function LibraryBrowseView({
     })
       .then((result) => {
         if (!result.ok) throw new Error('rename failed')
+        syncDeckLabelsAfterLibraryRename(itemKind, item.id, trimmed)
         refresh()
       })
       .catch(() => setError(t('library.error')))

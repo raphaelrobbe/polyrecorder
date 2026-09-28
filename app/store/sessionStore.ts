@@ -104,6 +104,8 @@ export type SessionStoreState = {
   } | null
   /** Song (œuvre) name — highlighted title when a cloud song is loaded. */
   songWorkName: string | null
+  /** Whether the deck song is public (share link works for others). */
+  songIsPublic: boolean
   /** Owner display for a shared song in consultation (pseudo or null). */
   sharedOwnerLabel: string | null
 
@@ -119,6 +121,11 @@ export type SessionStoreState = {
   skewWarningShowOpenAdvanced: boolean
   /** Beat warning banner: offer to turn off auto-align. */
   skewWarningShowDisableAutoAlign: boolean
+  /**
+   * Tracks that failed peak detection / auto-align — “!” chip outside calage
+   * (banner text is only shown in calage mode).
+   */
+  alignAttentionByTrackId: Record<number, string>
 
   keyboardHintsEnabled: boolean
   inputOverrideNote: string | null
@@ -214,6 +221,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   deckSongId: null,
   deckLibraryPath: null,
   songWorkName: null,
+  songIsPublic: false,
   sharedOwnerLabel: null,
 
   // Hydrated from audio runtime on the client (refreshDeviceSnapshot / init).
@@ -227,6 +235,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   skewWarningMessage: null,
   skewWarningShowOpenAdvanced: false,
   skewWarningShowDisableAutoAlign: false,
+  alignAttentionByTrackId: {},
 
   // any-* : souris/trackpad présents même si le tactile est le pointeur principal
   keyboardHintsEnabled:

@@ -26,7 +26,7 @@ import {
   stopPlayback,
   syncLatencyDisplay,
 } from '../lib/sessionActions.client'
-import { setCloudSignedIn } from '../lib/cloudUpload.client'
+import { setCloudSignedIn, ensurePendingDeckLibraryPath } from '../lib/cloudUpload.client'
 import { hydrateFileSystemMemory } from '../lib/fileSystemMemory.client'
 import type { loader as rootLoader } from '../root'
 import { useSessionStore } from '../store/sessionStore'
@@ -112,6 +112,8 @@ export function RecorderApp({ children }: RecorderAppProps) {
       const id = useSessionStore.getState().deckSongPartId
       if (id && window.location.pathname === '/') {
         navigate(librarySessionPath(id), { replace: true })
+      } else if (!id) {
+        await ensurePendingDeckLibraryPath()
       }
     })()
 

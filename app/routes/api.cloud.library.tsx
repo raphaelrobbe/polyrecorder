@@ -7,6 +7,7 @@ import {
   createSongPart,
   deleteLibraryNode,
   deleteTrackAsset,
+  getDefaultUploadDestination,
   getLibraryTree,
   openSong,
   renameLibraryNode,
@@ -27,6 +28,17 @@ import {
 } from '~/service/cloud.server'
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  const url = new URL(request.url)
+  if (url.searchParams.get('destination') === '1') {
+    const result = await getDefaultUploadDestination(request)
+    if (!result.ok) {
+      return json(result, {
+        status: result.reason === 'unauthorized' ? 401 : 400,
+      })
+    }
+    return json(result)
+  }
+
   const result = await getLibraryTree(request)
   if (!result.ok) {
     return json(result, {

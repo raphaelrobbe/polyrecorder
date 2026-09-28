@@ -252,6 +252,7 @@ function applyGuestDraftToStore(draft: GuestDraft): void {
     skipCountInDownload: draft.skipCountInDownload,
     metronomeBpm: resolvedMetronomeBpm,
     activeSongPartId: null,
+    alignAttentionByTrackId: {},
     deckSongPartId: cloudPartId,
     deckSongPartSiblings: draft.deckSongPartSiblings ?? [],
     deckSongId: draft.cloudSongId,
@@ -260,6 +261,7 @@ function applyGuestDraftToStore(draft: GuestDraft): void {
     songAllowsCollaboration: Boolean(draft.allowsCollaboration),
     deckLibraryPath: draft.deckLibraryPath,
     songWorkName: draft.songWorkName,
+    songIsPublic: false,
     sharedOwnerLabel: draft.sharedOwnerLabel,
     calageMode: false,
     mixMode: readOnly && !allowsCollab,
@@ -449,6 +451,7 @@ export function syncReferenceTrackRules() {
     patch({
       referenceTrackId: null,
       trackAlignDetails: {},
+      alignAttentionByTrackId: {},
     })
     clearRefPeaks()
     return
@@ -661,9 +664,11 @@ export function setCalageMode(on: boolean) {
     patch({ calageMode: true, mixMode: false, calageTipOpen: false })
     refreshSkewWarning()
     if (tracks.length > 0) void evaluateReferenceBeat()
+    const attentionMessages = Object.values(get().alignAttentionByTrackId)
+    if (attentionMessages[0]) setError(attentionMessages[0]!)
     return
   }
-  patch({ calageMode: false, calageTipOpen: false })
+  patch({ calageMode: false, calageTipOpen: false, error: null })
   refreshSkewWarning()
 }
 
@@ -674,7 +679,12 @@ export function setMixMode(on: boolean) {
     return
   }
   if (on) {
-    patch({ mixMode: true, calageMode: false, calageTipOpen: false })
+    patch({
+      mixMode: true,
+      calageMode: false,
+      calageTipOpen: false,
+      error: null,
+    })
     refreshSkewWarning()
     return
   }
@@ -1316,7 +1326,9 @@ export function applyManualTrackOffset(trackId: number, offsetMs: number) {
   )
   const trackAlignDetails = { ...get().trackAlignDetails }
   delete trackAlignDetails[trackId]
-  patch({ tracks, trackAlignDetails })
+  const alignAttentionByTrackId = { ...get().alignAttentionByTrackId }
+  delete alignAttentionByTrackId[trackId]
+  patch({ tracks, trackAlignDetails, alignAttentionByTrackId })
   refreshSkewWarning()
   persistCloudTrackOffset(trackId)
   scheduleGuestDraftSave()
@@ -1425,12 +1437,14 @@ export async function autoAlignTracksFromCounts(
     refPeaks = findVolumePeaks(refBuffer, 4)
   }
   if (refPeaks.length < 4) {
-    throw new Error(
+    const error = new Error(
       t('error.refPeaks', {
         name: reference.name,
         count: refPeaks.length,
       }),
-    )
+    ) as Error & { trackId?: number }
+    error.trackId = reference.id
+    throw error
   }
 
   const refThree = refPeaks[2]!
@@ -1451,12 +1465,14 @@ export async function autoAlignTracksFromCounts(
     const peaks = findVolumePeaks(buffer, 8)
     const pair = findTakeThreeFourPeaks(peaks, refThree, refFour)
     if (!pair) {
-      throw new Error(
+      const error = new Error(
         t('error.trackPeaks', {
           name: track.name,
           count: peaks.length,
         }),
-      )
+      ) as Error & { trackId?: number }
+      error.trackId = track.id
+      throw error
     }
 
     const [takeThree, takeFour] = pair
@@ -1472,9 +1488,41 @@ export async function autoAlignTracksFromCounts(
     alignedIds.push(track.id)
   }
 
-  patch({ tracks: nextTracks, trackAlignDetails: nextDetails })
+  const nextAttention = { ...get().alignAttentionByTrackId }
+  for (const id of alignedIds) {
+    delete nextAttention[id]
+  }
+  patch({
+    tracks: nextTracks,
+    trackAlignDetails: nextDetails,
+    alignAttentionByTrackId: nextAttention,
+  })
   refreshSkewWarning()
   persistCloudTrackOffsets(alignedIds)
+}
+
+function noteAlignAttention(trackId: number, message: string) {
+  patch({
+    alignAttentionByTrackId: {
+      ...get().alignAttentionByTrackId,
+      [trackId]: message,
+    },
+  })
+}
+
+function alignErrorTrackId(
+  error: unknown,
+  fallbackId: number | null,
+): number | null {
+  if (
+    error &&
+    typeof error === 'object' &&
+    'trackId' in error &&
+    typeof (error as { trackId: unknown }).trackId === 'number'
+  ) {
+    return (error as { trackId: number }).trackId
+  }
+  return fallbackId
 }
 
 /** After a new take: always auto-align that take (never reshuffle others). */
@@ -1485,11 +1533,20 @@ async function maybeAutoAlignAfterTake(newTrackId: number): Promise<void> {
   try {
     await autoAlignTracksFromCounts([newTrackId])
   } catch (error) {
-    setError(
+    const message =
       error instanceof Error
-        ? t('error.autoAlignDeferred', { message: error.message })
-        : t('error.autoAlignDeferredGeneric'),
-    )
+        ? error.message
+        : t('error.autoAlignDeferredGeneric')
+    const trackId = alignErrorTrackId(error, newTrackId)
+    if (trackId != null) noteAlignAttention(trackId, message)
+    // Full error copy only in calage; outside, the “!” chip carries the signal.
+    if (get().calageMode) {
+      setError(
+        error instanceof Error
+          ? t('error.autoAlignDeferred', { message: error.message })
+          : t('error.autoAlignDeferredGeneric'),
+      )
+    }
   }
 }
 
@@ -1497,14 +1554,29 @@ async function maybeAutoAlignAfterTake(newTrackId: number): Promise<void> {
 export async function realignTrack(trackId: number): Promise<void> {
   if (!get().autoAlignEnabled) return
   setError(null)
-  await autoAlignTracksFromCounts([trackId])
+  try {
+    await autoAlignTracksFromCounts([trackId])
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : t('error.autoAlignFailed')
+    noteAlignAttention(alignErrorTrackId(error, trackId) ?? trackId, message)
+    throw error instanceof Error ? error : new Error(message)
+  }
 }
 
 /** Manual action: recalculate auto-align for every non-reference track. */
 export async function realignAllTracks(): Promise<void> {
   if (!get().autoAlignEnabled) return
   setError(null)
-  await autoAlignTracksFromCounts(alignableTracks().map((track) => track.id))
+  try {
+    await autoAlignTracksFromCounts(alignableTracks().map((track) => track.id))
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : t('error.autoAlignFailed')
+    const trackId = alignErrorTrackId(error, null)
+    if (trackId != null) noteAlignAttention(trackId, message)
+    throw error instanceof Error ? error : new Error(message)
+  }
 }
 
 /** Mix-timeline cut just after the reference "4", with pad (seconds). */
@@ -1688,11 +1760,9 @@ export async function playTracks(
     playing.add(track.id)
   }
 
-  const mixEndMs = Math.max(
-    getMixDurationMs(sourceTracks),
-    startAtMs + 1000,
-    60_000,
-  )
+  // Cap at non-metronome content so clicks never outlive the takes
+  // (e.g. a take shorter than the initial 1-2-3-4).
+  const mixEndMs = Math.max(getMixDurationMs(sourceTracks), startAtMs)
   const metroPlayMs = Math.max(0, mixEndMs - startAtMs)
 
   if (wantMetro && metroTrack && metroBpm != null && metroPlayMs > 0) {
@@ -1737,7 +1807,7 @@ export async function playTracks(
     }
 
     if (bufferSources.length === 0) {
-      if (awaitEnd && wantMetro) {
+      if (awaitEnd && wantMetro && metroPlayMs > 0) {
         playWaiters.push(resolveAsDone)
         window.setTimeout(() => {
           resolveAsDone()
@@ -2175,11 +2245,20 @@ export async function createOrUpdateMetronome(
     try {
       await autoAlignTracksFromCounts(alignableTracks().map((track) => track.id))
     } catch (error) {
-      setError(
+      const message =
         error instanceof Error
-          ? t('error.autoAlignDeferred', { message: error.message })
-          : t('error.autoAlignDeferredGeneric'),
-      )
+          ? error.message
+          : t('error.autoAlignDeferredGeneric')
+      const trackId = alignErrorTrackId(error, null)
+      if (trackId != null) noteAlignAttention(trackId, message)
+      // Peak-detection copy is only meaningful in calage mode.
+      if (get().calageMode) {
+        setError(
+          error instanceof Error
+            ? t('error.autoAlignDeferred', { message: error.message })
+            : t('error.autoAlignDeferredGeneric'),
+        )
+      }
     }
   }
   persistMetronomeBpm()
@@ -2661,6 +2740,8 @@ export function deleteTrack(trackId: number) {
   delete trackAlignDetails[trackId]
   const trackVolumes = { ...get().trackVolumes }
   delete trackVolumes[trackId]
+  const alignAttentionByTrackId = { ...get().alignAttentionByTrackId }
+  delete alignAttentionByTrackId[trackId]
   const prevHighlights = get().highlightedTrackIds
   const nextHighlights = prevHighlights.filter((id) => id !== trackId)
   const clearedMetro = Boolean(track.isMetronome)
@@ -2670,6 +2751,7 @@ export function deleteTrack(trackId: number) {
     highlightedTrackIds: nextHighlights,
     trackAlignDetails,
     trackVolumes,
+    alignAttentionByTrackId,
     ...(clearedMetro ? { metronomeBpm: null } : {}),
     ...(tracks.length === 0
       ? { calageMode: false, mixMode: false, calageTipOpen: false }
@@ -2735,6 +2817,7 @@ export function deleteAllTracks() {
     highlightedTrackIds: [],
     referenceTrackId: null,
     trackAlignDetails: {},
+    alignAttentionByTrackId: {},
     trackVolumes: {},
     masterVolume: 1,
     trackCounter: 0,
@@ -2808,6 +2891,7 @@ export function clearLocalDeckSession(): void {
     highlightedTrackIds: [],
     referenceTrackId: null,
     trackAlignDetails: {},
+    alignAttentionByTrackId: {},
     trackVolumes: {},
     masterVolume: 1,
     trackCounter: 0,
@@ -2821,6 +2905,7 @@ export function clearLocalDeckSession(): void {
     songAllowsCollaboration: false,
     deckLibraryPath: null,
     songWorkName: null,
+    songIsPublic: false,
     sharedOwnerLabel: null,
     sessionTitle: defaultSessionTitle(),
     calageMode: false,
@@ -2834,6 +2919,9 @@ export function clearLocalDeckSession(): void {
   clearRefPeaks()
   updateSessionTimerDisplay()
   refreshSkewWarning()
+  void import('./cloudUpload.client').then((mod) => {
+    void mod.ensurePendingDeckLibraryPath()
+  })
 }
 
 /** Drop cloud song context and all loaded takes (e.g. on sign-out). */
@@ -2895,6 +2983,7 @@ export async function loadCloudSongIntoSession(
     highlightedTrackIds: [],
     referenceTrackId: opened.tracks[0]?.id ?? null,
     trackAlignDetails: {},
+    alignAttentionByTrackId: {},
     trackVolumes,
     masterVolume: opened.part.masterVolume,
     autoAlignEnabled: opened.part.autoAlignEnabled,
@@ -2913,6 +3002,7 @@ export async function loadCloudSongIntoSession(
     songAllowsCollaboration: Boolean(opened.song.allowsCollaboration),
     deckLibraryPath,
     songWorkName,
+    songIsPublic: Boolean(opened.song.isPublic),
     sharedOwnerLabel,
     calageMode: false,
     mixMode: readOnly && !canCloudContribute,
@@ -2934,6 +3024,17 @@ export async function loadCloudSongIntoSession(
   }
   if (get().tracks.length > 0) void evaluateReferenceBeat()
   return true
+}
+
+/**
+ * After a library mutation on a song (public / collab / …), refetch the open
+ * deck session so metadata stays in sync without dual-writing local state.
+ */
+export async function refreshOpenDeckForSong(songId: string): Promise<void> {
+  const { deckSongId, deckSongPartId, state } = get()
+  if (!songId || deckSongId !== songId || !deckSongPartId) return
+  if (state === 'recording') return
+  await loadCloudSongIntoSession(deckSongPartId, { quiet: true })
 }
 
 /** Home path for the current deck: `/session/:id` when a cloud session is loaded. */
@@ -2974,6 +3075,7 @@ export async function hydrateActiveSongIfNeeded(): Promise<void> {
       canCloudContribute: false,
       deckLibraryPath: null,
       songWorkName: null,
+      songIsPublic: false,
       error: null,
     })
   }
@@ -3046,6 +3148,57 @@ export function normalizeAndSetSongWorkName(raw: string) {
     .catch((error) => {
       console.error('[cloud] failed to rename song from deck title', error)
     })
+}
+
+/**
+ * Keep deck breadcrumb / titles in sync when the library renames a node
+ * that belongs to the currently loaded session.
+ */
+export function syncDeckLabelsAfterLibraryRename(
+  kind: 'group' | 'repertoire' | 'song' | 'songPart',
+  id: string,
+  name: string,
+): void {
+  const state = get()
+  const path = state.deckLibraryPath
+
+  if (kind === 'songPart') {
+    const touchesDeck =
+      id === state.deckSongPartId || id === state.activeSongPartId
+    const touchesSibling = state.deckSongPartSiblings.some(
+      (sibling) => sibling.id === id,
+    )
+    if (!touchesDeck && !touchesSibling) return
+    patch({
+      ...(touchesDeck ? { sessionTitle: name } : {}),
+      ...(touchesSibling
+        ? {
+            deckSongPartSiblings: state.deckSongPartSiblings.map((sibling) =>
+              sibling.id === id
+                ? { ...sibling, name: name.trim() ? name : null }
+                : sibling,
+            ),
+          }
+        : {}),
+    })
+    return
+  }
+
+  if (!path) return
+  if (kind === 'group' && path.groupId === id) {
+    patch({ deckLibraryPath: { ...path, groupName: name } })
+    return
+  }
+  if (kind === 'repertoire' && path.repertoireId === id) {
+    patch({ deckLibraryPath: { ...path, repertoireName: name } })
+    return
+  }
+  if (kind === 'song' && (path.songId === id || state.deckSongId === id)) {
+    patch({
+      songWorkName: name,
+      deckLibraryPath: { ...path, songName: name },
+    })
+  }
 }
 
 /**

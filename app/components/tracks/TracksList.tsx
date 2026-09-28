@@ -249,7 +249,7 @@ export function TracksList({ className }: TracksListProps) {
         ) : null}
         {calageMode && alignable.length > 0 ? (
           <div
-            className="mb-[0.08rem] grid grid-cols-[1.55rem_minmax(0,1fr)_2.6rem_7.1rem] items-end gap-x-[0.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_2.3rem_6rem]"
+            className="mb-[0.08rem] grid grid-cols-[1.55rem_minmax(0,1fr)_2.6rem_7.1rem] items-end gap-x-[0.1rem] pl-[0.35rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_2.3rem_6rem]"
             aria-hidden="true"
           >
             <span className="col-start-1" />
@@ -271,7 +271,7 @@ export function TracksList({ className }: TracksListProps) {
         ) : null}
         <div
           className={cn(
-            'mb-[0.45rem] grid min-h-[2rem] items-center gap-x-[0.1rem]',
+            'mb-[0.45rem] grid min-h-[2rem] items-center gap-x-[0.1rem] pl-[0.35rem]',
             calageMode || mixMode
               ? 'grid-cols-[1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.4rem_minmax(0,1fr)]'
               : 'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]',

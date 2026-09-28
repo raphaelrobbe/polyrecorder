@@ -1,6 +1,7 @@
 /** French UI copy (source language). */
 export const fr = {
   'brand.tagline': 'Enregistre, superpose, partage, collabore.',
+  'brand.homeAria': 'Retour à l’accueil polyrecorder',
   'seo.home.title': 'polyrecorder — Enregistre, superpose, partage, collabore',
   'seo.home.description':
     'Enregistreur multipiste dans le navigateur : superpose tes prises, partage tes sessions et collabore en ligne. Gratuit, sans installation.',
@@ -320,6 +321,7 @@ export const fr = {
   'deck.autoAlign.label': 'Calage automatique par battue',
   'deck.autoAlign.on': 'On',
   'deck.autoAlign.off': 'Off',
+  'deck.metronome': 'Métronome',
   'deck.metronome.add': 'Ajouter un métronome',
   'deck.howtoLink': "Mode d'emploi",
 
@@ -394,16 +396,24 @@ export const fr = {
   'warn.beat.error': "Impossible d'analyser la battue de « {name} ».",
 
   'howto.title': "Mode d'emploi du calage automatique par battue",
-  'howto.step1': 'cliquer sur le bouton rouge « Enregistrer »',
+  'howto.metro.off': 'Sans métronome',
+  'howto.metro.on': 'Avec métronome',
+  'howto.metro.add':
+    'Ajoute d’abord le métronome avec le bouton « Métronome » sous le deck (à côté de Piano). Il devient la piste de référence (1-2-3-4 synthétique) : sur chaque voix, tu marques seulement les 3ème et 4ème battements à haute voix.',
+  'howto.step1': 'cliquer sur le micro arc-en-ciel pour enregistrer',
   'howto.step2':
     'à haute voix et de manière régulière, dire 1-2-3-4 (ou quoi que ce soit d’audible en 4 temps) puis chanter la première voix',
+  'howto.step2.metro':
+    'laisser le métronome jouer le 1-2-3-4, mais dire à haute voix les 3ème et 4ème battements (ou un son net), puis chanter la première voix',
   'howto.step3':
     'cliquer sur le bouton « Piste suivante » (chevron vers la droite), on passe directement à l’enregistrement de la deuxième voix',
   'howto.step4':
     'ne répéter que les 3ème et 4ème temps à haute voix exactement quand vous les entendez, puis chanter la deuxième voix',
+  'howto.step4.metro':
+    'comme pour la première voix : aux 3ème et 4ème clics du métronome, les marquer à haute voix, puis chanter la deuxième voix',
   'howto.step5': 'recommencer pour les voix suivantes',
   'howto.step6':
-    'cliquer sur le bouton rouge « Stop » à la fin de la dernière voix',
+    'cliquer sur le bouton Stop arc-en-ciel à la fin de la dernière voix',
   'howto.tips':
     'Conseils : enregistrez-vous dans un environnement silencieux, si possible avec un casque ou une oreillette, surtout sur mobile\u00a0!',
   'howto.whyNeeded': 'Pourquoi est-ce nécessaire',

@@ -77,6 +77,9 @@ export function TrackRow({
   const skewWarningDismissedKey = useSessionStore(
     (s) => s.skewWarningDismissedKey,
   )
+  const alignAttentionByTrackId = useSessionStore(
+    (s) => s.alignAttentionByTrackId,
+  )
   const showCalageWarnings = useSessionStore((s) => s.showCalageWarnings)
   const autoAlignEnabled = useSessionStore((s) => s.autoAlignEnabled)
   const metronomeBpm = useSessionStore((s) => s.metronomeBpm)
@@ -121,6 +124,12 @@ export function TrackRow({
   const skewActive =
     skewFingerprint.length > 0 &&
     skewFingerprint !== skewWarningDismissedKey
+  const alignAttentionMessage = alignAttentionByTrackId[track.id]
+  const showAlignAttention =
+    Boolean(alignAttentionMessage) &&
+    showCalageWarnings &&
+    autoAlignEnabled &&
+    !calageMode
   const showSkewAttention =
     autoAlignEnabled &&
     showCalageWarnings &&
@@ -128,6 +137,7 @@ export function TrackRow({
     !isReference &&
     !calageMode &&
     Math.abs(track.offsetMs) > OFFSET_WARN_MS
+  const showAttentionChip = showSkewAttention || showAlignAttention
   const showCloudSave =
     (!readOnlySession || canCloudContribute) &&
     user != null &&
@@ -406,14 +416,22 @@ export function TrackRow({
             }}
           />
         ) : null}
-        {showSkewAttention ? (
+        {showAttentionChip ? (
           <Button
             variant="trash"
             className="ml-[0.15rem] h-[1.65rem] w-[1.65rem] shrink-0 rounded-lg border-warn-border bg-warn-bg text-[0.88rem] font-extrabold leading-none text-warn hover:enabled:border-warn-border hover:enabled:bg-warn-hover hover:enabled:text-warn max-sm:ml-[0.08rem] max-sm:h-[1.45rem] max-sm:w-[1.45rem] max-sm:text-[0.8rem]"
-            title={t('warn.skew.long', { names: track.name })}
-            aria-label={t('warn.skew.chip.aria', { name: track.name })}
+            title={
+              alignAttentionMessage ??
+              t('warn.skew.long', { names: track.name })
+            }
+            aria-label={
+              alignAttentionMessage
+                ? t('warn.attention')
+                : t('warn.skew.chip.aria', { name: track.name })
+            }
             onClick={() => {
-              setError(null)
+              if (alignAttentionMessage) setError(alignAttentionMessage)
+              else setError(null)
               setCalageMode(true)
             }}
           >
