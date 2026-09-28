@@ -59,10 +59,10 @@ export async function loader({ params }: LoaderFunctionArgs) {
   <circle cx="1040" cy="90" r="180" fill="#1c1914" fill-opacity="0.05"/>
   <circle cx="160" cy="540" r="220" fill="#1c1914" fill-opacity="0.04"/>
   <rect x="72" y="72" width="1056" height="486" rx="28" fill="#fffaf2" fill-opacity="0.55" stroke="#1c1914" stroke-opacity="0.08"/>
-  <text x="110" y="160" font-family="Georgia, 'Times New Roman', serif" font-size="28" font-weight="700" letter-spacing="0.08em" fill="#5c554a">POLYRECORDER</text>
-  <text x="110" y="310" font-family="Georgia, 'Times New Roman', serif" font-size="72" font-weight="700" fill="url(#ink)">${escapeXml(title)}</text>
-  <text x="110" y="390" font-family="Manrope, Helvetica, Arial, sans-serif" font-size="32" font-weight="600" fill="#5c554a">${escapeXml(subtitle)}</text>
-  <text x="110" y="500" font-family="Manrope, Helvetica, Arial, sans-serif" font-size="24" fill="#7a7266">polyrecorder.app</text>
+  <text x="110" y="160" font-family="Nunito, system-ui, sans-serif" font-size="28" font-weight="800" letter-spacing="0.08em" fill="#5c554a">POLYRECORDER</text>
+  <text x="110" y="310" font-family="Nunito, system-ui, sans-serif" font-size="72" font-weight="700" fill="url(#ink)">${escapeXml(title)}</text>
+  <text x="110" y="390" font-family="Nunito, system-ui, sans-serif" font-size="32" font-weight="600" fill="#5c554a">${escapeXml(subtitle)}</text>
+  <text x="110" y="500" font-family="Nunito, system-ui, sans-serif" font-size="24" fill="#7a7266">polyrecorder.app</text>
 </svg>`
 
   return new Response(svg, {

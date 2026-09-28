@@ -1,5 +1,6 @@
 import type { MetaFunction } from '@remix-run/node'
 import { ClientOnly } from 'remix-utils/client-only'
+import { BrandWordmark } from '~/components/Brand'
 import RecorderMain from '~/components/RecorderMain.client'
 import { t } from '~/lib/i18n'
 
@@ -17,7 +18,9 @@ export default function IndexRoute() {
     <ClientOnly
       fallback={
         <main className="flex min-h-[50vh] w-[min(440px,100%)] flex-col items-center justify-center gap-3 animate-rise text-ink-soft">
-          <p className="m-0 text-[0.9rem] font-semibold">PolyRecorder</p>
+          <p className="m-0 text-[1.1rem]">
+            <BrandWordmark />
+          </p>
         </main>
       }
     >

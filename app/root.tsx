@@ -20,16 +20,6 @@ export const links: LinksFunction = () => [
     href: `${import.meta.env.BASE_URL}favicon.svg`,
     type: 'image/svg+xml',
   },
-  { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
-  {
-    rel: 'preconnect',
-    href: 'https://fonts.gstatic.com',
-    crossOrigin: 'anonymous',
-  },
-  {
-    rel: 'stylesheet',
-    href: 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;600;700&family=Nunito:wght@800&display=swap',
-  },
 ]
 
 /** Cookie session → authenticated user, or null for guests. */

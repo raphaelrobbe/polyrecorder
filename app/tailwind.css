@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './fonts/nunito.css';
 
 /* Runtime theme tokens (switched via html.light / html.dark). */
 :root,
@@ -80,9 +81,9 @@ html.dark {
 }
 
 @theme inline {
-  --font-sans: Manrope, system-ui, sans-serif;
-  --font-display: Fraunces, Georgia, serif;
-  --font-brand: Nunito, system-ui, sans-serif;
+  --font-sans: 'Nunito Variable', Nunito, system-ui, sans-serif;
+  --font-display: 'Nunito Variable', Nunito, system-ui, sans-serif;
+  --font-brand: 'Nunito Variable', Nunito, system-ui, sans-serif;
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-on-ink: var(--on-ink);
