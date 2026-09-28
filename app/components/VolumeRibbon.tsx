@@ -126,7 +126,7 @@ export function VolumeRibbon({
         className={cn(
           'relative min-w-0 flex-auto cursor-pointer touch-none rounded-full bg-ink/10',
           emphasis ? 'h-[0.7rem]' : 'h-[0.55rem]',
-          'outline-none focus-visible:shadow-[0_0_0_3px_color-mix(in_srgb,var(--ink)_15%,transparent)]',
+          'outline-none focus-visible:shadow-[0_0_0_3px_color-mix(in_srgb,var(--accent)_22%,transparent)]',
         )}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -168,15 +168,16 @@ export function VolumeRibbon({
           className={cn(
             'pointer-events-none absolute inset-y-0 left-0 rounded-full',
             boosted
-              ? 'bg-gradient-to-r from-volume to-record/80'
-              : 'bg-volume',
+              ? 'bg-gradient-to-r from-volume via-brand-4 to-record'
+              : 'bg-gradient-to-r from-meter to-volume',
           )}
           style={{ width: `${ratio * 100}%` }}
         />
         <span
           className={cn(
-            'pointer-events-none absolute top-1/2 size-[0.85rem] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-paper bg-ink shadow-[0_1px_3px_color-mix(in_srgb,var(--ink)_25%,transparent)]',
+            'pointer-events-none absolute top-1/2 size-[0.85rem] -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-paper bg-accent shadow-[0_1px_3px_color-mix(in_srgb,var(--accent)_35%,transparent)]',
             emphasis && 'size-[0.95rem]',
+            boosted && 'bg-record shadow-[0_1px_3px_color-mix(in_srgb,var(--record)_40%,transparent)]',
           )}
           style={{ left: `${ratio * 100}%` }}
           aria-hidden="true"

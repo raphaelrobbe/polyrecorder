@@ -21,13 +21,14 @@ const variants: Record<ButtonVariant, string> = {
     'shadow-[0_8px_22px_var(--shadow),inset_0_1px_0_var(--highlight)]',
     'hover:enabled:-translate-y-0.5 hover:enabled:shadow-[0_12px_28px_var(--shadow),inset_0_1px_0_var(--highlight)]',
     'active:enabled:translate-y-px active:enabled:scale-[0.97]',
+    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent/40 focus-visible:outline-offset-2',
     '[&_svg]:block [&_svg]:size-[1.55rem] [&_svg]:shrink-0',
   ),
   utility: cn(
     'm-0 inline-flex items-center gap-[0.35rem] rounded-full border border-transparent bg-transparent px-[0.55rem] py-[0.35rem]',
     'text-[0.78rem] font-semibold leading-none text-ink/55',
     'hover:border-ink/8 hover:bg-ink/6 hover:text-ink-soft',
-    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
+    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent/40 focus-visible:outline-offset-2',
     '[&_svg]:block [&_svg]:size-[0.95rem]',
   ),
   trim: cn(

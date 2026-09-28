@@ -42,7 +42,7 @@ export function ModeTools({ className }: ModeToolsProps) {
         style={
           {
             ['--fader-knob-fill' as string]: mixMode
-              ? 'var(--control)'
+              ? 'var(--on-accent)'
               : 'var(--surface)',
           }
         }
@@ -50,10 +50,10 @@ export function ModeTools({ className }: ModeToolsProps) {
           'inline-flex items-center gap-[0.35rem] rounded-full border-[1.5px] px-[0.75rem] py-[0.4rem]',
           'font-[inherit] text-[0.84rem] font-bold tracking-[0.01em] transition-[background,color,border-color,box-shadow,transform] duration-160',
           'cursor-pointer active:scale-[0.98]',
-          'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
+          'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent/40 focus-visible:outline-offset-2',
           mixMode
-            ? 'border-control bg-control text-on-control shadow-[0_6px_18px_color-mix(in_srgb,var(--control)_35%,transparent)]'
-            : 'border-line bg-surface text-ink hover:border-control/45 hover:bg-control/10',
+            ? 'border-accent bg-accent text-on-accent shadow-[0_6px_18px_color-mix(in_srgb,var(--accent)_35%,transparent)]'
+            : 'border-line bg-surface text-ink hover:border-accent/45 hover:bg-accent-soft',
         )}
       >
         <IconFaders className="size-[1rem]" />

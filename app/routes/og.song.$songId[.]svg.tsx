@@ -46,23 +46,25 @@ export async function loader({ params }: LoaderFunctionArgs) {
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#f3efe6"/>
-      <stop offset="55%" stop-color="#e7e0d2"/>
-      <stop offset="100%" stop-color="#d9d0bf"/>
+      <stop offset="0%" stop-color="#f4f4f7"/>
+      <stop offset="55%" stop-color="#ececf2"/>
+      <stop offset="100%" stop-color="#e6e6ec"/>
     </linearGradient>
-    <linearGradient id="ink" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1c1914"/>
-      <stop offset="100%" stop-color="#3a342c"/>
+    <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#3694FF"/>
+      <stop offset="35%" stop-color="#A346F3"/>
+      <stop offset="70%" stop-color="#FD656B"/>
+      <stop offset="100%" stop-color="#FDAC35"/>
     </linearGradient>
   </defs>
   <rect width="1200" height="630" fill="url(#bg)"/>
-  <circle cx="1040" cy="90" r="180" fill="#1c1914" fill-opacity="0.05"/>
-  <circle cx="160" cy="540" r="220" fill="#1c1914" fill-opacity="0.04"/>
-  <rect x="72" y="72" width="1056" height="486" rx="28" fill="#fffaf2" fill-opacity="0.55" stroke="#1c1914" stroke-opacity="0.08"/>
-  <text x="110" y="160" font-family="Nunito, system-ui, sans-serif" font-size="28" font-weight="800" letter-spacing="0.08em" fill="#5c554a">POLYRECORDER</text>
-  <text x="110" y="310" font-family="Nunito, system-ui, sans-serif" font-size="72" font-weight="700" fill="url(#ink)">${escapeXml(title)}</text>
-  <text x="110" y="390" font-family="Nunito, system-ui, sans-serif" font-size="32" font-weight="600" fill="#5c554a">${escapeXml(subtitle)}</text>
-  <text x="110" y="500" font-family="Nunito, system-ui, sans-serif" font-size="24" fill="#7a7266">polyrecorder.app</text>
+  <circle cx="1040" cy="90" r="180" fill="#3694FF" fill-opacity="0.12"/>
+  <circle cx="160" cy="540" r="220" fill="#FEA43B" fill-opacity="0.14"/>
+  <rect x="72" y="72" width="1056" height="486" rx="28" fill="#ffffff" fill-opacity="0.72" stroke="#121212" stroke-opacity="0.08"/>
+  <text x="110" y="160" font-family="Nunito, system-ui, sans-serif" font-size="28" font-weight="800" letter-spacing="0.08em" fill="#5c5c66">POLYRECORDER</text>
+  <text x="110" y="310" font-family="Nunito, system-ui, sans-serif" font-size="72" font-weight="700" fill="url(#title)">${escapeXml(title)}</text>
+  <text x="110" y="390" font-family="Nunito, system-ui, sans-serif" font-size="32" font-weight="600" fill="#5c5c66">${escapeXml(subtitle)}</text>
+  <text x="110" y="500" font-family="Nunito, system-ui, sans-serif" font-size="24" fill="#5c5c66">polyrecorder.app</text>
 </svg>`
 
   return new Response(svg, {

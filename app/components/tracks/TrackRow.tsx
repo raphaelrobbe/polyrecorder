@@ -145,6 +145,7 @@ export function TrackRow({
     <li
       className={cn(
         'relative grid grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] grid-rows-[auto] items-center gap-x-[0.1rem] touch-manipulation animate-rise max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]',
+        'pl-[0.35rem]',
         calageMode &&
           'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)_2.6rem_7.1rem] grid-rows-[auto_auto] gap-y-[0.1rem] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)_2.3rem_6rem]',
         isDragging && 'opacity-45 touch-none',
@@ -156,6 +157,11 @@ export function TrackRow({
       )}
       data-track-id={track.id}
     >
+      <span
+        aria-hidden="true"
+        className="pointer-events-none absolute bottom-[0.15rem] left-0 top-[0.15rem] w-[0.18rem] rounded-full"
+        style={{ background: `var(--brand-${(index % 8) + 1})` }}
+      />
       <TrackDragHandle
         draggable
         data-drag-track={track.id}

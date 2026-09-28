@@ -64,6 +64,8 @@ export function Deck({ children, className, enableAudioDrop = false }: DeckProps
         'bg-[var(--deck-fill)] shadow-deck backdrop-blur-[10px]',
         "before:pointer-events-none before:absolute before:inset-0 before:content-['']",
         'before:bg-[var(--deck-sheen)]',
+        "after:pointer-events-none after:absolute after:inset-x-0 after:top-0 after:z-[1] after:h-px after:content-['']",
+        'after:bg-[var(--deck-edge)]',
         dropActive &&
           'border-record/55 shadow-[0_0_0_2px_color-mix(in_srgb,var(--record)_28%,transparent),0_16px_36px_var(--shadow)]',
         className,
