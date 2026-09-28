@@ -38,6 +38,7 @@ html.light {
     transparent 40%,
     rgba(255, 255, 255, 0.35) 100%
   );
+  --brand-poly: #000000;
 }
 
 html.dark {
@@ -75,11 +76,13 @@ html.dark {
     transparent 40%,
     rgba(255, 255, 255, 0.06) 100%
   );
+  --brand-poly: #ffffff;
 }
 
 @theme inline {
   --font-sans: Manrope, system-ui, sans-serif;
   --font-display: Fraunces, Georgia, serif;
+  --font-brand: Nunito, system-ui, sans-serif;
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-on-ink: var(--on-ink);
@@ -165,6 +168,10 @@ html.dark {
 
 @utility font-display {
   font-family: var(--font-display);
+}
+
+@utility font-brand {
+  font-family: var(--font-brand);
 }
 
 @utility animate-rise {
