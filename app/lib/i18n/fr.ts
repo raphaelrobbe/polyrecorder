@@ -620,6 +620,13 @@ export const fr = {
     'Un compte se crée en un clic avec une adresse email.',
   'guest.prompt.cta': 'Se connecter / Créer un compte',
   'guest.prompt.dismiss': 'Fermer',
+  'pwa.install.body': 'Installe polyrecorder sur cet appareil pour y revenir plus vite.',
+  'pwa.install.cta': 'Installer',
+  'pwa.install.later': 'Plus tard',
+  'pwa.install.dismiss': 'Fermer',
+  'pwa.install.ios.howto':
+    'Appuie sur Partager, puis sur « Sur l’écran d’accueil ».',
+  'pwa.install.ios.gotIt': 'Compris',
   'cloud.error.uploadFailed': 'Échec de l’envoi sur le cloud. Réessaie.',
   'cloud.error.openFailed': 'Impossible d’ouvrir cette chanson.',
 

@@ -42,10 +42,10 @@ export const links: LinksFunction = () => {
     },
     {
       rel: 'apple-touch-icon',
-      href: `${base}apple-touch-icon.png`,
+      href: `${base}apple-touch-icon.png?v=2`,
       sizes: '180x180',
     },
-    { rel: 'manifest', href: `${base}site.webmanifest` },
+    { rel: 'manifest', href: `${base}site.webmanifest?v=2` },
   ]
 }
 
@@ -92,6 +92,9 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   useEffect(() => {
     initLocale()
+    void import('~/lib/pwaInstallCapture.client').then((mod) => {
+      mod.initPwaInstallCapture()
+    })
     if (!('serviceWorker' in navigator)) return
     const base = import.meta.env.BASE_URL || '/'
     const swUrl = new URL('sw.js', window.location.origin + base).pathname

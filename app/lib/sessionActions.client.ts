@@ -17,6 +17,7 @@ import {
 import type { Locale } from './i18n'
 import { writeActiveSongPartId } from './cloudPrefs'
 import { librarySessionPath } from './libraryPaths'
+import { markPwaUsefulSession } from './pwaInstallPrefs'
 import {
   applyAudioSink,
   clearBufferCache,
@@ -2157,6 +2158,7 @@ async function appendTrackFromBlob(
     mod.maybeAutoUploadTrack(track.id),
   )
   scheduleGuestDraftSave()
+  markPwaUsefulSession()
   return track
 }
 

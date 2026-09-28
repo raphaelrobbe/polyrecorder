@@ -622,6 +622,14 @@ export const de: Record<MessageKey, string> = {
     'Ein Konto wird mit einem Klick nur per E-Mail erstellt.',
   'guest.prompt.cta': 'Anmelden / Konto erstellen',
   'guest.prompt.dismiss': 'Schließen',
+  'pwa.install.body':
+    'Installiere polyrecorder auf diesem Gerät für schnelleren Zugriff.',
+  'pwa.install.cta': 'Installieren',
+  'pwa.install.later': 'Später',
+  'pwa.install.dismiss': 'Schließen',
+  'pwa.install.ios.howto':
+    'Tippe auf Teilen und dann auf „Zum Home-Bildschirm“.',
+  'pwa.install.ios.gotIt': 'Verstanden',
   'cloud.error.uploadFailed': 'Cloud-Upload fehlgeschlagen. Bitte erneut versuchen.',
   'cloud.error.openFailed': 'Dieses Lied konnte nicht geöffnet werden.',
 

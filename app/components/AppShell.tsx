@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react'
+import { ClientOnly } from 'remix-utils/client-only'
 import { AuthBar } from './AuthBar'
 import { Brand } from './Brand'
 import { Deck } from './Deck'
 import { Hint } from './StatusMessage'
 import { LegalFooter } from './LegalFooter'
 import { ModeRow } from './ModeRow'
+import { PwaInstallBanner } from './PwaInstallBanner'
 import { cn } from '../lib/utils'
 import { useSessionStore } from '../store/sessionStore'
 
@@ -29,6 +31,7 @@ export function AppShell({
 }: AppShellProps) {
   const hint = useSessionStore((s) => s.hint)
   const trackCount = useSessionStore((s) => s.tracks.length)
+  const recording = useSessionStore((s) => s.state === 'recording')
   const brandVariant = enableAudioDrop
     ? trackCount > 0
       ? 'compact'
@@ -75,6 +78,9 @@ export function AppShell({
         )}
         <ModeRow />
         <Hint>{hint}</Hint>
+        <ClientOnly fallback={null}>
+          {() => <PwaInstallBanner hidden={recording} />}
+        </ClientOnly>
       </main>
       <LegalFooter />
     </div>

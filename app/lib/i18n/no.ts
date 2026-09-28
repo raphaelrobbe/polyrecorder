@@ -621,6 +621,12 @@ export const no: Record<MessageKey, string> = {
     'En konto opprettes med ett klikk bare med e-postadresse.',
   'guest.prompt.cta': 'Logg inn / Opprett konto',
   'guest.prompt.dismiss': 'Lukk',
+  'pwa.install.body': 'Installer polyrecorder på denne enheten for raskere tilgang.',
+  'pwa.install.cta': 'Installer',
+  'pwa.install.later': 'Senere',
+  'pwa.install.dismiss': 'Lukk',
+  'pwa.install.ios.howto': 'Trykk Del, deretter «Legg til på Hjem-skjerm».',
+  'pwa.install.ios.gotIt': 'Skjønner',
   'cloud.error.uploadFailed': 'Opplasting til skyen mislyktes. Prøv igjen.',
   'cloud.error.openFailed': 'Kunne ikke åpne denne sangen.',
 

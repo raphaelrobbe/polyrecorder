@@ -619,6 +619,12 @@ export const en: Record<MessageKey, string> = {
     'An account is created in one click with just an email address.',
   'guest.prompt.cta': 'Sign in / Create an account',
   'guest.prompt.dismiss': 'Dismiss',
+  'pwa.install.body': 'Install polyrecorder on this device for quicker access.',
+  'pwa.install.cta': 'Install',
+  'pwa.install.later': 'Later',
+  'pwa.install.dismiss': 'Dismiss',
+  'pwa.install.ios.howto': 'Tap Share, then “Add to Home Screen”.',
+  'pwa.install.ios.gotIt': 'Got it',
   'cloud.error.uploadFailed': 'Cloud upload failed. Try again.',
   'cloud.error.openFailed': 'Could not open this song.',
 
