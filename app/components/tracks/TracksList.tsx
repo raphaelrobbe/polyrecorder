@@ -249,21 +249,20 @@ export function TracksList({ className }: TracksListProps) {
         ) : null}
         {calageMode && alignable.length > 0 ? (
           <div
-            className="mb-[0.08rem] grid grid-cols-[1.35rem_1.55rem_minmax(0,1fr)_2.6rem_7.1rem] items-end gap-x-[0.1rem] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)_2.3rem_6rem]"
+            className="mb-[0.08rem] grid grid-cols-[1.55rem_minmax(0,1fr)_2.6rem_7.1rem] items-end gap-x-[0.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_2.3rem_6rem]"
             aria-hidden="true"
           >
             <span className="col-start-1" />
             <span className="col-start-2" />
-            <span className="col-start-3" />
             <span
-              className="col-start-4 text-center text-[0.58rem] font-extrabold uppercase tracking-[0.06em] text-ink-soft select-none"
+              className="col-start-3 text-center text-[0.58rem] font-extrabold uppercase tracking-[0.06em] text-ink-soft select-none"
               title={t('tracks.alignAll.hint')}
               hidden={!autoAlignEnabled}
             >
               {t('tracks.alignCol')}
             </span>
             <span
-              className="col-start-5 text-center text-[0.58rem] font-extrabold uppercase tracking-[0.06em] text-ink-soft select-none"
+              className="col-start-4 text-center text-[0.58rem] font-extrabold uppercase tracking-[0.06em] text-ink-soft select-none"
               title={t('tracks.offset.hint')}
             >
               {t('tracks.offsetCol')}
@@ -272,15 +271,23 @@ export function TracksList({ className }: TracksListProps) {
         ) : null}
         <div
           className={cn(
-            'mb-[0.45rem] grid min-h-[2rem] grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] items-center gap-x-[0.1rem] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]',
+            'mb-[0.45rem] grid min-h-[2rem] items-center gap-x-[0.1rem]',
+            calageMode || mixMode
+              ? 'grid-cols-[1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.4rem_minmax(0,1fr)]'
+              : 'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]',
             calageMode &&
               alignable.length > 0 &&
-              'mb-[0.2rem] grid-cols-[1.35rem_1.55rem_minmax(0,1fr)_2.6rem_7.1rem] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)_2.3rem_6rem]',
+              'mb-[0.2rem] grid-cols-[1.55rem_minmax(0,1fr)_2.6rem_7.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_2.3rem_6rem]',
           )}
         >
-          <span className="col-start-1" aria-hidden="true" />
+          {calageMode || mixMode ? null : (
+            <span className="col-start-1" aria-hidden="true" />
+          )}
           <TrackMute
-            className="col-start-2 justify-self-center"
+            className={cn(
+              'justify-self-center',
+              calageMode || mixMode ? 'col-start-1' : 'col-start-2',
+            )}
             title={t('tracks.muteAll.hint')}
             ariaLabel={t('tracks.muteAll.aria')}
             checked={allSelected}
@@ -288,7 +295,12 @@ export function TracksList({ className }: TracksListProps) {
             onCheckedChange={(on) => setAllTracksEnabled(on)}
             inputProps={{ 'data-select-all': true }}
           />
-          <div className="col-start-3 flex w-full min-w-0 items-center justify-end py-[0.2rem] pr-[0.45rem] pl-[0.35rem] max-sm:pr-[0.3rem] max-sm:pl-[0.2rem]">
+          <div
+            className={cn(
+              'flex w-full min-w-0 items-center justify-end py-[0.2rem] pr-[0.45rem] pl-[0.35rem] max-sm:pr-[0.3rem] max-sm:pl-[0.2rem]',
+              calageMode || mixMode ? 'col-start-2' : 'col-start-3',
+            )}
+          >
             <Button
               variant="trash"
               className="h-[1.75rem] w-[1.75rem] shrink-0 rounded-lg border-ink/18 text-ink/55 [&_svg]:size-[0.88rem]"
@@ -313,7 +325,7 @@ export function TracksList({ className }: TracksListProps) {
           </div>
           <Button
             variant="nudge"
-            className="col-start-4 justify-self-center [&_svg]:size-[1.28rem]"
+            className="col-start-3 justify-self-center [&_svg]:size-[1.28rem]"
             icon={<IconAutoAlign />}
             hidden={!calageMode || !autoAlignEnabled || alignable.length === 0}
             disabled={
@@ -338,7 +350,7 @@ export function TracksList({ className }: TracksListProps) {
             }}
           />
           <span
-            className="col-start-5 w-full shrink-0 justify-self-center"
+            className="col-start-4 w-full shrink-0 justify-self-center"
             data-align-nudge-spacer
             hidden={!calageMode || alignable.length === 0}
             aria-hidden="true"
@@ -352,6 +364,7 @@ export function TracksList({ className }: TracksListProps) {
           data-tracks
           ref={listRef}
           onDragStart={(event) => {
+            if (calageMode || mixMode) return
             const target = event.target
             if (!(target instanceof Element)) return
             const handle = target.closest<HTMLElement>('[data-drag-track]')
@@ -390,6 +403,7 @@ export function TracksList({ className }: TracksListProps) {
             commitDragOverFromPoint(event.clientY)
           }}
           onPointerDown={(event) => {
+            if (calageMode || mixMode) return
             if (event.pointerType === 'mouse') return
             if (!(event.target instanceof Element)) return
             if (event.target.closest(TOUCH_REORDER_EXCLUDE)) return
@@ -405,6 +419,7 @@ export function TracksList({ className }: TracksListProps) {
             }
           }}
           onPointerMove={(event) => {
+            if (calageMode || mixMode) return
             const touch = touchReorderRef.current
             if (!touch || touch.pointerId !== event.pointerId) return
             const dy = event.clientY - touch.startY

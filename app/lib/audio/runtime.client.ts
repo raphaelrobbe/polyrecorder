@@ -65,7 +65,7 @@ let meterSource: MediaStreamAudioSourceNode | null = null
 let meterRaf: number | null = null
 let meterLevelCallback: ((level: number) => void) | null = null
 
-let playbackSources: AudioBufferSourceNode[] = []
+let playbackSources: AudioScheduledSourceNode[] = []
 let playbackGain: GainNode | null = null
 let bufferCache = new Map<number, AudioBuffer>()
 
@@ -120,11 +120,11 @@ export function getAnalyser(): AnalyserNode | null {
   return analyser
 }
 
-export function getPlaybackSources(): AudioBufferSourceNode[] {
+export function getPlaybackSources(): AudioScheduledSourceNode[] {
   return playbackSources
 }
 
-export function setPlaybackSources(sources: AudioBufferSourceNode[]) {
+export function setPlaybackSources(sources: AudioScheduledSourceNode[]) {
   playbackSources = sources
 }
 

@@ -16,6 +16,7 @@ import {
   setSongPublic,
   updateSongPartMasterVolume,
   updateSongPartAlignPrefs,
+  updateSongPartMetronomeBpm,
   updateTrackAssetOffset,
   updateTrackAssetOffsets,
   updateTrackAssetVolume,
@@ -60,6 +61,7 @@ export async function action({ request }: ActionFunctionArgs) {
         skipCountInPlayback?: boolean
         skipCountInDownload?: boolean
       }
+      metronomeBpm?: number | string | null
       orderedIds?: string[]
       updates?: Array<{
         id: string
@@ -230,6 +232,21 @@ export async function action({ request }: ActionFunctionArgs) {
         request,
         songPartId || String(body.id ?? ''),
         body.alignPrefs,
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'updateMetronomeBpm') {
+      const raw = body.metronomeBpm
+      const parsed =
+        raw == null || (typeof raw === 'string' && raw.trim() === '')
+          ? null
+          : Number(raw)
+      const bpm =
+        parsed != null && Number.isFinite(parsed) ? parsed : null
+      const result = await updateSongPartMetronomeBpm(
+        request,
+        songPartId || String(body.id ?? ''),
+        bpm,
       )
       return json(result, { status: result.ok ? 200 : 400 })
     }

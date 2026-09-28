@@ -280,11 +280,20 @@ export const en: Record<MessageKey, string> = {
   'capture.import': 'Import an audio file',
   'capture.import.hint':
     'Import an audio file from this device (becomes a track)',
+  'capture.metronome': 'Metronome',
+  'capture.metronome.hint':
+    'Add a metronome track (tempo adjustable on the track, default 60 BPM)',
+  'capture.metronome.bpm': 'Tempo in beats per minute',
+  'capture.metronome.unit': 'BPM',
+  'capture.metronome.apply': 'OK',
   'capture.dropHint': 'Drop to import',
   'capture.stop': 'Stop',
   'capture.forgottenStop': 'Did you forget to stop recording?',
   'capture.forgottenStop.discard':
     'If so, you can cancel the current take with the {discard} button',
+
+  'track.metronome': 'Metronome {bpm} BPM',
+  'track.metronome.label': 'Metronome',
 
   'mix.restart': 'Back to start',
   'mix.play': 'Play',
@@ -306,6 +315,7 @@ export const en: Record<MessageKey, string> = {
   'deck.autoAlign.label': 'Auto-align with count-in',
   'deck.autoAlign.on': 'On',
   'deck.autoAlign.off': 'Off',
+  'deck.metronome.add': 'Add a metronome',
   'deck.howtoLink': 'How to use',
 
   'align.latency.label': 'Playback lead',

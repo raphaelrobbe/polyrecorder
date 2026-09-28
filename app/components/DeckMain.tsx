@@ -2,12 +2,15 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate, useRouteLoaderData, Link } from '@remix-run/react'
 import { isDefaultSessionTitle } from '../lib/format'
 import {
+  createOrUpdateMetronome,
   discard,
   dismissGuestSignInPrompt,
   loadCloudSongIntoSession,
   normalizeAndSetSessionTitle,
   setSessionAlignPref,
 } from '../lib/sessionActions.client'
+import { DEFAULT_METRONOME_BPM } from '../lib/audio/metronome.client'
+import { ensureAudioContext } from '../lib/audio/runtime.client'
 import { t } from '../lib/i18n'
 import {
   libraryGroupPath,
@@ -86,6 +89,7 @@ export function DeckMain({ className }: DeckMainProps) {
   const forgottenStopHint = useSessionStore((s) => s.forgottenStopHint)
   const guestSignInPrompt = useSessionStore((s) => s.guestSignInPrompt)
   const autoAlignEnabled = useSessionStore((s) => s.autoAlignEnabled)
+  const metronomeBpm = useSessionStore((s) => s.metronomeBpm)
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
   const error = useSessionStore((s) => s.error)
@@ -107,6 +111,10 @@ export function DeckMain({ className }: DeckMainProps) {
   const songTitleAria = t('song.title.aria')
   const sessionTitleAria = t('session.title.aria')
   const showModes = tracks.length > 0
+  const hasMetronome =
+    metronomeBpm != null || tracks.some((track) => track.isMetronome)
+  const showMetronomeAdd =
+    !calageMode && !mixMode && !hasMetronome && state !== 'recording'
   /** Auto-align prefs only; hide in mix/calage or when there is nothing to show. */
   const showToolsDeck =
     !calageMode && !mixMode && (Boolean(user) || showModes)
@@ -416,28 +424,44 @@ export function DeckMain({ className }: DeckMainProps) {
         <ModeTools className="self-end" />
       ) : null}
 
-      {showToolsDeck ? (
+      {showToolsDeck || showMetronomeAdd ? (
         <div
           className="px-1 max-sm:px-0.5"
           aria-label={t('deck.toolsAria')}
         >
-          <div className="flex flex-wrap items-center gap-x-[0.45rem] gap-y-[0.35rem]">
-            <CheckboxOption
-              align="center"
-              className="text-[0.84rem] leading-none"
-              checked={autoAlignEnabled}
-              onCheckedChange={(on) =>
-                setSessionAlignPref('autoAlignEnabled', on)
-              }
-            >
-              {t('deck.autoAlign.label')}
-            </CheckboxOption>
-            <Link
-              to="/aide#mode-emploi-calage"
-              className="text-[0.84rem] font-semibold leading-none text-ink-soft underline decoration-ink/25 underline-offset-2 hover:text-ink hover:decoration-ink/55"
-            >
-              {t('deck.howtoLink')}
-            </Link>
+          <div className="flex flex-col items-start gap-[0.45rem]">
+            {showMetronomeAdd ? (
+              <button
+                type="button"
+                className="m-0 border-0 bg-transparent p-0 text-[0.84rem] font-semibold leading-none text-ink-soft underline decoration-ink/25 underline-offset-2 hover:text-ink hover:decoration-ink/55 cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2"
+                onClick={() => {
+                  void ensureAudioContext().catch(() => {})
+                  void createOrUpdateMetronome(DEFAULT_METRONOME_BPM)
+                }}
+              >
+                {t('deck.metronome.add')}
+              </button>
+            ) : null}
+            {showToolsDeck ? (
+              <div className="flex flex-wrap items-center gap-x-[0.45rem] gap-y-[0.35rem]">
+                <CheckboxOption
+                  align="center"
+                  className="text-[0.84rem] leading-none"
+                  checked={autoAlignEnabled}
+                  onCheckedChange={(on) =>
+                    setSessionAlignPref('autoAlignEnabled', on)
+                  }
+                >
+                  {t('deck.autoAlign.label')}
+                </CheckboxOption>
+                <Link
+                  to="/aide#mode-emploi-calage"
+                  className="text-[0.84rem] font-semibold leading-none text-ink-soft underline decoration-ink/25 underline-offset-2 hover:text-ink hover:decoration-ink/55"
+                >
+                  {t('deck.howtoLink')}
+                </Link>
+              </div>
+            ) : null}
           </div>
         </div>
       ) : null}

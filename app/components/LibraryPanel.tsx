@@ -6,10 +6,9 @@ import {
   useState,
 } from 'react'
 import { useLocale } from '../hooks/useLocale'
-import { writeActiveSongPartId } from '../lib/cloudPrefs'
 import { readAlignPrefs } from '../lib/alignPrefs'
 import { t, tp } from '../lib/i18n'
-import { loadCloudSongIntoSession } from '../lib/sessionActions.client'
+import { clearLocalDeckSession, loadCloudSongIntoSession } from '../lib/sessionActions.client'
 import { librarySessionPath } from '../lib/libraryPaths'
 import { cn } from '../lib/utils'
 import type { loader as rootLoader } from '../root'
@@ -1299,7 +1298,6 @@ export function LibraryPanel({ className }: LibraryPanelProps) {
   const rootData = useRouteLoaderData<typeof rootLoader>('root')
   const user = rootData?.user ?? null
   const activeSongPartId = useSessionStore((s) => s.activeSongPartId)
-  const setActiveSongPartId = useSessionStore((s) => s.setActiveSongPartId)
   const setSessionTitle = useSessionStore((s) => s.setSessionTitle)
   const deckSongId = useSessionStore((s) => s.deckSongId)
   const setSongWorkName = useSessionStore((s) => s.setSongWorkName)
@@ -1505,12 +1503,16 @@ export function LibraryPanel({ className }: LibraryPanelProps) {
     [clearDragState, deckSongId, patch, reload, setError],
   )
 
-  /** Drop the upload target when the part behind it is deleted. */
+  /** Wipe the deck when the active cloud session is deleted from the library. */
   const forgetActivePartIfIn = (parts: Array<{ id: string }>) => {
-    if (!activeSongPartId) return
-    if (!parts.some((part) => part.id === activeSongPartId)) return
-    writeActiveSongPartId(null)
-    setActiveSongPartId(null)
+    const { activeSongPartId: activeId, deckSongPartId } =
+      useSessionStore.getState()
+    const hit =
+      (activeId != null && parts.some((part) => part.id === activeId)) ||
+      (deckSongPartId != null &&
+        parts.some((part) => part.id === deckSongPartId))
+    if (!hit) return
+    clearLocalDeckSession()
   }
 
   const onOpenSongPart = async (songPartId: string) => {

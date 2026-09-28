@@ -25,6 +25,7 @@ export type GuestDraftTrack = {
   cloudTrackId?: string
   cloudOwnedByMe?: boolean
   uploadedByPseudo?: string | null
+  isMetronome?: boolean
 }
 
 export type GuestDraftLibraryPath = {
@@ -48,6 +49,7 @@ export type GuestDraft = {
   referenceTrackId: number | null
   trackCounter: number
   masterVolume: number
+  metronomeBpm: number | null
   tracks: GuestDraftTrack[]
   /** Cloud session this draft was recorded against (consultation / collab). */
   cloudSongPartId: string | null
@@ -70,6 +72,7 @@ export type GuestDraftSaveInput = {
   referenceTrackId: number | null
   trackCounter: number
   masterVolume: number
+  metronomeBpm: number | null
   tracks: Track[]
   trackVolumes: Record<number, number>
   enabledTrackIds: number[]
@@ -233,6 +236,7 @@ export async function saveGuestDraft(
     referenceTrackId: input.referenceTrackId,
     trackCounter: input.trackCounter,
     masterVolume: input.masterVolume,
+    metronomeBpm: input.metronomeBpm,
     cloudSongPartId: input.cloudSongPartId,
     cloudSongId: input.cloudSongId,
     deckSongPartSiblings: input.deckSongPartSiblings,
@@ -254,6 +258,7 @@ export async function saveGuestDraft(
       cloudTrackId: track.cloudTrackId,
       cloudOwnedByMe: track.cloudOwnedByMe,
       uploadedByPseudo: track.uploadedByPseudo,
+      isMetronome: track.isMetronome,
     })),
   }
 

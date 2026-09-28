@@ -28,6 +28,7 @@ export async function action({ request }: ActionFunctionArgs) {
       muted?: boolean | null
       clientTrackId?: number | null
       sessionTitle?: string | null
+      metronomeBpm?: number | null
     }
     const result = await presignTrackUpload(request, {
       songPartId: body.songPartId ?? body.songId,
@@ -40,6 +41,8 @@ export async function action({ request }: ActionFunctionArgs) {
       muted: body.muted == null ? null : Boolean(body.muted),
       clientTrackId: body.clientTrackId ?? null,
       sessionTitle: body.sessionTitle ?? null,
+      metronomeBpm:
+        body.metronomeBpm == null ? null : Number(body.metronomeBpm),
     })
     if (!result.ok) {
       const status =

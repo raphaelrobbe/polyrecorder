@@ -130,6 +130,18 @@ export function IconImportAudio(props: Omit<IconProps, 'children'>) {
   )
 }
 
+/** Classic metronome silhouette (pendulum + pyramid body). */
+export function IconMetronome(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="currentColor"
+        d="M12.7 3.2 14.8 9H16l-1.6 9.2c-.15.9-.9 1.55-1.8 1.55H8.4c-.9 0-1.65-.65-1.8-1.55L5 9h1.2L8.3 3.2c.2-.7.85-1.2 1.6-1.2h1.2c.75 0 1.4.5 1.6 1.2zM9.1 5l-1.5 4h5.8L12 5H9.1zm-.35 6-.9 5.2h5.3l-.9-5.2H8.75zM13.6 4.4l4.2 1.5-.55 1.55-4.2-1.5.55-1.55z"
+      />
+    </Icon>
+  )
+}
+
 export function IconStop(props: Omit<IconProps, 'children'>) {
   return (
     <Icon {...props}>

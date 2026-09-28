@@ -207,8 +207,10 @@ export function formatAlignDetail(
 
 /** Mix timeline length from track offsets + durations (no audio decode). */
 export function getMixDurationMs(tracks: Track[]): number {
+  const nonMetro = tracks.filter((track) => !track.isMetronome)
+  const list = nonMetro.length > 0 ? nonMetro : tracks
   let max = 0
-  for (const track of tracks) {
+  for (const track of list) {
     const delay = Math.max(0, track.offsetMs)
     const skip = Math.max(0, -track.offsetMs)
     const playable = Math.max(0, track.durationMs - skip)

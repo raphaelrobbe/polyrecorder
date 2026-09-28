@@ -22,6 +22,8 @@ export type Track = {
   cloudOwnedByMe?: boolean
   /** Uploader display name (no @); set for shared / collaborative cloud takes. */
   uploadedByPseudo?: string | null
+  /** Synthetic click track (not uploaded); session tempo is stored separately. */
+  isMetronome?: boolean
 }
 
 

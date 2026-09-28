@@ -47,6 +47,7 @@ export async function uploadTrackToCloud(
   if (!canContributeCloudTracks()) return false
   const track = useSessionStore.getState().tracks.find((t) => t.id === trackId)
   if (!track || track.blob.size === 0) return false
+  if (track.isMetronome) return false
   if (track.cloudStatus === 'uploading' || track.cloudStatus === 'synced') {
     return track.cloudStatus === 'synced'
   }
@@ -57,6 +58,7 @@ export async function uploadTrackToCloud(
     // Store only — never fall back to localStorage (stale ids must not attach).
     const songPartId = useSessionStore.getState().activeSongPartId
     const sessionTitle = useSessionStore.getState().sessionTitle
+    const metronomeBpm = useSessionStore.getState().metronomeBpm
     const contentType = track.blob.type || 'audio/webm'
 
     const presignRes = await fetch('/api/cloud/presign', {
@@ -73,6 +75,7 @@ export async function uploadTrackToCloud(
         muted: !useSessionStore.getState().enabledTrackIds.includes(trackId),
         clientTrackId: track.id,
         sessionTitle,
+        metronomeBpm,
       }),
     })
     const presign = (await presignRes.json()) as
@@ -147,6 +150,10 @@ export async function uploadTrackToCloud(
         : {}),
     })
     patchTrack(trackId, { cloudTrackId: presign.trackAssetId })
+    // Metronome may have been created before any SongPart existed — sync BPM now.
+    void import('./sessionActions.client').then((mod) => {
+      mod.flushMetronomeBpmToCloud()
+    })
 
     const putRes = await fetch(presign.uploadUrl, {
       method: 'PUT',
@@ -206,6 +213,7 @@ export async function uploadAllLocalTracks(): Promise<{
     .getState()
     .tracks.filter(
       (track) =>
+        !track.isMetronome &&
         track.blob.size > 0 &&
         (track.cloudStatus === 'local' ||
           track.cloudStatus === 'error' ||
@@ -243,6 +251,7 @@ export type OpenedCloudSong = {
     showCalageWarnings: boolean
     skipCountInPlayback: boolean
     skipCountInDownload: boolean
+    metronomeBpm: number | null
   }
   /** Every session of the song, in library order (deck prev / next). */
   siblings: Array<{ id: string; name: string | null }>
@@ -286,23 +295,24 @@ export async function fetchAndHydrateSong(
           masterVolume: number
           autoAlignEnabled: boolean
           showCalageWarnings: boolean
-          skipCountInPlayback: boolean
-          skipCountInDownload: boolean
-        }
-        siblings: Array<{ id: string; name: string | null }>
-        tracks: Array<{
-          id: string
-          name: string
-          url: string
-          durationMs: number
-          offsetMs: number
-          volume: number
-          muted: boolean
-          contentType: string
-          uploadedByMe: boolean
-          uploadedByPseudo: string | null
-        }>
+        skipCountInPlayback: boolean
+        skipCountInDownload: boolean
+        metronomeBpm?: number | null
       }
+      siblings: Array<{ id: string; name: string | null }>
+      tracks: Array<{
+        id: string
+        name: string
+        url: string
+        durationMs: number
+        offsetMs: number
+        volume: number
+        muted: boolean
+        contentType: string
+        uploadedByMe: boolean
+        uploadedByPseudo: string | null
+      }>
+    }
     | { ok: false; reason: string }
 
   if (!data.ok) {
@@ -365,6 +375,11 @@ export async function fetchAndHydrateSong(
       showCalageWarnings: data.part.showCalageWarnings !== false,
       skipCountInPlayback: data.part.skipCountInPlayback !== false,
       skipCountInDownload: data.part.skipCountInDownload !== false,
+      metronomeBpm:
+        typeof data.part.metronomeBpm === 'number' &&
+        Number.isFinite(data.part.metronomeBpm)
+          ? Math.round(data.part.metronomeBpm)
+          : null,
     },
     siblings: data.siblings,
     tracks,

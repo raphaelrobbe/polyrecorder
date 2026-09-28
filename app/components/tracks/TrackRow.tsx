@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useState } from 'react'
 import { formatPseudoHandle } from '../../common/user'
 import type { Track } from '../../common/types'
 import {
@@ -12,6 +12,8 @@ import { TRACK_VOLUME_MAX } from '../../lib/audio/mix.client'
 import { OFFSET_WARN_MS } from '../../lib/audio/runtime.client'
 import {
   applyManualTrackOffset,
+  consumeMetronomeBpmFocusRequest,
+  createOrUpdateMetronome,
   deleteTrack,
   getTrackPositionMs,
   getTrackVolume,
@@ -24,6 +26,10 @@ import {
   flushVolumeCloudPersist,
   toggleTrackHighlight,
 } from '../../lib/sessionActions.client'
+import {
+  clampMetronomeBpm,
+  DEFAULT_METRONOME_BPM,
+} from '../../lib/audio/metronome.client'
 import { uploadTrackToCloud } from '../../lib/cloudUpload.client'
 import { useLocale } from '../../hooks/useLocale'
 import { t } from '../../lib/i18n'
@@ -34,6 +40,7 @@ import { useRouteLoaderData } from '@remix-run/react'
 import { Button } from '../Button'
 import { IconAutoAlign, IconCloudSave, IconHighlight, IconTrash } from '../icons'
 import { MsOffsetEditor } from '../MsOffsetEditor'
+import { NudgeValueField } from '../NudgeValueField'
 import { VolumeRibbon } from '../VolumeRibbon'
 import { TrackDragHandle } from './TrackDragHandle'
 import { TrackMute } from './TrackMute'
@@ -72,6 +79,7 @@ export function TrackRow({
   )
   const showCalageWarnings = useSessionStore((s) => s.showCalageWarnings)
   const autoAlignEnabled = useSessionStore((s) => s.autoAlignEnabled)
+  const metronomeBpm = useSessionStore((s) => s.metronomeBpm)
   // Re-render on playhead ticks so per-track clocks stay live in calage mode.
   useSessionStore((s) => s.mixClockText)
 
@@ -86,6 +94,7 @@ export function TrackRow({
   const clock = formatCentis(getTrackPositionMs(track.id))
   const volume = trackVolumes[track.id] ?? getTrackVolume(track.id)
   const hideDelete = calageMode || mixMode
+  const showDragHandle = !calageMode && !mixMode
   const uploaderHandle = formatPseudoHandle(track.uploadedByPseudo)
   const uploaderIsMe =
     track.cloudOwnedByMe === true ||
@@ -122,24 +131,60 @@ export function TrackRow({
   const showCloudSave =
     (!readOnlySession || canCloudContribute) &&
     user != null &&
+    !track.isMetronome &&
     (track.cloudStatus === 'local' ||
       track.cloudStatus === 'error' ||
       track.cloudStatus == null)
   const cloudUploading = track.cloudStatus === 'uploading'
+  const showDelete = track.isMetronome
+    ? !hideDelete
+    : !isReference && !hideDelete
 
   const [nameDraft, setNameDraft] = useState(track.name)
+  const [bpmDraft, setBpmDraft] = useState(
+    String(metronomeBpm ?? DEFAULT_METRONOME_BPM),
+  )
 
   useEffect(() => {
     setNameDraft(track.name)
   }, [track.name])
 
+  useEffect(() => {
+    if (!track.isMetronome) return
+    setBpmDraft(String(metronomeBpm ?? DEFAULT_METRONOME_BPM))
+  }, [track.isMetronome, metronomeBpm])
+
+  useLayoutEffect(() => {
+    if (!track.isMetronome) return
+    if (!consumeMetronomeBpmFocusRequest()) return
+    const input = document.querySelector<HTMLInputElement>(
+      `input[data-metro-bpm="${track.id}"]`,
+    )
+    if (!input) return
+    input.focus()
+    input.select()
+  }, [track.isMetronome, track.id])
+
+  const applyMetronomeBpm = () => {
+    const parsed = Number(bpmDraft)
+    const next = clampMetronomeBpm(
+      Number.isFinite(parsed) ? parsed : DEFAULT_METRONOME_BPM,
+    )
+    setBpmDraft(String(next))
+    if (next === (metronomeBpm ?? DEFAULT_METRONOME_BPM)) return
+    void createOrUpdateMetronome(next)
+  }
+
   return (
     <li
       className={cn(
-        'relative grid grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] grid-rows-[auto] items-center gap-x-[0.1rem] touch-manipulation animate-rise max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]',
+        'relative grid grid-rows-[auto] items-center gap-x-[0.1rem] touch-manipulation animate-rise',
         'pl-[0.35rem]',
+        showDragHandle
+          ? 'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]'
+          : 'grid-cols-[1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.4rem_minmax(0,1fr)]',
         calageMode &&
-          'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)_2.6rem_7.1rem] grid-rows-[auto_auto] gap-y-[0.1rem] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)_2.3rem_6rem]',
+          'grid-cols-[1.55rem_minmax(0,1fr)_2.6rem_7.1rem] grid-rows-[auto_auto] gap-y-[0.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_2.3rem_6rem]',
         isDragging && 'opacity-45 touch-none',
         dragOver === 'before' &&
           'before:pointer-events-none before:absolute before:left-0 before:right-0 before:-top-[0.2rem] before:h-0.5 before:rounded-sm before:bg-ink before:content-[""]',
@@ -154,14 +199,17 @@ export function TrackRow({
         className="pointer-events-none absolute bottom-[0.15rem] left-0 top-[0.15rem] w-[0.18rem] rounded-full"
         style={{ background: `var(--brand-${(index % 8) + 1})` }}
       />
-      <TrackDragHandle
-        draggable
-        data-drag-track={track.id}
-        ariaLabel={t('tracks.reorder', { name: track.name })}
-      />
+      {showDragHandle ? (
+        <TrackDragHandle
+          draggable
+          data-drag-track={track.id}
+          ariaLabel={t('tracks.reorder', { name: track.name })}
+        />
+      ) : null}
       <div
         className={cn(
-          'col-start-2 row-start-1 flex flex-col items-center gap-[0.3rem]',
+          'row-start-1 flex flex-col items-center gap-[0.3rem]',
+          showDragHandle ? 'col-start-2' : 'col-start-1',
           mixMode && 'self-start pt-[0.2rem]',
         )}
       >
@@ -198,7 +246,8 @@ export function TrackRow({
       </div>
       <div
         className={cn(
-          'col-start-3 row-start-1 flex w-full min-w-0 items-center gap-[0.35rem] rounded-[14px] border border-transparent bg-ink/4 box-border py-[0.28rem] pr-[0.4rem] pl-[0.5rem]',
+          'row-start-1 flex w-full min-w-0 items-center gap-[0.35rem] rounded-[14px] border border-transparent bg-ink/4 box-border py-[0.28rem] pr-[0.4rem] pl-[0.5rem]',
+          showDragHandle ? 'col-start-3' : 'col-start-2',
           'max-sm:gap-[0.2rem] max-sm:rounded-[12px] max-sm:py-[0.22rem] max-sm:pr-[0.28rem] max-sm:pl-[0.32rem]',
           (calageMode || mixMode || showUploader) && 'items-start',
           !isEnabled && 'opacity-55',
@@ -218,42 +267,81 @@ export function TrackRow({
             )}
           >
             <div className="flex min-w-0 flex-auto flex-col gap-0">
-              <TrackNameInput
-                isDefault={isDefaultTrackName(nameDraft)}
-                data-rename-track={track.id}
-                value={nameDraft}
-                aria-label={t('tracks.name.aria')}
-                maxLength={40}
-                className={cn(showUploader && 'py-0')}
-                onChange={(event) => {
-                  setNameDraft(event.target.value)
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault()
-                    event.currentTarget.blur()
-                  }
-                }}
-                onFocus={(event) => {
-                  if (!isDefaultTrackName(event.currentTarget.value)) return
-                  event.currentTarget.select()
-                  event.currentTarget.addEventListener(
-                    'mouseup',
-                    (mouseupEvent) => {
-                      mouseupEvent.preventDefault()
-                      event.currentTarget.select()
-                    },
-                    { once: true },
-                  )
-                }}
-                onBlur={() => {
-                  const next =
-                    nameDraft.trim().slice(0, 40) ||
-                    defaultTrackName(index + 1)
-                  setNameDraft(next)
-                  renameTrack(track.id, next)
-                }}
-              />
+              {track.isMetronome ? (
+                <div className="inline-flex min-w-0 items-baseline gap-[0.35rem] py-[0.1rem]">
+                  <span className="shrink-0 text-[0.82rem] font-bold text-ink">
+                    {t('track.metronome.label')}
+                  </span>
+                  {calageMode ? null : (
+                    <NudgeValueField
+                      unit={t('capture.metronome.unit')}
+                      labelClassName="min-w-0 justify-start"
+                      className="w-[2.85rem] text-[0.82rem]"
+                      value={bpmDraft}
+                      inputMode="numeric"
+                      aria-label={t('capture.metronome.bpm')}
+                      spellCheck={false}
+                      data-metro-bpm={track.id}
+                      onChange={(event) => setBpmDraft(event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          event.preventDefault()
+                          event.currentTarget.blur()
+                        }
+                      }}
+                      onFocus={(event) => {
+                        event.currentTarget.select()
+                        event.currentTarget.addEventListener(
+                          'mouseup',
+                          (mouseupEvent) => {
+                            mouseupEvent.preventDefault()
+                            event.currentTarget.select()
+                          },
+                          { once: true },
+                        )
+                      }}
+                      onBlur={applyMetronomeBpm}
+                    />
+                  )}
+                </div>
+              ) : (
+                <TrackNameInput
+                  isDefault={isDefaultTrackName(nameDraft)}
+                  data-rename-track={track.id}
+                  value={nameDraft}
+                  aria-label={t('tracks.name.aria')}
+                  maxLength={40}
+                  className={cn(showUploader && 'py-0')}
+                  onChange={(event) => {
+                    setNameDraft(event.target.value)
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      event.currentTarget.blur()
+                    }
+                  }}
+                  onFocus={(event) => {
+                    if (!isDefaultTrackName(event.currentTarget.value)) return
+                    event.currentTarget.select()
+                    event.currentTarget.addEventListener(
+                      'mouseup',
+                      (mouseupEvent) => {
+                        mouseupEvent.preventDefault()
+                        event.currentTarget.select()
+                      },
+                      { once: true },
+                    )
+                  }}
+                  onBlur={() => {
+                    const next =
+                      nameDraft.trim().slice(0, 40) ||
+                      defaultTrackName(index + 1)
+                    setNameDraft(next)
+                    renameTrack(track.id, next)
+                  }}
+                />
+              )}
               {showUploader ? (
                 <span
                   className="truncate px-[0.15rem] text-[0.62rem] font-medium leading-[1.1] text-ink-soft/80"
@@ -332,7 +420,7 @@ export function TrackRow({
             !
           </Button>
         ) : null}
-        {isReference || hideDelete ? null : (
+        {showDelete ? (
           <Button
             variant="trash"
             className="ml-[0.15rem] h-[1.65rem] w-[1.65rem] shrink-0 rounded-lg border-ink/18 text-ink/55 [&_svg]:size-[0.82rem] max-sm:ml-[0.08rem] max-sm:h-[1.45rem] max-sm:w-[1.45rem] max-sm:[&_svg]:size-[0.72rem]"
@@ -347,13 +435,13 @@ export function TrackRow({
               deleteTrack(track.id)
             }}
           />
-        )}
+        ) : null}
       </div>
       {calageMode ? (
         <>
           {isReference ? (
             <span
-              className="col-start-4 row-start-1 inline-flex h-[1.35rem] w-full shrink-0 items-center justify-center justify-self-center text-[0.62rem] font-extrabold tracking-[0.04em] uppercase text-ink-soft select-none"
+              className="col-start-3 row-start-1 inline-flex h-[1.35rem] w-full shrink-0 items-center justify-center justify-self-center text-[0.62rem] font-extrabold tracking-[0.04em] uppercase text-ink-soft select-none"
               title={t('tracks.ref.hint')}
               aria-label={t('tracks.ref.aria')}
             >
@@ -362,7 +450,7 @@ export function TrackRow({
           ) : (
             <Button
               variant="nudge"
-              className="col-start-4 row-start-1 justify-self-center [&_svg]:size-[1.28rem]"
+              className="col-start-3 row-start-1 justify-self-center [&_svg]:size-[1.28rem]"
               icon={<IconAutoAlign />}
               title={t('tracks.autoAlign')}
               aria-label={t('tracks.autoAlign.named', { name: track.name })}
@@ -384,7 +472,7 @@ export function TrackRow({
             />
           )}
           <MsOffsetEditor
-            className="col-start-5 row-start-1 justify-self-center"
+            className="col-start-4 row-start-1 justify-self-center"
             title={t('tracks.offset.hint')}
             value={Math.round(track.offsetMs)}
             onChange={(next) => applyManualTrackOffset(track.id, next)}
@@ -395,7 +483,7 @@ export function TrackRow({
           />
           <small
             className={cn(
-              'col-start-5 row-start-2 block max-w-[8.5rem] min-h-[1.55em] justify-self-center text-center text-[0.62rem] font-semibold leading-[1.25] tabular-nums text-ink-soft',
+              'col-start-4 row-start-2 block max-w-[8.5rem] min-h-[1.55em] justify-self-center text-center text-[0.62rem] font-semibold leading-[1.25] tabular-nums text-ink-soft',
               !alignDetailText && 'invisible',
             )}
           >

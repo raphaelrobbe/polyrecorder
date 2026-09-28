@@ -279,12 +279,20 @@ export const fr = {
   'capture.import': 'Importer un fichier audio',
   'capture.import.hint':
     'Importer un fichier audio depuis cet appareil (devient une piste)',
+  'capture.metronome': 'Métronome',
+  'capture.metronome.hint':
+    'Ajouter une piste métronome (tempo réglable sur la piste, défaut 60 BPM)',
+  'capture.metronome.bpm': 'Tempo en battements par minute',
+  'capture.metronome.unit': 'BPM',
+  'capture.metronome.apply': 'OK',
   'capture.dropHint': 'Déposer pour importer',
   'capture.stop': 'Stop',
   'capture.forgottenStop': "N'avez-vous pas oublié de stopper l'enregistrement ?",
   'capture.forgottenStop.discard':
     "Si oui, vous pouvez annuler l'enregistrement en cours avec le bouton {discard}",
 
+  'track.metronome': 'Métronome {bpm} BPM',
+  'track.metronome.label': 'Métronome',
   'mix.restart': 'Revenir au début',
   'mix.play': 'Lecture',
   'mix.pause': 'Pause',
@@ -306,6 +314,7 @@ export const fr = {
   'deck.autoAlign.label': 'Calage automatique par battue',
   'deck.autoAlign.on': 'On',
   'deck.autoAlign.off': 'Off',
+  'deck.metronome.add': 'Ajouter un métronome',
   'deck.howtoLink': "Mode d'emploi",
 
   'align.latency.label': 'Avance de lecture',

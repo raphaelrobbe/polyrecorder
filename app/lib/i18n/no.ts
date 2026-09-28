@@ -281,11 +281,20 @@ export const no: Record<MessageKey, string> = {
   'capture.import': 'Importer en lydfil',
   'capture.import.hint':
     'Importer en lydfil fra denne enheten (blir et spor)',
+  'capture.metronome': 'Metronom',
+  'capture.metronome.hint':
+    'Legg til et metronomspor (tempo justeres på sporet, standard 60 BPM)',
+  'capture.metronome.bpm': 'Tempo i slag per minutt',
+  'capture.metronome.unit': 'BPM',
+  'capture.metronome.apply': 'OK',
   'capture.dropHint': 'Slipp for å importere',
   'capture.stop': 'Stopp',
   'capture.forgottenStop': 'Har du glemt å stoppe opptaket?',
   'capture.forgottenStop.discard':
     'Hvis ja, kan du avbryte opptaket som pågår med knappen {discard}',
+
+  'track.metronome': 'Metronom {bpm} BPM',
+  'track.metronome.label': 'Metronom',
 
   'mix.restart': 'Tilbake til start',
   'mix.play': 'Spill av',
@@ -307,6 +316,7 @@ export const no: Record<MessageKey, string> = {
   'deck.autoAlign.label': 'Autojustering med opptakt',
   'deck.autoAlign.on': 'På',
   'deck.autoAlign.off': 'Av',
+  'deck.metronome.add': 'Legg til metronom',
   'deck.howtoLink': 'Bruksanvisning',
 
   'align.latency.label': 'Avspillingsforskyvning',

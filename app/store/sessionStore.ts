@@ -62,6 +62,11 @@ export type SessionStoreState = {
   showCalageWarnings: boolean
   /** Auto-align takes from 1-2-3-4 markers (localStorage; default on). */
   autoAlignEnabled: boolean
+  /**
+   * Session metronome tempo (BPM). Null = no metronome track.
+   * Persisted on SongPart when signed in; regenerated client-side on open.
+   */
+  metronomeBpm: number | null
   /** Persist takes to Scaleway S3 when signed in (localStorage). */
   autoCloudSave: boolean
   /** Current cloud song part (session) id for new uploads (localStorage). */
@@ -198,6 +203,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   skipCountInDownload: true,
   showCalageWarnings: true,
   autoAlignEnabled: true,
+  metronomeBpm: null,
   autoCloudSave: true,
   activeSongPartId: null,
   deckSongPartId: null,

@@ -54,6 +54,35 @@ export type SongPartAlignPrefs = {
   skipCountInDownload: boolean
 }
 
+export async function updateSongPartMetronomeBpm(
+  request: Request,
+  songPartId: string,
+  metronomeBpm: number | null,
+): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  if (!songPartId) return { ok: false, reason: 'invalid' }
+
+  const part = await assertOwnedSongPart(user.id, songPartId)
+  if (!part) return { ok: false, reason: 'not_found' }
+
+  let next: number | null = null
+  if (metronomeBpm != null) {
+    const n = Math.round(Number(metronomeBpm))
+    if (!Number.isFinite(n) || n < 30 || n > 240) {
+      return { ok: false, reason: 'invalid' }
+    }
+    next = n
+  }
+
+  await prisma.songPart.update({
+    where: { id: part.id },
+    data: { metronomeBpm: next },
+  })
+  return { ok: true }
+}
+
 const DEFAULT_ALIGN_PREFS: SongPartAlignPrefs = {
   autoAlignEnabled: true,
   showCalageWarnings: true,
@@ -283,10 +312,26 @@ async function resolveSongPartForUpload(
   userId: string,
   songPartId: string | null | undefined,
   sessionTitle: string | null | undefined,
+  metronomeBpm?: number | null,
 ) {
   if (songPartId) {
     const owned = await assertOwnedSongPart(userId, songPartId)
-    if (owned) return touchSongPart(owned)
+    if (owned) {
+      if (
+        metronomeBpm != null &&
+        Number.isFinite(metronomeBpm) &&
+        owned.metronomeBpm !== Math.round(metronomeBpm)
+      ) {
+        const n = Math.round(Number(metronomeBpm))
+        if (n >= 30 && n <= 240) {
+          await prisma.songPart.update({
+            where: { id: owned.id },
+            data: { metronomeBpm: n },
+          })
+        }
+      }
+      return touchSongPart(owned)
+    }
     const collaborative = await assertCollaborativeSongPart(userId, songPartId)
     if (collaborative) return collaborative
     return null
@@ -305,11 +350,17 @@ async function resolveSongPartForUpload(
       sortOrder: await nextSongSortOrder(repertoire.id),
     },
   })
+  let initialMetro: number | null = null
+  if (metronomeBpm != null && Number.isFinite(metronomeBpm)) {
+    const n = Math.round(Number(metronomeBpm))
+    if (n >= 30 && n <= 240) initialMetro = n
+  }
   const part = await prisma.songPart.create({
     data: {
       songId: song.id,
       name: null,
       lastOpenedAt: new Date(),
+      metronomeBpm: initialMetro,
     },
   })
   await touchRepertoire(repertoire.id)
@@ -394,6 +445,7 @@ export async function presignTrackUpload(
     muted?: boolean | null
     clientTrackId?: number | null
     sessionTitle?: string | null
+    metronomeBpm?: number | null
   },
 ): Promise<PresignResult> {
   try {
@@ -419,6 +471,7 @@ export async function presignTrackUpload(
       user.id,
       input.songPartId,
       input.sessionTitle,
+      input.metronomeBpm,
     )
     if (!part) return { ok: false, reason: 'not_found' }
 
@@ -1909,6 +1962,7 @@ export type OpenSongResult =
         showCalageWarnings: boolean
         skipCountInPlayback: boolean
         skipCountInDownload: boolean
+        metronomeBpm: number | null
       }
       /** Every session of the song, in library order (deck prev / next). */
       siblings: Array<{ id: string; name: string | null }>
@@ -2052,6 +2106,7 @@ export async function openSong(
         showCalageWarnings: part.showCalageWarnings,
         skipCountInPlayback: part.skipCountInPlayback,
         skipCountInDownload: part.skipCountInDownload,
+        metronomeBpm: part.metronomeBpm ?? null,
       },
       siblings,
       tracks,

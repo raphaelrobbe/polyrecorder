@@ -281,11 +281,20 @@ export const de: Record<MessageKey, string> = {
   'capture.import': 'Audiodatei importieren',
   'capture.import.hint':
     'Audiodatei von diesem Gerät importieren (wird zu einer Spur)',
+  'capture.metronome': 'Metronom',
+  'capture.metronome.hint':
+    'Metronomspur hinzufügen (Tempo auf der Spur einstellbar, Standard 60 BPM)',
+  'capture.metronome.bpm': 'Tempo in Schlägen pro Minute',
+  'capture.metronome.unit': 'BPM',
+  'capture.metronome.apply': 'OK',
   'capture.dropHint': 'Zum Importieren ablegen',
   'capture.stop': 'Stopp',
   'capture.forgottenStop': 'Hast du vergessen, die Aufnahme zu stoppen?',
   'capture.forgottenStop.discard':
     'Falls ja, kannst du die laufende Aufnahme mit dem Knopf {discard} abbrechen',
+
+  'track.metronome': 'Metronom {bpm} BPM',
+  'track.metronome.label': 'Metronom',
 
   'mix.restart': 'Zum Anfang',
   'mix.play': 'Wiedergabe',
@@ -307,6 +316,7 @@ export const de: Record<MessageKey, string> = {
   'deck.autoAlign.label': 'Auto-Ausrichtung per Auftakt',
   'deck.autoAlign.on': 'An',
   'deck.autoAlign.off': 'Aus',
+  'deck.metronome.add': 'Metronom hinzufügen',
   'deck.howtoLink': 'Anleitung',
 
   'align.latency.label': 'Wiedergabe-Vorlauf',

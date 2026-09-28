@@ -138,6 +138,8 @@ model SongPart {
   skipCountInPlayback Boolean @default(true)
   /// Skip count-in on MP3 download when a valid beat was detected (session).
   skipCountInDownload Boolean @default(true)
+  /// Optional metronome tempo (BPM). Null = no metronome on this session.
+  metronomeBpm Int?
   /// Manual order among the song's parts (also drives deck prev/next).
   sortOrder Int      @default(0)
 

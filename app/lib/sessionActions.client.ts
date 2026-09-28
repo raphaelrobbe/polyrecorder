@@ -83,6 +83,14 @@ import {
   findVolumePeaks,
 } from './audio/peaks.client'
 import {
+  buildMetronomeReferenceBlob,
+  clampMetronomeBpm,
+  DEFAULT_METRONOME_BPM,
+  metronomeReferenceDurationMs,
+  metronomeReferencePeaksSec,
+  scheduleMetronomeClicks,
+} from './audio/metronome.client'
+import {
   deleteGuestDraft,
   pickGuestDraftToRestore,
   readTabDraftId,
@@ -165,6 +173,7 @@ async function persistGuestDraftNow(): Promise<void> {
     referenceTrackId: state.referenceTrackId,
     trackCounter: state.trackCounter,
     masterVolume: state.masterVolume,
+    metronomeBpm: state.metronomeBpm,
     tracks: state.tracks,
     trackVolumes: state.trackVolumes,
     enabledTrackIds: state.enabledTrackIds,
@@ -201,6 +210,7 @@ function applyGuestDraftToStore(draft: GuestDraft): void {
     cloudTrackId: row.cloudTrackId,
     cloudOwnedByMe: row.cloudOwnedByMe,
     uploadedByPseudo: row.uploadedByPseudo,
+    isMetronome: row.isMetronome,
   }))
   const trackVolumes: Record<number, number> = {}
   const enabledTrackIds: number[] = []
@@ -212,6 +222,10 @@ function applyGuestDraftToStore(draft: GuestDraft): void {
   const cloudPartId = draft.cloudSongPartId
   const allowsCollab = Boolean(draft.allowsCollaboration && cloudPartId)
   const readOnly = Boolean(draft.readOnlySession || cloudPartId)
+  const hasMetroTrack = tracks.some((track) => track.isMetronome)
+  const resolvedMetronomeBpm =
+    draft.metronomeBpm ??
+    (hasMetroTrack ? DEFAULT_METRONOME_BPM : null)
 
   patch({
     tracks,
@@ -236,6 +250,7 @@ function applyGuestDraftToStore(draft: GuestDraft): void {
     showCalageWarnings: draft.showCalageWarnings,
     skipCountInPlayback: draft.skipCountInPlayback,
     skipCountInDownload: draft.skipCountInDownload,
+    metronomeBpm: resolvedMetronomeBpm,
     activeSongPartId: null,
     deckSongPartId: cloudPartId,
     deckSongPartSiblings: draft.deckSongPartSiblings ?? [],
@@ -255,6 +270,16 @@ function applyGuestDraftToStore(draft: GuestDraft): void {
   clearRefPeaks()
   updateSessionTimerDisplay()
   refreshSkewWarning()
+  // Ensure a virtual metro track exists when only the BPM was persisted.
+  if (
+    resolvedMetronomeBpm != null &&
+    !tracks.some((track) => track.isMetronome)
+  ) {
+    void hydrateMetronomeFromBpm(resolvedMetronomeBpm).then(() => {
+      if (get().tracks.length > 0) void evaluateReferenceBeat()
+    })
+    return
+  }
   if (tracks.length > 0) void evaluateReferenceBeat()
 }
 
@@ -316,9 +341,16 @@ async function claimGuestDraftAfterSignInImpl(): Promise<void> {
     patch({ activeSongPartId: null })
   }
 
+  // Keep / restore virtual metronome after sign-in (not uploaded as audio).
+  const metroBpm = get().metronomeBpm
+  if (metroBpm != null && !get().tracks.some((track) => track.isMetronome)) {
+    await hydrateMetronomeFromBpm(metroBpm)
+  }
+
   const localIds = get()
     .tracks.filter(
       (track) =>
+        !track.isMetronome &&
         track.blob.size > 0 &&
         (track.cloudStatus === 'local' ||
           track.cloudStatus === 'error' ||
@@ -338,6 +370,9 @@ async function claimGuestDraftAfterSignInImpl(): Promise<void> {
     }
     await maybeAutoUploadTrack(id)
   }
+
+  // Persist tempo even when the only restore was the metronome, or uploads skipped.
+  flushMetronomeBpmToCloud()
 }
 
 function get() {
@@ -386,7 +421,9 @@ export function selectedTracks(): Track[] {
 
 export function alignableTracks(): Track[] {
   const { tracks, referenceTrackId } = get()
-  return tracks.filter((track) => track.id !== referenceTrackId)
+  return tracks.filter(
+    (track) => track.id !== referenceTrackId && !track.isMetronome,
+  )
 }
 
 export function getReferenceTrack(): Track | null {
@@ -974,6 +1011,25 @@ function schedulePersistAlignPrefs() {
   }, VOLUME_PERSIST_MS)
 }
 
+function persistMetronomeBpm() {
+  if (get().readOnlySession || !canPersistCloudMix()) return
+  const songPartId = get().activeSongPartId ?? get().deckSongPartId
+  if (!songPartId) return
+  postLibraryIntent(
+    {
+      intent: 'updateMetronomeBpm',
+      songPartId,
+      metronomeBpm: get().metronomeBpm,
+    },
+    'update metronome bpm',
+  )
+}
+
+/** Flush session metronome tempo to the cloud part (e.g. after first upload binds an id). */
+export function flushMetronomeBpmToCloud(): void {
+  persistMetronomeBpm()
+}
+
 /** Update a session align/count-in flag and persist to the cloud part. */
 export function setSessionAlignPref(
   key:
@@ -1287,8 +1343,14 @@ export async function evaluateReferenceBeat(): Promise<void> {
   }
 
   try {
-    const buffer = await decodeTrack(reference)
-    const peaks = findVolumePeaks(buffer, 4)
+    let peaks: number[]
+    if (reference.isMetronome) {
+      const bpm = get().metronomeBpm ?? DEFAULT_METRONOME_BPM
+      peaks = metronomeReferencePeaksSec(bpm)
+    } else {
+      const buffer = await decodeTrack(reference)
+      peaks = findVolumePeaks(buffer, 4)
+    }
     const assessment = assessCountInBeat(peaks)
     applyReferencePeaksLabel(reference, assessment.peaks)
 
@@ -1354,8 +1416,14 @@ export async function autoAlignTracksFromCounts(
     throw new Error(t('error.missingReference'))
   }
 
-  const refBuffer = await decodeTrack(reference)
-  const refPeaks = findVolumePeaks(refBuffer, 4)
+  let refPeaks: number[]
+  if (reference.isMetronome) {
+    const bpm = get().metronomeBpm ?? DEFAULT_METRONOME_BPM
+    refPeaks = metronomeReferencePeaksSec(bpm)
+  } else {
+    const refBuffer = await decodeTrack(reference)
+    refPeaks = findVolumePeaks(refBuffer, 4)
+  }
   if (refPeaks.length < 4) {
     throw new Error(
       t('error.refPeaks', {
@@ -1376,6 +1444,7 @@ export async function autoAlignTracksFromCounts(
 
   for (const track of nextTracks) {
     if (track.id === reference.id) continue
+    if (track.isMetronome) continue
     if (!targetSet.has(track.id)) continue
 
     const buffer = await decodeTrack(track)
@@ -1444,8 +1513,14 @@ export async function getSkipCountInStartSec(): Promise<number | null> {
   if (!reference || reference.blob.size === 0) return null
 
   try {
-    const buffer = await decodeTrack(reference)
-    const peaks = findVolumePeaks(buffer, 4)
+    let peaks: number[]
+    if (reference.isMetronome) {
+      const bpm = get().metronomeBpm ?? DEFAULT_METRONOME_BPM
+      peaks = metronomeReferencePeaksSec(bpm)
+    } else {
+      const buffer = await decodeTrack(reference)
+      peaks = findVolumePeaks(buffer, 4)
+    }
     const assessment = assessCountInBeat(peaks)
     if (!assessment.ok) return null
     applyReferencePeaksLabel(reference, assessment.peaks)
@@ -1474,7 +1549,9 @@ export async function applySkipCountInStartMs(
 
 export async function downloadSelectedMix() {
   if (get().mixExporting) return
-  const selected = selectedTracks().filter((track) => track.blob.size > 0)
+  const selected = selectedTracks().filter(
+    (track) => track.blob.size > 0 && !track.isMetronome,
+  )
   if (selected.length === 0) {
     setError(t('error.exportNoTracks'))
     return
@@ -1538,8 +1615,17 @@ export async function playTracks(
 ): Promise<void> {
   const asMix = Boolean(options?.asMix)
   const sourceTracks = asMix ? get().tracks : tracksToPlay
-  const playable = sourceTracks.filter((track) => track.blob.size > 0)
-  if (playable.length === 0) {
+  const playable = sourceTracks.filter(
+    (track) => track.blob.size > 0 && !track.isMetronome,
+  )
+  const metroTrack = sourceTracks.find((track) => track.isMetronome)
+  const metroBpm = get().metronomeBpm
+  const wantMetro =
+    Boolean(metroTrack) &&
+    metroBpm != null &&
+    (asMix || tracksToPlay.some((track) => track.isMetronome))
+
+  if (playable.length === 0 && !wantMetro) {
     return Promise.reject(new Error(t('error.emptyTrack')))
   }
 
@@ -1573,7 +1659,8 @@ export async function playTracks(
   setMixPausedBoth(false)
   trackPlayheads.clear()
 
-  const sources: AudioBufferSourceNode[] = []
+  const bufferSources: AudioBufferSourceNode[] = []
+  const allSources: AudioScheduledSourceNode[] = []
   const playing = new Set<number>()
 
   for (const { track, buffer } of decoded) {
@@ -1596,11 +1683,34 @@ export async function playTracks(
       },
     )
     if (!scheduled) continue
-    sources.push(scheduled.source)
+    bufferSources.push(scheduled.source)
+    allSources.push(scheduled.source)
     playing.add(track.id)
   }
 
-  setPlaybackSources(sources)
+  const mixEndMs = Math.max(
+    getMixDurationMs(sourceTracks),
+    startAtMs + 1000,
+    60_000,
+  )
+  const metroPlayMs = Math.max(0, mixEndMs - startAtMs)
+
+  if (wantMetro && metroTrack && metroBpm != null && metroPlayMs > 0) {
+    const metroGain = ctx.createGain()
+    metroGain.gain.value = liveTrackGainValue(metroTrack.id)
+    metroGain.connect(gain)
+    trackGains.set(metroTrack.id, metroGain)
+    const clicks = scheduleMetronomeClicks(ctx, metroGain, {
+      bpm: metroBpm,
+      timelineStart,
+      startAtMs,
+      durationMs: metroPlayMs,
+    })
+    allSources.push(...clicks)
+    playing.add(metroTrack.id)
+  }
+
+  setPlaybackSources(allSources)
   syncPlayingIds(playing)
   startPlayheadClock()
   tickClockDisplays()
@@ -1610,7 +1720,7 @@ export async function playTracks(
 
   return new Promise<void>((resolve) => {
     let settled = false
-    let remaining = sources.length
+    let remaining = bufferSources.length
 
     const finish = (fn: () => void) => {
       if (settled) return
@@ -1626,7 +1736,14 @@ export async function playTracks(
       })
     }
 
-    if (sources.length === 0) {
+    if (bufferSources.length === 0) {
+      if (awaitEnd && wantMetro) {
+        playWaiters.push(resolveAsDone)
+        window.setTimeout(() => {
+          resolveAsDone()
+        }, startDelayMs + metroPlayMs)
+        return
+      }
       finish(() => {
         stopPlayback({ resetSeek: true })
         resolve()
@@ -1638,7 +1755,7 @@ export async function playTracks(
       playWaiters.push(resolveAsDone)
     }
 
-    for (const source of sources) {
+    for (const source of bufferSources) {
       source.onended = () => {
         if (getMixPaused()) return
         remaining -= 1
@@ -1744,10 +1861,14 @@ export async function beginOverdubRecording(monitor: Track[]): Promise<void> {
   const ctx = await ensureAudioContext()
   await applyAudioSink('monitor')
 
+  const monitorAudio = monitor.filter((track) => !track.isMetronome)
+  const metroTrack = monitor.find((track) => track.isMetronome)
+  const metroBpm = get().metronomeBpm
+
   const decoded =
-    monitor.length > 0
+    monitorAudio.length > 0
       ? await Promise.all(
-          monitor.map(async (track) => ({
+          monitorAudio.map(async (track) => ({
             track,
             buffer: await decodeTrack(track),
           })),
@@ -1756,7 +1877,7 @@ export async function beginOverdubRecording(monitor: Track[]): Promise<void> {
 
   stopPlayback()
 
-  if (decoded.length === 0) {
+  if (decoded.length === 0 && !(metroTrack && metroBpm != null)) {
     setActiveRecording(recording)
     recording.recorder.start()
     pendingTakeOffsetMs = 0
@@ -1785,7 +1906,8 @@ export async function beginOverdubRecording(monitor: Track[]): Promise<void> {
   gain.connect(ctx.destination)
   setPlaybackGain(gain)
 
-  const sources: AudioBufferSourceNode[] = []
+  const bufferSources: AudioBufferSourceNode[] = []
+  const allSources: AudioScheduledSourceNode[] = []
   const playing = new Set<number>()
 
   for (const { track, buffer } of decoded) {
@@ -1808,18 +1930,36 @@ export async function beginOverdubRecording(monitor: Track[]): Promise<void> {
       },
     )
     if (!scheduled) continue
-    sources.push(scheduled.source)
+    bufferSources.push(scheduled.source)
+    allSources.push(scheduled.source)
     playing.add(track.id)
   }
 
-  setPlaybackSources(sources)
+  if (metroTrack && metroBpm != null) {
+    const metroGain = ctx.createGain()
+    metroGain.gain.value = liveTrackGainValue(metroTrack.id)
+    metroGain.connect(gain)
+    trackGains.set(metroTrack.id, metroGain)
+    const clicks = scheduleMetronomeClicks(ctx, metroGain, {
+      bpm: metroBpm,
+      timelineStart: monitorStart,
+      startAtMs: 0,
+      durationMs: MAX_RECORDING_MS,
+    })
+    allSources.push(...clicks)
+    playing.add(metroTrack.id)
+  }
+
+  setPlaybackSources(allSources)
   syncPlayingIds(playing)
 
-  let remainingMonitor = sources.length
-  for (const source of sources) {
+  let remainingMonitor = bufferSources.length
+  for (const source of bufferSources) {
     source.onended = () => {
       remainingMonitor -= 1
       if (remainingMonitor > 0) return
+      // Keep metronome clicks while the take continues past monitor end.
+      if (metroTrack && metroBpm != null) return
       stopPlayheadClock()
       clearPlayingIds()
       setPlaybackSources([])
@@ -1910,9 +2050,11 @@ async function appendTrackFromBlob(
 ): Promise<Track> {
   const trackCounter = get().trackCounter + 1
   const tracks = get().tracks
+  const takeIndex =
+    tracks.filter((track) => !track.isMetronome).length + 1
   const track: Track = {
     id: trackCounter,
-    name: options.name ?? defaultTrackName(tracks.length + 1),
+    name: options.name ?? defaultTrackName(takeIndex),
     blob,
     url: URL.createObjectURL(blob),
     durationMs: options.durationMs,
@@ -1946,6 +2088,185 @@ async function appendTrackFromBlob(
   )
   scheduleGuestDraftSave()
   return track
+}
+
+/**
+ * Create or update the virtual metronome track (clicks only; BPM persisted on SongPart).
+ * Becomes the alignment reference so takes sync via 3-4 against its synthetic 1-2-3-4.
+ */
+let pendingMetronomeBpmFocus = false
+
+/** True once after a new metronome track is created (UI focuses the BPM field). */
+export function consumeMetronomeBpmFocusRequest(): boolean {
+  if (!pendingMetronomeBpmFocus) return false
+  pendingMetronomeBpmFocus = false
+  return true
+}
+
+export async function createOrUpdateMetronome(
+  bpmRaw: number = DEFAULT_METRONOME_BPM,
+): Promise<void> {
+  if (get().state === 'recording') return
+
+  const bpm = clampMetronomeBpm(bpmRaw)
+  const blob = buildMetronomeReferenceBlob(bpm)
+  const otherTracks = get().tracks.filter((track) => !track.isMetronome)
+  const durationMs = Math.max(
+    60_000,
+    getMixDurationMs(otherTracks),
+    metronomeReferenceDurationMs(bpm),
+  )
+  const name = t('track.metronome', { bpm })
+  const existing = get().tracks.find((track) => track.isMetronome)
+
+  stopPlayback({ resetSeek: false })
+
+  if (existing) {
+    URL.revokeObjectURL(existing.url)
+    clearBufferCache(existing.id)
+    const url = URL.createObjectURL(blob)
+    const tracks = get().tracks.map((track) =>
+      track.id === existing.id
+        ? {
+            ...track,
+            name,
+            blob,
+            url,
+            durationMs,
+            offsetMs: 0,
+            isMetronome: true,
+          }
+        : track,
+    )
+    patch({
+      tracks,
+      metronomeBpm: bpm,
+      referenceTrackId: existing.id,
+      trackVolumes: {
+        ...get().trackVolumes,
+        [existing.id]: get().trackVolumes[existing.id] ?? 1,
+      },
+    })
+  } else {
+    const trackCounter = get().trackCounter + 1
+    const track: Track = {
+      id: trackCounter,
+      name,
+      blob,
+      url: URL.createObjectURL(blob),
+      durationMs,
+      offsetMs: 0,
+      isMetronome: true,
+    }
+    pendingMetronomeBpmFocus = true
+    patch({
+      trackCounter,
+      tracks: [track, ...get().tracks],
+      enabledTrackIds: [track.id, ...get().enabledTrackIds],
+      referenceTrackId: track.id,
+      metronomeBpm: bpm,
+      trackVolumes: { ...get().trackVolumes, [track.id]: 1 },
+    })
+  }
+
+  updateSessionTimerDisplay()
+  await evaluateReferenceBeat()
+  if (get().autoAlignEnabled && alignableTracks().length > 0) {
+    try {
+      await autoAlignTracksFromCounts(alignableTracks().map((track) => track.id))
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? t('error.autoAlignDeferred', { message: error.message })
+          : t('error.autoAlignDeferredGeneric'),
+      )
+    }
+  }
+  persistMetronomeBpm()
+  scheduleGuestDraftSave()
+}
+
+/** Rebuild metronome from a persisted BPM (cloud open / hydrate). No cloud write. */
+export async function hydrateMetronomeFromBpm(
+  bpm: number | null,
+): Promise<void> {
+  const existing = get().tracks.find((track) => track.isMetronome)
+  if (bpm == null) {
+    if (!existing) {
+      patch({ metronomeBpm: null })
+      return
+    }
+    URL.revokeObjectURL(existing.url)
+    clearBufferCache(existing.id)
+    const tracks = get().tracks.filter((track) => track.id !== existing.id)
+    const trackVolumes = { ...get().trackVolumes }
+    delete trackVolumes[existing.id]
+    patch({
+      tracks,
+      metronomeBpm: null,
+      enabledTrackIds: get().enabledTrackIds.filter((id) => id !== existing.id),
+      trackVolumes,
+      trackAlignDetails: (() => {
+        const next = { ...get().trackAlignDetails }
+        delete next[existing.id]
+        return next
+      })(),
+    })
+    syncReferenceTrackRules()
+    return
+  }
+
+  const safe = clampMetronomeBpm(bpm)
+  const blob = buildMetronomeReferenceBlob(safe)
+  const otherTracks = get().tracks.filter((track) => !track.isMetronome)
+  const durationMs = Math.max(
+    60_000,
+    getMixDurationMs(otherTracks),
+    metronomeReferenceDurationMs(safe),
+  )
+  const name = t('track.metronome', { bpm: safe })
+
+  if (existing) {
+    URL.revokeObjectURL(existing.url)
+    clearBufferCache(existing.id)
+    const url = URL.createObjectURL(blob)
+    patch({
+      tracks: get().tracks.map((track) =>
+        track.id === existing.id
+          ? {
+              ...track,
+              name,
+              blob,
+              url,
+              durationMs,
+              offsetMs: 0,
+              isMetronome: true,
+            }
+          : track,
+      ),
+      metronomeBpm: safe,
+      referenceTrackId: existing.id,
+    })
+  } else {
+    const trackCounter = get().trackCounter + 1
+    const track: Track = {
+      id: trackCounter,
+      name,
+      blob,
+      url: URL.createObjectURL(blob),
+      durationMs,
+      offsetMs: 0,
+      isMetronome: true,
+    }
+    patch({
+      trackCounter,
+      tracks: [track, ...get().tracks],
+      enabledTrackIds: [track.id, ...get().enabledTrackIds],
+      referenceTrackId: track.id,
+      metronomeBpm: safe,
+      trackVolumes: { ...get().trackVolumes, [track.id]: 1 },
+    })
+  }
 }
 
 function isAudioImportFile(file: File): boolean {
@@ -2176,7 +2497,10 @@ export async function stopSession() {
     updateSessionTimerDisplay()
   }
 
-  if (shouldAutoplay && get().tracks.length > 0) {
+  if (
+    shouldAutoplay &&
+    get().tracks.some((track) => !track.isMetronome)
+  ) {
     setError(null)
     void playTracks(get().tracks, {
       awaitEnd: true,
@@ -2339,12 +2663,14 @@ export function deleteTrack(trackId: number) {
   delete trackVolumes[trackId]
   const prevHighlights = get().highlightedTrackIds
   const nextHighlights = prevHighlights.filter((id) => id !== trackId)
+  const clearedMetro = Boolean(track.isMetronome)
   patch({
     tracks,
     enabledTrackIds: get().enabledTrackIds.filter((id) => id !== trackId),
     highlightedTrackIds: nextHighlights,
     trackAlignDetails,
     trackVolumes,
+    ...(clearedMetro ? { metronomeBpm: null } : {}),
     ...(tracks.length === 0
       ? { calageMode: false, mixMode: false, calageTipOpen: false }
       : {}),
@@ -2356,6 +2682,7 @@ export function deleteTrack(trackId: number) {
   updateSessionTimerDisplay()
   refreshSkewWarning()
   if (get().referenceTrackId != null) void evaluateReferenceBeat()
+  if (clearedMetro) persistMetronomeBpm()
   scheduleGuestDraftSave()
 
   // Shared / collab: never delete someone else's take in the database.
@@ -2411,6 +2738,7 @@ export function deleteAllTracks() {
     trackVolumes: {},
     masterVolume: 1,
     trackCounter: 0,
+    metronomeBpm: null,
     calageMode: false,
     mixMode: false,
     mixSeekMs: 0,
@@ -2421,6 +2749,7 @@ export function deleteAllTracks() {
   updateSessionTimerDisplay()
   refreshSkewWarning()
   scheduleGuestDraftSave()
+  persistMetronomeBpm()
 
   for (const cloudTrackId of cloudTrackIds) {
     void fetch('/api/cloud/library', {
@@ -2443,8 +2772,8 @@ export function deleteAllTracks() {
   }
 }
 
-/** Drop cloud song context and all loaded takes (e.g. on sign-out). */
-export function resetDeckOnSignOut() {
+/** Wipe the local deck and cloud session context (blank recording screen). */
+export function clearLocalDeckSession(): void {
   if (get().state === 'recording') {
     discardPendingRecording()
     const recording = getActiveRecording()
@@ -2464,9 +2793,25 @@ export function resetDeckOnSignOut() {
     setTransportState('idle')
   }
 
-  deleteAllTracks()
+  stopPlayback({ resetSeek: true })
   writeActiveSongPartId(null)
+  for (const track of get().tracks) {
+    URL.revokeObjectURL(track.url)
+  }
+  clearBufferCache()
+  trackGains.clear()
+  trackPlayheads.clear()
   patch({
+    tracks: [],
+    enabledTrackIds: [],
+    playingTrackIds: [],
+    highlightedTrackIds: [],
+    referenceTrackId: null,
+    trackAlignDetails: {},
+    trackVolumes: {},
+    masterVolume: 1,
+    trackCounter: 0,
+    metronomeBpm: null,
     activeSongPartId: null,
     deckSongPartId: null,
     deckSongPartSiblings: [],
@@ -2478,10 +2823,22 @@ export function resetDeckOnSignOut() {
     songWorkName: null,
     sharedOwnerLabel: null,
     sessionTitle: defaultSessionTitle(),
+    calageMode: false,
+    mixMode: false,
+    mixSeekMs: 0,
+    mixClockText: '00:00.000',
     error: null,
     hint: '',
     guestSignInPrompt: false,
   })
+  clearRefPeaks()
+  updateSessionTimerDisplay()
+  refreshSkewWarning()
+}
+
+/** Drop cloud song context and all loaded takes (e.g. on sign-out). */
+export function resetDeckOnSignOut() {
+  clearLocalDeckSession()
 }
 
 /** Replace the deck with tracks loaded from a cloud song part (session). */
@@ -2544,6 +2901,7 @@ export async function loadCloudSongIntoSession(
     showCalageWarnings: opened.part.showCalageWarnings,
     skipCountInPlayback: opened.part.skipCountInPlayback,
     skipCountInDownload: opened.part.skipCountInDownload,
+    metronomeBpm: opened.part.metronomeBpm,
     sessionTitle: opened.part.name ?? '',
     activeSongPartId:
       opened.isOwner || canCloudContribute ? opened.part.id : null,
@@ -2571,7 +2929,10 @@ export async function loadCloudSongIntoSession(
   clearRefPeaks()
   updateSessionTimerDisplay()
   refreshSkewWarning()
-  if (opened.tracks.length > 0) void evaluateReferenceBeat()
+  if (opened.part.metronomeBpm != null) {
+    await hydrateMetronomeFromBpm(opened.part.metronomeBpm)
+  }
+  if (get().tracks.length > 0) void evaluateReferenceBeat()
   return true
 }
 
