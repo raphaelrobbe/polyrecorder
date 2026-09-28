@@ -66,6 +66,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="theme-color" content="#000000" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="PolyRecorder" />
         <Meta />
         <Links />
         <script
@@ -86,6 +90,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   useEffect(() => {
     initLocale()
+    if (!('serviceWorker' in navigator)) return
+    const base = import.meta.env.BASE_URL || '/'
+    const swUrl = new URL('sw.js', window.location.origin + base).pathname
+    void navigator.serviceWorker.register(swUrl).catch((error) => {
+      console.warn('[pwa] service worker registration failed', error)
+    })
   }, [])
 
   return (
