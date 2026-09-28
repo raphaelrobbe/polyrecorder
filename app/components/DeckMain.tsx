@@ -1,10 +1,11 @@
 import { useLayoutEffect, useRef, useState } from 'react'
-import { useNavigate, useRouteLoaderData } from '@remix-run/react'
+import { useNavigate, useRouteLoaderData, Link } from '@remix-run/react'
 import { isDefaultSessionTitle } from '../lib/format'
 import {
+  discard,
   loadCloudSongIntoSession,
   normalizeAndSetSessionTitle,
-  normalizeAndSetSongWorkName,
+  setSessionAlignPref,
 } from '../lib/sessionActions.client'
 import { t } from '../lib/i18n'
 import {
@@ -21,7 +22,10 @@ import type { loader as rootLoader } from '../root'
 import { useSessionStore } from '../store/sessionStore'
 import { CaptureBar } from './CaptureBar'
 import { CalagePanel } from './CalagePanel'
-import { IconChevron } from './icons'
+import { Button } from './Button'
+import { CheckboxOption } from './CheckboxOption'
+import { Deck } from './Deck'
+import { IconChevron, IconDiscard } from './icons'
 import { LibraryBreadcrumb } from './library/LibraryBreadcrumb'
 import { ModeTools } from './ModeTools'
 import { ErrorBanner } from './StatusMessage'
@@ -76,9 +80,12 @@ export function DeckMain({ className }: DeckMainProps) {
   const sessionTitle = useSessionStore((s) => s.sessionTitle)
   const setSessionTitle = useSessionStore((s) => s.setSessionTitle)
   const songWorkName = useSessionStore((s) => s.songWorkName)
-  const setSongWorkName = useSessionStore((s) => s.setSongWorkName)
   const timerText = useSessionStore((s) => s.timerText)
   const recordingTimerVisible = useSessionStore((s) => s.recordingTimerVisible)
+  const forgottenStopHint = useSessionStore((s) => s.forgottenStopHint)
+  const autoAlignEnabled = useSessionStore((s) => s.autoAlignEnabled)
+  const calageMode = useSessionStore((s) => s.calageMode)
+  const mixMode = useSessionStore((s) => s.mixMode)
   const error = useSessionStore((s) => s.error)
   const keyboardHintsEnabled = useSessionStore((s) => s.keyboardHintsEnabled)
   const tracks = useSessionStore((s) => s.tracks)
@@ -88,9 +95,7 @@ export function DeckMain({ className }: DeckMainProps) {
   const sharedOwnerLabel = useSessionStore((s) => s.sharedOwnerLabel)
   const state = useSessionStore((s) => s.state)
   const deckSongPartId = useSessionStore((s) => s.deckSongPartId)
-  const deckSongId = useSessionStore((s) => s.deckSongId)
   const deckSongPartSiblings = useSessionStore((s) => s.deckSongPartSiblings)
-  const songTitleRef = useRef<HTMLTextAreaElement>(null)
   const sessionTitleRef = useRef<HTMLTextAreaElement>(null)
   const [sessionNavBusy, setSessionNavBusy] = useState(false)
 
@@ -100,6 +105,13 @@ export function DeckMain({ className }: DeckMainProps) {
   const songTitleAria = t('song.title.aria')
   const sessionTitleAria = t('session.title.aria')
   const showModes = tracks.length > 0
+  /** Auto-align prefs only; hide in mix/calage or when there is nothing to show. */
+  const showToolsDeck =
+    !calageMode && !mixMode && (Boolean(user) || showModes)
+  const ownLibrary =
+    Boolean(user) &&
+    deckLibraryPath != null &&
+    user!.pseudo === deckLibraryPath.ownerPseudo
   const consultationCredit = readOnlySession
     ? [
         sharedOwnerLabel?.trim() || t('song.view.shared'),
@@ -140,23 +152,29 @@ export function DeckMain({ className }: DeckMainProps) {
   }
 
   useLayoutEffect(() => {
-    for (const el of [songTitleRef.current, sessionTitleRef.current]) {
-      if (!el) continue
-      el.style.height = '0px'
-      el.style.height = `${el.scrollHeight}px`
-    }
+    const el = sessionTitleRef.current
+    if (!el) return
+    el.style.height = '0px'
+    el.style.height = `${el.scrollHeight}px`
   }, [sessionTitle, songWorkName])
 
   return (
-    <div className={cn(className)}>
+    <div className={cn('flex flex-col gap-[0.85rem]', className)}>
+      <Deck enableAudioDrop>
       {deckLibraryPath ? (
         <LibraryBreadcrumb
           items={[
-            {
-              label: deckLibraryPath.ownerPseudo,
-              to: libraryUserPath(deckLibraryPath.ownerPseudo),
-              isPseudo: true,
-            },
+            ownLibrary
+              ? {
+                  label: t('nav.myLibrary'),
+                  to: libraryUserPath(deckLibraryPath.ownerPseudo),
+                  asButton: true,
+                }
+              : {
+                  label: deckLibraryPath.ownerPseudo,
+                  to: libraryUserPath(deckLibraryPath.ownerPseudo),
+                  isPseudo: true,
+                },
             {
               label: deckLibraryPath.groupName,
               to: libraryGroupPath(deckLibraryPath.groupId),
@@ -165,10 +183,6 @@ export function DeckMain({ className }: DeckMainProps) {
               label: deckLibraryPath.repertoireName,
               to: libraryRepertoirePath(deckLibraryPath.repertoireId),
             },
-            {
-              label: deckLibraryPath.songName,
-              to: librarySongPath(deckLibraryPath.songId),
-            },
           ]}
         />
       ) : null}
@@ -176,41 +190,25 @@ export function DeckMain({ className }: DeckMainProps) {
         <div className="col-start-2 flex w-[min(100%,22rem)] min-w-0 flex-col items-center justify-self-center">
           {cloudSongLoaded ? (
             <>
-              <textarea
-                ref={songTitleRef}
-                rows={1}
-                readOnly={readOnlySession}
-                className={cn(
-                  'w-full min-w-0 resize-none overflow-hidden border-0 bg-transparent font-[inherit] font-bold text-[1.35rem] leading-[1.25] text-center py-[0.2rem] px-[0.45rem] rounded-[10px] [font-synthesis:style] field-sizing-content text-ink',
-                  readOnlySession
-                    ? 'cursor-default'
-                    : 'hover:bg-ink/6 focus:bg-ink/6 focus:outline-none focus:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ink)_18%,transparent)]',
-                )}
-                data-song-title
-                value={songWorkName}
-                maxLength={60}
-                aria-label={songTitleAria}
-                title={
-                  readOnlySession
-                    ? songTitleAria
-                    : withShortcut(songTitleAria, 'F2', keyboardHintsEnabled)
-                }
-                spellCheck={false}
-                onChange={(event) => {
-                  if (readOnlySession) return
-                  setSongWorkName(event.target.value.replace(/\n/g, ' '))
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault()
-                    event.currentTarget.blur()
-                  }
-                }}
-                onBlur={(event) => {
-                  if (readOnlySession) return
-                  normalizeAndSetSongWorkName(event.currentTarget.value)
-                }}
-              />
+              {deckLibraryPath ? (
+                <Link
+                  to={librarySongPath(deckLibraryPath.songId)}
+                  className={cn(
+                    'block w-full min-w-0 truncate rounded-[10px] px-[0.45rem] py-[0.2rem] text-center font-bold text-[1.35rem] leading-[1.25] text-ink no-underline',
+                    'transition-[color] duration-150',
+                    'hover:underline hover:decoration-ink/25 hover:underline-offset-2',
+                    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
+                  )}
+                  aria-label={songTitleAria}
+                  title={t('song.title.openLibrary')}
+                >
+                  {songWorkName}
+                </Link>
+              ) : (
+                <p className="m-0 w-full min-w-0 truncate px-[0.45rem] py-[0.2rem] text-center font-bold text-[1.35rem] leading-[1.25] text-ink">
+                  {songWorkName}
+                </p>
+              )}
               <div
                 className="mt-0.5 flex w-full min-w-0 items-center gap-[0.25rem]"
                 style={hideSessionTitle ? { display: 'none' } : undefined}
@@ -350,52 +348,67 @@ export function DeckMain({ className }: DeckMainProps) {
       </div>
 
       <CaptureBar />
+      <div
+        className="mb-[0.55rem] rounded-[14px] border-[1.5px] border-warn-border bg-warn-bg px-[0.95rem] py-[0.7rem] text-center text-[0.88rem] font-semibold leading-[1.35] text-warn"
+        hidden={!forgottenStopHint}
+        role="status"
+      >
+        <p className="m-0">{t('capture.forgottenStop')}</p>
+        <p className="mt-[0.45rem] mb-0 font-medium">
+          {t('capture.forgottenStop.discard')
+            .split('{discard}')
+            .flatMap((part, index, parts) =>
+              index < parts.length - 1
+                ? [
+                    part,
+                    <Button
+                      key={`discard-${index}`}
+                      variant="transport"
+                      className="mx-[0.25rem] inline-flex h-[1.7rem] w-[1.7rem] align-[-0.35em] border-[1.5px] border-warn-border bg-transparent text-warn shadow-none hover:enabled:translate-y-0 hover:enabled:border-warn-border hover:enabled:bg-warn-hover hover:enabled:text-warn hover:enabled:shadow-none active:enabled:scale-[0.96] [&_svg]:size-[0.95rem]"
+                      icon={<IconDiscard />}
+                      aria-label={t('capture.discard')}
+                      title={t('capture.discard')}
+                      onClick={() => void discard()}
+                    />,
+                  ]
+                : [part],
+            )}
+        </p>
+      </div>
       <TracksList />
 
       <ErrorBanner hidden={!error}>{error}</ErrorBanner>
 
       <CalagePanel />
+      </Deck>
 
-      {user || showModes ? (
+      {showModes ? (
+        <ModeTools className="self-end" />
+      ) : null}
+
+      {showToolsDeck ? (
         <div
-          className={cn(
-            'mt-4 flex flex-wrap items-center gap-x-[0.55rem] gap-y-[0.45rem]',
-            'max-sm:mt-3',
-          )}
+          className="px-1 max-sm:px-0.5"
+          aria-label={t('deck.toolsAria')}
         >
-          {user ? (
-            <button
-              type="button"
-              className={cn(
-                'm-0 inline-flex items-center gap-[0.35rem] rounded-full border-[1.5px] border-line bg-surface px-[0.75rem] py-[0.4rem]',
-                'font-[inherit] text-[0.84rem] font-bold tracking-[0.01em] text-ink',
-                'transition-[background,color,border-color,box-shadow,transform] duration-160',
-                'cursor-pointer active:scale-[0.98]',
-                'hover:border-ink/35 hover:bg-ink/6',
-                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
-              )}
-              aria-label={t('nav.library')}
-              title={t('nav.library')}
-              onClick={() =>
-                navigate(
-                  deckSongId
-                    ? librarySongPath(deckSongId)
-                    : user
-                      ? libraryUserPath(user.pseudo)
-                      : '/',
-                )
+          <div className="flex flex-wrap items-center gap-x-[0.45rem] gap-y-[0.35rem]">
+            <CheckboxOption
+              align="center"
+              className="text-[0.84rem] leading-none"
+              checked={autoAlignEnabled}
+              onCheckedChange={(on) =>
+                setSessionAlignPref('autoAlignEnabled', on)
               }
             >
-              <span>{t('nav.library')}</span>
-              <span
-                aria-hidden="true"
-                className="translate-y-px text-[0.95rem] font-medium leading-none text-ink/45"
-              >
-                ›
-              </span>
-            </button>
-          ) : null}
-          <ModeTools className="mt-0 ml-auto justify-end max-sm:mt-0" />
+              {t('deck.autoAlign.label')}
+            </CheckboxOption>
+            <Link
+              to="/aide#mode-emploi-calage"
+              className="text-[0.84rem] font-semibold leading-none text-ink-soft underline decoration-ink/25 underline-offset-2 hover:text-ink hover:decoration-ink/55"
+            >
+              {t('deck.howtoLink')}
+            </Link>
+          </div>
         </div>
       ) : null}
     </div>

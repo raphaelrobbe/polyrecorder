@@ -26,6 +26,7 @@ export const de: Record<MessageKey, string> = {
     '„{name}“ auf polyrecorder — geteilte Aufnahmesessions.',
 
   'deck.ariaLabel': 'Rekorder',
+  'deck.toolsAria': 'Bibliothek und Modi',
 
   'common.close': 'Schließen',
   'common.delete': 'Löschen',
@@ -36,7 +37,7 @@ export const de: Record<MessageKey, string> = {
   'error.home': 'Zurück zum Rekorder',
 
   'nav.help': 'Hilfe',
-  'nav.settings': 'Einstellungen',
+  'nav.settings': 'Präferenzen',
   'nav.signIn': 'Anmelden',
   'nav.signOut': 'Abmelden',
   'nav.accountMenu': 'Kontomenü',
@@ -257,6 +258,7 @@ export const de: Record<MessageKey, string> = {
 
   'session.title.aria': 'Titel der Aufnahme',
   'song.title.aria': 'Liedtitel',
+  'song.title.openLibrary': 'Lied in der Bibliothek öffnen',
   'session.defaultTitle': 'Meine Polyphonie',
   'session.prev': 'Vorherige Session',
   'session.next': 'Nächste Session',
@@ -271,6 +273,9 @@ export const de: Record<MessageKey, string> = {
     'Audiodatei von diesem Gerät importieren (wird zu einer Spur)',
   'capture.dropHint': 'Zum Importieren ablegen',
   'capture.stop': 'Stopp',
+  'capture.forgottenStop': 'Hast du vergessen, die Aufnahme zu stoppen?',
+  'capture.forgottenStop.discard':
+    'Falls ja, kannst du die laufende Aufnahme mit dem Knopf {discard} abbrechen',
 
   'mix.restart': 'Zum Anfang',
   'mix.play': 'Wiedergabe',
@@ -282,10 +287,17 @@ export const de: Record<MessageKey, string> = {
 
   'mode.groupAria': 'Arbeitsmodi',
   'mode.label': 'Modus',
+  'mode.simple': 'Einfach',
+  'mode.simple.hint': 'Einfacher Modus: Aufnehmen und Abspielen',
   'mode.mix': 'Mix',
   'mode.mix.hint': 'Mix-Modus: Lautstärke pro Spur und Master',
   'mode.align': 'Ausrichten',
   'mode.align.hint': 'Ausricht-Modus: Spurensynchronisation',
+
+  'deck.autoAlign.label': 'Auto-Ausrichtung per Auftakt',
+  'deck.autoAlign.on': 'An',
+  'deck.autoAlign.off': 'Aus',
+  'deck.howtoLink': 'Anleitung',
 
   'align.latency.label': 'Wiedergabe-Vorlauf',
   'align.latency.about': 'Über den Wiedergabe-Vorlauf',
@@ -340,6 +352,7 @@ export const de: Record<MessageKey, string> = {
 
   'warn.attention': 'Achtung',
   'warn.openAlignMode': 'Ausricht-Modus öffnen',
+  'warn.disableAutoAlign': 'Auto-Ausrichtung deaktivieren',
   'warn.beat.chip.aria':
     'Achtung: Problem mit dem Auftakt der Referenzspur. Ausricht-Modus öffnen.',
   'warn.skew.tooltip':
@@ -355,7 +368,7 @@ export const de: Record<MessageKey, string> = {
     '1-2-3-4-Auftakt auf „{name}“ nicht erkannt ({count}/4 Treffer).',
   'warn.beat.error': 'Auftakt von „{name}“ konnte nicht analysiert werden.',
 
-  'howto.title': 'Anleitung',
+  'howto.title': 'Anleitung zur Auto-Ausrichtung per Auftakt',
   'howto.step1': 'auf den roten Knopf „Aufnehmen“ tippen',
   'howto.step2':
     'laut und gleichmäßig 1-2-3-4 sagen (oder ein anderes klares 4er-Signal), dann die erste Stimme singen',
@@ -368,8 +381,14 @@ export const de: Record<MessageKey, string> = {
     'am Ende der letzten Stimme auf den roten Knopf „Stopp“ tippen',
   'howto.tips':
     'Tipps: nimm in ruhiger Umgebung auf, möglichst mit Kopfhörer oder Ohrhörer—besonders am Handy!',
+  'howto.whyNeeded': 'Warum ist das nötig',
+  'howto.whyNeeded.about': 'Warum die Auto-Ausrichtung per Auftakt nötig ist',
   'howto.latency':
     'Browser und Audiogeräte erzeugen Latenz (Kopfhörer, Mikrofon, Buffer). Ohne gemeinsame Markierungen verrutschen die Takes. Die vier Markierungen der Referenzspur und die „3-4“ der folgenden Spuren lassen polyrecorder diese Verschiebung messen und automatisch korrigieren. Klare, gleichmäßige, gut getrennte Laute richten besser aus; ein unregelmäßiger oder leiser Auftakt kann die Sync stören.',
+  'howto.latency.manual':
+    'Wenn die Auto-Ausrichtung deaktiviert ist, kannst du trotzdem manuell ausrichten, indem du auf den Knopf „Ausrichten“ klickst.',
+  'howto.autoAlign':
+    'Dieser Ablauf mit 1-2-3-4-Auftakt eignet sich für Polyphonie-Aufnahmen. Wenn du Audiodateien (MP3 usw.) importierst oder keine Markierungen nutzt, kannst du die Auto-Ausrichtung in den Einstellungen deaktivieren.',
 
   'help.title': 'Hilfe',
   'help.close': 'Hilfe schließen',
@@ -397,9 +416,10 @@ export const de: Record<MessageKey, string> = {
   'help.shortcuts.general': 'Allgemein',
   'help.shortcuts.editTitle': 'Titel bearbeiten',
   'help.shortcuts.closePanels':
-    'Hilfe / Einstellungen / Konto / Bibliothek schließen',
+    'Hilfe / Präferenzen / Konto / Bibliothek schließen',
 
   'nav.library': 'Bibliothek',
+  'nav.myLibrary': 'Meine Bibliothek',
 
   'cloud.error.tooLarge': 'Datei zu groß (max. 100 MB).',
   'cloud.error.s3NotConfigured': 'Cloud-Speicher ist nicht konfiguriert.',
@@ -472,8 +492,8 @@ export const de: Record<MessageKey, string> = {
   'song.view.collaborate': 'offen für Zusammenarbeit',
   'song.og.description': '{tracks} · Anhören auf polyrecorder',
 
-  'settings.title': 'Einstellungen',
-  'settings.close': 'Einstellungen schließen',
+  'settings.title': 'Präferenzen',
+  'settings.close': 'Präferenzen schließen',
   'settings.appearance': 'Erscheinungsbild:',
   'settings.theme.aria': 'Design',
   'settings.theme.system': 'Auto (Browser)',
@@ -484,15 +504,21 @@ export const de: Record<MessageKey, string> = {
   'settings.showCalageWarnings.about': 'Über Ausrichtungswarnungen',
   'settings.showCalageWarnings.tip':
     '„!“-Hinweise, wenn der 1-2-3-4-Auftakt der Referenz unregelmäßig wirkt oder die Auto-Ausrichtung über 300 ms liegt. Wird automatisch deaktiviert, wenn die erste Spur eines Songs ein Audio-Import ist (meist ohne Auftakt).',
+  'settings.autoAlign': 'Auto-Ausrichtung per Auftakt',
+  'settings.autoAlign.about': 'Über die Auto-Ausrichtung',
+  'settings.autoAlign.tip':
+    'Misst und korrigiert den Versatz zwischen Spuren anhand der Markierungen 1-2-3-4 (Referenz) und 3-4 (folgende Spuren). Geeignet für Polyphonie-Aufnahmen. Deaktiviere sie bei Audio-Importen ohne Auftakt, um Versätze und Warnungen zu vermeiden.',
+  'settings.countInAlign': 'Auftakt und Auto-Ausrichtung',
+  'settings.defaultsForNewProjects': 'Standardeinstellungen für neue Projekte',
   'settings.autoCloudSave': 'Spuren automatisch in der Cloud speichern',
   'settings.autoCloudSave.hint':
     'Wenn deaktiviert, erscheint an jeder lokalen Spur ein Button zum manuellen Hochladen.',
-  'settings.skipCountIn': '1-2-3-4 entfernen',
+  'settings.skipCountIn': '1-2-3-4 entfernen, falls erkannt',
   'settings.skipCountIn.play.hint':
-    'Wiedergabe beginnt direkt nach der „4“',
+    'Wiedergabe beginnt direkt nach der „4“ (wenn ein Auftakt erkannt wurde)',
   'settings.skipCountIn.play': 'bei der Wiedergabe',
   'settings.skipCountIn.download.hint':
-    'Die MP3 beginnt direkt nach der „4“',
+    'Die MP3 beginnt direkt nach der „4“ (wenn ein Auftakt erkannt wurde)',
   'settings.skipCountIn.download': 'beim MP3-Download',
   'settings.devices': 'Audiogeräte',
   'settings.devices.mobileNote':

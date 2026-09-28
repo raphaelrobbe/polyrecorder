@@ -66,15 +66,12 @@ export function TrackRow({
   const trackAlignDetails = useSessionStore((s) => s.trackAlignDetails)
   const trackVolumes = useSessionStore((s) => s.trackVolumes)
   const highlightedTrackIds = useSessionStore((s) => s.highlightedTrackIds)
-  const referenceBeatWarning = useSessionStore((s) => s.referenceBeatWarning)
-  const referenceBeatDismissedKey = useSessionStore(
-    (s) => s.referenceBeatDismissedKey,
-  )
   const tracks = useSessionStore((s) => s.tracks)
   const skewWarningDismissedKey = useSessionStore(
     (s) => s.skewWarningDismissedKey,
   )
   const showCalageWarnings = useSessionStore((s) => s.showCalageWarnings)
+  const autoAlignEnabled = useSessionStore((s) => s.autoAlignEnabled)
   // Re-render on playhead ticks so per-track clocks stay live in calage mode.
   useSessionStore((s) => s.mixClockText)
 
@@ -105,12 +102,6 @@ export function TrackRow({
       tracks.some(
         (t) => Boolean(t.uploadedByPseudo) && t.cloudOwnedByMe === false,
       ))
-  const showBeatAttention =
-    showCalageWarnings &&
-    isReference &&
-    !calageMode &&
-    referenceBeatWarning != null &&
-    referenceBeatWarning.key !== referenceBeatDismissedKey
   const skewFingerprint = tracks
     .filter(
       (t) =>
@@ -122,6 +113,7 @@ export function TrackRow({
     skewFingerprint.length > 0 &&
     skewFingerprint !== skewWarningDismissedKey
   const showSkewAttention =
+    autoAlignEnabled &&
     showCalageWarnings &&
     skewActive &&
     !isReference &&
@@ -340,20 +332,7 @@ export function TrackRow({
             !
           </Button>
         ) : null}
-        {showBeatAttention ? (
-          <Button
-            variant="trash"
-            className="ml-[0.15rem] h-[1.65rem] w-[1.65rem] shrink-0 rounded-lg border-warn-border bg-warn-bg text-[0.88rem] font-extrabold leading-none text-warn hover:enabled:border-warn-border hover:enabled:bg-warn-hover hover:enabled:text-warn max-sm:ml-[0.08rem] max-sm:h-[1.45rem] max-sm:w-[1.45rem] max-sm:text-[0.8rem]"
-            title={referenceBeatWarning.message}
-            aria-label={t('warn.beat.chip.aria')}
-            onClick={() => {
-              setError(null)
-              setCalageMode(true)
-            }}
-          >
-            !
-          </Button>
-        ) : isReference || hideDelete ? null : (
+        {isReference || hideDelete || showSkewAttention ? null : (
           <Button
             variant="trash"
             className="ml-[0.15rem] h-[1.65rem] w-[1.65rem] shrink-0 rounded-lg border-ink/18 text-ink/55 [&_svg]:size-[0.82rem] max-sm:ml-[0.08rem] max-sm:h-[1.45rem] max-sm:w-[1.45rem] max-sm:[&_svg]:size-[0.72rem]"
@@ -388,6 +367,7 @@ export function TrackRow({
               title={t('tracks.autoAlign')}
               aria-label={t('tracks.autoAlign.named', { name: track.name })}
               data-auto-align-track={track.id}
+              hidden={!autoAlignEnabled}
               onClick={() => {
                 void (async () => {
                   try {

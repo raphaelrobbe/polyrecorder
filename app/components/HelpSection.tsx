@@ -7,6 +7,7 @@ type HelpSectionProps = {
   children: ReactNode
   className?: string
   hidden?: boolean
+  id?: string
   /** Optional data attribute name without `data-` prefix, e.g. `help-shortcuts`. */
   dataAttr?: string
 }
@@ -17,10 +18,12 @@ export function HelpSection({
   children,
   className,
   hidden = false,
+  id,
   dataAttr,
 }: HelpSectionProps) {
   return (
     <section
+      id={id}
       className={cn(className)}
       hidden={hidden}
       {...(dataAttr ? { [`data-${dataAttr}`]: true } : {})}

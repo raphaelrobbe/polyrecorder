@@ -26,6 +26,7 @@ export const en: Record<MessageKey, string> = {
     '“{name}” on polyrecorder — shared recording sessions.',
 
   'deck.ariaLabel': 'Recorder',
+  'deck.toolsAria': 'Library and modes',
 
   'common.close': 'Close',
   'common.delete': 'Delete',
@@ -35,7 +36,7 @@ export const en: Record<MessageKey, string> = {
   'error.home': 'Back to the recorder',
 
   'nav.help': 'Help',
-  'nav.settings': 'Settings',
+  'nav.settings': 'Preferences',
   'nav.signIn': 'Sign in',
   'nav.signOut': 'Sign out',
   'nav.accountMenu': 'Account menu',
@@ -256,6 +257,7 @@ export const en: Record<MessageKey, string> = {
 
   'session.title.aria': 'Recording title',
   'song.title.aria': 'Song title',
+  'song.title.openLibrary': 'Open the song in the library',
   'session.defaultTitle': 'My polyphony',
   'session.prev': 'Previous session',
   'session.next': 'Next session',
@@ -270,6 +272,9 @@ export const en: Record<MessageKey, string> = {
     'Import an audio file from this device (becomes a track)',
   'capture.dropHint': 'Drop to import',
   'capture.stop': 'Stop',
+  'capture.forgottenStop': 'Did you forget to stop recording?',
+  'capture.forgottenStop.discard':
+    'If so, you can cancel the current take with the {discard} button',
 
   'mix.restart': 'Back to start',
   'mix.play': 'Play',
@@ -281,10 +286,17 @@ export const en: Record<MessageKey, string> = {
 
   'mode.groupAria': 'Work modes',
   'mode.label': 'Mode',
+  'mode.simple': 'Simple',
+  'mode.simple.hint': 'Simple mode: record and play',
   'mode.mix': 'Mix',
   'mode.mix.hint': 'Mix mode: per-track and master volumes',
   'mode.align': 'Align',
   'mode.align.hint': 'Align mode: track synchronization',
+
+  'deck.autoAlign.label': 'Auto-align with count-in',
+  'deck.autoAlign.on': 'On',
+  'deck.autoAlign.off': 'Off',
+  'deck.howtoLink': 'How to use',
 
   'align.latency.label': 'Playback lead',
   'align.latency.about': 'About playback lead',
@@ -338,6 +350,7 @@ export const en: Record<MessageKey, string> = {
 
   'warn.attention': 'Warning',
   'warn.openAlignMode': 'Open align mode',
+  'warn.disableAutoAlign': 'Disable auto-align',
   'warn.beat.chip.aria':
     'Warning: count-in issue on the reference track. Open align mode.',
   'warn.skew.tooltip':
@@ -353,7 +366,7 @@ export const en: Record<MessageKey, string> = {
     '1-2-3-4 count-in not detected on “{name}” ({count}/4 hits).',
   'warn.beat.error': 'Could not analyze the count-in on “{name}”.',
 
-  'howto.title': 'How to use',
+  'howto.title': 'How to use auto-align with count-in',
   'howto.step1': 'tap the red “Record” button',
   'howto.step2':
     'out loud and steadily, say 1-2-3-4 (or any clear 4-beat cue), then sing the first voice',
@@ -366,8 +379,14 @@ export const en: Record<MessageKey, string> = {
     'tap the red “Stop” button at the end of the last voice',
   'howto.tips':
     'Tips: record in a quiet place, ideally with headphones or an earbud—especially on mobile!',
+  'howto.whyNeeded': 'Why is this needed',
+  'howto.whyNeeded.about': 'Why auto-align with count-in is needed',
   'howto.latency':
     'Browsers and audio hardware introduce latency (headphones, mic, buffer). Without shared cues, takes drift. The four markers on the reference track and the “3-4” on later tracks let polyrecorder measure and correct that drift automatically. Clear, spaced, steady sounds align better; an irregular or quiet count-in can throw sync off.',
+  'howto.latency.manual':
+    'If auto-align is turned off, you can still align manually by clicking the “Align” button.',
+  'howto.autoAlign':
+    'This 1-2-3-4 count-in workflow suits polyphonic recording. If you import audio files (MP3, etc.) or skip markers, you can turn off auto-align in Settings.',
 
   'help.title': 'Help',
   'help.close': 'Close help',
@@ -394,9 +413,10 @@ export const en: Record<MessageKey, string> = {
   'help.shortcuts.download': 'Download MP3',
   'help.shortcuts.general': 'General',
   'help.shortcuts.editTitle': 'Edit title',
-  'help.shortcuts.closePanels': 'Close Help / Settings / Account / Library',
+  'help.shortcuts.closePanels': 'Close Help / Preferences / Account / Library',
 
   'nav.library': 'Library',
+  'nav.myLibrary': 'My library',
 
   'cloud.error.tooLarge': 'File too large (100 MB max).',
   'cloud.error.s3NotConfigured': 'Cloud storage is not configured.',
@@ -468,8 +488,8 @@ export const en: Record<MessageKey, string> = {
   'song.view.collaborate': 'open to collaboration',
   'song.og.description': '{tracks} · Listen on polyrecorder',
 
-  'settings.title': 'Settings',
-  'settings.close': 'Close settings',
+  'settings.title': 'Preferences',
+  'settings.close': 'Close preferences',
   'settings.appearance': 'Appearance:',
   'settings.theme.aria': 'Appearance theme',
   'settings.theme.system': 'Auto (browser)',
@@ -480,15 +500,21 @@ export const en: Record<MessageKey, string> = {
   'settings.showCalageWarnings.about': 'About alignment warnings',
   'settings.showCalageWarnings.tip':
     '“!” alerts when the reference 1-2-3-4 count-in looks irregular, or when auto-align exceeds 300 ms. Turns off automatically if a song’s first track is an audio import (usually no count-in).',
+  'settings.autoAlign': 'Auto-align with count-in',
+  'settings.autoAlign.about': 'About auto-align',
+  'settings.autoAlign.tip':
+    'Measures and corrects drift between tracks using 1-2-3-4 markers (reference) and 3-4 (later tracks). Suited to polyphonic recording. Turn it off for audio imports without a count-in, to avoid offsets and alerts.',
+  'settings.countInAlign': 'Count-in and auto-align',
+  'settings.defaultsForNewProjects': 'Default settings for new projects',
   'settings.autoCloudSave': 'Automatically save tracks to the cloud',
   'settings.autoCloudSave.hint':
     'If unchecked, a button appears on each local track to upload it manually.',
-  'settings.skipCountIn': 'Remove the 1-2-3-4',
+  'settings.skipCountIn': 'Remove the 1-2-3-4 if detected',
   'settings.skipCountIn.play.hint':
-    'Playback starts right after the “4”',
+    'Playback starts right after the “4” (if a count-in was detected)',
   'settings.skipCountIn.play': 'on playback',
   'settings.skipCountIn.download.hint':
-    'The MP3 starts right after the “4”',
+    'The MP3 starts right after the “4” (if a count-in was detected)',
   'settings.skipCountIn.download': 'on MP3 download',
   'settings.devices': 'Audio devices',
   'settings.devices.mobileNote':

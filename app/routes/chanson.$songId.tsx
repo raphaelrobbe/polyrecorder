@@ -19,6 +19,7 @@ import {
   libraryUserPath,
 } from '~/lib/libraryPaths'
 import { t } from '~/lib/i18n'
+import { readAlignPrefs } from '~/lib/alignPrefs'
 import { absoluteUrl, appUrlFromMatches, brandLogoUrl, pageMeta } from '~/lib/seo'
 import { getLibrarySongLevel } from '~/service/cloud.server'
 
@@ -140,6 +141,7 @@ function ChansonClient() {
                 intent: 'createSongPart',
                 songId: data.song.id,
                 name: trimmed === t('library.addSongPart') ? '' : trimmed,
+                alignPrefs: readAlignPrefs(),
               })
               if (!result.ok || !result.id) {
                 throw new Error('create failed')

@@ -1,18 +1,47 @@
-import { setCalageMode, setMixMode } from '../lib/sessionActions.client'
+import {
+  setDeckMode,
+  type DeckWorkMode,
+} from '../lib/sessionActions.client'
 import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
 import { useLocale } from '../hooks/useLocale'
 import { useSessionStore } from '../store/sessionStore'
-import { IconFaders } from './icons'
+import { IconAutoAlign, IconFaders } from './icons'
 
 type ModeToolsProps = {
   className?: string
 }
 
+type ModeOption = {
+  id: DeckWorkMode
+  labelKey: 'mode.simple' | 'mode.mix' | 'mode.align'
+  hintKey: 'mode.simple.hint' | 'mode.mix.hint' | 'mode.align.hint'
+  icon?: 'mix' | 'align'
+}
+
+const MODE_OPTIONS: ModeOption[] = [
+  {
+    id: 'simple',
+    labelKey: 'mode.simple',
+    hintKey: 'mode.simple.hint',
+  },
+  {
+    id: 'mix',
+    labelKey: 'mode.mix',
+    hintKey: 'mode.mix.hint',
+    icon: 'mix',
+  },
+  {
+    id: 'align',
+    labelKey: 'mode.align',
+    hintKey: 'mode.align.hint',
+    icon: 'align',
+  },
+]
+
 /**
- * In-deck mode toggles (active / inactive buttons, no checkboxes).
- * Mixage is the prominent control; calage is secondary.
- * Paired with Bibliothèque on one row: modes sit on the right.
+ * Exclusive work-mode control: Simple / Mixage / Calage.
+ * Sits between the recorder and tools decks, right-aligned.
  */
 export function ModeTools({ className }: ModeToolsProps) {
   useLocale()
@@ -22,60 +51,70 @@ export function ModeTools({ className }: ModeToolsProps) {
 
   if (tracks.length === 0) return null
 
+  const active: DeckWorkMode = calageMode
+    ? 'align'
+    : mixMode
+      ? 'mix'
+      : 'simple'
+
   return (
     <div
       className={cn(
-        'mt-4 flex flex-wrap items-center justify-end gap-[0.45rem] max-sm:mt-3 max-sm:gap-[0.35rem]',
+        'flex flex-wrap items-center justify-end gap-[0.45rem]',
         className,
       )}
-      role="group"
-      aria-label={t('mode.groupAria')}
     >
       <span className="shrink-0 text-[0.82rem] font-semibold tracking-[0.02em] text-ink-soft">
         {t('mode.label')}
       </span>
-      <button
-        type="button"
-        aria-pressed={mixMode}
-        title={t('mode.mix.hint')}
-        onClick={() => setMixMode(!mixMode)}
-        style={
-          {
-            ['--fader-knob-fill' as string]: mixMode
-              ? 'var(--on-accent)'
-              : 'var(--surface)',
-          }
-        }
+      <div
+        role="radiogroup"
+        aria-label={t('mode.groupAria')}
         className={cn(
-          'inline-flex items-center gap-[0.35rem] rounded-full border-[1.5px] px-[0.75rem] py-[0.4rem]',
-          'font-[inherit] text-[0.84rem] font-bold tracking-[0.01em] transition-[background,color,border-color,box-shadow,transform] duration-160',
-          'cursor-pointer active:scale-[0.98]',
-          'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent/40 focus-visible:outline-offset-2',
-          mixMode
-            ? 'border-accent bg-accent text-on-accent shadow-[0_6px_18px_color-mix(in_srgb,var(--accent)_35%,transparent)]'
-            : 'border-line bg-surface text-ink hover:border-accent/45 hover:bg-accent-soft',
+          'inline-flex items-stretch rounded-full border-[1.5px] border-line bg-surface p-[0.18rem]',
+          'shadow-[inset_0_1px_0_color-mix(in_srgb,var(--ink)_4%,transparent)]',
         )}
       >
-        <IconFaders className="size-[1rem]" />
-        {t('mode.mix')}
-      </button>
-      <button
-        type="button"
-        aria-pressed={calageMode}
-        title={t('mode.align.hint')}
-        onClick={() => setCalageMode(!calageMode)}
-        className={cn(
-          'inline-flex items-center rounded-full border px-[0.62rem] py-[0.34rem]',
-          'font-[inherit] text-[0.78rem] font-semibold tracking-[0.01em] transition-[background,color,border-color,transform] duration-160',
-          'cursor-pointer active:scale-[0.98]',
-          'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
-          calageMode
-            ? 'border-ink/35 bg-ink text-on-ink'
-            : 'border-transparent bg-transparent text-ink-soft hover:bg-ink/6 hover:text-ink',
-        )}
-      >
-        {t('mode.align')}
-      </button>
+        {MODE_OPTIONS.map((option) => {
+          const selected = active === option.id
+          return (
+            <button
+              key={option.id}
+              type="button"
+              role="radio"
+              aria-checked={selected}
+              title={t(option.hintKey)}
+              onClick={() => setDeckMode(option.id)}
+              style={
+                option.icon === 'mix'
+                  ? {
+                      ['--fader-knob-fill' as string]: selected
+                        ? 'var(--on-ink)'
+                        : 'var(--surface)',
+                    }
+                  : undefined
+              }
+              className={cn(
+                'inline-flex items-center justify-center gap-[0.3rem] rounded-full px-[0.72rem] py-[0.42rem]',
+                'font-[inherit] text-[0.82rem] font-bold tracking-[0.01em] transition-[background,color,box-shadow,transform] duration-160',
+                'cursor-pointer active:scale-[0.98]',
+                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
+                selected
+                  ? 'bg-ink text-on-ink shadow-[0_4px_12px_color-mix(in_srgb,var(--ink)_22%,transparent)]'
+                  : 'bg-transparent text-ink-soft hover:text-ink',
+              )}
+            >
+              {option.icon === 'mix' ? (
+                <IconFaders className="size-[0.95rem]" />
+              ) : null}
+              {option.icon === 'align' ? (
+                <IconAutoAlign className="size-[0.95rem]" />
+              ) : null}
+              {t(option.labelKey)}
+            </button>
+          )
+        })}
+      </div>
     </div>
   )
 }

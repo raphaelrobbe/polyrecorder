@@ -50,12 +50,16 @@ export type SessionStoreState = {
   meterLevel: number
   timerText: string
   recordingTimerVisible: boolean
+  /** Overdub take running past max other-track duration + 10s. */
+  forgottenStopHint: boolean
 
   autoplayAfterStop: boolean
   skipCountInPlayback: boolean
   skipCountInDownload: boolean
   /** Show beat/skew alignment warnings (session memory; default on). */
   showCalageWarnings: boolean
+  /** Auto-align takes from 1-2-3-4 markers (localStorage; default on). */
+  autoAlignEnabled: boolean
   /** Persist takes to Scaleway S3 when signed in (localStorage). */
   autoCloudSave: boolean
   /** Current cloud song part (session) id for new uploads (localStorage). */
@@ -101,6 +105,8 @@ export type SessionStoreState = {
   skewWarningDismissedKey: string
   skewWarningMessage: string | null
   skewWarningShowOpenAdvanced: boolean
+  /** Beat warning banner: offer to turn off auto-align. */
+  skewWarningShowDisableAutoAlign: boolean
 
   keyboardHintsEnabled: boolean
   inputOverrideNote: string | null
@@ -127,6 +133,7 @@ export type SessionStoreState = {
   setSkipCountInPlayback: (on: boolean) => void
   setSkipCountInDownload: (on: boolean) => void
   setShowCalageWarnings: (on: boolean) => void
+  setAutoAlignEnabled: (on: boolean) => void
   setAutoCloudSave: (on: boolean) => void
   setActiveSongPartId: (songPartId: string | null) => void
   setKeyboardHintsEnabled: (on: boolean) => void
@@ -176,11 +183,13 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   meterLevel: 0,
   timerText: '00:00',
   recordingTimerVisible: false,
+  forgottenStopHint: false,
 
   autoplayAfterStop: true,
   skipCountInPlayback: true,
   skipCountInDownload: true,
   showCalageWarnings: true,
+  autoAlignEnabled: true,
   autoCloudSave: true,
   activeSongPartId: null,
   deckSongPartId: null,
@@ -202,6 +211,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   skewWarningDismissedKey: '',
   skewWarningMessage: null,
   skewWarningShowOpenAdvanced: false,
+  skewWarningShowDisableAutoAlign: false,
 
   // any-* : souris/trackpad présents même si le tactile est le pointeur principal
   keyboardHintsEnabled:
@@ -232,6 +242,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setSkipCountInPlayback: (on) => set({ skipCountInPlayback: on }),
   setSkipCountInDownload: (on) => set({ skipCountInDownload: on }),
   setShowCalageWarnings: (on) => set({ showCalageWarnings: on }),
+  setAutoAlignEnabled: (on) => set({ autoAlignEnabled: on }),
   setAutoCloudSave: (on) => set({ autoCloudSave: on }),
   setActiveSongPartId: (songPartId) => set({ activeSongPartId: songPartId }),
   setKeyboardHintsEnabled: (on) => set({ keyboardHintsEnabled: on }),

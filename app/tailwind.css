@@ -263,19 +263,21 @@ html.dark {
   }
 }
 
-/* Smooth brand-5 pulse for the recording mic button (seamless loop). */
+/* Pulse for the recording stop button — color from --record-pulse.
+   Brand glow only at mid-pulse; trough is neutral so the color can swap unseen
+   (on animationiteration, when the ring is fully collapsed). */
 @keyframes record-throb {
   0%,
   100% {
     box-shadow:
-      0 0 0 0 color-mix(in srgb, var(--brand-5) 55%, transparent),
-      0 10px 28px color-mix(in srgb, var(--brand-5) 32%, transparent),
+      0 0 0 0 transparent,
+      0 10px 28px color-mix(in srgb, var(--ink) 18%, transparent),
       inset 0 1px 0 var(--highlight);
   }
   50% {
     box-shadow:
-      0 0 0 18px color-mix(in srgb, var(--brand-5) 28%, transparent),
-      0 14px 40px color-mix(in srgb, var(--brand-5) 48%, transparent),
+      0 0 0 18px color-mix(in srgb, var(--record-pulse, var(--brand-5)) 28%, transparent),
+      0 14px 40px color-mix(in srgb, var(--record-pulse, var(--brand-5)) 48%, transparent),
       inset 0 1px 0 var(--highlight);
   }
 }

@@ -24,6 +24,7 @@ export const fr = {
     '« {name} » sur polyrecorder — sessions d’enregistrement partagées.',
 
   'deck.ariaLabel': 'Enregistreur',
+  'deck.toolsAria': 'Bibliothèque et modes',
 
   'common.close': 'Fermer',
   'common.delete': 'Supprimer',
@@ -34,7 +35,7 @@ export const fr = {
   'error.home': 'Retour à l’enregistreur',
 
   'nav.help': 'Aide',
-  'nav.settings': 'Paramètres',
+  'nav.settings': 'Préférences',
   'nav.signIn': 'Connexion',
   'nav.signOut': 'Déconnexion',
   'nav.accountMenu': 'Menu du compte',
@@ -255,6 +256,7 @@ export const fr = {
 
   'session.title.aria': "Titre de l'enregistrement",
   'song.title.aria': 'Titre de la chanson',
+  'song.title.openLibrary': 'Ouvrir la chanson dans la bibliothèque',
   'session.defaultTitle': 'Ma polyphonie',
   'session.prev': 'Session précédente',
   'session.next': 'Session suivante',
@@ -269,6 +271,9 @@ export const fr = {
     'Importer un fichier audio depuis cet appareil (devient une piste)',
   'capture.dropHint': 'Déposer pour importer',
   'capture.stop': 'Stop',
+  'capture.forgottenStop': "N'avez-vous pas oublié de stopper l'enregistrement ?",
+  'capture.forgottenStop.discard':
+    "Si oui, vous pouvez annuler l'enregistrement en cours avec le bouton {discard}",
 
   'mix.restart': 'Revenir au début',
   'mix.play': 'Lecture',
@@ -281,10 +286,17 @@ export const fr = {
 
   'mode.groupAria': 'Modes de travail',
   'mode.label': 'Mode',
+  'mode.simple': 'Simple',
+  'mode.simple.hint': 'Mode simple : enregistrement et lecture',
   'mode.mix': 'Mixage',
   'mode.mix.hint': 'Mode mixage : volumes par piste et maître',
   'mode.align': 'Calage',
   'mode.align.hint': 'Mode calage : synchronisation des pistes',
+
+  'deck.autoAlign.label': 'Calage automatique par battue',
+  'deck.autoAlign.on': 'On',
+  'deck.autoAlign.off': 'Off',
+  'deck.howtoLink': "Mode d'emploi",
 
   'align.latency.label': 'Avance de lecture',
   'align.latency.about': "À propos de l'avance de lecture",
@@ -340,6 +352,7 @@ export const fr = {
 
   'warn.attention': 'Attention',
   'warn.openAlignMode': 'Ouvrir le mode calage',
+  'warn.disableAutoAlign': 'Désactiver le calage automatique',
   'warn.beat.chip.aria':
     'Attention : problème de battue sur la piste de référence. Ouvrir le mode calage.',
   'warn.skew.tooltip':
@@ -355,7 +368,7 @@ export const fr = {
     'Battue 1-2-3-4 non détectée sur « {name} » ({count}/4 attaques).',
   'warn.beat.error': "Impossible d'analyser la battue de « {name} ».",
 
-  'howto.title': "Mode d'emploi",
+  'howto.title': "Mode d'emploi du calage automatique par battue",
   'howto.step1': 'cliquer sur le bouton rouge « Enregistrer »',
   'howto.step2':
     'à haute voix et de manière régulière, dire 1-2-3-4 (ou quoi que ce soit d’audible en 4 temps) puis chanter la première voix',
@@ -368,8 +381,14 @@ export const fr = {
     'cliquer sur le bouton rouge « Stop » à la fin de la dernière voix',
   'howto.tips':
     'Conseils : enregistrez-vous dans un environnement silencieux, si possible avec un casque ou une oreillette, surtout sur mobile\u00a0!',
+  'howto.whyNeeded': 'Pourquoi est-ce nécessaire',
+  'howto.whyNeeded.about': 'Pourquoi le calage automatique par battue est nécessaire',
   'howto.latency':
     'Les navigateurs et le matériel audio introduisent une latence (casque, micro, buffer). Sans repères communs, les prises se décalent. Les quatre marquages de la piste de référence et les «\u00a03-4\u00a0» des pistes suivantes permettent à polyrecorder de mesurer et corriger ce décalage automatiquement. Des sons nets, espacés et réguliers donnent un meilleur calage ; une battue irrégulière ou peu audible peut fausser la synchronisation.',
+  'howto.latency.manual':
+    'Si le calage automatique est désactivé, vous pouvez tout à fait caler manuellement en cliquant sur le bouton «\u00a0Calage\u00a0».',
+  'howto.autoAlign':
+    'Ce mode avec battue 1-2-3-4 est adapté à un enregistrement de polyphonie. Si vous importez des fichiers audio (MP3, etc.) ou n’utilisez pas de marquages, vous pouvez désactiver le calage automatique dans les paramètres.',
 
   'help.title': 'Aide',
   'help.close': "Fermer l'aide",
@@ -396,9 +415,10 @@ export const fr = {
   'help.shortcuts.download': 'Télécharger le MP3',
   'help.shortcuts.general': 'Général',
   'help.shortcuts.editTitle': 'Éditer le titre',
-  'help.shortcuts.closePanels': 'Fermer Aide / Paramètres / Compte / Bibliothèque',
+  'help.shortcuts.closePanels': 'Fermer Aide / Préférences / Compte / Bibliothèque',
 
   'nav.library': 'Bibliothèque',
+  'nav.myLibrary': 'Ma bibliothèque',
 
   'cloud.error.tooLarge': 'Fichier trop volumineux (100 Mo max).',
   'cloud.error.s3NotConfigured': 'Stockage cloud non configuré.',
@@ -471,8 +491,8 @@ export const fr = {
   'song.view.collaborate': 'collaboration ouverte',
   'song.og.description': '{tracks} · Écoute sur polyrecorder',
 
-  'settings.title': 'Paramètres',
-  'settings.close': 'Fermer les paramètres',
+  'settings.title': 'Préférences',
+  'settings.close': 'Fermer les préférences',
   'settings.appearance': 'Apparence :',
   'settings.theme.aria': "Thème d'apparence",
   'settings.theme.system': 'Auto (navigateur)',
@@ -486,15 +506,22 @@ export const fr = {
     'À propos des avertissements de calage',
   'settings.showCalageWarnings.tip':
     'Alertes « ! » quand la battue 1-2-3-4 de la référence paraît irrégulière, ou quand un calage auto dépasse 300 ms. Se décoche automatiquement si la première piste d’une chanson est un import audio (sans battue typique).',
+  'settings.autoAlign': 'Calage automatique par battue',
+  'settings.autoAlign.about': 'À propos du calage automatique',
+  'settings.autoAlign.tip':
+    'Mesure et corrige le décalage entre pistes grâce aux marquages 1-2-3-4 (référence) et 3-4 (pistes suivantes). Adapté à un enregistrement de polyphonie. Désactivez-le pour des imports audio sans battue, afin d’éviter décalages et alertes.',
+  'settings.countInAlign': 'Battue et calage automatique',
+  'settings.defaultsForNewProjects':
+    'Réglages par défaut des nouveaux projets',
   'settings.autoCloudSave': 'Enregistrer automatiquement les pistes sur le cloud',
   'settings.autoCloudSave.hint':
     'Si décoché, un bouton apparaît sur chaque piste locale pour l’envoyer manuellement.',
-  'settings.skipCountIn': 'Supprimer le 1-2-3-4',
+  'settings.skipCountIn': 'Supprimer le 1-2-3-4 si détecté',
   'settings.skipCountIn.play.hint':
-    'La lecture commence juste après le « 4 »',
+    'La lecture commence juste après le « 4 » (si une battue a été détectée)',
   'settings.skipCountIn.play': 'à la lecture',
   'settings.skipCountIn.download.hint':
-    'Le MP3 commence juste après le « 4 »',
+    'Le MP3 commence juste après le « 4 » (si une battue a été détectée)',
   'settings.skipCountIn.download': 'au téléchargement du mp3',
   'settings.devices': 'Périphériques audio',
   'settings.devices.mobileNote':

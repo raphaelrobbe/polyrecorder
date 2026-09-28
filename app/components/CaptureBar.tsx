@@ -1,4 +1,4 @@
-import { useRef, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import {
   discard,
   importAudioFiles,
@@ -19,11 +19,23 @@ import {
   IconImportAudio,
   IconNext,
   IconRecord,
+  IconStop,
 } from './icons'
 import { MixTransport } from './MixTransport'
 
 const recordButtonClassName =
   'border-brand-5 bg-white shadow-[0_10px_28px_rgb(0_0_0_/_0.18),inset_0_1px_0_rgb(255_255_255_/_0.65)] hover:enabled:border-brand-5 hover:enabled:bg-white hover:enabled:brightness-[0.98] dark:border-brand-5 dark:bg-black dark:shadow-[0_10px_28px_rgb(0_0_0_/_0.45),inset_0_1px_0_rgb(255_255_255_/_0.1)] dark:hover:enabled:border-brand-5 dark:hover:enabled:bg-black dark:hover:enabled:brightness-125 [&_svg]:size-[2.55rem]'
+
+const BRAND_STOP_COLORS = [
+  'var(--brand-5)',
+  'var(--brand-6)',
+  'var(--brand-7)',
+  'var(--brand-8)',
+  'var(--brand-1)',
+  'var(--brand-2)',
+  'var(--brand-3)',
+  'var(--brand-4)',
+] as const
 
 type CaptureBarProps = {
   className?: string
@@ -40,6 +52,12 @@ export function CaptureBar({ className }: CaptureBarProps) {
   const recording = state === 'recording'
   const recordOnly = !recording && tracks.length === 0
   const showImport = !recording
+  const [stopColorIndex, setStopColorIndex] = useState(0)
+  const stopColor = BRAND_STOP_COLORS[stopColorIndex]!
+
+  useEffect(() => {
+    if (!recording) setStopColorIndex(0)
+  }, [recording])
 
   const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     // FileList is live: clearing `value` empties it — copy first.
@@ -154,12 +172,28 @@ export function CaptureBar({ className }: CaptureBarProps) {
         />
         <Button
           variant="transport"
-          className={cn(recordButtonClassName, recording && 'animate-record-throb')}
-          icon={<IconRecord />}
+          className={cn(
+            recordButtonClassName,
+            'border-transparent',
+            recording && 'animate-record-throb',
+          )}
+          style={
+            {
+              ['--record-pulse' as string]: stopColor,
+              borderColor: stopColor,
+            }
+          }
+          icon={<IconStop style={{ color: stopColor }} />}
           hidden={!recording}
           disabled={!recording}
           aria-label={t('capture.stop')}
           title={withShortcut(t('capture.stop'), 'Entrée', keyboardHintsEnabled)}
+          onAnimationIteration={(event) => {
+            if (event.animationName !== 'record-throb') return
+            setStopColorIndex(
+              (current) => (current + 1) % BRAND_STOP_COLORS.length,
+            )
+          }}
           onClick={() => void stopSession()}
         />
       </div>

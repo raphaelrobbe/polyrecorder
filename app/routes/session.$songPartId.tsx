@@ -4,6 +4,7 @@ import { useLoaderData, useParams } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { ClientOnly } from 'remix-utils/client-only'
 import { BrandWordmark } from '~/components/Brand'
+import { Deck } from '~/components/Deck'
 import { DeckMain } from '~/components/DeckMain'
 import { JsonLd } from '~/components/JsonLd'
 import { RecorderApp } from '~/components/RecorderApp'
@@ -69,11 +70,20 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 function SessionViewClient({ songPartId }: { songPartId: string }) {
   useLocale()
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const alreadyReady =
+    useSessionStore.getState().deckSongPartId === songPartId
+  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>(
+    alreadyReady ? 'ready' : 'loading',
+  )
   const setError = useSessionStore((s) => s.setError)
 
   useEffect(() => {
+    if (useSessionStore.getState().deckSongPartId === songPartId) {
+      setStatus('ready')
+      return
+    }
     let cancelled = false
+    setStatus('loading')
     void loadCloudSongIntoSession(songPartId).then((ok) => {
       if (cancelled) return
       if (!ok) {
@@ -90,16 +100,20 @@ function SessionViewClient({ songPartId }: { songPartId: string }) {
 
   if (status === 'loading') {
     return (
-      <p className="m-0 py-10 text-center text-[0.95rem] text-ink-soft">
-        {t('library.opening')}
-      </p>
+      <Deck>
+        <p className="m-0 py-10 text-center text-[0.95rem] text-ink-soft">
+          {t('library.opening')}
+        </p>
+      </Deck>
     )
   }
   if (status === 'error') {
     return (
-      <p className="m-0 py-10 text-center text-[0.95rem] text-ink-soft">
-        {t('song.view.notFound')}
-      </p>
+      <Deck>
+        <p className="m-0 py-10 text-center text-[0.95rem] text-ink-soft">
+          {t('song.view.notFound')}
+        </p>
+      </Deck>
     )
   }
 
@@ -156,9 +170,11 @@ export default function SessionRoute() {
             {data.ok ? (
               <SessionViewClient songPartId={songPartId} />
             ) : (
-              <p className="m-0 py-10 text-center text-[0.95rem] text-ink-soft">
-                {t('song.view.notFound')}
-              </p>
+              <Deck>
+                <p className="m-0 py-10 text-center text-[0.95rem] text-ink-soft">
+                  {t('song.view.notFound')}
+                </p>
+              </Deck>
             )}
           </RecorderApp>
         )}

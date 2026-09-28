@@ -65,14 +65,27 @@ type OptionGroupProps = {
   title: string
   className?: string
   children: ReactNode
+  /** Stack children vertically (default: wrap in a row). */
+  stack?: boolean
 }
 
-/** Titled group of related options (e.g. skip count-in). */
-export function OptionGroup({ title, className, children }: OptionGroupProps) {
+/** Titled group of related options (e.g. count-in / auto-align). */
+export function OptionGroup({
+  title,
+  className,
+  children,
+  stack = false,
+}: OptionGroupProps) {
   return (
     <div className={cn('flex flex-col gap-[0.45rem]', className)}>
       <span className="text-[0.92rem] font-bold text-ink">{title}</span>
-      <div className="flex flex-wrap items-center gap-x-[1.15rem] gap-y-[0.85rem]">
+      <div
+        className={
+          stack
+            ? 'flex flex-col gap-[0.85rem]'
+            : 'flex flex-wrap items-center gap-x-[1.15rem] gap-y-[0.85rem]'
+        }
+      >
         {children}
       </div>
     </div>

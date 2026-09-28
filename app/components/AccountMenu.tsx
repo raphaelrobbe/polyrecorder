@@ -15,7 +15,7 @@ type AccountMenuProps = {
   className?: string
 }
 
-/** Top account dropdown: label = @pseudo (fallback email); settings + sign out. */
+/** Top account dropdown: label = @pseudo (fallback email); library, prefs, help, account, sign out. */
 export function AccountMenu({ user, className }: AccountMenuProps) {
   useLocale()
   const navigate = useNavigate()
@@ -96,6 +96,34 @@ export function AccountMenu({ user, className }: AccountMenuProps) {
             }}
           >
             {t('nav.library')}
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            className={cn(
+              'flex w-full cursor-pointer items-center rounded-[8px] border-0 bg-transparent px-[0.55rem] py-[0.45rem] text-left font-[inherit] text-[0.82rem] font-semibold leading-normal text-ink',
+              'hover:bg-ink/6',
+            )}
+            onClick={() => {
+              setOpen(false)
+              navigate('/parametres')
+            }}
+          >
+            {t('nav.settings')}
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            className={cn(
+              'flex w-full cursor-pointer items-center rounded-[8px] border-0 bg-transparent px-[0.55rem] py-[0.45rem] text-left font-[inherit] text-[0.82rem] font-semibold leading-normal text-ink',
+              'hover:bg-ink/6',
+            )}
+            onClick={() => {
+              setOpen(false)
+              navigate('/aide')
+            }}
+          >
+            {t('nav.help')}
           </button>
           <button
             type="button"

@@ -26,6 +26,7 @@ export const no: Record<MessageKey, string> = {
     '«{name}» på polyrecorder — delte opptaksøkter.',
 
   'deck.ariaLabel': 'Opptaker',
+  'deck.toolsAria': 'Bibliotek og modi',
 
   'common.close': 'Lukk',
   'common.delete': 'Slett',
@@ -36,7 +37,7 @@ export const no: Record<MessageKey, string> = {
   'error.home': 'Tilbake til opptakeren',
 
   'nav.help': 'Hjelp',
-  'nav.settings': 'Innstillinger',
+  'nav.settings': 'Preferanser',
   'nav.signIn': 'Logg inn',
   'nav.signOut': 'Logg ut',
   'nav.accountMenu': 'Kontomeny',
@@ -257,6 +258,7 @@ export const no: Record<MessageKey, string> = {
 
   'session.title.aria': 'Opptakstittel',
   'song.title.aria': 'Sangttittel',
+  'song.title.openLibrary': 'Åpne sangen i biblioteket',
   'session.defaultTitle': 'Min polyfoni',
   'session.prev': 'Forrige økt',
   'session.next': 'Neste økt',
@@ -271,6 +273,9 @@ export const no: Record<MessageKey, string> = {
     'Importer en lydfil fra denne enheten (blir et spor)',
   'capture.dropHint': 'Slipp for å importere',
   'capture.stop': 'Stopp',
+  'capture.forgottenStop': 'Har du glemt å stoppe opptaket?',
+  'capture.forgottenStop.discard':
+    'Hvis ja, kan du avbryte opptaket som pågår med knappen {discard}',
 
   'mix.restart': 'Tilbake til start',
   'mix.play': 'Spill av',
@@ -282,10 +287,17 @@ export const no: Record<MessageKey, string> = {
 
   'mode.groupAria': 'Arbeidsmoduser',
   'mode.label': 'Modus',
+  'mode.simple': 'Enkel',
+  'mode.simple.hint': 'Enkel modus: opptak og avspilling',
   'mode.mix': 'Mix',
   'mode.mix.hint': 'Mix-modus: volum per spor og master',
   'mode.align': 'Justering',
   'mode.align.hint': 'Justeringsmodus: synkronisering av spor',
+
+  'deck.autoAlign.label': 'Autojustering med opptakt',
+  'deck.autoAlign.on': 'På',
+  'deck.autoAlign.off': 'Av',
+  'deck.howtoLink': 'Bruksanvisning',
 
   'align.latency.label': 'Avspillingsforskyvning',
   'align.latency.about': 'Om avspillingsforskyvning',
@@ -339,6 +351,7 @@ export const no: Record<MessageKey, string> = {
 
   'warn.attention': 'Obs',
   'warn.openAlignMode': 'Åpne justeringsmodus',
+  'warn.disableAutoAlign': 'Slå av autojustering',
   'warn.beat.chip.aria':
     'Obs: problem med opptakten på referansesporet. Åpne justeringsmodus.',
   'warn.skew.tooltip':
@@ -354,7 +367,7 @@ export const no: Record<MessageKey, string> = {
     '1-2-3-4-opptakt ikke funnet på «{name}» ({count}/4 treff).',
   'warn.beat.error': 'Kunne ikke analysere opptakten på «{name}».',
 
-  'howto.title': 'Slik bruker du',
+  'howto.title': 'Bruksanvisning for autojustering med opptakt',
   'howto.step1': 'trykk på den røde «Ta opp»-knappen',
   'howto.step2':
     'si 1-2-3-4 høyt og jevnt (eller et annet tydelig 4-taktsignal), og syng deretter første stemme',
@@ -367,8 +380,14 @@ export const no: Record<MessageKey, string> = {
     'trykk på den røde «Stopp»-knappen ved slutten av siste stemme',
   'howto.tips':
     'Tips: ta opp i rolige omgivelser, gjerne med hodetelefoner eller ørepropp—særlig på mobil!',
+  'howto.whyNeeded': 'Hvorfor er dette nødvendig',
+  'howto.whyNeeded.about': 'Hvorfor autojustering med opptakt er nødvendig',
   'howto.latency':
     'Nettlesere og lydutstyr gir latens (hodetelefoner, mikrofon, buffer). Uten felles markører sklir opptakene. De fire markørene på referansesporet og «3-4» på senere spor lar polyrecorder måle og rette denne forskyvningen automatisk. Tydelige, jevne, godt adskilte lyder justerer bedre; en uregelmessig eller svak opptakt kan ødelegge synken.',
+  'howto.latency.manual':
+    'Hvis autojustering er slått av, kan du fortsatt justere manuelt ved å klikke på knappen «Justering».',
+  'howto.autoAlign':
+    'Denne arbeidsflyten med 1-2-3-4-opptakt passer til polyfoniopptak. Hvis du importerer lydfiler (MP3 m.m.) eller ikke bruker markører, kan du slå av autojustering i innstillingene.',
 
   'help.title': 'Hjelp',
   'help.close': 'Lukk hjelp',
@@ -396,9 +415,10 @@ export const no: Record<MessageKey, string> = {
   'help.shortcuts.general': 'Generelt',
   'help.shortcuts.editTitle': 'Rediger tittel',
   'help.shortcuts.closePanels':
-    'Lukk Hjelp / Innstillinger / Konto / Bibliotek',
+    'Lukk Hjelp / Preferanser / Konto / Bibliotek',
 
   'nav.library': 'Bibliotek',
+  'nav.myLibrary': 'Mitt bibliotek',
 
   'cloud.error.tooLarge': 'Filen er for stor (maks 100 MB).',
   'cloud.error.s3NotConfigured': 'Skylagring er ikke konfigurert.',
@@ -470,8 +490,8 @@ export const no: Record<MessageKey, string> = {
   'song.view.collaborate': 'åpen for samarbeid',
   'song.og.description': '{tracks} · Lytt på polyrecorder',
 
-  'settings.title': 'Innstillinger',
-  'settings.close': 'Lukk innstillinger',
+  'settings.title': 'Preferanser',
+  'settings.close': 'Lukk preferanser',
   'settings.appearance': 'Utseende:',
   'settings.theme.aria': 'Tema',
   'settings.theme.system': 'Auto (nettleser)',
@@ -482,15 +502,21 @@ export const no: Record<MessageKey, string> = {
   'settings.showCalageWarnings.about': 'Om justeringsadvarsler',
   'settings.showCalageWarnings.tip':
     '«!»-varsler når referansens 1-2-3-4-opptakt virker uregelmessig, eller når autojustering overstiger 300 ms. Skrur av automatisk hvis første spor i en sang er en lydimport (vanligvis uten opptakt).',
+  'settings.autoAlign': 'Autojustering med opptakt',
+  'settings.autoAlign.about': 'Om autojustering',
+  'settings.autoAlign.tip':
+    'Måler og retter forskyvning mellom spor ved hjelp av markørene 1-2-3-4 (referanse) og 3-4 (senere spor). Tilpasset polyfoniopptak. Skru den av for lydimporter uten opptakt, for å unngå forskyvninger og varsler.',
+  'settings.countInAlign': 'Opptakt og autojustering',
+  'settings.defaultsForNewProjects': 'Standardinnstillinger for nye prosjekter',
   'settings.autoCloudSave': 'Lagre spor automatisk i skyen',
   'settings.autoCloudSave.hint':
     'Hvis avkrysset, vises en knapp på hvert lokalt spor for manuell opplasting.',
-  'settings.skipCountIn': 'Fjern 1-2-3-4',
+  'settings.skipCountIn': 'Fjern 1-2-3-4 hvis oppdaget',
   'settings.skipCountIn.play.hint':
-    'Avspilling starter rett etter «4»',
+    'Avspilling starter rett etter «4» (hvis en opptakt ble oppdaget)',
   'settings.skipCountIn.play': 'ved avspilling',
   'settings.skipCountIn.download.hint':
-    'MP3-en starter rett etter «4»',
+    'MP3-en starter rett etter «4» (hvis en opptakt ble oppdaget)',
   'settings.skipCountIn.download': 'ved MP3-nedlasting',
   'settings.devices': 'Lydenheter',
   'settings.devices.mobileNote':

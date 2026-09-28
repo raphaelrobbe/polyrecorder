@@ -11,7 +11,7 @@ type ModeRowProps = {
   className?: string
 }
 
-/** Footer utilities (locale, theme, aide, paramètres). */
+/** Footer utilities (locale, theme, aide, préférences). */
 export function ModeRow({ className }: ModeRowProps) {
   useLocale()
   const navigate = useNavigate()

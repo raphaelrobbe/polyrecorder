@@ -16,6 +16,7 @@ import {
 } from './format'
 import type { Locale } from './i18n'
 import { writeActiveSongPartId } from './cloudPrefs'
+import { librarySessionPath } from './libraryPaths'
 import {
   applyAudioSink,
   clearBufferCache,
@@ -93,8 +94,6 @@ let preferMimeType = ''
 let pendingTakeOffsetMs = 0
 let mixEpochPerf: number | null = null
 let mixTimelineStartCtx: number | null = null
-/** 4th count-in peak time (seconds) in the reference track buffer. */
-let refPeakFourSec: number | null = null
 
 function patch(partial: Partial<SessionStoreState>): void {
   useSessionStore.setState(partial)
@@ -154,7 +153,6 @@ export function getReferenceTrack(): Track | null {
 }
 
 export function clearRefPeaks() {
-  refPeakFourSec = null
   patch({
     refPeaksLabel: '',
     referenceBeatWarning: null,
@@ -218,12 +216,14 @@ export function refreshSkewWarning() {
     skewWarningDismissedKey,
     calageMode,
     showCalageWarnings,
+    autoAlignEnabled,
   } = get()
 
-  if (!showCalageWarnings) {
+  if (!showCalageWarnings || !autoAlignEnabled) {
     patch({
       skewWarningMessage: null,
       skewWarningShowOpenAdvanced: false,
+      skewWarningShowDisableAutoAlign: false,
     })
     return
   }
@@ -232,11 +232,12 @@ export function refreshSkewWarning() {
     referenceBeatWarning != null &&
     referenceBeatWarning.key !== referenceBeatDismissedKey
 
-  // Battue warning banner only in calage mode (outside: chip on reference track).
-  if (beatActive && calageMode) {
+  // Battue warning banner (chip on reference track removed in favor of CTA).
+  if (beatActive) {
     patch({
       skewWarningMessage: referenceBeatWarning.message,
       skewWarningShowOpenAdvanced: false,
+      skewWarningShowDisableAutoAlign: true,
     })
     return
   }
@@ -254,13 +255,18 @@ export function refreshSkewWarning() {
       skewWarningMessage: null,
       skewWarningDismissedKey: '',
       skewWarningShowOpenAdvanced: false,
+      skewWarningShowDisableAutoAlign: false,
     })
     return
   }
 
   const key = skewFingerprint(skewed)
   if (key === skewWarningDismissedKey) {
-    patch({ skewWarningMessage: null, skewWarningShowOpenAdvanced: false })
+    patch({
+      skewWarningMessage: null,
+      skewWarningShowOpenAdvanced: false,
+      skewWarningShowDisableAutoAlign: false,
+    })
     return
   }
 
@@ -269,6 +275,7 @@ export function refreshSkewWarning() {
     patch({
       skewWarningMessage: null,
       skewWarningShowOpenAdvanced: false,
+      skewWarningShowDisableAutoAlign: false,
     })
     return
   }
@@ -277,6 +284,7 @@ export function refreshSkewWarning() {
   patch({
     skewWarningMessage: t('warn.skew.short', { names }),
     skewWarningShowOpenAdvanced: false,
+    skewWarningShowDisableAutoAlign: false,
   })
 }
 
@@ -325,12 +333,10 @@ export function updateSessionTimerDisplay() {
 
 function applyReferencePeaksLabel(reference: Track, peaks: number[]) {
   if (peaks.length === 0) {
-    refPeakFourSec = null
     patch({ refPeaksLabel: '' })
     return
   }
 
-  refPeakFourSec = peaks.length >= 4 ? peaks[3]! : null
   const times = peaks
     .map((peak) => formatCentisCompact(peak * 1000))
     .join(' · ')
@@ -392,6 +398,22 @@ export function setMixMode(on: boolean) {
   }
   clearTrackHighlights()
   patch({ mixMode: false })
+}
+
+/** Exclusive deck work mode: simple (default), mix, or align. */
+export type DeckWorkMode = 'simple' | 'mix' | 'align'
+
+export function setDeckMode(mode: DeckWorkMode) {
+  if (mode === 'mix') {
+    setMixMode(true)
+    return
+  }
+  if (mode === 'align') {
+    setCalageMode(true)
+    return
+  }
+  setMixMode(false)
+  setCalageMode(false)
 }
 
 const HIGHLIGHT_DIM_VOLUME = 0.3
@@ -665,6 +687,65 @@ function schedulePersistMasterVolume() {
   }, VOLUME_PERSIST_MS)
 }
 
+let alignPrefsPersistTimer: ReturnType<typeof setTimeout> | null = null
+
+function flushPersistAlignPrefs() {
+  if (alignPrefsPersistTimer) {
+    clearTimeout(alignPrefsPersistTimer)
+    alignPrefsPersistTimer = null
+  }
+  if (get().readOnlySession || !canPersistCloudMix()) return
+  const songPartId = get().activeSongPartId
+  if (!songPartId) return
+  const {
+    autoAlignEnabled,
+    showCalageWarnings,
+    skipCountInPlayback,
+    skipCountInDownload,
+  } = get()
+  postLibraryIntent(
+    {
+      intent: 'updateSongAlignPrefs',
+      songPartId,
+      alignPrefs: {
+        autoAlignEnabled,
+        showCalageWarnings,
+        skipCountInPlayback,
+        skipCountInDownload,
+      },
+    },
+    'update align prefs',
+  )
+}
+
+function schedulePersistAlignPrefs() {
+  if (get().readOnlySession || !canPersistCloudMix()) return
+  if (!get().activeSongPartId) return
+  if (alignPrefsPersistTimer) clearTimeout(alignPrefsPersistTimer)
+  alignPrefsPersistTimer = setTimeout(() => {
+    alignPrefsPersistTimer = null
+    flushPersistAlignPrefs()
+  }, VOLUME_PERSIST_MS)
+}
+
+/** Update a session align/count-in flag and persist to the cloud part. */
+export function setSessionAlignPref(
+  key:
+    | 'autoAlignEnabled'
+    | 'showCalageWarnings'
+    | 'skipCountInPlayback'
+    | 'skipCountInDownload',
+  on: boolean,
+): void {
+  patch({ [key]: on })
+  if (key === 'autoAlignEnabled' || key === 'showCalageWarnings') {
+    void evaluateReferenceBeat()
+  } else {
+    refreshSkewWarning()
+  }
+  schedulePersistAlignPrefs()
+}
+
 /** Persist all cloud track volumes + master (e.g. after highlight / dim). */
 function persistCloudMixVolumes() {
   if (!canPersistCloudMix()) return
@@ -758,12 +839,18 @@ function startTimer(fromPerf = performance.now()) {
   patch({
     recordingTimerVisible: true,
     timerText: '00:00',
+    forgottenStopHint: false,
   })
   const existing = getTimerId()
   if (existing !== null) window.clearInterval(existing)
   const id = window.setInterval(() => {
     const elapsed = performance.now() - getStartedAt()
-    patch({ timerText: formatTime(elapsed) })
+    const tracks = get().tracks
+    const forgottenStopHint =
+      get().state === 'recording' &&
+      tracks.length > 0 &&
+      elapsed > getMaxTrackDurationMs(tracks) + 10_000
+    patch({ timerText: formatTime(elapsed), forgottenStopHint })
     if (
       elapsed >= MAX_RECORDING_MS &&
       get().state === 'recording' &&
@@ -789,6 +876,7 @@ function stopTimer(): number {
     window.clearInterval(timerId)
     setTimerId(null)
   }
+  patch({ forgottenStopHint: false })
   updateSessionTimerDisplay()
   return elapsed
 }
@@ -940,6 +1028,15 @@ export async function evaluateReferenceBeat(): Promise<void> {
     return
   }
 
+  if (!get().autoAlignEnabled) {
+    patch({
+      referenceBeatWarning: null,
+      referenceBeatDismissedKey: '',
+    })
+    refreshSkewWarning()
+    return
+  }
+
   try {
     const buffer = await decodeTrack(reference)
     const peaks = findVolumePeaks(buffer, 4)
@@ -1064,6 +1161,7 @@ export async function autoAlignTracksFromCounts(
 
 /** After a new take: always auto-align that take (never reshuffle others). */
 async function maybeAutoAlignAfterTake(newTrackId: number): Promise<void> {
+  if (!get().autoAlignEnabled) return
   if (get().tracks.length < 2) return
   if (get().referenceTrackId === newTrackId) return
   try {
@@ -1079,45 +1177,37 @@ async function maybeAutoAlignAfterTake(newTrackId: number): Promise<void> {
 
 /** Manual action: recalculate auto-align for one non-reference track. */
 export async function realignTrack(trackId: number): Promise<void> {
+  if (!get().autoAlignEnabled) return
   setError(null)
   await autoAlignTracksFromCounts([trackId])
 }
 
 /** Manual action: recalculate auto-align for every non-reference track. */
 export async function realignAllTracks(): Promise<void> {
+  if (!get().autoAlignEnabled) return
   setError(null)
   await autoAlignTracksFromCounts(alignableTracks().map((track) => track.id))
 }
 
 /** Mix-timeline cut just after the reference "4", with pad (seconds). */
-export async function getSkipCountInStartSec(): Promise<number> {
+export async function getSkipCountInStartSec(): Promise<number | null> {
   const reference = getReferenceTrack()
-  if (!reference) {
-    throw new Error(t('error.missingReference'))
-  }
+  if (!reference || reference.blob.size === 0) return null
 
-  let fourSec = refPeakFourSec
-  let peaks: number[] | undefined
-  if (fourSec == null) {
+  try {
     const buffer = await decodeTrack(reference)
-    peaks = findVolumePeaks(buffer, 4)
-    if (peaks.length < 4) {
-      throw new Error(
-        t('error.refPeaksSkipCountIn', {
-          name: reference.name,
-          count: peaks.length,
-        }),
-      )
-    }
-    applyReferencePeaksLabel(reference, peaks)
-    fourSec = peaks[3]!
+    const peaks = findVolumePeaks(buffer, 4)
+    const assessment = assessCountInBeat(peaks)
+    if (!assessment.ok) return null
+    applyReferencePeaksLabel(reference, assessment.peaks)
+    return getSkipCountInStartS({
+      reference,
+      peakFourSec: assessment.peaks[3]!,
+      peaks: assessment.peaks,
+    })
+  } catch {
+    return null
   }
-
-  return getSkipCountInStartS({
-    reference,
-    peakFourSec: fourSec,
-    peaks,
-  })
 }
 
 /** Raise a mix start so playback begins after the count-in when enabled. */
@@ -1125,13 +1215,12 @@ export async function applySkipCountInStartMs(
   startAtMs: number,
 ): Promise<number> {
   const clamped = Math.max(0, startAtMs)
-  if (!get().skipCountInPlayback || clamped > 0) return clamped
-  try {
-    const cutMs = (await getSkipCountInStartSec()) * 1000
-    return Math.max(clamped, cutMs)
-  } catch {
+  if (!get().skipCountInPlayback || clamped > 0) {
     return clamped
   }
+  const cutSec = await getSkipCountInStartSec()
+  if (cutSec == null) return clamped
+  return Math.max(clamped, cutSec * 1000)
 }
 
 export async function downloadSelectedMix() {
@@ -1166,10 +1255,12 @@ export async function downloadSelectedMix() {
     })
     if (get().skipCountInDownload) {
       const cutS = await getSkipCountInStartSec()
-      if (cutS >= mixed.duration - 0.05) {
-        throw new Error(t('error.countInTooLate'))
+      if (cutS != null) {
+        if (cutS >= mixed.duration - 0.05) {
+          throw new Error(t('error.countInTooLate'))
+        }
+        mixed = trimAudioBufferFrom(mixed, cutS)
       }
-      mixed = trimAudioBufferFrom(mixed, cutS)
     }
     const { encodeAudioBufferToMp3 } = await import('../mp3-encode.client')
     const mp3 = await encodeAudioBufferToMp3(mixed, 192)
@@ -2185,11 +2276,14 @@ export async function loadCloudSongIntoSession(
     trackAlignDetails: {},
     trackVolumes,
     masterVolume: opened.part.masterVolume,
+    autoAlignEnabled: opened.part.autoAlignEnabled,
+    showCalageWarnings: opened.part.showCalageWarnings,
+    skipCountInPlayback: opened.part.skipCountInPlayback,
+    skipCountInDownload: opened.part.skipCountInDownload,
     sessionTitle: opened.part.name ?? '',
     activeSongPartId:
       opened.isOwner || canCloudContribute ? opened.part.id : null,
-    deckSongPartId:
-      opened.isOwner || canCloudContribute ? opened.part.id : null,
+    deckSongPartId: opened.part.id,
     deckSongPartSiblings: opened.siblings,
     deckSongId: opened.song.id,
     readOnlySession: readOnly,
@@ -2214,6 +2308,12 @@ export async function loadCloudSongIntoSession(
   refreshSkewWarning()
   if (opened.tracks.length > 0) void evaluateReferenceBeat()
   return true
+}
+
+/** Home path for the current deck: `/session/:id` when a cloud session is loaded. */
+export function getDeckHomePath(): string {
+  const id = get().deckSongPartId
+  return id ? librarySessionPath(id) : '/'
 }
 
 /**

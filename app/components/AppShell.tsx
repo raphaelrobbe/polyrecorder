@@ -4,14 +4,12 @@ import { Brand } from './Brand'
 import { Deck } from './Deck'
 import { Hint } from './StatusMessage'
 import { LegalFooter } from './LegalFooter'
-import { MarkingHelp } from './MarkingHelp'
 import { ModeRow } from './ModeRow'
 import { cn } from '../lib/utils'
 import { useSessionStore } from '../store/sessionStore'
 
 type AppShellProps = {
   children: ReactNode
-  showMarkingHelp?: boolean
   /** Wider column (e.g. library tree). */
   wide?: boolean
   /** Allow dropping audio files onto the recorder deck. */
@@ -25,7 +23,6 @@ type AppShellProps = {
  */
 export function AppShell({
   children,
-  showMarkingHelp = false,
   wide = false,
   enableAudioDrop = false,
   className,
@@ -43,8 +40,11 @@ export function AppShell({
       <AuthBar className="mb-3 shrink-0" />
       <main className="flex flex-1 flex-col justify-center gap-7 animate-rise">
         <Brand />
-        <Deck enableAudioDrop={enableAudioDrop}>{children}</Deck>
-        {showMarkingHelp ? <MarkingHelp /> : null}
+        {enableAudioDrop ? (
+          children
+        ) : (
+          <Deck>{children}</Deck>
+        )}
         <ModeRow />
         <Hint>{hint}</Hint>
       </main>

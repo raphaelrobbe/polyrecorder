@@ -133,7 +133,7 @@ export function IconImportAudio(props: Omit<IconProps, 'children'>) {
 export function IconStop(props: Omit<IconProps, 'children'>) {
   return (
     <Icon {...props}>
-      <rect x="5" y="5" width="14" height="14" rx="2" fill="currentColor" />
+      <rect x="5.5" y="5.5" width="13" height="13" rx="1.5" fill="currentColor" />
     </Icon>
   )
 }
@@ -421,7 +421,7 @@ export function IconCollaborate(props: Omit<IconProps, 'children'>) {
   )
 }
 
-/** Recalculate count-in auto-align (timeline + dual cursors facing the line). */
+/** Recalculate count-in auto-align (timeline + dual cursors, slightly offset). */
 export function IconAutoAlign(props: Omit<IconProps, 'children'>) {
   return (
     <Icon {...props}>
@@ -434,7 +434,7 @@ export function IconAutoAlign(props: Omit<IconProps, 'children'>) {
       />
       <path
         fill="currentColor"
-        d="M12 9.6 8.7 4.4h6.6L12 9.6zm0 4.8 3.3 5.2H8.7L12 14.4z"
+        d="M10 9.6 6.7 4.4h6.6L10 9.6zm4 4.8 3.3 5.2H10.7L14 14.4z"
       />
     </Icon>
   )

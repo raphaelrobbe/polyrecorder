@@ -173,6 +173,10 @@ export type OpenedCloudSong = {
     id: string
     name: string | null
     masterVolume: number
+    autoAlignEnabled: boolean
+    showCalageWarnings: boolean
+    skipCountInPlayback: boolean
+    skipCountInDownload: boolean
   }
   /** Every session of the song, in library order (deck prev / next). */
   siblings: Array<{ id: string; name: string | null }>
@@ -214,6 +218,10 @@ export async function fetchAndHydrateSong(
           id: string
           name: string | null
           masterVolume: number
+          autoAlignEnabled: boolean
+          showCalageWarnings: boolean
+          skipCountInPlayback: boolean
+          skipCountInDownload: boolean
         }
         siblings: Array<{ id: string; name: string | null }>
         tracks: Array<{
@@ -284,7 +292,14 @@ export async function fetchAndHydrateSong(
 
   return {
     song: data.song,
-    part: { ...data.part, masterVolume },
+    part: {
+      ...data.part,
+      masterVolume,
+      autoAlignEnabled: data.part.autoAlignEnabled !== false,
+      showCalageWarnings: data.part.showCalageWarnings !== false,
+      skipCountInPlayback: data.part.skipCountInPlayback !== false,
+      skipCountInDownload: data.part.skipCountInDownload !== false,
+    },
     siblings: data.siblings,
     tracks,
     trackVolumes,

@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "SongPart" ADD COLUMN "autoAlignEnabled" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "SongPart" ADD COLUMN "showCalageWarnings" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "SongPart" ADD COLUMN "skipCountInPlayback" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "SongPart" ADD COLUMN "skipCountInDownload" BOOLEAN NOT NULL DEFAULT true;

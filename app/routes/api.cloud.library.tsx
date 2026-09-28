@@ -15,6 +15,7 @@ import {
   setSongCollaboration,
   setSongPublic,
   updateSongPartMasterVolume,
+  updateSongPartAlignPrefs,
   updateTrackAssetOffset,
   updateTrackAssetOffsets,
   updateTrackAssetVolume,
@@ -53,6 +54,12 @@ export async function action({ request }: ActionFunctionArgs) {
       volume?: number
       muted?: boolean
       masterVolume?: number
+      alignPrefs?: {
+        autoAlignEnabled?: boolean
+        showCalageWarnings?: boolean
+        skipCountInPlayback?: boolean
+        skipCountInDownload?: boolean
+      }
       orderedIds?: string[]
       updates?: Array<{
         id: string
@@ -83,6 +90,7 @@ export async function action({ request }: ActionFunctionArgs) {
         String(body.repertoireId ?? ''),
         String(body.name ?? ''),
         body.partName == null ? null : String(body.partName),
+        body.alignPrefs,
       )
       return json(result, { status: result.ok ? 200 : 400 })
     }
@@ -91,6 +99,7 @@ export async function action({ request }: ActionFunctionArgs) {
         request,
         String(body.songId ?? ''),
         String(body.name ?? ''),
+        body.alignPrefs,
       )
       return json(result, { status: result.ok ? 200 : 400 })
     }
@@ -213,6 +222,14 @@ export async function action({ request }: ActionFunctionArgs) {
         request,
         songPartId || String(body.id ?? ''),
         Number(body.masterVolume),
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'updateSongAlignPrefs') {
+      const result = await updateSongPartAlignPrefs(
+        request,
+        songPartId || String(body.id ?? ''),
+        body.alignPrefs,
       )
       return json(result, { status: result.ok ? 200 : 400 })
     }

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useLocale } from '../../hooks/useLocale'
 import { postLibrary } from '../../lib/libraryApi.client'
 import { t } from '../../lib/i18n'
+import { getDeckHomePath } from '../../lib/sessionActions.client'
 import { withShortcut } from '../../lib/withShortcut'
 import { cn } from '../../lib/utils'
 import { useSessionStore } from '../../store/sessionStore'
@@ -193,7 +194,7 @@ export function LibraryBrowseView({
           aria-label={t('library.close')}
           title={withShortcut(closeLabel, 'Échap', keyboardHintsEnabled)}
           data-title-base={closeLabel}
-          onClick={() => navigate('/')}
+          onClick={() => navigate(getDeckHomePath())}
         >
           ×
         </button>

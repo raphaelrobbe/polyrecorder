@@ -130,6 +130,14 @@ model SongPart {
   lastOpenedAt DateTime @default(now())
   /// Master mix bus level (1 = 100%). Owner-editable.
   masterVolume Float @default(1)
+  /// Auto-align takes from 1-2-3-4 markers (session setting).
+  autoAlignEnabled Boolean @default(true)
+  /// Show beat/skew alignment warnings (session setting).
+  showCalageWarnings Boolean @default(true)
+  /// Skip count-in on playback when a valid beat was detected (session).
+  skipCountInPlayback Boolean @default(true)
+  /// Skip count-in on MP3 download when a valid beat was detected (session).
+  skipCountInDownload Boolean @default(true)
   /// Manual order among the song's parts (also drives deck prev/next).
   sortOrder Int      @default(0)
 

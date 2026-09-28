@@ -17,6 +17,7 @@ import {
   libraryUserPath,
 } from '~/lib/libraryPaths'
 import { t } from '~/lib/i18n'
+import { readAlignPrefs } from '~/lib/alignPrefs'
 import { absoluteUrl, appUrlFromMatches, brandLogoUrl, pageMeta } from '~/lib/seo'
 import { getLibraryRepertoireLevel } from '~/service/cloud.server'
 
@@ -104,6 +105,7 @@ function RepertoireClient() {
                 intent: 'createSong',
                 repertoireId: data.repertoire.id,
                 name: trimmed,
+                alignPrefs: readAlignPrefs(),
               })
               if (!result.ok || !result.id) {
                 throw new Error('create failed')

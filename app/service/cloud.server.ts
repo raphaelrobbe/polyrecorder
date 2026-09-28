@@ -47,6 +47,68 @@ function clampStoredMasterVolume(value: number): number | null {
   return Math.min(MASTER_VOLUME_MAX, Math.max(0, value))
 }
 
+export type SongPartAlignPrefs = {
+  autoAlignEnabled: boolean
+  showCalageWarnings: boolean
+  skipCountInPlayback: boolean
+  skipCountInDownload: boolean
+}
+
+const DEFAULT_ALIGN_PREFS: SongPartAlignPrefs = {
+  autoAlignEnabled: true,
+  showCalageWarnings: true,
+  skipCountInPlayback: true,
+  skipCountInDownload: true,
+}
+
+function parseAlignPrefs(raw: unknown): SongPartAlignPrefs {
+  if (!raw || typeof raw !== 'object') return { ...DEFAULT_ALIGN_PREFS }
+  const o = raw as Record<string, unknown>
+  return {
+    autoAlignEnabled:
+      typeof o.autoAlignEnabled === 'boolean'
+        ? o.autoAlignEnabled
+        : DEFAULT_ALIGN_PREFS.autoAlignEnabled,
+    showCalageWarnings:
+      typeof o.showCalageWarnings === 'boolean'
+        ? o.showCalageWarnings
+        : DEFAULT_ALIGN_PREFS.showCalageWarnings,
+    skipCountInPlayback:
+      typeof o.skipCountInPlayback === 'boolean'
+        ? o.skipCountInPlayback
+        : DEFAULT_ALIGN_PREFS.skipCountInPlayback,
+    skipCountInDownload:
+      typeof o.skipCountInDownload === 'boolean'
+        ? o.skipCountInDownload
+        : DEFAULT_ALIGN_PREFS.skipCountInDownload,
+  }
+}
+
+async function resolveAlignPrefsForNewPart(
+  songId: string,
+  clientPrefs?: unknown,
+): Promise<SongPartAlignPrefs> {
+  const previous = await prisma.songPart.findFirst({
+    where: { songId },
+    orderBy: { sortOrder: 'desc' },
+    select: {
+      autoAlignEnabled: true,
+      showCalageWarnings: true,
+      skipCountInPlayback: true,
+      skipCountInDownload: true,
+    },
+  })
+  if (previous) {
+    return {
+      autoAlignEnabled: previous.autoAlignEnabled,
+      showCalageWarnings: previous.showCalageWarnings,
+      skipCountInPlayback: previous.skipCountInPlayback,
+      skipCountInDownload: previous.skipCountInDownload,
+    }
+  }
+  return parseAlignPrefs(clientPrefs)
+}
+
 async function requireUser(
   request: Request,
 ): Promise<AppUser | { ok: false; reason: 'unauthorized' }> {
@@ -1024,6 +1086,7 @@ export async function createSong(
   repertoireId: string,
   name: string,
   partName?: string | null,
+  alignPrefs?: unknown,
 ): Promise<
   | {
       ok: true
@@ -1050,11 +1113,13 @@ export async function createSong(
     },
   })
   const trimmedPart = partName?.trim() || null
+  const prefs = parseAlignPrefs(alignPrefs)
   const part = await prisma.songPart.create({
     data: {
       songId: song.id,
       name: trimmedPart,
       lastOpenedAt: new Date(),
+      ...prefs,
     },
   })
   await touchRepertoire(repertoire.id)
@@ -1071,6 +1136,7 @@ export async function createSongPart(
   request: Request,
   songId: string,
   name: string,
+  alignPrefs?: unknown,
 ): Promise<
   | { ok: true; id: string; name: string | null; songId: string }
   | { ok: false; reason: CloudFailureReason }
@@ -1082,12 +1148,14 @@ export async function createSongPart(
   if (!songId) return { ok: false, reason: 'invalid' }
   const song = await assertOwnedSong(user.id, songId)
   if (!song) return { ok: false, reason: 'not_found' }
+  const prefs = await resolveAlignPrefsForNewPart(song.id, alignPrefs)
   const part = await prisma.songPart.create({
     data: {
       songId: song.id,
       name: trimmed,
       lastOpenedAt: new Date(),
       sortOrder: await nextSongPartSortOrder(song.id),
+      ...prefs,
     },
   })
   await touchRepertoire(song.repertoireId)
@@ -1467,6 +1535,27 @@ export async function updateSongPartMasterVolume(
   return { ok: true }
 }
 
+export async function updateSongPartAlignPrefs(
+  request: Request,
+  songPartId: string,
+  prefs: unknown,
+): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  if (!songPartId) return { ok: false, reason: 'invalid' }
+
+  const part = await assertOwnedSongPart(user.id, songPartId)
+  if (!part) return { ok: false, reason: 'not_found' }
+
+  const next = parseAlignPrefs(prefs)
+  await prisma.songPart.update({
+    where: { id: part.id },
+    data: next,
+  })
+  return { ok: true }
+}
+
 /** Persist deck track order for a session (song owner only). */
 export async function syncTrackAssetOrder(
   request: Request,
@@ -1711,6 +1800,10 @@ export type OpenSongResult =
         id: string
         name: string | null
         masterVolume: number
+        autoAlignEnabled: boolean
+        showCalageWarnings: boolean
+        skipCountInPlayback: boolean
+        skipCountInDownload: boolean
       }
       /** Every session of the song, in library order (deck prev / next). */
       siblings: Array<{ id: string; name: string | null }>
@@ -1850,6 +1943,10 @@ export async function openSong(
         id: part.id,
         name: part.name,
         masterVolume: part.masterVolume,
+        autoAlignEnabled: part.autoAlignEnabled,
+        showCalageWarnings: part.showCalageWarnings,
+        skipCountInPlayback: part.skipCountInPlayback,
+        skipCountInDownload: part.skipCountInDownload,
       },
       siblings,
       tracks,

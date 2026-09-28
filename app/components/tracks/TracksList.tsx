@@ -11,6 +11,7 @@ import {
   setCalageMode,
   setError,
   setMasterVolume,
+  setSessionAlignPref,
   flushVolumeCloudPersist,
 } from '../../lib/sessionActions.client'
 import { MASTER_VOLUME_MAX } from '../../lib/audio/mix.client'
@@ -40,6 +41,7 @@ export function TracksList({ className }: TracksListProps) {
   const state = useSessionStore((s) => s.state)
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
+  const autoAlignEnabled = useSessionStore((s) => s.autoAlignEnabled)
   const masterVolume = useSessionStore((s) => s.masterVolume)
   const enabledTrackIds = useSessionStore((s) => s.enabledTrackIds)
   const mixClockText = useSessionStore((s) => s.mixClockText)
@@ -47,6 +49,9 @@ export function TracksList({ className }: TracksListProps) {
   const skewWarningMessage = useSessionStore((s) => s.skewWarningMessage)
   const skewWarningShowOpenAdvanced = useSessionStore(
     (s) => s.skewWarningShowOpenAdvanced,
+  )
+  const skewWarningShowDisableAutoAlign = useSessionStore(
+    (s) => s.skewWarningShowDisableAutoAlign,
   )
   const setSeekDragActive = useSessionStore((s) => s.setSeekDragActive)
   const patch = useSessionStore((s) => s.patch)
@@ -253,6 +258,7 @@ export function TracksList({ className }: TracksListProps) {
             <span
               className="col-start-4 text-center text-[0.58rem] font-extrabold uppercase tracking-[0.06em] text-ink-soft select-none"
               title={t('tracks.alignAll.hint')}
+              hidden={!autoAlignEnabled}
             >
               {t('tracks.alignCol')}
             </span>
@@ -309,8 +315,10 @@ export function TracksList({ className }: TracksListProps) {
             variant="nudge"
             className="col-start-4 justify-self-center [&_svg]:size-[1.28rem]"
             icon={<IconAutoAlign />}
-            hidden={!calageMode || alignable.length === 0}
-            disabled={alignable.length === 0 || !calageMode}
+            hidden={!calageMode || !autoAlignEnabled || alignable.length === 0}
+            disabled={
+              alignable.length === 0 || !calageMode || !autoAlignEnabled
+            }
             title={t('tracks.alignAll.hint')}
             aria-label={t('tracks.alignAll.aria')}
             data-align-all
@@ -459,6 +467,17 @@ export function TracksList({ className }: TracksListProps) {
           ×
         </button>
         <span data-skew-warning-text>{skewWarningMessage}</span>
+        {skewWarningShowDisableAutoAlign ? (
+          <Button
+            variant="default"
+            className="ml-auto border-[1.5px] border-warn-border bg-transparent px-3 py-[0.4rem] text-[0.8rem] text-warn hover:enabled:bg-warn-hover"
+            onClick={() => {
+              setSessionAlignPref('autoAlignEnabled', false)
+            }}
+          >
+            {t('warn.disableAutoAlign')}
+          </Button>
+        ) : null}
         {skewWarningShowOpenAdvanced ? (
           <Button
             variant="default"

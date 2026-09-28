@@ -2,6 +2,7 @@ import { useNavigate } from '@remix-run/react'
 import { useEffect, useRef, type ReactNode } from 'react'
 import { withShortcut } from '../lib/withShortcut'
 import { useLocale } from '../hooks/useLocale'
+import { getDeckHomePath } from '../lib/sessionActions.client'
 import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
 import { useSessionStore } from '../store/sessionStore'
@@ -46,7 +47,7 @@ export function DeckOverlayPanel({
         aria-label={closeAriaLabel}
         title={withShortcut(closeLabel, 'Échap', keyboardHintsEnabled)}
         data-title-base={closeLabel}
-        onClick={() => navigate('/')}
+        onClick={() => navigate(getDeckHomePath())}
       >
         ×
       </button>

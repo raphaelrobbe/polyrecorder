@@ -7,8 +7,10 @@ import {
 } from 'react'
 import { useLocale } from '../hooks/useLocale'
 import { writeActiveSongPartId } from '../lib/cloudPrefs'
+import { readAlignPrefs } from '../lib/alignPrefs'
 import { t, tp } from '../lib/i18n'
 import { loadCloudSongIntoSession } from '../lib/sessionActions.client'
+import { librarySessionPath } from '../lib/libraryPaths'
 import { cn } from '../lib/utils'
 import type { loader as rootLoader } from '../root'
 import { useSessionStore } from '../store/sessionStore'
@@ -879,6 +881,7 @@ function SongCard({
                 intent: 'createSongPart',
                 songId: song.id,
                 name,
+                alignPrefs: readAlignPrefs(),
               })
             }
             onCreated={onCreatePart}
@@ -1515,7 +1518,7 @@ export function LibraryPanel({ className }: LibraryPanelProps) {
     setError(null)
     try {
       const ok = await loadCloudSongIntoSession(songPartId)
-      if (ok) navigate('/')
+      if (ok) navigate(librarySessionPath(songPartId))
     } finally {
       setBusyPartId(null)
     }
@@ -1903,6 +1906,7 @@ export function LibraryPanel({ className }: LibraryPanelProps) {
                                     intent: 'createSong',
                                     repertoireId: rep.id,
                                     name,
+                                    alignPrefs: readAlignPrefs(),
                                   })
                                 }
                                 onError={() => setError(t('library.error'))}

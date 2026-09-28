@@ -4,6 +4,7 @@ import { isReservedPseudo } from '../common/reservedPseudos'
 import {
   discard,
   downloadSelectedMix,
+  getDeckHomePath,
   nextTrack,
   startSession,
   stopSession,
@@ -94,7 +95,7 @@ export function useKeyboardShortcuts() {
       if (isOverlayPath(location.pathname)) {
         if (event.key === 'Escape') {
           event.preventDefault()
-          navigate('/')
+          navigate(getDeckHomePath())
         }
         return
       }

@@ -10,13 +10,20 @@ type DeckProps = {
   className?: string
   /** Accept audio file drops onto the recorder card (home deck). */
   enableAudioDrop?: boolean
+  /** Accessible name for the card (`deck.ariaLabel` by default). */
+  ariaLabel?: string
 }
 
 /**
  * Recorder card shell (border, glass, highlight).
  * View content is passed as children (main / settings / help).
  */
-export function Deck({ children, className, enableAudioDrop = false }: DeckProps) {
+export function Deck({
+  children,
+  className,
+  enableAudioDrop = false,
+  ariaLabel,
+}: DeckProps) {
   useLocale()
   const state = useSessionStore((s) => s.state)
   const [dropActive, setDropActive] = useState(false)
@@ -70,7 +77,7 @@ export function Deck({ children, className, enableAudioDrop = false }: DeckProps
           'border-record/55 shadow-[0_0_0_2px_color-mix(in_srgb,var(--record)_28%,transparent),0_16px_36px_var(--shadow)]',
         className,
       )}
-      aria-label={t('deck.ariaLabel')}
+      aria-label={ariaLabel ?? t('deck.ariaLabel')}
       onDragEnter={onDragEnter}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
