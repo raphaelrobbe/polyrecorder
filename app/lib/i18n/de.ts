@@ -199,6 +199,14 @@ export const de: Record<MessageKey, string> = {
   'account.delete.cancel': 'Abbrechen',
   'account.delete.deleting': 'Wird gelöscht…',
   'account.delete.error': 'Konto konnte nicht gelöscht werden. Erneut versuchen.',
+  'account.stats.recording': 'Aufnahmezeit',
+  'account.stats.library': 'Bibliothek',
+  'account.stats.hour.one': '{count} Stunde',
+  'account.stats.hour.other': '{count} Stunden',
+  'account.stats.minute.one': '{count} Minute',
+  'account.stats.minute.other': '{count} Minuten',
+  'account.stats.second.one': '{count} Sekunde',
+  'account.stats.second.other': '{count} Sekunden',
 
   'auth.close': 'Anmeldung schließen',
   'auth.signIn.title': 'Anmelden oder Konto erstellen',
@@ -217,6 +225,8 @@ export const de: Record<MessageKey, string> = {
     'Eine E-Mail mit einem Anmelde-Link wurde gerade an {email} gesendet. Öffne ihn, um fortzufahren — dein Konto wird beim ersten Klick erstellt, falls nötig.',
   'auth.sent.hint':
     'Der Link läuft in 30 Minuten ab und kann nur einmal verwendet werden. Schau auch im Spam nach.',
+  'auth.sent.draftHint':
+    'Deine Aufnahmen bleiben auf diesem Gerät, bis du den Link öffnest. Nutze denselben Browser — nichts geht an den Server, solange du nicht angemeldet bist.',
   'auth.sent.retry': 'Andere Kennung verwenden',
   'auth.sent.devHint':
     'Lokal kommt die E-Mail möglicherweise nicht an — nutze den Button unten, um dich sofort anzumelden.',
@@ -424,6 +434,14 @@ export const de: Record<MessageKey, string> = {
   'cloud.error.tooLarge': 'Datei zu groß (max. 100 MB).',
   'cloud.error.s3NotConfigured': 'Cloud-Speicher ist nicht konfiguriert.',
   'cloud.error.unauthorized': 'Melde dich an, um in die Cloud zu speichern.',
+  'guestDraft.quota':
+    'Nicht genug lokaler Speicher für den Entwurf. Gib Speicher frei oder melde dich bald an.',
+  'guest.prompt.body':
+    'Du bist im Gastmodus. Ohne Anmeldung bleibt deine Arbeit nur auf diesem Gerät: Sie geht verloren, wenn du die Seite verlässt, und du kannst sie nicht teilen.',
+  'guest.prompt.bodyAccount':
+    'Ein Konto wird mit einem Klick nur per E-Mail erstellt.',
+  'guest.prompt.cta': 'Anmelden / Konto erstellen',
+  'guest.prompt.dismiss': 'Schließen',
   'cloud.error.uploadFailed': 'Cloud-Upload fehlgeschlagen. Bitte erneut versuchen.',
   'cloud.error.openFailed': 'Dieses Lied konnte nicht geöffnet werden.',
 
@@ -442,6 +460,8 @@ export const de: Record<MessageKey, string> = {
   'library.level.songs': 'Lieder',
   'library.level.songParts': 'Sessions',
   'library.group.meta': '{repertoires} · {songs}',
+  'library.count.group.one': '{count} Gruppe',
+  'library.count.group.other': '{count} Gruppen',
   'library.count.repertoire.one': '{count} Repertoire',
   'library.count.repertoire.other': '{count} Repertoires',
   'library.count.song.one': '{count} Lied',

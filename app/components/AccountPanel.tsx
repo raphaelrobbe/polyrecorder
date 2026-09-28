@@ -12,12 +12,22 @@ import {
   hasValidPseudoChars,
 } from '~/common/pseudo'
 import { useLocale } from '~/hooks/useLocale'
-import { t } from '~/lib/i18n'
+import { formatRecordingDuration } from '~/lib/format'
+import { t, tp } from '~/lib/i18n'
 import { Button } from './Button'
 import { DeckOverlayPanel } from './DeckOverlayPanel'
 
+type AccountStats = {
+  durationMs: number
+  groupCount: number
+  repertoireCount: number
+  songCount: number
+  songPartCount: number
+}
+
 type AccountPanelProps = {
   user: User
+  stats: AccountStats
   className?: string
 }
 
@@ -51,7 +61,7 @@ function looksLikeEmail(value: string): boolean {
 }
 
 /** Account settings overlay: profile + discreet delete. */
-export function AccountPanel({ user, className }: AccountPanelProps) {
+export function AccountPanel({ user, stats, className }: AccountPanelProps) {
   useLocale()
   const actionData = useActionData<AccountActionData>()
   const navigation = useNavigation()
@@ -61,6 +71,22 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
   const [pseudo, setPseudo] = useState(user.pseudo)
   const [emailFocused, setEmailFocused] = useState(false)
   const [pseudoFocused, setPseudoFocused] = useState(false)
+
+  const recordingLabel = formatRecordingDuration(stats.durationMs)
+  const librarySummary = [
+    tp('library.count.group.one', 'library.count.group.other', stats.groupCount),
+    tp(
+      'library.count.repertoire.one',
+      'library.count.repertoire.other',
+      stats.repertoireCount,
+    ),
+    tp('library.count.song.one', 'library.count.song.other', stats.songCount),
+    tp(
+      'library.count.songPart.one',
+      'library.count.songPart.other',
+      stats.songPartCount,
+    ),
+  ].join(' · ')
 
   const intent =
     navigation.state === 'submitting'
@@ -415,6 +441,28 @@ export function AccountPanel({ user, className }: AccountPanelProps) {
           {saving ? t('account.saving') : t('account.save')}
         </Button>
       </Form>
+
+      <section
+        className="flex flex-col gap-3 rounded-[14px] border border-line bg-ink/4 px-[0.95rem] py-[0.85rem]"
+        aria-label={t('account.stats.library')}
+      >
+        <div>
+          <p className="m-0 text-[0.78rem] font-semibold uppercase tracking-[0.04em] text-ink-soft">
+            {t('account.stats.recording')}
+          </p>
+          <p className="mt-1 mb-0 text-[0.95rem] font-semibold tabular-nums text-ink">
+            {recordingLabel}
+          </p>
+        </div>
+        <div>
+          <p className="m-0 text-[0.78rem] font-semibold uppercase tracking-[0.04em] text-ink-soft">
+            {t('account.stats.library')}
+          </p>
+          <p className="mt-1 mb-0 text-[0.92rem] font-medium leading-[1.4] text-ink">
+            {librarySummary}
+          </p>
+        </div>
+      </section>
 
       <div className="mt-auto flex w-full flex-col items-end gap-2 pt-4">
         <button

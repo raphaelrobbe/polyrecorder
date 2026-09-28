@@ -15,6 +15,7 @@ import {
   getUserFromRequest,
   updateProfileForRequest,
 } from '~/service/auth.server'
+import { getAccountLibraryStats } from '~/service/cloud.server'
 import { redirectClearingSession } from '~/service/session.server'
 
 export const meta: MetaFunction = () => [
@@ -25,7 +26,18 @@ export const meta: MetaFunction = () => [
 export async function loader({ request }: LoaderFunctionArgs) {
   const user = await getUserFromRequest(request)
   if (!user) return redirect('/connexion')
-  return { user }
+  const statsResult = await getAccountLibraryStats(request)
+  const stats =
+    statsResult.ok
+      ? statsResult.stats
+      : {
+          durationMs: 0,
+          groupCount: 0,
+          repertoireCount: 0,
+          songCount: 0,
+          songPartCount: 0,
+        }
+  return { user, stats }
 }
 
 export async function action({ request }: ActionFunctionArgs) {
@@ -58,12 +70,12 @@ export async function action({ request }: ActionFunctionArgs) {
 }
 
 export default function CompteRoute() {
-  const { user } = useLoaderData<typeof loader>()
+  const { user, stats } = useLoaderData<typeof loader>()
 
   return (
     <AppShell>
       <ClientOnly fallback={null}>{() => <OverlayShortcuts />}</ClientOnly>
-      <AccountPanel user={user} />
+      <AccountPanel user={user} stats={stats} />
     </AppShell>
   )
 }

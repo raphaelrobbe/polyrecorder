@@ -1,5 +1,5 @@
 import type { Track } from '../common/types'
-import { LOCALES, getLocale, t, type Locale } from './i18n'
+import { LOCALES, getLocale, t, tp, type Locale } from './i18n'
 
 export function formatSignedMs(ms: number): string {
   const rounded = Math.round(ms)
@@ -29,6 +29,47 @@ export function formatTime(ms: number): string {
   const m = Math.floor(total / 60)
   const s = total % 60
   return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`
+}
+
+/**
+ * Human duration for account stats: omit zero hours / minutes.
+ * e.g. 3661_000 → "1 heure 1 minute 1 seconde"
+ */
+export function formatRecordingDuration(
+  ms: number,
+  locale: Locale = getLocale(),
+): string {
+  const totalSec = Math.max(0, Math.floor(ms / 1000))
+  const hours = Math.floor(totalSec / 3600)
+  const minutes = Math.floor((totalSec % 3600) / 60)
+  const seconds = totalSec % 60
+  const parts: string[] = []
+  if (hours > 0) {
+    parts.push(
+      tp('account.stats.hour.one', 'account.stats.hour.other', hours, locale),
+    )
+  }
+  if (minutes > 0) {
+    parts.push(
+      tp(
+        'account.stats.minute.one',
+        'account.stats.minute.other',
+        minutes,
+        locale,
+      ),
+    )
+  }
+  if (seconds > 0 || parts.length === 0) {
+    parts.push(
+      tp(
+        'account.stats.second.one',
+        'account.stats.second.other',
+        seconds,
+        locale,
+      ),
+    )
+  }
+  return parts.join(' ')
 }
 
 export function formatCentis(ms: number): string {

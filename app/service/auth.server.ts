@@ -9,7 +9,7 @@ import { getSessionToken } from './session.server'
 
 const MAGIC_LINK_TTL_MS = 30 * 60 * 1000 // 30 minutes
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000 // 30 days
-const MAGIC_LINK_RATE_LIMIT = 5
+const MAGIC_LINK_RATE_LIMIT = 10
 const MAGIC_LINK_RATE_WINDOW_MS = 60 * 60 * 1000 // 1 hour
 
 function normalizeEmail(email: string): string {

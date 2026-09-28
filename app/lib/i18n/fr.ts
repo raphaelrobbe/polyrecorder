@@ -197,6 +197,14 @@ export const fr = {
   'account.delete.cancel': 'Annuler',
   'account.delete.deleting': 'Suppression…',
   'account.delete.error': 'Impossible de supprimer le compte. Réessaie.',
+  'account.stats.recording': 'Temps d’enregistrement',
+  'account.stats.library': 'Bibliothèque',
+  'account.stats.hour.one': '{count} heure',
+  'account.stats.hour.other': '{count} heures',
+  'account.stats.minute.one': '{count} minute',
+  'account.stats.minute.other': '{count} minutes',
+  'account.stats.second.one': '{count} seconde',
+  'account.stats.second.other': '{count} secondes',
 
   'auth.close': 'Fermer la connexion',
   'auth.signIn.title': 'Connexion ou création de compte',
@@ -215,6 +223,8 @@ export const fr = {
     'Un email avec un lien de connexion vient d’être envoyé à {email}. Ouvre-le pour te connecter — ton compte sera créé au premier clic si besoin.',
   'auth.sent.hint':
     'Le lien expire dans 30 minutes et ne peut être utilisé qu’une fois. Pense à regarder les courriers indésirables (spams).',
+  'auth.sent.draftHint':
+    'Tes enregistrements restent sur cet appareil jusqu’à l’ouverture du lien. Utilise le même navigateur — rien n’est envoyé au serveur tant que tu n’es pas connecté.',
   'auth.sent.retry': 'Utiliser un autre identifiant',
   'auth.sent.devHint':
     'En local, l’email peut ne pas arriver : utilise le bouton ci-dessous pour te connecter tout de suite.',
@@ -423,6 +433,14 @@ export const fr = {
   'cloud.error.tooLarge': 'Fichier trop volumineux (100 Mo max).',
   'cloud.error.s3NotConfigured': 'Stockage cloud non configuré.',
   'cloud.error.unauthorized': 'Connecte-toi pour enregistrer sur le cloud.',
+  'guestDraft.quota':
+    'Espace local insuffisant pour sauver le brouillon. Libère de la place ou connecte-toi bientôt.',
+  'guest.prompt.body':
+    'Tu es en mode invité. Sans connexion, ton travail reste sur cet appareil : il sera perdu si tu quittes la page, et tu ne pourras pas le partager.',
+  'guest.prompt.bodyAccount':
+    'Un compte se crée en un clic avec une adresse email.',
+  'guest.prompt.cta': 'Se connecter / Créer un compte',
+  'guest.prompt.dismiss': 'Fermer',
   'cloud.error.uploadFailed': 'Échec de l’envoi sur le cloud. Réessaie.',
   'cloud.error.openFailed': 'Impossible d’ouvrir cette chanson.',
 
@@ -441,6 +459,8 @@ export const fr = {
   'library.level.songs': 'Chansons',
   'library.level.songParts': 'Sessions',
   'library.group.meta': '{repertoires} · {songs}',
+  'library.count.group.one': '{count} groupe',
+  'library.count.group.other': '{count} groupes',
   'library.count.repertoire.one': '{count} répertoire',
   'library.count.repertoire.other': '{count} répertoires',
   'library.count.song.one': '{count} chanson',

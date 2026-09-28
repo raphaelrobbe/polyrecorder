@@ -332,7 +332,7 @@ export function TrackRow({
             !
           </Button>
         ) : null}
-        {isReference || hideDelete || showSkewAttention ? null : (
+        {isReference || hideDelete ? null : (
           <Button
             variant="trash"
             className="ml-[0.15rem] h-[1.65rem] w-[1.65rem] shrink-0 rounded-lg border-ink/18 text-ink/55 [&_svg]:size-[0.82rem] max-sm:ml-[0.08rem] max-sm:h-[1.45rem] max-sm:w-[1.45rem] max-sm:[&_svg]:size-[0.72rem]"

@@ -52,6 +52,8 @@ export type SessionStoreState = {
   recordingTimerVisible: boolean
   /** Overdub take running past max other-track duration + 10s. */
   forgottenStopHint: boolean
+  /** Guest just finished a take — show sign-in invite near the capture bar. */
+  guestSignInPrompt: boolean
 
   autoplayAfterStop: boolean
   skipCountInPlayback: boolean
@@ -75,6 +77,11 @@ export type SessionStoreState = {
    * tracks (and mutate their own), but not owner metadata.
    */
   canCloudContribute: boolean
+  /**
+   * Song allows collaboration (from cloud metadata). Guests see false for
+   * `canCloudContribute` until sign-in; this flag keeps the intent for drafts.
+   */
+  songAllowsCollaboration: boolean
   /** Cloud song (œuvre) id of the deck session, when loaded from library. */
   deckSongId: string | null
   /**
@@ -184,6 +191,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   timerText: '00:00',
   recordingTimerVisible: false,
   forgottenStopHint: false,
+  guestSignInPrompt: false,
 
   autoplayAfterStop: true,
   skipCountInPlayback: true,
@@ -196,6 +204,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   deckSongPartSiblings: [],
   readOnlySession: false,
   canCloudContribute: false,
+  songAllowsCollaboration: false,
   deckSongId: null,
   deckLibraryPath: null,
   songWorkName: null,

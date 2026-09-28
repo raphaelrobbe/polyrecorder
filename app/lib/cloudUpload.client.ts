@@ -1,9 +1,6 @@
 import type { Track } from '../common/types'
 import { t } from './i18n'
-import {
-  readActiveSongPartId,
-  writeActiveSongPartId,
-} from './cloudPrefs'
+import { writeActiveSongPartId } from './cloudPrefs'
 import { useSessionStore } from '../store/sessionStore'
 
 export {
@@ -23,6 +20,10 @@ export function setCloudSignedIn(
 ): void {
   cloudSignedIn = signedIn
   cloudUserPseudo = signedIn ? (pseudo?.trim() || null) : null
+}
+
+export function isCloudSignedIn(): boolean {
+  return cloudSignedIn
 }
 
 function patchTrack(trackId: number, partial: Partial<Track>): void {
@@ -53,8 +54,8 @@ export async function uploadTrackToCloud(
   patchTrack(trackId, { cloudStatus: 'uploading' })
 
   try {
-    const songPartId =
-      useSessionStore.getState().activeSongPartId ?? readActiveSongPartId()
+    // Store only — never fall back to localStorage (stale ids must not attach).
+    const songPartId = useSessionStore.getState().activeSongPartId
     const sessionTitle = useSessionStore.getState().sessionTitle
     const contentType = track.blob.type || 'audio/webm'
 
@@ -81,6 +82,15 @@ export async function uploadTrackToCloud(
           trackAssetId: string
           songPartId: string
           songId: string
+          libraryPath: {
+            ownerPseudo: string
+            groupId: string
+            groupName: string
+            repertoireId: string
+            repertoireName: string
+            songId: string
+            songName: string
+          } | null
         }
       | { ok: false; reason: string }
 
@@ -106,8 +116,36 @@ export async function uploadTrackToCloud(
     }
 
     writeActiveSongPartId(presign.songPartId)
-    useSessionStore.getState().setActiveSongPartId(presign.songPartId)
-    useSessionStore.getState().patch({ deckSongPartId: presign.songPartId })
+    const store = useSessionStore.getState()
+    store.setActiveSongPartId(presign.songPartId)
+    const firstCloudBinding = store.songWorkName == null
+    store.patch({
+      deckSongPartId: presign.songPartId,
+      deckSongId: presign.songId,
+      ...(presign.libraryPath
+        ? {
+            deckLibraryPath: {
+              ownerPseudo: presign.libraryPath.ownerPseudo,
+              groupId: presign.libraryPath.groupId,
+              groupName: presign.libraryPath.groupName,
+              repertoireId: presign.libraryPath.repertoireId,
+              repertoireName: presign.libraryPath.repertoireName,
+              songId: presign.libraryPath.songId,
+              songName: presign.libraryPath.songName,
+            },
+            songWorkName: presign.libraryPath.songName,
+            ...(firstCloudBinding
+              ? {
+                  // Match openSong: œuvre title above, unnamed single session below.
+                  sessionTitle: '',
+                  deckSongPartSiblings: [
+                    { id: presign.songPartId, name: null },
+                  ],
+                }
+              : {}),
+          }
+        : {}),
+    })
     patchTrack(trackId, { cloudTrackId: presign.trackAssetId })
 
     const putRes = await fetch(presign.uploadUrl, {
@@ -155,6 +193,34 @@ export async function maybeAutoUploadTrack(trackId: number): Promise<void> {
   const { autoCloudSave } = useSessionStore.getState()
   if (!autoCloudSave) return
   await uploadTrackToCloud(trackId, { quietIfUnauthorized: true })
+}
+
+/** Upload every local (unsynced) take, in deck order. */
+export async function uploadAllLocalTracks(): Promise<{
+  uploaded: number
+  failed: number
+}> {
+  if (!cloudSignedIn) return { uploaded: 0, failed: 0 }
+  if (!canContributeCloudTracks()) return { uploaded: 0, failed: 0 }
+  const localIds = useSessionStore
+    .getState()
+    .tracks.filter(
+      (track) =>
+        track.blob.size > 0 &&
+        (track.cloudStatus === 'local' ||
+          track.cloudStatus === 'error' ||
+          track.cloudStatus == null),
+    )
+    .map((track) => track.id)
+
+  let uploaded = 0
+  let failed = 0
+  for (const id of localIds) {
+    const ok = await uploadTrackToCloud(id, { quietIfUnauthorized: true })
+    if (ok) uploaded += 1
+    else failed += 1
+  }
+  return { uploaded, failed }
 }
 
 export type OpenedCloudSong = {

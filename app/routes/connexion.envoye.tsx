@@ -47,6 +47,9 @@ export default function ConnexionEnvoyeRoute() {
         <p className="m-0 text-[0.85rem] leading-[1.4] text-ink-soft">
           {t('auth.sent.hint')}
         </p>
+        <p className="m-0 text-[0.85rem] leading-[1.4] text-ink-soft">
+          {t('auth.sent.draftHint')}
+        </p>
         {previewLink ? (
           <div className="flex flex-col gap-2">
             <p className="m-0 text-[0.82rem] leading-[1.4] text-ink-soft">

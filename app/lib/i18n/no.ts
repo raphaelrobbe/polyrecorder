@@ -199,6 +199,14 @@ export const no: Record<MessageKey, string> = {
   'account.delete.cancel': 'Avbryt',
   'account.delete.deleting': 'Sletter…',
   'account.delete.error': 'Kunne ikke slette kontoen. Prøv igjen.',
+  'account.stats.recording': 'Opptakstid',
+  'account.stats.library': 'Bibliotek',
+  'account.stats.hour.one': '{count} time',
+  'account.stats.hour.other': '{count} timer',
+  'account.stats.minute.one': '{count} minutt',
+  'account.stats.minute.other': '{count} minutter',
+  'account.stats.second.one': '{count} sekund',
+  'account.stats.second.other': '{count} sekunder',
 
   'auth.close': 'Lukk innlogging',
   'auth.signIn.title': 'Logg inn eller opprett konto',
@@ -217,6 +225,8 @@ export const no: Record<MessageKey, string> = {
     'En e-post med innloggingslenke er nettopp sendt til {email}. Åpne den for å fortsette — kontoen opprettes ved første klikk om nødvendig.',
   'auth.sent.hint':
     'Lenken utløper om 30 minutter og kan bare brukes én gang. Sjekk søppelpost om nødvendig.',
+  'auth.sent.draftHint':
+    'Opptakene dine blir på denne enheten til du åpner lenken. Bruk samme nettleser — ingenting sendes til serveren før du er innlogget.',
   'auth.sent.retry': 'Bruk en annen identifikator',
   'auth.sent.devHint':
     'Lokalt kan e-posten utebli — bruk knappen under for å logge inn med en gang.',
@@ -423,6 +433,14 @@ export const no: Record<MessageKey, string> = {
   'cloud.error.tooLarge': 'Filen er for stor (maks 100 MB).',
   'cloud.error.s3NotConfigured': 'Skylagring er ikke konfigurert.',
   'cloud.error.unauthorized': 'Logg inn for å lagre i skyen.',
+  'guestDraft.quota':
+    'Ikke nok lokal lagring til å lagre utkastet. Frigjør plass eller logg inn snart.',
+  'guest.prompt.body':
+    'Du er i gjestemodus. Uten innlogging blir arbeidet bare på denne enheten: det går tapt hvis du forlater siden, og du kan ikke dele det.',
+  'guest.prompt.bodyAccount':
+    'En konto opprettes med ett klikk bare med e-postadresse.',
+  'guest.prompt.cta': 'Logg inn / Opprett konto',
+  'guest.prompt.dismiss': 'Lukk',
   'cloud.error.uploadFailed': 'Opplasting til skyen mislyktes. Prøv igjen.',
   'cloud.error.openFailed': 'Kunne ikke åpne denne sangen.',
 
@@ -441,6 +459,8 @@ export const no: Record<MessageKey, string> = {
   'library.level.songs': 'Sanger',
   'library.level.songParts': 'Økter',
   'library.group.meta': '{repertoires} · {songs}',
+  'library.count.group.one': '{count} gruppe',
+  'library.count.group.other': '{count} grupper',
   'library.count.repertoire.one': '{count} repertoar',
   'library.count.repertoire.other': '{count} repertoar',
   'library.count.song.one': '{count} sang',

@@ -8,12 +8,19 @@ import {
   releaseMic,
   stopMeterNodes,
 } from '../lib/audio/runtime.client'
-import { readActiveSongPartId, readAutoCloudSave } from '../lib/cloudPrefs'
+import {
+  readActiveSongPartId,
+  readAutoCloudSave,
+  writeActiveSongPartId,
+} from '../lib/cloudPrefs'
 import { readAlignPrefs } from '../lib/alignPrefs'
 import { librarySessionPath } from '../lib/libraryPaths'
 import {
+  claimGuestDraftAfterSignIn,
+  flushGuestDraftSave,
   initLatencyProbe,
   hydrateActiveSongIfNeeded,
+  isGuestClaimInFlight,
   refreshDeviceSnapshot,
   resetDeckOnSignOut,
   stopPlayback,
@@ -43,13 +50,15 @@ export function RecorderApp({ children }: RecorderAppProps) {
 
   useEffect(() => {
     const defaults = readAlignPrefs()
+    // Guests must not keep a previous signed-in upload target in localStorage.
+    if (!user) writeActiveSongPartId(null)
     useSessionStore.getState().patch({
       autoCloudSave: readAutoCloudSave(),
       autoAlignEnabled: defaults.autoAlignEnabled,
       showCalageWarnings: defaults.showCalageWarnings,
       skipCountInPlayback: defaults.skipCountInPlayback,
       skipCountInDownload: defaults.skipCountInDownload,
-      activeSongPartId: readActiveSongPartId(),
+      activeSongPartId: user ? readActiveSongPartId() : null,
     })
     void hydrateFileSystemMemory()
     void initLatencyProbe()
@@ -57,6 +66,7 @@ export function RecorderApp({ children }: RecorderAppProps) {
     syncLatencyDisplay()
 
     const onBeforeUnload = () => {
+      flushGuestDraftSave()
       stopPlayback()
       stopMeterNodes()
       const stream = getMediaStream()
@@ -78,26 +88,45 @@ export function RecorderApp({ children }: RecorderAppProps) {
     }
     wasSignedIn.current = Boolean(user)
     if (!user) return
-    if (
-      typeof window !== 'undefined' &&
-      (window.location.pathname.startsWith('/song/') ||
-        window.location.pathname.startsWith('/session/'))
-    ) {
-      return
-    }
-    void hydrateActiveSongIfNeeded().then(() => {
+
+    useSessionStore.getState().patch({ guestSignInPrompt: false })
+
+    let cancelled = false
+    void (async () => {
+      await claimGuestDraftAfterSignIn()
+      if (cancelled) return
+
+      if (
+        typeof window !== 'undefined' &&
+        (window.location.pathname.startsWith('/song/') ||
+          window.location.pathname.startsWith('/session/'))
+      ) {
+        return
+      }
+
+      if (useSessionStore.getState().tracks.length === 0) {
+        await hydrateActiveSongIfNeeded()
+      }
+      if (cancelled) return
+
       const id = useSessionStore.getState().deckSongPartId
       if (id && window.location.pathname === '/') {
         navigate(librarySessionPath(id), { replace: true })
       }
-    })
+    })()
+
+    return () => {
+      cancelled = true
+    }
   }, [user, navigate])
 
-  /** Keep `/` in sync when a cloud session becomes the deck contents (e.g. first save). */
+  /** Keep `/` in sync when a cloud session becomes the deck (e.g. first signed-in save).
+   * Skip while guest-claim uploads run — navigating mid-batch remounts and would race. */
   useEffect(() => {
     if (!deckSongPartId) return
     if (typeof window === 'undefined') return
     if (window.location.pathname !== '/') return
+    if (isGuestClaimInFlight()) return
     navigate(librarySessionPath(deckSongPartId), { replace: true })
   }, [deckSongPartId, navigate])
 

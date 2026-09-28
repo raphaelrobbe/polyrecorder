@@ -3,6 +3,7 @@ import { useNavigate, useRouteLoaderData, Link } from '@remix-run/react'
 import { isDefaultSessionTitle } from '../lib/format'
 import {
   discard,
+  dismissGuestSignInPrompt,
   loadCloudSongIntoSession,
   normalizeAndSetSessionTitle,
   setSessionAlignPref,
@@ -25,7 +26,7 @@ import { CalagePanel } from './CalagePanel'
 import { Button } from './Button'
 import { CheckboxOption } from './CheckboxOption'
 import { Deck } from './Deck'
-import { IconChevron, IconDiscard } from './icons'
+import { IconChevron, IconClose, IconDiscard } from './icons'
 import { LibraryBreadcrumb } from './library/LibraryBreadcrumb'
 import { ModeTools } from './ModeTools'
 import { ErrorBanner } from './StatusMessage'
@@ -83,6 +84,7 @@ export function DeckMain({ className }: DeckMainProps) {
   const timerText = useSessionStore((s) => s.timerText)
   const recordingTimerVisible = useSessionStore((s) => s.recordingTimerVisible)
   const forgottenStopHint = useSessionStore((s) => s.forgottenStopHint)
+  const guestSignInPrompt = useSessionStore((s) => s.guestSignInPrompt)
   const autoAlignEnabled = useSessionStore((s) => s.autoAlignEnabled)
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
@@ -348,6 +350,34 @@ export function DeckMain({ className }: DeckMainProps) {
       </div>
 
       <CaptureBar />
+      <div
+        className="relative mb-[0.55rem] rounded-[14px] border border-accent/25 bg-accent-soft px-[0.95rem] py-[0.85rem] text-center animate-rise"
+        hidden={!guestSignInPrompt || Boolean(user) || state === 'recording'}
+        role="status"
+      >
+        <button
+          type="button"
+          className="absolute top-[0.35rem] right-[0.4rem] m-0 inline-flex h-[1.6rem] w-[1.6rem] cursor-pointer items-center justify-center rounded-lg border-0 bg-transparent p-0 text-[1.15rem] leading-none text-ink-soft hover:bg-ink/8 hover:text-ink"
+          aria-label={t('guest.prompt.dismiss')}
+          title={t('guest.prompt.dismiss')}
+          onClick={() => dismissGuestSignInPrompt()}
+        >
+          <IconClose />
+        </button>
+        <p className="m-0 text-[0.92rem] font-medium leading-[1.4] text-ink">
+          {t('guest.prompt.body')}
+        </p>
+        <p className="mt-[0.45rem] mb-0 text-[0.92rem] font-medium leading-[1.4] text-ink">
+          {t('guest.prompt.bodyAccount')}
+        </p>
+        <Button
+          variant="default"
+          className="mt-[0.75rem] bg-ink px-[1.1rem] py-[0.7rem] text-[0.88rem] text-on-ink"
+          onClick={() => navigate('/connexion')}
+        >
+          {t('guest.prompt.cta')}
+        </Button>
+      </div>
       <div
         className="mb-[0.55rem] rounded-[14px] border-[1.5px] border-warn-border bg-warn-bg px-[0.95rem] py-[0.7rem] text-center text-[0.88rem] font-semibold leading-[1.35] text-warn"
         hidden={!forgottenStopHint}

@@ -198,6 +198,14 @@ export const en: Record<MessageKey, string> = {
   'account.delete.cancel': 'Cancel',
   'account.delete.deleting': 'Deleting…',
   'account.delete.error': 'Could not delete the account. Try again.',
+  'account.stats.recording': 'Recording time',
+  'account.stats.library': 'Library',
+  'account.stats.hour.one': '{count} hour',
+  'account.stats.hour.other': '{count} hours',
+  'account.stats.minute.one': '{count} minute',
+  'account.stats.minute.other': '{count} minutes',
+  'account.stats.second.one': '{count} second',
+  'account.stats.second.other': '{count} seconds',
 
   'auth.close': 'Close sign-in',
   'auth.signIn.title': 'Sign in or create an account',
@@ -216,6 +224,8 @@ export const en: Record<MessageKey, string> = {
     'A sign-in link has just been emailed to {email}. Open it to continue — your account is created on first click if needed.',
   'auth.sent.hint':
     'The link expires in 30 minutes and can only be used once. Check spam if needed.',
+  'auth.sent.draftHint':
+    'Your recordings stay on this device until you open the link. Use the same browser — nothing is sent to the server until you are signed in.',
   'auth.sent.retry': 'Use a different identifier',
   'auth.sent.devHint':
     'Locally, the email may not arrive — use the button below to sign in right away.',
@@ -421,6 +431,14 @@ export const en: Record<MessageKey, string> = {
   'cloud.error.tooLarge': 'File too large (100 MB max).',
   'cloud.error.s3NotConfigured': 'Cloud storage is not configured.',
   'cloud.error.unauthorized': 'Sign in to save to the cloud.',
+  'guestDraft.quota':
+    'Not enough local storage to save the draft. Free some space or sign in soon.',
+  'guest.prompt.body':
+    'You are in guest mode. Without signing in, your work stays on this device: it will be lost if you leave the page, and you won’t be able to share it.',
+  'guest.prompt.bodyAccount':
+    'An account is created in one click with just an email address.',
+  'guest.prompt.cta': 'Sign in / Create an account',
+  'guest.prompt.dismiss': 'Dismiss',
   'cloud.error.uploadFailed': 'Cloud upload failed. Try again.',
   'cloud.error.openFailed': 'Could not open this song.',
 
@@ -439,6 +457,8 @@ export const en: Record<MessageKey, string> = {
   'library.level.songs': 'Songs',
   'library.level.songParts': 'Sessions',
   'library.group.meta': '{repertoires} · {songs}',
+  'library.count.group.one': '{count} group',
+  'library.count.group.other': '{count} groups',
   'library.count.repertoire.one': '{count} repertoire',
   'library.count.repertoire.other': '{count} repertoires',
   'library.count.song.one': '{count} song',

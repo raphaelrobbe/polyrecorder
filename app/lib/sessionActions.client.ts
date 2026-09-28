@@ -82,6 +82,14 @@ import {
   findTakeThreeFourPeaks,
   findVolumePeaks,
 } from './audio/peaks.client'
+import {
+  deleteGuestDraft,
+  pickGuestDraftToRestore,
+  readTabDraftId,
+  saveGuestDraft,
+  type GuestDraft,
+} from './guestDraft.client'
+import { isCloudSignedIn, maybeAutoUploadTrack } from './cloudUpload.client'
 import { useSessionStore, type SessionStoreState } from '../store/sessionStore'
 import { t } from './i18n'
 
@@ -94,9 +102,242 @@ let preferMimeType = ''
 let pendingTakeOffsetMs = 0
 let mixEpochPerf: number | null = null
 let mixTimelineStartCtx: number | null = null
+let guestDraftSaveTimer: ReturnType<typeof setTimeout> | null = null
+
+const GUEST_PROMPT_DISMISSED_KEY = 'polyrecorder-guest-prompt-dismissed'
+
+function isGuestSignInPromptDismissed(): boolean {
+  if (typeof sessionStorage === 'undefined') return false
+  try {
+    return sessionStorage.getItem(GUEST_PROMPT_DISMISSED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
+/** Hide the guest sign-in invite for the rest of this browser tab session. */
+export function dismissGuestSignInPrompt(): void {
+  if (typeof sessionStorage !== 'undefined') {
+    try {
+      sessionStorage.setItem(GUEST_PROMPT_DISMISSED_KEY, '1')
+    } catch {
+      // ignore
+    }
+  }
+  patch({ guestSignInPrompt: false })
+}
 
 function patch(partial: Partial<SessionStoreState>): void {
   useSessionStore.setState(partial)
+}
+
+/** Debounced IndexedDB snapshot while signed out (never hits S3). */
+export function scheduleGuestDraftSave(): void {
+  if (typeof window === 'undefined') return
+  if (isCloudSignedIn()) return
+  if (guestDraftSaveTimer) clearTimeout(guestDraftSaveTimer)
+  guestDraftSaveTimer = setTimeout(() => {
+    guestDraftSaveTimer = null
+    void persistGuestDraftNow()
+  }, 400)
+}
+
+/** Flush any pending guest draft write (e.g. beforeunload). */
+export function flushGuestDraftSave(): void {
+  if (typeof window === 'undefined') return
+  if (isCloudSignedIn()) return
+  if (guestDraftSaveTimer) {
+    clearTimeout(guestDraftSaveTimer)
+    guestDraftSaveTimer = null
+  }
+  void persistGuestDraftNow()
+}
+
+async function persistGuestDraftNow(): Promise<void> {
+  if (isCloudSignedIn()) return
+  const state = get()
+  const result = await saveGuestDraft({
+    sessionTitle: state.sessionTitle,
+    autoAlignEnabled: state.autoAlignEnabled,
+    showCalageWarnings: state.showCalageWarnings,
+    skipCountInPlayback: state.skipCountInPlayback,
+    skipCountInDownload: state.skipCountInDownload,
+    referenceTrackId: state.referenceTrackId,
+    trackCounter: state.trackCounter,
+    masterVolume: state.masterVolume,
+    tracks: state.tracks,
+    trackVolumes: state.trackVolumes,
+    enabledTrackIds: state.enabledTrackIds,
+    cloudSongPartId: state.deckSongPartId,
+    cloudSongId: state.deckSongId,
+    deckSongPartSiblings: state.deckSongPartSiblings,
+    deckLibraryPath: state.deckLibraryPath,
+    songWorkName: state.songWorkName,
+    sharedOwnerLabel: state.sharedOwnerLabel,
+    readOnlySession: state.readOnlySession,
+    allowsCollaboration: state.songAllowsCollaboration,
+  })
+  if (!result.ok && result.reason === 'quota') {
+    patch({ hint: t('guestDraft.quota') })
+  }
+}
+
+function applyGuestDraftToStore(draft: GuestDraft): void {
+  for (const track of get().tracks) {
+    URL.revokeObjectURL(track.url)
+  }
+  clearBufferCache()
+  trackGains.clear()
+  trackPlayheads.clear()
+
+  const tracks: Track[] = draft.tracks.map((row) => ({
+    id: row.id,
+    name: row.name,
+    blob: row.blob,
+    url: URL.createObjectURL(row.blob),
+    durationMs: row.durationMs,
+    offsetMs: row.offsetMs,
+    cloudStatus: row.cloudStatus ?? 'local',
+    cloudTrackId: row.cloudTrackId,
+    cloudOwnedByMe: row.cloudOwnedByMe,
+    uploadedByPseudo: row.uploadedByPseudo,
+  }))
+  const trackVolumes: Record<number, number> = {}
+  const enabledTrackIds: number[] = []
+  for (const row of draft.tracks) {
+    trackVolumes[row.id] = row.volume
+    if (row.enabled) enabledTrackIds.push(row.id)
+  }
+
+  const cloudPartId = draft.cloudSongPartId
+  const allowsCollab = Boolean(draft.allowsCollaboration && cloudPartId)
+  const readOnly = Boolean(draft.readOnlySession || cloudPartId)
+
+  patch({
+    tracks,
+    trackCounter: Math.max(
+      draft.trackCounter,
+      ...tracks.map((track) => track.id),
+      0,
+    ),
+    enabledTrackIds,
+    playingTrackIds: [],
+    highlightedTrackIds: [],
+    referenceTrackId:
+      draft.referenceTrackId != null &&
+      tracks.some((track) => track.id === draft.referenceTrackId)
+        ? draft.referenceTrackId
+        : (tracks[0]?.id ?? null),
+    trackAlignDetails: {},
+    trackVolumes,
+    masterVolume: draft.masterVolume ?? 1,
+    sessionTitle: draft.sessionTitle,
+    autoAlignEnabled: draft.autoAlignEnabled,
+    showCalageWarnings: draft.showCalageWarnings,
+    skipCountInPlayback: draft.skipCountInPlayback,
+    skipCountInDownload: draft.skipCountInDownload,
+    activeSongPartId: null,
+    deckSongPartId: cloudPartId,
+    deckSongPartSiblings: draft.deckSongPartSiblings ?? [],
+    deckSongId: draft.cloudSongId,
+    readOnlySession: readOnly,
+    canCloudContribute: false,
+    songAllowsCollaboration: Boolean(draft.allowsCollaboration),
+    deckLibraryPath: draft.deckLibraryPath,
+    songWorkName: draft.songWorkName,
+    sharedOwnerLabel: draft.sharedOwnerLabel,
+    calageMode: false,
+    mixMode: readOnly && !allowsCollab,
+    mixSeekMs: 0,
+    mixClockText: '00:00.000',
+    error: null,
+  })
+  clearRefPeaks()
+  updateSessionTimerDisplay()
+  refreshSkewWarning()
+  if (tracks.length > 0) void evaluateReferenceBeat()
+}
+
+/**
+ * After sign-in: reload the guest draft into memory (if the deck is empty),
+ * re-arm collab contribute when applicable, then run the same post-take
+ * path as appendTrackFromBlob (maybeAutoUploadTrack per local take).
+ *
+ * Concurrent callers share one in-flight run (remount / Strict Mode must not
+ * start a second upload batch that would create another song).
+ */
+let guestClaimInFlight: Promise<void> | null = null
+
+export function isGuestClaimInFlight(): boolean {
+  return guestClaimInFlight != null
+}
+
+export async function claimGuestDraftAfterSignIn(): Promise<void> {
+  if (!isCloudSignedIn()) return
+  if (guestClaimInFlight) return guestClaimInFlight
+
+  guestClaimInFlight = claimGuestDraftAfterSignInImpl().finally(() => {
+    guestClaimInFlight = null
+  })
+  return guestClaimInFlight
+}
+
+async function claimGuestDraftAfterSignInImpl(): Promise<void> {
+  if (!isCloudSignedIn()) return
+
+  const deckHadTracks = get().tracks.length > 0
+  let claimedDraftId: string | null = null
+
+  if (!deckHadTracks) {
+    const draft = await pickGuestDraftToRestore()
+    if (!draft) return
+    claimedDraftId = draft.id
+    applyGuestDraftToStore(draft)
+  } else {
+    claimedDraftId = readTabDraftId()
+  }
+
+  // Signed-in collab session: contribute to the song part we overdubbed as guest.
+  // Home guest takes: clear any stale localStorage target so upload creates a new song.
+  const state = get()
+  const songPartId = state.deckSongPartId
+  if (
+    state.readOnlySession &&
+    state.songAllowsCollaboration &&
+    songPartId
+  ) {
+    writeActiveSongPartId(songPartId)
+    patch({
+      activeSongPartId: songPartId,
+      canCloudContribute: true,
+    })
+  } else if (!songPartId) {
+    writeActiveSongPartId(null)
+    patch({ activeSongPartId: null })
+  }
+
+  const localIds = get()
+    .tracks.filter(
+      (track) =>
+        track.blob.size > 0 &&
+        (track.cloudStatus === 'local' ||
+          track.cloudStatus === 'error' ||
+          track.cloudStatus == null),
+    )
+    .map((track) => track.id)
+
+  // Memory is the source of truth again; drop the IDB snapshot.
+  if (claimedDraftId) await deleteGuestDraft(claimedDraftId)
+
+  // Same gates as a take that just finished — one bound session for the whole batch.
+  for (const id of localIds) {
+    const bound = get().activeSongPartId
+    if (bound) {
+      writeActiveSongPartId(bound)
+      patch({ activeSongPartId: bound, deckSongPartId: bound })
+    }
+    await maybeAutoUploadTrack(id)
+  }
 }
 
 function get() {
@@ -105,7 +346,11 @@ function get() {
 
 function setTransportState(state: AppState) {
   setAppAudioState(state)
-  patch({ state, hint: computeHint(state, get().tracks.length) })
+  patch({
+    state,
+    hint: computeHint(state, get().tracks.length),
+    ...(state === 'recording' ? { guestSignInPrompt: false } : {}),
+  })
 }
 
 function setMixPausedBoth(paused: boolean) {
@@ -485,6 +730,7 @@ export function setTrackVolume(trackId: number, volume: number) {
     gain.gain.value = liveTrackGainValue(trackId)
   }
   schedulePersistTrackVolume(trackId)
+  scheduleGuestDraftSave()
 }
 
 export function setMasterVolume(volume: number) {
@@ -744,6 +990,7 @@ export function setSessionAlignPref(
     refreshSkewWarning()
   }
   schedulePersistAlignPrefs()
+  scheduleGuestDraftSave()
 }
 
 /** Persist all cloud track volumes + master (e.g. after highlight / dim). */
@@ -1000,6 +1247,7 @@ export function reorderTrack(fromId: number, beforeId: number | null) {
     stopPlayback({ resetSeek: false })
   }
   persistCloudTrackOrder()
+  scheduleGuestDraftSave()
 }
 
 export function applyManualTrackOffset(trackId: number, offsetMs: number) {
@@ -1015,6 +1263,7 @@ export function applyManualTrackOffset(trackId: number, offsetMs: number) {
   patch({ tracks, trackAlignDetails })
   refreshSkewWarning()
   persistCloudTrackOffset(trackId)
+  scheduleGuestDraftSave()
 }
 
 export async function evaluateReferenceBeat(): Promise<void> {
@@ -1695,6 +1944,7 @@ async function appendTrackFromBlob(
   void import('./cloudUpload.client').then((mod) =>
     mod.maybeAutoUploadTrack(track.id),
   )
+  scheduleGuestDraftSave()
   return track
 }
 
@@ -1916,6 +2166,12 @@ export async function stopSession() {
       mixClockText: '00:00.000',
       sessionStopping: false,
       hint: '',
+      ...(keepTake &&
+      get().tracks.length > 0 &&
+      !isCloudSignedIn() &&
+      !isGuestSignInPromptDismissed()
+        ? { guestSignInPrompt: true }
+        : {}),
     })
     updateSessionTimerDisplay()
   }
@@ -2016,6 +2272,7 @@ export function setTrackEnabled(trackId: number, enabled: boolean) {
   setTrackAudible(trackId, enabled)
   // Song owner or track uploader: persist; others keep a local mute only.
   persistCloudTrackMuted(trackId)
+  scheduleGuestDraftSave()
 }
 
 export function setAllTracksEnabled(enabled: boolean) {
@@ -2026,6 +2283,7 @@ export function setAllTracksEnabled(enabled: boolean) {
     setTrackAudible(track.id, enabled)
   }
   persistCloudTrackMutes(tracks.map((track) => track.id))
+  scheduleGuestDraftSave()
 }
 
 export function renameTrack(trackId: number, name: string) {
@@ -2037,6 +2295,7 @@ export function renameTrack(trackId: number, name: string) {
       t.id === trackId ? { ...t, name: trimmed } : t,
     ),
   })
+  scheduleGuestDraftSave()
 
   // Shared / collab: only persist renames for the current user's takes.
   const cloudTrackId = track.cloudTrackId
@@ -2097,6 +2356,7 @@ export function deleteTrack(trackId: number) {
   updateSessionTimerDisplay()
   refreshSkewWarning()
   if (get().referenceTrackId != null) void evaluateReferenceBeat()
+  scheduleGuestDraftSave()
 
   // Shared / collab: never delete someone else's take in the database.
   const cloudTrackId = track.cloudTrackId
@@ -2155,10 +2415,12 @@ export function deleteAllTracks() {
     mixMode: false,
     mixSeekMs: 0,
     mixClockText: '00:00.000',
+    guestSignInPrompt: false,
   })
   clearRefPeaks()
   updateSessionTimerDisplay()
   refreshSkewWarning()
+  scheduleGuestDraftSave()
 
   for (const cloudTrackId of cloudTrackIds) {
     void fetch('/api/cloud/library', {
@@ -2211,12 +2473,14 @@ export function resetDeckOnSignOut() {
     deckSongId: null,
     readOnlySession: false,
     canCloudContribute: false,
+    songAllowsCollaboration: false,
     deckLibraryPath: null,
     songWorkName: null,
     sharedOwnerLabel: null,
     sessionTitle: defaultSessionTitle(),
     error: null,
     hint: '',
+    guestSignInPrompt: false,
   })
 }
 
@@ -2288,6 +2552,7 @@ export async function loadCloudSongIntoSession(
     deckSongId: opened.song.id,
     readOnlySession: readOnly,
     canCloudContribute,
+    songAllowsCollaboration: Boolean(opened.song.allowsCollaboration),
     deckLibraryPath,
     songWorkName,
     sharedOwnerLabel,
@@ -2362,6 +2627,7 @@ export function normalizeAndSetSessionTitle(raw: string) {
       ? raw.replace(/\s+/g, ' ').trim().slice(0, 60)
       : normalizeSessionTitle(raw)
   patch({ sessionTitle: name })
+  scheduleGuestDraftSave()
 
   if (get().readOnlySession) return
   if (!songPartId) return

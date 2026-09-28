@@ -292,13 +292,7 @@ async function resolveSongPartForUpload(
     return null
   }
 
-  // "Recent" upload target stays driven by usage, not by the manual order.
-  const recent = await prisma.songPart.findFirst({
-    where: { song: { repertoire: { group: { userId } } } },
-    orderBy: { lastOpenedAt: 'desc' },
-  })
-  if (recent) return touchSongPart(recent)
-
+  // No target id → always create a new œuvre + session (never reuse “recent”).
   const { repertoire } = await ensureDefaultTree(userId)
   const songName =
     sessionTitle?.trim() ||
@@ -322,6 +316,59 @@ async function resolveSongPartForUpload(
   return part
 }
 
+/** Library breadcrumb fields for a song part (Personnel / Général / …). */
+export type CloudLibraryPath = {
+  ownerPseudo: string
+  groupId: string
+  groupName: string
+  repertoireId: string
+  repertoireName: string
+  songId: string
+  songName: string
+}
+
+async function getSongPartLibraryPath(
+  songPartId: string,
+): Promise<CloudLibraryPath | null> {
+  const part = await prisma.songPart.findFirst({
+    where: { id: songPartId },
+    select: {
+      song: {
+        select: {
+          id: true,
+          name: true,
+          repertoire: {
+            select: {
+              id: true,
+              name: true,
+              group: {
+                select: {
+                  id: true,
+                  name: true,
+                  user: { select: { pseudo: true } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  })
+  if (!part) return null
+  const { song } = part
+  const { repertoire } = song
+  const { group } = repertoire
+  return {
+    ownerPseudo: group.user.pseudo,
+    groupId: group.id,
+    groupName: group.name,
+    repertoireId: repertoire.id,
+    repertoireName: repertoire.name,
+    songId: song.id,
+    songName: song.name,
+  }
+}
+
 export type PresignResult =
   | {
       ok: true
@@ -330,6 +377,7 @@ export type PresignResult =
       objectKey: string
       songPartId: string
       songId: string
+      libraryPath: CloudLibraryPath | null
     }
   | { ok: false; reason: CloudFailureReason }
 
@@ -403,6 +451,8 @@ export async function presignTrackUpload(
       contentType,
     })
 
+    const libraryPath = await getSongPartLibraryPath(part.id)
+
     return {
       ok: true,
       uploadUrl,
@@ -410,6 +460,7 @@ export async function presignTrackUpload(
       objectKey,
       songPartId: part.id,
       songId: part.songId,
+      libraryPath,
     }
   } catch (error) {
     console.error('[cloud] presign failed', error)
@@ -560,6 +611,60 @@ export async function getLibraryTree(
           }),
         })),
       })),
+    },
+  }
+}
+
+export type AccountLibraryStats = {
+  durationMs: number
+  groupCount: number
+  repertoireCount: number
+  songCount: number
+  songPartCount: number
+}
+
+/** Owned-library totals for the account settings panel. */
+export async function getAccountLibraryStats(
+  request: Request,
+): Promise<
+  | { ok: true; stats: AccountLibraryStats }
+  | { ok: false; reason: CloudFailureReason }
+> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+
+  await ensureDefaultTree(user.id)
+
+  const ownedPart = {
+    song: { repertoire: { group: { userId: user.id } } },
+  } as const
+
+  const [groupCount, repertoireCount, songCount, songPartCount, durationAgg] =
+    await Promise.all([
+      prisma.group.count({ where: { userId: user.id } }),
+      prisma.repertoire.count({ where: { group: { userId: user.id } } }),
+      prisma.song.count({
+        where: { repertoire: { group: { userId: user.id } } },
+      }),
+      prisma.songPart.count({ where: ownedPart }),
+      prisma.trackAsset.aggregate({
+        where: {
+          uploadedAt: { not: null },
+          songPart: ownedPart,
+        },
+        _sum: { durationMs: true },
+      }),
+    ])
+
+  return {
+    ok: true,
+    stats: {
+      durationMs: durationAgg._sum.durationMs ?? 0,
+      groupCount,
+      repertoireCount,
+      songCount,
+      songPartCount,
     },
   }
 }
