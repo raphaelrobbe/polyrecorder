@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate, useRouteLoaderData, Link } from '@remix-run/react'
 import { isDefaultSessionTitle } from '../lib/format'
 import {
@@ -32,6 +32,7 @@ import { Deck } from './Deck'
 import { IconChevron, IconClose, IconDiscard } from './icons'
 import { LibraryBreadcrumb } from './library/LibraryBreadcrumb'
 import { ModeTools } from './ModeTools'
+import { PianoKeyboard } from './PianoKeyboard'
 import { ErrorBanner } from './StatusMessage'
 import { TracksList } from './tracks/TracksList'
 
@@ -104,6 +105,7 @@ export function DeckMain({ className }: DeckMainProps) {
   const deckSongPartSiblings = useSessionStore((s) => s.deckSongPartSiblings)
   const sessionTitleRef = useRef<HTMLTextAreaElement>(null)
   const [sessionNavBusy, setSessionNavBusy] = useState(false)
+  const [pianoOpen, setPianoOpen] = useState(false)
 
   /** Cloud song loaded: highlight the œuvre; session is secondary. */
   const cloudSongLoaded = songWorkName != null
@@ -167,6 +169,10 @@ export function DeckMain({ className }: DeckMainProps) {
     el.style.height = '0px'
     el.style.height = `${el.scrollHeight}px`
   }, [sessionTitle, songWorkName])
+
+  useEffect(() => {
+    if (!showModes) setPianoOpen(false)
+  }, [showModes])
 
   return (
     <div className={cn('flex flex-col gap-[0.85rem]', className)}>
@@ -358,6 +364,7 @@ export function DeckMain({ className }: DeckMainProps) {
       </div>
 
       <CaptureBar />
+      {showModes && pianoOpen ? <PianoKeyboard /> : null}
       <div
         className="relative mb-[0.55rem] rounded-[14px] border border-accent/25 bg-accent-soft px-[0.95rem] py-[0.85rem] text-center animate-rise"
         hidden={!guestSignInPrompt || Boolean(user) || state === 'recording'}
@@ -421,7 +428,11 @@ export function DeckMain({ className }: DeckMainProps) {
       </Deck>
 
       {showModes ? (
-        <ModeTools className="w-full self-stretch" />
+        <ModeTools
+          className="w-full self-stretch"
+          pianoOpen={pianoOpen}
+          onPianoOpenChange={setPianoOpen}
+        />
       ) : null}
 
       {showToolsDeck || showMetronomeAdd ? (

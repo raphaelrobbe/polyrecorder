@@ -422,6 +422,8 @@ export const de: Record<MessageKey, string> = {
   'help.toc.start': 'Einstieg',
   'help.toc.guest': 'Gast & Konto',
   'help.toc.modes': 'Modi',
+  'help.toc.metronome': 'Metronom',
+  'help.toc.piano': 'Klavier',
   'help.toc.record': 'Aufnahme',
   'help.toc.sync': 'Synchronisation',
   'help.toc.mix': 'Mix & Export',
@@ -450,9 +452,21 @@ export const de: Record<MessageKey, string> = {
 
   'help.modes.title': 'Modi Simple, Mix und Ausrichtung',
   'help.modes.body1':
-    'Zwischen den Decks gibt es drei Modi. Simple: aufnehmen und hören. Mix: Spur- und Mastervolumen, Hervorhebung, MP3-Export. Ausrichtung: manuelle Offsets, Auto-Ausrichtung und Warnungen.',
+    'Rechts zwischen den Decks gibt es drei Modi. Simple: aufnehmen und hören. Mix: Spur- und Mastervolumen, Hervorhebung, MP3-Export. Ausrichtung: manuelle Offsets, Auto-Ausrichtung und Warnungen. Links in derselben Zeile öffnet die Taste Klavier eine Hilfs-Klaviatur zum Anstimmen.',
   'help.modes.body2':
     'Die Auto-Ausrichtung lässt sich auch am Deck (und in den Präferenzen) einstellen: sie gilt für die aktuelle Session.',
+
+  'help.metronome.title': 'Metronom',
+  'help.metronome.body1':
+    'Du kannst eine Metronomspur hinzufügen (Link „Metronom hinzufügen“ unter dem Deck). Sie wird zur Ausrichtungs-Referenz: Takes synchronisieren sich über 3-4 gegen das synthetische 1-2-3-4. Das Tempo (BPM) stellst du auf der Spur ein; es wird mit der Session gespeichert (Cloud oder Gast-Entwurf).',
+  'help.metronome.body2':
+    'Es ist keine hochgeladene Audiodatei — nur BPM und virtuelle Spur bleiben in der Session. Du hörst es beim Monitoring eines Takes; im Ausrichtungsmodus sind Timer und Dauer dieser Spur ausgeblendet.',
+
+  'help.piano.title': 'Klavier',
+  'help.piano.body1':
+    'Die Taste Klavier (links von Simple / Mix / Ausrichtung) zeigt eine Klaviatur über zwei Oktaven. Tippe die Tasten, um Töne zu hören und dich vor der Aufnahme oder sogar während der Aufnahme einzustimmen.',
+  'help.piano.body2':
+    'Ideal mit Kopfhörern: du hörst den Ton, aber er ist nicht auf der Aufnahme hörbar — der Klang bleibt im Browser und wird nicht vom Mikrofon erfasst.',
 
   'help.record.title': 'Aufnahme',
   'help.record.body1':
@@ -463,7 +477,7 @@ export const de: Record<MessageKey, string> = {
 
   'help.sync.title': 'Synchronisation',
   'help.sync.body1':
-    'Zum Ausrichten der Spuren sollte die erste (Referenz) mit vier klaren, gleichmäßigen Markierungen beginnen (1-2-3-4 oder ein anderes hörbares 4er-Signal). Folgende Spuren wiederholen nur die 3. und 4. Zählzeit, dann die Stimme. polyrecorder misst damit den Latenzversatz und korrigiert ihn automatisch.',
+    'Zum Ausrichten der Spuren sollte die erste (Referenz) mit vier klaren, gleichmäßigen Markierungen beginnen (1-2-3-4 oder ein anderes hörbares 4er-Signal). Folgende Spuren wiederholen nur die 3. und 4. Zählzeit, dann die Stimme. polyrecorder misst damit den Latenzversatz und korrigiert ihn automatisch. Eine Metronomspur kann auch als Referenz dienen: dann markierst du auf den Takes nur 3-4.',
   'help.sync.body2':
     'Störgeräusche können die Erkennung von 1-2-3-4 verhindern. Dann besser von vorn aufnehmen, um eine solide Referenzspur zu haben—sonst muss alles manuell ausgerichtet werden. Dasselbe gilt für die 3-4 späterer Spuren: eine schwache oder verrauschte Markierung bricht die Auto-Ausrichtung dieses Takes.',
   'help.sync.body3':
@@ -536,6 +550,12 @@ export const de: Record<MessageKey, string> = {
   'help.faq.modes.q': 'Wozu Simple, Mix und Ausrichtung?',
   'help.faq.modes.a':
     'Simple zum Aufnehmen und Hören, Mix für Lautstärken und MP3-Export, Ausrichtung zum Synchronisieren (Offsets und Auto-Ausrichtung).',
+  'help.faq.metronome.q': 'Wozu das Metronom?',
+  'help.faq.metronome.a':
+    'Es fügt eine virtuelle Spur im gewählten Tempo hinzu, die als Ausrichtungs-Referenz dienen kann (auf den Takes 3-4 markieren). Das BPM wird mit der Session gespeichert; es ist keine hochgeladene Audiodatei.',
+  'help.faq.piano.q': 'Wird das Klavier mit meiner Stimme aufgenommen?',
+  'help.faq.piano.a':
+    'Nein. Das Klavier spielt nur im Browser zum Anstimmen. Mit Kopfhörern hörst du es, ohne dass es ins Mikrofon oder in den Take gelangt.',
   'help.faq.skew.q': 'Spuren sind nicht ausgerichtet — was tun?',
   'help.faq.skew.a':
     'Prüfe die Markierungen 1-2-3-4 / 3-4, nimm sauber neu auf oder öffne den Ausrichtungsmodus (das „!“ an einer Spur führt dorthin) zum manuellen Nachziehen oder erneuten Auto-Ausrichten.',

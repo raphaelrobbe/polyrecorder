@@ -420,6 +420,8 @@ export const en: Record<MessageKey, string> = {
   'help.toc.start': 'Getting started',
   'help.toc.guest': 'Guest & account',
   'help.toc.modes': 'Modes',
+  'help.toc.metronome': 'Metronome',
+  'help.toc.piano': 'Piano',
   'help.toc.record': 'Recording',
   'help.toc.sync': 'Synchronization',
   'help.toc.mix': 'Mix & export',
@@ -448,9 +450,21 @@ export const en: Record<MessageKey, string> = {
 
   'help.modes.title': 'Simple, Mix, and Align modes',
   'help.modes.body1':
-    'The control between the decks has three modes. Simple: record and listen. Mix: per-track and master volumes, highlight, MP3 export. Align: manual offsets, auto-align, and warnings.',
+    'The control on the right, between the decks, has three modes. Simple: record and listen. Mix: per-track and master volumes, highlight, MP3 export. Align: manual offsets, auto-align, and warnings. To the left of that row, the Piano button opens a pitch helper keyboard.',
   'help.modes.body2':
     'Auto-align preference can also be set on the deck (and in Preferences): it applies to the current session.',
+
+  'help.metronome.title': 'Metronome',
+  'help.metronome.body1':
+    'You can add a metronome track (the “Add a metronome” link under the deck). It becomes the alignment reference: takes sync via 3-4 against its synthetic 1-2-3-4. Set the tempo (BPM) on the track; it is saved with the session (cloud or guest draft).',
+  'help.metronome.body2':
+    'It is not an uploaded audio file—only the BPM and virtual track stay in the session. You can hear it while monitoring a take; in Align mode its timer and duration are hidden.',
+
+  'help.piano.title': 'Piano',
+  'help.piano.body1':
+    'The Piano button (left of Simple / Mix / Align) shows a two-octave keyboard. Tap the keys to hear notes and get your pitch before recording, or even during recording.',
+  'help.piano.body2':
+    'Ideal with headphones: you hear the note, but it is not audible on the recording—the sound stays in the browser and is not picked up by the mic.',
 
   'help.record.title': 'Recording',
   'help.record.body1':
@@ -461,7 +475,7 @@ export const en: Record<MessageKey, string> = {
 
   'help.sync.title': 'Synchronization',
   'help.sync.body1':
-    'To align tracks, the first (reference) should start with four clear, steady markers (1-2-3-4, or any audible 4-beat cue). Later tracks only redo beats 3 and 4, then the voice. polyrecorder uses them to measure and correct latency-related drift automatically.',
+    'To align tracks, the first (reference) should start with four clear, steady markers (1-2-3-4, or any audible 4-beat cue). Later tracks only redo beats 3 and 4, then the voice. polyrecorder uses them to measure and correct latency-related drift automatically. A metronome track can also be the reference: in that case, mark only 3-4 on your takes.',
   'help.sync.body2':
     'Background noise can block 1-2-3-4 detection. In that case, start the recording over so you get a solid reference track—otherwise everything must be aligned by hand. Same for later tracks’ 3-4: a weak or noisy marker breaks auto-align for that take.',
   'help.sync.body3':
@@ -533,6 +547,12 @@ export const en: Record<MessageKey, string> = {
   'help.faq.modes.q': 'What are Simple, Mix, and Align for?',
   'help.faq.modes.a':
     'Simple to record and listen, Mix for volumes and MP3 export, Align to sync tracks (offsets and auto-align).',
+  'help.faq.metronome.q': 'What is the metronome for?',
+  'help.faq.metronome.a':
+    'It adds a virtual track at the chosen tempo that can be the alignment reference (mark 3-4 on your takes). The BPM is saved with the session; it is not an uploaded audio file.',
+  'help.faq.piano.q': 'Is the piano recorded with my voice?',
+  'help.faq.piano.a':
+    'No. The piano plays only in the browser to give you a pitch. With headphones you hear it without it reaching the mic or the take.',
   'help.faq.skew.q': 'Tracks aren’t aligned—what should I do?',
   'help.faq.skew.a':
     'Check the 1-2-3-4 / 3-4 markers, try a clean take, or open Align mode (the “!” on a track opens it) to adjust manually or re-run auto-align.',

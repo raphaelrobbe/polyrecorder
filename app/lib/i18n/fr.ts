@@ -421,6 +421,8 @@ export const fr = {
   'help.toc.start': 'Démarrage',
   'help.toc.guest': 'Invité et compte',
   'help.toc.modes': 'Modes',
+  'help.toc.metronome': 'Métronome',
+  'help.toc.piano': 'Piano',
   'help.toc.record': 'Enregistrement',
   'help.toc.sync': 'Synchronisation',
   'help.toc.mix': 'Mix et export',
@@ -449,9 +451,21 @@ export const fr = {
 
   'help.modes.title': 'Modes Simple, Mixage et Calage',
   'help.modes.body1':
-    'Le sélecteur entre les decks propose trois modes. Simple : enregistrer et écouter. Mixage : volumes par piste, volume maître, mise en avant et export MP3. Calage : décalages manuels, calage auto et avertissements.',
+    'Le sélecteur à droite, entre les decks, propose trois modes. Simple : enregistrer et écouter. Mixage : volumes par piste, volume maître, mise en avant et export MP3. Calage : décalages manuels, calage auto et avertissements. À gauche de cette ligne, le bouton Piano ouvre un clavier d’aide au ton.',
   'help.modes.body2':
     'La préférence de calage automatique se règle aussi sur le deck (et dans les préférences) : elle s’applique à la session en cours.',
+
+  'help.metronome.title': 'Métronome',
+  'help.metronome.body1':
+    'Tu peux ajouter une piste métronome (lien « Ajouter un métronome » sous le deck). Elle devient la référence de calage : les prises se synchronisent via 3-4 contre son 1-2-3-4 synthétique. Le tempo (BPM) se règle sur la piste et est mémorisé avec la session (cloud ou brouillon invité).',
+  'help.metronome.body2':
+    'Ce n’est pas un fichier audio uploadé : seuls le BPM et la piste virtuelle restent en session. Tu peux l’écouter en monitoring pendant une prise ; en mode Calage, son timer et sa durée sont masqués.',
+
+  'help.piano.title': 'Piano',
+  'help.piano.body1':
+    'Le bouton Piano (à gauche des modes Simple / Mixage / Calage) affiche un clavier de deux octaves. Appuie sur les touches pour entendre les notes et te donner le ton avant d’enregistrer ou même pendant l’enregistrement.',
+  'help.piano.body2':
+    'Idéal avec un casque : tu entends la note, mais elle n’est pas audible dans l’enregistrement — le son reste dans le navigateur et n’est pas capté par le micro.',
 
   'help.record.title': 'Enregistrement',
   'help.record.body1':
@@ -462,7 +476,7 @@ export const fr = {
 
   'help.sync.title': 'Synchronisation',
   'help.sync.body1':
-    'Pour caler les pistes entre elles, la première (référence) doit commencer par quatre marquages nets et réguliers (1-2-3-4, ou tout signal audible en 4 temps). Les pistes suivantes ne reprennent que les 3ème et 4ème temps, puis la voix. polyrecorder s’en sert pour mesurer et corriger automatiquement le décalage dû à la latence audio.',
+    'Pour caler les pistes entre elles, la première (référence) doit commencer par quatre marquages nets et réguliers (1-2-3-4, ou tout signal audible en 4 temps). Les pistes suivantes ne reprennent que les 3ème et 4ème temps, puis la voix. polyrecorder s’en sert pour mesurer et corriger automatiquement le décalage dû à la latence audio. Une piste métronome peut aussi servir de référence : dans ce cas, marque seulement 3-4 sur tes prises.',
   'help.sync.body2':
     'Des bruits parasites peuvent empêcher la reconnaissance du 1-2-3-4. Dans ce cas, mieux vaut recommencer l’enregistrement de zéro pour repartir sur une bonne piste de référence : sinon tout devra être calé à la main. Idem pour le 3-4 des pistes suivantes : un marquage peu clair ou noyé dans le bruit fausse le calage auto de cette prise.',
   'help.sync.body3':
@@ -534,6 +548,12 @@ export const fr = {
   'help.faq.modes.q': 'À quoi servent Simple, Mixage et Calage ?',
   'help.faq.modes.a':
     'Simple pour enregistrer et écouter, Mixage pour les volumes et l’export MP3, Calage pour synchroniser les pistes (offsets et calage auto).',
+  'help.faq.metronome.q': 'À quoi sert le métronome ?',
+  'help.faq.metronome.a':
+    'Il ajoute une piste virtuelle au tempo choisi, qui peut servir de référence de calage (3-4 sur les prises). Le BPM est mémorisé avec la session ; ce n’est pas un fichier audio uploadé.',
+  'help.faq.piano.q': 'Le piano est-il enregistré avec ma voix ?',
+  'help.faq.piano.a':
+    'Non. Le piano joue seulement dans le navigateur pour te donner le ton. Avec un casque, tu l’entends sans qu’il passe dans le micro ni dans la prise.',
   'help.faq.skew.q': 'Les pistes ne sont pas calées — que faire ?',
   'help.faq.skew.a':
     'Vérifie les marquages 1-2-3-4 / 3-4, réessaie une prise propre, ou ouvre le mode Calage (le « ! » sur une piste y mène) pour ajuster manuellement ou relancer le calage auto.',

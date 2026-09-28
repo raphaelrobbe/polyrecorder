@@ -57,7 +57,8 @@ export function PianoKeyboard({ className }: PianoKeyboardProps) {
   return (
     <div
       className={cn(
-        'w-full select-none touch-none',
+        'mt-[0.55rem] mb-[0.55rem] w-full select-none touch-none',
+        'rounded-t-[8px] border-t border-black/[0.14]',
         className,
       )}
       role="group"
@@ -76,15 +77,15 @@ export function PianoKeyboard({ className }: PianoKeyboardProps) {
               aria-label={t('piano.keyAria', { note: pianoKeyLabel(key) })}
               className={cn(
                 'relative z-0 m-0 h-full min-w-0 flex-1 cursor-pointer appearance-none border-0',
-                'rounded-b-[8px] border-r border-ink/12 bg-surface',
-                'shadow-[inset_0_-2px_0_color-mix(in_srgb,var(--ink)_8%,transparent)]',
-                isFirst && 'rounded-tl-[8px]',
-                isLast && 'rounded-tr-[8px] border-r-0',
+                'rounded-b-[8px] border-r border-black/[0.14] bg-white',
+                'shadow-[inset_0_-2px_0_rgb(0_0_0_/0.08)]',
+                isFirst && 'rounded-tl-[8px] border-l border-black/[0.14]',
+                isLast && 'rounded-tr-[8px]',
                 'transition-[background,transform] duration-75',
-                'focus-visible:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-[-2px]',
+                'focus-visible:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-black/35 focus-visible:outline-offset-[-2px]',
                 pressed
-                  ? 'bg-ink/10 translate-y-px'
-                  : 'hover:bg-ink/[0.04] active:bg-ink/10',
+                  ? 'bg-neutral-200 translate-y-px'
+                  : 'hover:bg-neutral-100 active:bg-neutral-200',
               )}
               onPointerDown={(event) => onPointerDown(key, event)}
               onPointerUp={onPointerUp}
@@ -111,13 +112,13 @@ export function PianoKeyboard({ className }: PianoKeyboardProps) {
               }}
               className={cn(
                 'absolute top-0 z-10 m-0 h-[58%] cursor-pointer appearance-none border-0 p-0',
-                'rounded-b-[6px] bg-ink text-on-ink',
-                'shadow-[0_3px_8px_color-mix(in_srgb,var(--ink)_35%,transparent)]',
+                'rounded-b-[6px] bg-neutral-950 text-white',
+                'shadow-[0_3px_8px_rgb(0_0_0_/0.35)]',
                 'transition-[background,transform] duration-75',
-                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent/50 focus-visible:outline-offset-1',
+                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/50 focus-visible:outline-offset-1',
                 pressed
-                  ? 'bg-ink/80 translate-y-px'
-                  : 'hover:bg-ink/90 active:bg-ink/80',
+                  ? 'bg-neutral-800 translate-y-px'
+                  : 'hover:bg-neutral-900 active:bg-neutral-800',
               )}
               onPointerDown={(event) => onPointerDown(key, event)}
               onPointerUp={onPointerUp}

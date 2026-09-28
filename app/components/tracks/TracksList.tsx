@@ -171,7 +171,7 @@ export function TracksList({ className }: TracksListProps) {
   return (
     <>
       <div
-        className={cn('relative mt-5 pt-[0.35rem]', className)}
+        className={cn('relative mt-3 pt-[0.35rem]', className)}
         data-tracks-panel
       >
         <p className="mb-[0.35rem] mt-0 text-center text-[0.95rem] font-bold tracking-[0.04em] tabular-nums text-ink-soft" data-mix-clock>

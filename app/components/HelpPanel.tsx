@@ -25,6 +25,8 @@ const TOC: Array<{ href: string; labelKey: MessageKey }> = [
   { href: '#help-start', labelKey: 'help.toc.start' },
   { href: '#help-guest', labelKey: 'help.toc.guest' },
   { href: '#help-modes', labelKey: 'help.toc.modes' },
+  { href: '#help-metronome', labelKey: 'help.toc.metronome' },
+  { href: '#help-piano', labelKey: 'help.toc.piano' },
   { href: '#help-record', labelKey: 'help.toc.record' },
   { href: `#${HOWTO_HASH}`, labelKey: 'help.toc.sync' },
   { href: '#help-mix', labelKey: 'help.toc.mix' },
@@ -106,6 +108,16 @@ export function HelpPanel({ className }: HelpPanelProps) {
       <HelpSection id="help-modes" title={t('help.modes.title')}>
         <HelpText>{t('help.modes.body1')}</HelpText>
         <HelpText>{t('help.modes.body2')}</HelpText>
+      </HelpSection>
+
+      <HelpSection id="help-metronome" title={t('help.metronome.title')}>
+        <HelpText>{t('help.metronome.body1')}</HelpText>
+        <HelpText>{t('help.metronome.body2')}</HelpText>
+      </HelpSection>
+
+      <HelpSection id="help-piano" title={t('help.piano.title')}>
+        <HelpText>{t('help.piano.body1')}</HelpText>
+        <HelpText>{t('help.piano.body2')}</HelpText>
       </HelpSection>
 
       <HelpSection id="help-record" title={t('help.record.title')}>

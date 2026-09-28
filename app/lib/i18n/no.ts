@@ -421,6 +421,8 @@ export const no: Record<MessageKey, string> = {
   'help.toc.start': 'Kom i gang',
   'help.toc.guest': 'Gjest og konto',
   'help.toc.modes': 'Moduser',
+  'help.toc.metronome': 'Metronom',
+  'help.toc.piano': 'Piano',
   'help.toc.record': 'Opptak',
   'help.toc.sync': 'Synkronisering',
   'help.toc.mix': 'Mix og eksport',
@@ -449,9 +451,21 @@ export const no: Record<MessageKey, string> = {
 
   'help.modes.title': 'Modusene Simple, Mix og Justering',
   'help.modes.body1':
-    'Velgeren mellom dekkene har tre modi. Simple: ta opp og lytt. Mix: volum per spor og master, fremheving, MP3-eksport. Justering: manuelle forskyvninger, autojustering og advarsler.',
+    'Velgeren til høyre mellom dekkene har tre modi. Simple: ta opp og lytt. Mix: volum per spor og master, fremheving, MP3-eksport. Justering: manuelle forskyvninger, autojustering og advarsler. Til venstre i samme rad åpner Piano-knappen et hjelpetastatur for tonehøyde.',
   'help.modes.body2':
     'Autojustering kan også settes på dekket (og i preferanser): den gjelder gjeldende økt.',
+
+  'help.metronome.title': 'Metronom',
+  'help.metronome.body1':
+    'Du kan legge til et metronomspor (lenken «Legg til metronom» under dekket). Det blir referanse for justering: opptak synkroniseres via 3-4 mot det syntetiske 1-2-3-4. Tempo (BPM) settes på sporet og lagres med økten (sky eller gjesteutkast).',
+  'help.metronome.body2':
+    'Det er ikke en opplastet lydfil — bare BPM og det virtuelle sporet blir i økten. Du hører det under monitoring av et opptak; i Justering er timer og varighet for dette sporet skjult.',
+
+  'help.piano.title': 'Piano',
+  'help.piano.body1':
+    'Piano-knappen (til venstre for Simple / Mix / Justering) viser et tastatur over to oktaver. Trykk på tangentene for å høre toner og finne tonen før du tar opp, eller til og med under opptaket.',
+  'help.piano.body2':
+    'Ideelt med hodetelefoner: du hører tonen, men den er ikke hørbar på opptaket — lyden blir i nettleseren og plukkes ikke opp av mikrofonen.',
 
   'help.record.title': 'Opptak',
   'help.record.body1':
@@ -462,7 +476,7 @@ export const no: Record<MessageKey, string> = {
 
   'help.sync.title': 'Synkronisering',
   'help.sync.body1':
-    'For å justere sporene bør det første (referanse) starte med fire tydelige, jevne markører (1-2-3-4, eller et annet hørbart 4-taktsignal). Senere spor tar bare 3. og 4. taktslag på nytt, deretter stemmen. polyrecorder bruker dem til å måle og rette latensforskyvning automatisk.',
+    'For å justere sporene bør det første (referanse) starte med fire tydelige, jevne markører (1-2-3-4, eller et annet hørbart 4-taktsignal). Senere spor tar bare 3. og 4. taktslag på nytt, deretter stemmen. polyrecorder bruker dem til å måle og rette latensforskyvning automatisk. Et metronomspor kan også være referanse: da markerer du bare 3-4 på opptakene.',
   'help.sync.body2':
     'Bakgrunnsstøy kan hindre gjenkjenning av 1-2-3-4. Start da opptaket på nytt for et solid referansespor—ellers må alt justeres for hånd. Det samme gjelder 3-4 på senere spor: en svak eller støyete markør ødelegger autojustering for det opptaket.',
   'help.sync.body3':
@@ -535,6 +549,12 @@ export const no: Record<MessageKey, string> = {
   'help.faq.modes.q': 'Hva er Simple, Mix og Justering til?',
   'help.faq.modes.a':
     'Simple for å ta opp og lytte, Mix for volum og MP3-eksport, Justering for å synkronisere spor (forskyvninger og autojustering).',
+  'help.faq.metronome.q': 'Hva er metronomet til?',
+  'help.faq.metronome.a':
+    'Det legger til et virtuelt spor i valgt tempo som kan være justeringsreferanse (marker 3-4 på opptakene). BPM lagres med økten; det er ikke en opplastet lydfil.',
+  'help.faq.piano.q': 'Blir pianoet tatt opp sammen med stemmen?',
+  'help.faq.piano.a':
+    'Nei. Pianoet spiller bare i nettleseren for å gi deg tonen. Med hodetelefoner hører du det uten at det går i mikrofonen eller opptaket.',
   'help.faq.skew.q': 'Sporene er ikke justert — hva gjør jeg?',
   'help.faq.skew.a':
     'Sjekk markørene 1-2-3-4 / 3-4, ta et rent opptak på nytt, eller åpne Justering ( «!» på et spor åpner den) for manuell justering eller ny autojustering.',

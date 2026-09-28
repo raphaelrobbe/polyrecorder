@@ -12,6 +12,8 @@ export const HELP_FAQ_IDS = [
   'guestLost',
   'headphones',
   'modes',
+  'metronome',
+  'piano',
   'skew',
   'countInVsAlign',
   'import',
