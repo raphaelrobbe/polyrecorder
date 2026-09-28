@@ -5,7 +5,7 @@ export const fr = {
   'seo.home.description':
     'Enregistreur multipiste dans le navigateur : superpose tes prises, partage tes sessions et collabore en ligne. Gratuit, sans installation.',
   'seo.help.description':
-    'Aide polyrecorder : mode d’emploi, calage des pistes, raccourcis clavier et conseils d’enregistrement.',
+    'Aide polyrecorder : mode invité, modes Simple/Mixage/Calage, bibliothèque cloud, partage, FAQ et raccourcis.',
   'seo.legal.description':
     'Mentions légales de polyrecorder : éditeur, hébergement et propriété intellectuelle.',
   'seo.privacy.description':
@@ -402,17 +402,91 @@ export const fr = {
 
   'help.title': 'Aide',
   'help.close': "Fermer l'aide",
-  'help.customize.title': 'Personnalisation',
-  'help.customize.body1':
-    'Le nom du projet se modifie en haut, en cliquant sur le titre{f2}. Le nom de chaque piste se modifie aussi en cliquant dessus dans la liste.',
-  'help.customize.f2': ' (ou avec F2)',
-  'help.customize.body2':
-    'Ces noms servent au fichier MP3 téléchargé : le titre du projet, et — si toutes les pistes ne sont pas sélectionnées — les noms des pistes exportées, par exemple «\u00a0Ma polyphonie_Basses 1 - Basses 2.mp3\u00a0».',
+  'help.toc.aria': 'Sommaire de l’aide',
+  'help.toc.start': 'Démarrage',
+  'help.toc.guest': 'Invité et compte',
+  'help.toc.modes': 'Modes',
+  'help.toc.record': 'Enregistrement',
+  'help.toc.sync': 'Synchronisation',
+  'help.toc.mix': 'Mix et export',
+  'help.toc.import': 'Import',
+  'help.toc.library': 'Bibliothèque',
+  'help.toc.share': 'Partage',
+  'help.toc.account': 'Compte',
+  'help.toc.devices': 'Appareils',
+  'help.toc.shortcuts': 'Raccourcis',
+  'help.toc.faq': 'FAQ',
+
+  'help.start.title': 'Démarrage rapide',
+  'help.start.body1':
+    'Tu peux enregistrer tout de suite en invité, sans compte. Un casque est fortement recommandé pour éviter que le micro reprenne les haut-parleurs.',
+  'help.start.body2':
+    'Pour caler plusieurs voix : 1-2-3-4 sur la première piste, puis 3-4 sur les suivantes. Le détail est dans la section Synchronisation ci-dessous.',
+  'help.start.howtoLink': 'Voir le mode d’emploi du calage',
+
+  'help.guest.title': 'Invité et connexion',
+  'help.guest.body1':
+    'En invité, tes prises restent sur cet appareil (brouillon local). Après un enregistrement, une invite te propose de te connecter pour ne pas les perdre et pouvoir les partager.',
+  'help.guest.body2':
+    'La connexion se fait par un lien magique envoyé par email (pas de mot de passe). Ouvre le lien dans le même navigateur : le brouillon est rechargé, puis les pistes sont sauvegardées sur ton compte comme si tu venais de finir d’enregistrer.',
+  'help.guest.body3':
+    'Si tu changes d’appareil ou de navigateur avant de te connecter, le brouillon local n’est plus disponible.',
+
+  'help.modes.title': 'Modes Simple, Mixage et Calage',
+  'help.modes.body1':
+    'Le sélecteur entre les decks propose trois modes. Simple : enregistrer et écouter. Mixage : volumes par piste, volume maître, mise en avant et export MP3. Calage : décalages manuels, calage auto et avertissements.',
+  'help.modes.body2':
+    'La préférence de calage automatique se règle aussi sur le deck (et dans les préférences) : elle s’applique à la session en cours.',
+
+  'help.record.title': 'Enregistrement',
+  'help.record.body1':
+    'Enregistre pour démarrer, Piste suivante pour enchaîner une prise (les autres pistes jouent en monitoring), Stop pour terminer, et l’icône d’annulation pour jeter la prise en cours.',
+  'help.record.body2':
+    'Le nom du projet se modifie en haut (titre){f2}. Le nom de chaque piste se modifie en cliquant dessus. Ces noms servent aussi au fichier MP3 exporté.',
+  'help.record.f2': ' — raccourci F2',
+
   'help.sync.title': 'Synchronisation',
   'help.sync.body1':
     'Pour caler les pistes entre elles, la première (référence) doit commencer par quatre marquages nets et réguliers (1-2-3-4, ou tout signal audible en 4 temps). Les pistes suivantes ne reprennent que les 3ème et 4ème temps, puis la voix. polyrecorder s’en sert pour mesurer et corriger automatiquement le décalage dû à la latence audio.',
   'help.sync.body2':
     'Des bruits parasites peuvent empêcher la reconnaissance du 1-2-3-4. Dans ce cas, mieux vaut recommencer l’enregistrement de zéro pour repartir sur une bonne piste de référence : sinon tout devra être calé à la main. Idem pour le 3-4 des pistes suivantes : un marquage peu clair ou noyé dans le bruit fausse le calage auto de cette prise.',
+  'help.sync.body3':
+    'En mode Simple, un « ! » peut apparaître à côté d’une piste trop décalée : il ouvre le mode Calage. La poubelle reste disponible à côté.',
+
+  'help.mix.title': 'Mix et export',
+  'help.mix.body1':
+    'En mode Mixage, ajuste le volume de chaque piste et le volume maître, coupe le son (mute), mets en avant une piste, et télécharge un MP3 du mix (pistes sélectionnées uniquement).',
+  'help.mix.body2':
+    'Tu peux aussi lancer la lecture / pause depuis la barre de transport sous le deck.',
+
+  'help.import.title': 'Import audio',
+  'help.import.body1':
+    'Importe un fichier audio (bouton d’import ou glisser-déposer sur le deck). Formats courants : MP3, WAV, OGG, M4A, etc.',
+  'help.import.body2':
+    'Une piste importée sans battue 1-2-3-4 / 3-4 ne se calera pas automatiquement : désactive le calage auto ou ajuste l’offset en mode Calage.',
+
+  'help.library.title': 'Bibliothèque cloud',
+  'help.library.body1':
+    'Connecté, tes sessions vivent dans Ma bibliothèque : groupes → répertoires → chansons → sessions. Le fil d’Ariane au-dessus du titre indique où tu te trouves.',
+  'help.library.body2':
+    'La première sauvegarde depuis l’accueil crée en général une chanson dans Personnel / Général. Chaque nouvelle série d’enregistrements en invité suivie d’une connexion crée une nouvelle chanson (rien n’écrase la précédente).',
+
+  'help.share.title': 'Partage et collaboration',
+  'help.share.body1':
+    'Sur une chanson, tu peux la rendre publique et copier le lien de session. Active la collaboration pour laisser d’autres comptes connectés ajouter leurs pistes.',
+  'help.share.body2':
+    'En consultation (lecture seule), un invité peut enregistrer en local ; sans collab, rien n’est envoyé au cloud. Avec collab, après connexion les nouvelles prises montent sur la session.',
+
+  'help.account.title': 'Compte',
+  'help.account.body1':
+    'Connexion par email ou pseudo (lien magique). Tu peux changer email et pseudo dans Paramètres du compte, et y voir ton temps d’enregistrement total ainsi que le nombre de groupes, répertoires, chansons et sessions.',
+  'help.account.body2':
+    'La suppression du compte efface définitivement les données associées. Détails dans la confidentialité et les CGU.',
+
+  'help.devices.title': 'Appareils et réglages',
+  'help.devices.body1':
+    'Dans Préférences : micro et sorties (selon le navigateur), thème clair/sombre, langue, avance de lecture (sauter le décompte à la lecture ou à l’export), calage auto, avertissements, et sauvegarde cloud automatique.',
+
   'help.shortcuts.title': 'Raccourcis clavier',
   'help.shortcuts.recording': 'Enregistrement',
   'help.shortcuts.record': 'Enregistrer',
@@ -426,6 +500,66 @@ export const fr = {
   'help.shortcuts.general': 'Général',
   'help.shortcuts.editTitle': 'Éditer le titre',
   'help.shortcuts.closePanels': 'Fermer Aide / Préférences / Compte / Bibliothèque',
+
+  'help.faq.title': 'FAQ',
+  'help.faq.accountNeeded.q': 'Faut-il un compte ?',
+  'help.faq.accountNeeded.a':
+    'Non pour commencer : tu peux enregistrer en invité. Un compte (email uniquement) est nécessaire pour sauvegarder dans le cloud, partager et collaborer.',
+  'help.faq.guestKeepTakes.q':
+    'Que deviennent mes prises si j’enregistre en invité puis je me connecte ?',
+  'help.faq.guestKeepTakes.a':
+    'Elles sont restaurées depuis le brouillon local de ce navigateur, puis envoyées sur ton compte comme après un enregistrement normal — en général dans une nouvelle chanson.',
+  'help.faq.guestLost.q':
+    'Mes prises invité sont-elles perdues si je change d’appareil ?',
+  'help.faq.guestLost.a':
+    'Oui : le brouillon reste sur l’appareil et le navigateur où tu as enregistré. Connecte-toi depuis le même navigateur pour les récupérer.',
+  'help.faq.headphones.q': 'Pourquoi un casque ?',
+  'help.faq.headphones.a':
+    'Sans casque, le micro peut reprendre les haut-parleurs : ça fausse le calage et la qualité. Le monitoring en casque évite ce retour.',
+  'help.faq.modes.q': 'À quoi servent Simple, Mixage et Calage ?',
+  'help.faq.modes.a':
+    'Simple pour enregistrer et écouter, Mixage pour les volumes et l’export MP3, Calage pour synchroniser les pistes (offsets et calage auto).',
+  'help.faq.skew.q': 'Les pistes ne sont pas calées — que faire ?',
+  'help.faq.skew.a':
+    'Vérifie les marquages 1-2-3-4 / 3-4, réessaie une prise propre, ou ouvre le mode Calage (le « ! » sur une piste y mène) pour ajuster manuellement ou relancer le calage auto.',
+  'help.faq.countInVsAlign.q':
+    'Différence entre avance de lecture et calage automatique ?',
+  'help.faq.countInVsAlign.a':
+    'L’avance de lecture saute le décompte à l’écoute ou à l’export. Le calage auto aligne les pistes grâce aux marquages 1-2-3-4 / 3-4 pour compenser la latence.',
+  'help.faq.import.q': 'Puis-je importer un MP3 sans battue 1-2-3-4 ?',
+  'help.faq.import.a':
+    'Oui. Désactive alors le calage automatique ou cale à la main en mode Calage : sans marquages, l’auto-alignement ne peut pas fonctionner.',
+  'help.faq.storage.q': 'Où sont stockées mes prises ?',
+  'help.faq.storage.a':
+    'En invité : uniquement sur cet appareil (brouillon local). Connecté avec la sauvegarde cloud : dans ta bibliothèque (Personnel / Général par défaut pour une première session).',
+  'help.faq.libraryWhere.q':
+    'Où trouver une session fraîchement sauvegardée ?',
+  'help.faq.libraryWhere.a':
+    'Ouvre Ma bibliothèque : en général Personnel → Général, puis la chanson créée. Le fil d’Ariane au-dessus du titre indique le chemin.',
+  'help.faq.share.q': 'Comment partager une chanson ?',
+  'help.faq.share.a':
+    'Rends la chanson publique depuis la bibliothèque ou la barre d’outils, puis copie le lien de la session.',
+  'help.faq.collab.q': 'Comment collaborer à plusieurs ?',
+  'help.faq.collab.a':
+    'Chanson publique + option de collaboration. Les autres se connectent et ajoutent leurs pistes. Un invité peut préparer une prise en local ; avec collab, elle monte après connexion.',
+  'help.faq.browsers.q': 'Quels navigateurs et permissions ?',
+  'help.faq.browsers.a':
+    'Un navigateur récent (Chrome, Firefox, Safari, Edge…) avec autorisation micro. Certaines options de périphériques dépendent du système.',
+  'help.faq.sizeLimit.q': 'Y a-t-il une limite de taille ?',
+  'help.faq.sizeLimit.a':
+    'Oui : environ 100 Mo par fichier envoyé vers le cloud.',
+  'help.faq.deleteAccount.q': 'Comment supprimer mon compte ?',
+  'help.faq.deleteAccount.a':
+    'Paramètres du compte → Supprimer mon compte. C’est irréversible. Voir aussi la confidentialité et les CGU.',
+  'help.faq.deleteAccount.privacy': 'Confidentialité',
+  'help.faq.deleteAccount.terms': 'CGU',
+  'help.faq.pwa.q': 'L’app fonctionne-t-elle hors ligne ?',
+  'help.faq.pwa.a':
+    'polyrecorder est installable (PWA). L’enregistrement local peut marcher hors ligne ; le cloud, la connexion et le partage demandent Internet.',
+  'help.faq.accountStats.q':
+    'Que signifient les chiffres dans Mon compte ?',
+  'help.faq.accountStats.a':
+    'Le temps d’enregistrement totalise la durée de tes pistes cloud. Les totaux comptent tes groupes, répertoires, chansons et sessions.',
 
   'nav.library': 'Bibliothèque',
   'nav.myLibrary': 'Ma bibliothèque',

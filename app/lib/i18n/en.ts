@@ -7,7 +7,7 @@ export const en: Record<MessageKey, string> = {
   'seo.home.description':
     'Browser multitrack recorder: layer takes, share sessions, and collaborate online. Free, no install.',
   'seo.help.description':
-    'polyrecorder help: how-to, track alignment, keyboard shortcuts, and recording tips.',
+    'polyrecorder help: guest mode, Simple/Mix/Align modes, cloud library, sharing, FAQ, and shortcuts.',
   'seo.legal.description':
     'polyrecorder legal notice: publisher, hosting, and intellectual property.',
   'seo.privacy.description':
@@ -400,17 +400,91 @@ export const en: Record<MessageKey, string> = {
 
   'help.title': 'Help',
   'help.close': 'Close help',
-  'help.customize.title': 'Customization',
-  'help.customize.body1':
-    'Change the project name at the top by clicking the title{f2}. You can also rename each track by clicking its name in the list.',
-  'help.customize.f2': ' (or press F2)',
-  'help.customize.body2':
-    'Those names feed the downloaded MP3: the project title, and — if not every track is selected — the exported track names, e.g. “My polyphony_Bass 1 - Bass 2.mp3”.',
+  'help.toc.aria': 'Help table of contents',
+  'help.toc.start': 'Getting started',
+  'help.toc.guest': 'Guest & account',
+  'help.toc.modes': 'Modes',
+  'help.toc.record': 'Recording',
+  'help.toc.sync': 'Synchronization',
+  'help.toc.mix': 'Mix & export',
+  'help.toc.import': 'Import',
+  'help.toc.library': 'Library',
+  'help.toc.share': 'Sharing',
+  'help.toc.account': 'Account',
+  'help.toc.devices': 'Devices',
+  'help.toc.shortcuts': 'Shortcuts',
+  'help.toc.faq': 'FAQ',
+
+  'help.start.title': 'Getting started',
+  'help.start.body1':
+    'You can record right away as a guest—no account needed. Headphones are strongly recommended so the mic doesn’t pick up the speakers.',
+  'help.start.body2':
+    'To align several voices: 1-2-3-4 on the first track, then 3-4 on the next ones. Details are in the Synchronization section below.',
+  'help.start.howtoLink': 'See the alignment how-to',
+
+  'help.guest.title': 'Guest mode & sign-in',
+  'help.guest.body1':
+    'As a guest, your takes stay on this device (local draft). After you stop recording, a prompt offers sign-in so you don’t lose them and can share them.',
+  'help.guest.body2':
+    'Sign-in uses a magic link by email (no password). Open the link in the same browser: the draft is restored, then tracks are saved to your account as if you had just finished recording.',
+  'help.guest.body3':
+    'If you switch device or browser before signing in, the local draft is no longer available.',
+
+  'help.modes.title': 'Simple, Mix, and Align modes',
+  'help.modes.body1':
+    'The control between the decks has three modes. Simple: record and listen. Mix: per-track and master volumes, highlight, MP3 export. Align: manual offsets, auto-align, and warnings.',
+  'help.modes.body2':
+    'Auto-align preference can also be set on the deck (and in Preferences): it applies to the current session.',
+
+  'help.record.title': 'Recording',
+  'help.record.body1':
+    'Record to start, Next track to chain a take (other tracks play for monitoring), Stop to finish, and the discard icon to drop the current take.',
+  'help.record.body2':
+    'Change the project name at the top (title){f2}. Rename each track by clicking it. Those names also feed the exported MP3.',
+  'help.record.f2': ' — F2 shortcut',
+
   'help.sync.title': 'Synchronization',
   'help.sync.body1':
     'To align tracks, the first (reference) should start with four clear, steady markers (1-2-3-4, or any audible 4-beat cue). Later tracks only redo beats 3 and 4, then the voice. polyrecorder uses them to measure and correct latency-related drift automatically.',
   'help.sync.body2':
     'Background noise can block 1-2-3-4 detection. In that case, start the recording over so you get a solid reference track—otherwise everything must be aligned by hand. Same for later tracks’ 3-4: a weak or noisy marker breaks auto-align for that take.',
+  'help.sync.body3':
+    'In Simple mode, a “!” may appear next to a track that’s too far off—it opens Align mode. The trash control stays available beside it.',
+
+  'help.mix.title': 'Mix & export',
+  'help.mix.body1':
+    'In Mix mode, adjust each track and the master volume, mute, highlight a track, and download an MP3 of the mix (selected tracks only).',
+  'help.mix.body2':
+    'You can also play / pause from the transport bar under the deck.',
+
+  'help.import.title': 'Audio import',
+  'help.import.body1':
+    'Import an audio file (import button or drag-and-drop onto the deck). Common formats: MP3, WAV, OGG, M4A, and more.',
+  'help.import.body2':
+    'An imported track without 1-2-3-4 / 3-4 markers won’t auto-align: turn off auto-align or adjust the offset in Align mode.',
+
+  'help.library.title': 'Cloud library',
+  'help.library.body1':
+    'When signed in, sessions live in My library: groups → repertoires → songs → sessions. The breadcrumb above the title shows where you are.',
+  'help.library.body2':
+    'The first save from home usually creates a song under Personal / General. Each new guest recording series followed by sign-in creates a new song (nothing overwrites the previous one).',
+
+  'help.share.title': 'Sharing & collaboration',
+  'help.share.body1':
+    'On a song, you can make it public and copy the session link. Turn on collaboration so other signed-in accounts can add tracks.',
+  'help.share.body2':
+    'In read-only consultation, a guest can still record locally; without collab, nothing goes to the cloud. With collab, after sign-in new takes upload to the session.',
+
+  'help.account.title': 'Account',
+  'help.account.body1':
+    'Sign in with email or display name (magic link). In Account settings you can change email and pseudo, and see total recording time plus group, repertoire, song, and session counts.',
+  'help.account.body2':
+    'Deleting the account permanently erases associated data. See the privacy policy and terms for details.',
+
+  'help.devices.title': 'Devices & settings',
+  'help.devices.body1':
+    'In Preferences: mic and outputs (browser-dependent), light/dark theme, language, count-in skip (playback or download), auto-align, warnings, and automatic cloud save.',
+
   'help.shortcuts.title': 'Keyboard shortcuts',
   'help.shortcuts.recording': 'Recording',
   'help.shortcuts.record': 'Record',
@@ -424,6 +498,66 @@ export const en: Record<MessageKey, string> = {
   'help.shortcuts.general': 'General',
   'help.shortcuts.editTitle': 'Edit title',
   'help.shortcuts.closePanels': 'Close Help / Preferences / Account / Library',
+
+  'help.faq.title': 'FAQ',
+  'help.faq.accountNeeded.q': 'Do I need an account?',
+  'help.faq.accountNeeded.a':
+    'Not to start: you can record as a guest. An account (email only) is required to save to the cloud, share, and collaborate.',
+  'help.faq.guestKeepTakes.q':
+    'What happens to my takes if I record as a guest then sign in?',
+  'help.faq.guestKeepTakes.a':
+    'They are restored from this browser’s local draft, then uploaded to your account like a normal finished take—usually as a new song.',
+  'help.faq.guestLost.q':
+    'Are guest takes lost if I switch devices?',
+  'help.faq.guestLost.a':
+    'Yes: the draft stays on the device and browser where you recorded. Sign in from that same browser to recover them.',
+  'help.faq.headphones.q': 'Why headphones?',
+  'help.faq.headphones.a':
+    'Without them, the mic can pick up the speakers—that hurts alignment and quality. Headphone monitoring avoids that feedback.',
+  'help.faq.modes.q': 'What are Simple, Mix, and Align for?',
+  'help.faq.modes.a':
+    'Simple to record and listen, Mix for volumes and MP3 export, Align to sync tracks (offsets and auto-align).',
+  'help.faq.skew.q': 'Tracks aren’t aligned—what should I do?',
+  'help.faq.skew.a':
+    'Check the 1-2-3-4 / 3-4 markers, try a clean take, or open Align mode (the “!” on a track opens it) to adjust manually or re-run auto-align.',
+  'help.faq.countInVsAlign.q':
+    'What’s the difference between count-in skip and auto-align?',
+  'help.faq.countInVsAlign.a':
+    'Count-in skip removes the count-in on playback or export. Auto-align lines up tracks using 1-2-3-4 / 3-4 markers to compensate for latency.',
+  'help.faq.import.q': 'Can I import an MP3 without a 1-2-3-4 count-in?',
+  'help.faq.import.a':
+    'Yes. Then turn off auto-align or align by hand in Align mode—without markers, auto-align can’t work.',
+  'help.faq.storage.q': 'Where are my takes stored?',
+  'help.faq.storage.a':
+    'As a guest: only on this device (local draft). Signed in with cloud save: in your library (Personal / General by default for a first session).',
+  'help.faq.libraryWhere.q':
+    'Where do I find a freshly saved session?',
+  'help.faq.libraryWhere.a':
+    'Open My library: usually Personal → General, then the song that was created. The breadcrumb above the title shows the path.',
+  'help.faq.share.q': 'How do I share a song?',
+  'help.faq.share.a':
+    'Make the song public from the library or toolbar, then copy the session link.',
+  'help.faq.collab.q': 'How do we collaborate?',
+  'help.faq.collab.a':
+    'Public song + collaboration option. Others sign in and add tracks. A guest can prepare a take locally; with collab, it uploads after sign-in.',
+  'help.faq.browsers.q': 'Which browsers and permissions?',
+  'help.faq.browsers.a':
+    'A recent browser (Chrome, Firefox, Safari, Edge…) with microphone permission. Some device options depend on the OS.',
+  'help.faq.sizeLimit.q': 'Is there a size limit?',
+  'help.faq.sizeLimit.a':
+    'Yes: about 100 MB per file uploaded to the cloud.',
+  'help.faq.deleteAccount.q': 'How do I delete my account?',
+  'help.faq.deleteAccount.a':
+    'Account settings → Delete my account. It’s permanent. See also privacy and terms.',
+  'help.faq.deleteAccount.privacy': 'Privacy',
+  'help.faq.deleteAccount.terms': 'Terms',
+  'help.faq.pwa.q': 'Does the app work offline?',
+  'help.faq.pwa.a':
+    'polyrecorder is installable (PWA). Local recording can work offline; cloud, sign-in, and sharing need Internet.',
+  'help.faq.accountStats.q':
+    'What do the numbers in My account mean?',
+  'help.faq.accountStats.a':
+    'Recording time totals the duration of your cloud tracks. The counts are your groups, repertoires, songs, and sessions.',
 
   'nav.library': 'Library',
   'nav.myLibrary': 'My library',

@@ -7,7 +7,7 @@ export const de: Record<MessageKey, string> = {
   'seo.home.description':
     'Mehrspur-Rekorder im Browser: Takes überlagern, Sessions teilen und online zusammenarbeiten. Kostenlos, ohne Installation.',
   'seo.help.description':
-    'polyrecorder-Hilfe: Anleitung, Spur-Ausrichtung, Tastenkürzel und Aufnahme-Tipps.',
+    'polyrecorder-Hilfe: Gastmodus, Simple/Mix/Ausrichtung, Cloud-Bibliothek, Teilen, FAQ und Tastenkürzel.',
   'seo.legal.description':
     'Impressum von polyrecorder: Herausgeber, Hosting und geistiges Eigentum.',
   'seo.privacy.description':
@@ -402,17 +402,91 @@ export const de: Record<MessageKey, string> = {
 
   'help.title': 'Hilfe',
   'help.close': 'Hilfe schließen',
-  'help.customize.title': 'Anpassung',
-  'help.customize.body1':
-    'Den Projektnamen änderst du oben per Klick auf den Titel{f2}. Auch jeder Spurname lässt sich in der Liste anklicken und ändern.',
-  'help.customize.f2': ' (oder mit F2)',
-  'help.customize.body2':
-    'Diese Namen fließen in die MP3-Datei: der Projekttitel und — wenn nicht alle Spuren ausgewählt sind — die exportierten Spurnamen, z. B. „Meine Polyphonie_Bässe 1 - Bässe 2.mp3“.',
+  'help.toc.aria': 'Inhaltsverzeichnis der Hilfe',
+  'help.toc.start': 'Einstieg',
+  'help.toc.guest': 'Gast & Konto',
+  'help.toc.modes': 'Modi',
+  'help.toc.record': 'Aufnahme',
+  'help.toc.sync': 'Synchronisation',
+  'help.toc.mix': 'Mix & Export',
+  'help.toc.import': 'Import',
+  'help.toc.library': 'Bibliothek',
+  'help.toc.share': 'Teilen',
+  'help.toc.account': 'Konto',
+  'help.toc.devices': 'Geräte',
+  'help.toc.shortcuts': 'Tastenkürzel',
+  'help.toc.faq': 'FAQ',
+
+  'help.start.title': 'Schnellstart',
+  'help.start.body1':
+    'Du kannst sofort als Gast aufnehmen — ohne Konto. Kopfhörer sind stark empfohlen, damit das Mikrofon nicht die Lautsprecher aufnimmt.',
+  'help.start.body2':
+    'Mehrere Stimmen ausrichten: 1-2-3-4 auf der ersten Spur, dann 3-4 auf den folgenden. Details stehen unten unter Synchronisation.',
+  'help.start.howtoLink': 'Zur Ausrichtungs-Anleitung',
+
+  'help.guest.title': 'Gastmodus & Anmeldung',
+  'help.guest.body1':
+    'Als Gast bleiben deine Takes auf diesem Gerät (lokaler Entwurf). Nach dem Stopp lädt dich ein Hinweis ein, dich anzumelden, damit nichts verloren geht und du teilen kannst.',
+  'help.guest.body2':
+    'Die Anmeldung läuft über einen Magic Link per E-Mail (kein Passwort). Öffne den Link im selben Browser: der Entwurf wird geladen, dann werden die Spuren auf dein Konto gespeichert — wie nach einer gerade beendeten Aufnahme.',
+  'help.guest.body3':
+    'Wechselst du Gerät oder Browser vor der Anmeldung, ist der lokale Entwurf nicht mehr verfügbar.',
+
+  'help.modes.title': 'Modi Simple, Mix und Ausrichtung',
+  'help.modes.body1':
+    'Zwischen den Decks gibt es drei Modi. Simple: aufnehmen und hören. Mix: Spur- und Mastervolumen, Hervorhebung, MP3-Export. Ausrichtung: manuelle Offsets, Auto-Ausrichtung und Warnungen.',
+  'help.modes.body2':
+    'Die Auto-Ausrichtung lässt sich auch am Deck (und in den Präferenzen) einstellen: sie gilt für die aktuelle Session.',
+
+  'help.record.title': 'Aufnahme',
+  'help.record.body1':
+    'Aufnehmen startet, Nächste Spur reiht einen Take ein (andere Spuren laufen im Monitoring), Stopp beendet, und das Verwerfen-Symbol löscht den laufenden Take.',
+  'help.record.body2':
+    'Den Projektnamen änderst du oben (Titel){f2}. Spurnamen per Klick in der Liste. Diese Namen fließen auch in die exportierte MP3.',
+  'help.record.f2': ' — Tastenkürzel F2',
+
   'help.sync.title': 'Synchronisation',
   'help.sync.body1':
     'Zum Ausrichten der Spuren sollte die erste (Referenz) mit vier klaren, gleichmäßigen Markierungen beginnen (1-2-3-4 oder ein anderes hörbares 4er-Signal). Folgende Spuren wiederholen nur die 3. und 4. Zählzeit, dann die Stimme. polyrecorder misst damit den Latenzversatz und korrigiert ihn automatisch.',
   'help.sync.body2':
     'Störgeräusche können die Erkennung von 1-2-3-4 verhindern. Dann besser von vorn aufnehmen, um eine solide Referenzspur zu haben—sonst muss alles manuell ausgerichtet werden. Dasselbe gilt für die 3-4 späterer Spuren: eine schwache oder verrauschte Markierung bricht die Auto-Ausrichtung dieses Takes.',
+  'help.sync.body3':
+    'Im Simple-Modus kann ein „!“ neben einer zu stark versetzten Spur erscheinen — es öffnet den Ausrichtungsmodus. Der Papierkorb bleibt daneben verfügbar.',
+
+  'help.mix.title': 'Mix & Export',
+  'help.mix.body1':
+    'Im Mix-Modus regelst du Spur- und Mastervolumen, stummschalten, eine Spur hervorheben und ein MP3 des Mixes herunterladen (nur ausgewählte Spuren).',
+  'help.mix.body2':
+    'Play / Pause geht auch über die Transportleiste unter dem Deck.',
+
+  'help.import.title': 'Audio-Import',
+  'help.import.body1':
+    'Importiere eine Audiodatei (Import-Button oder Drag-and-drop aufs Deck). Übliche Formate: MP3, WAV, OGG, M4A usw.',
+  'help.import.body2':
+    'Eine importierte Spur ohne 1-2-3-4 / 3-4 wird nicht automatisch ausgerichtet: Auto-Ausrichtung aus oder Offset im Ausrichtungsmodus anpassen.',
+
+  'help.library.title': 'Cloud-Bibliothek',
+  'help.library.body1':
+    'Angemeldet liegen Sessions in Meine Bibliothek: Gruppen → Repertoires → Lieder → Sessions. Die Brotkrumenleiste über dem Titel zeigt den Ort.',
+  'help.library.body2':
+    'Die erste Speicherung von der Startseite legt meist ein Lied unter Personal / Allgemein an. Jede neue Gäste-Serie mit anschließender Anmeldung erzeugt ein neues Lied (nichts überschreibt das vorherige).',
+
+  'help.share.title': 'Teilen & Kollaboration',
+  'help.share.body1':
+    'Ein Lied kannst du öffentlich machen und den Session-Link kopieren. Kollaboration erlaubt anderen angemeldeten Konten, Spuren hinzuzufügen.',
+  'help.share.body2':
+    'In der reinen Ansicht kann ein Gast lokal aufnehmen; ohne Kollaboration geht nichts in die Cloud. Mit Kollaboration laden neue Takes nach der Anmeldung in die Session.',
+
+  'help.account.title': 'Konto',
+  'help.account.body1':
+    'Anmeldung per E-Mail oder Anzeigename (Magic Link). In den Kontoeinstellungen änderst du E-Mail und Pseudo und siehst Aufnahmezeit sowie Anzahlen von Gruppen, Repertoires, Liedern und Sessions.',
+  'help.account.body2':
+    'Kontolöschung entfernt zugehörige Daten endgültig. Details in Datenschutz und AGB.',
+
+  'help.devices.title': 'Geräte & Einstellungen',
+  'help.devices.body1':
+    'Unter Präferenzen: Mikrofon und Ausgänge (browserabhängig), hell/dunkel, Sprache, Auftakt überspringen (Wiedergabe oder Export), Auto-Ausrichtung, Warnungen und automatische Cloud-Speicherung.',
+
   'help.shortcuts.title': 'Tastenkürzel',
   'help.shortcuts.recording': 'Aufnahme',
   'help.shortcuts.record': 'Aufnehmen',
@@ -427,6 +501,66 @@ export const de: Record<MessageKey, string> = {
   'help.shortcuts.editTitle': 'Titel bearbeiten',
   'help.shortcuts.closePanels':
     'Hilfe / Präferenzen / Konto / Bibliothek schließen',
+
+  'help.faq.title': 'FAQ',
+  'help.faq.accountNeeded.q': 'Brauche ich ein Konto?',
+  'help.faq.accountNeeded.a':
+    'Nicht zum Starten: du kannst als Gast aufnehmen. Ein Konto (nur E-Mail) braucht es für Cloud, Teilen und Kollaboration.',
+  'help.faq.guestKeepTakes.q':
+    'Was passiert mit Takes, wenn ich als Gast aufnehme und mich dann anmelde?',
+  'help.faq.guestKeepTakes.a':
+    'Sie werden aus dem lokalen Entwurf dieses Browsers wiederhergestellt und dann wie nach einer normalen Aufnahme auf dein Konto geladen — meist als neues Lied.',
+  'help.faq.guestLost.q':
+    'Gehen Gast-Takes verloren, wenn ich das Gerät wechsle?',
+  'help.faq.guestLost.a':
+    'Ja: der Entwurf bleibt auf dem Gerät und Browser der Aufnahme. Melde dich dort wieder an, um sie zu retten.',
+  'help.faq.headphones.q': 'Warum Kopfhörer?',
+  'help.faq.headphones.a':
+    'Ohne sie kann das Mikrofon die Lautsprecher aufnehmen — schlecht für Ausrichtung und Qualität. Monitoring mit Kopfhörer vermeidet das.',
+  'help.faq.modes.q': 'Wozu Simple, Mix und Ausrichtung?',
+  'help.faq.modes.a':
+    'Simple zum Aufnehmen und Hören, Mix für Lautstärken und MP3-Export, Ausrichtung zum Synchronisieren (Offsets und Auto-Ausrichtung).',
+  'help.faq.skew.q': 'Spuren sind nicht ausgerichtet — was tun?',
+  'help.faq.skew.a':
+    'Prüfe die Markierungen 1-2-3-4 / 3-4, nimm sauber neu auf oder öffne den Ausrichtungsmodus (das „!“ an einer Spur führt dorthin) zum manuellen Nachziehen oder erneuten Auto-Ausrichten.',
+  'help.faq.countInVsAlign.q':
+    'Unterschied zwischen Auftakt überspringen und Auto-Ausrichtung?',
+  'help.faq.countInVsAlign.a':
+    'Auftakt überspringen lässt den Count-in bei Wiedergabe oder Export weg. Auto-Ausrichtung richtet Spuren über 1-2-3-4 / 3-4 aus, um Latenz auszugleichen.',
+  'help.faq.import.q': 'Kann ich ein MP3 ohne 1-2-3-4 importieren?',
+  'help.faq.import.a':
+    'Ja. Schalte dann Auto-Ausrichtung aus oder richte manuell im Ausrichtungsmodus aus — ohne Markierungen funktioniert Auto-Align nicht.',
+  'help.faq.storage.q': 'Wo werden meine Takes gespeichert?',
+  'help.faq.storage.a':
+    'Als Gast: nur auf diesem Gerät (lokaler Entwurf). Angemeldet mit Cloud-Speicherung: in deiner Bibliothek (Personal / Allgemein als Standard für eine erste Session).',
+  'help.faq.libraryWhere.q':
+    'Wo finde ich eine frisch gespeicherte Session?',
+  'help.faq.libraryWhere.a':
+    'Öffne Meine Bibliothek: meist Personal → Allgemein, dann das erstellte Lied. Die Brotkrumenleiste über dem Titel zeigt den Pfad.',
+  'help.faq.share.q': 'Wie teile ich ein Lied?',
+  'help.faq.share.a':
+    'Mach das Lied in Bibliothek oder Toolbar öffentlich und kopiere den Session-Link.',
+  'help.faq.collab.q': 'Wie kollaborieren wir?',
+  'help.faq.collab.a':
+    'Öffentliches Lied + Kollaborationsoption. Andere melden sich an und fügen Spuren hinzu. Ein Gast kann lokal vorbereiten; mit Kollaboration lädt der Take nach der Anmeldung hoch.',
+  'help.faq.browsers.q': 'Welche Browser und Berechtigungen?',
+  'help.faq.browsers.a':
+    'Ein aktueller Browser (Chrome, Firefox, Safari, Edge…) mit Mikrofon-Erlaubnis. Manche Geräteoptionen hängen vom System ab.',
+  'help.faq.sizeLimit.q': 'Gibt es eine Größenbegrenzung?',
+  'help.faq.sizeLimit.a':
+    'Ja: etwa 100 MB pro Datei in die Cloud.',
+  'help.faq.deleteAccount.q': 'Wie lösche ich mein Konto?',
+  'help.faq.deleteAccount.a':
+    'Kontoeinstellungen → Konto löschen. Das ist endgültig. Siehe auch Datenschutz und AGB.',
+  'help.faq.deleteAccount.privacy': 'Datenschutz',
+  'help.faq.deleteAccount.terms': 'AGB',
+  'help.faq.pwa.q': 'Funktioniert die App offline?',
+  'help.faq.pwa.a':
+    'polyrecorder ist installierbar (PWA). Lokale Aufnahme kann offline gehen; Cloud, Anmeldung und Teilen brauchen Internet.',
+  'help.faq.accountStats.q':
+    'Was bedeuten die Zahlen unter Mein Konto?',
+  'help.faq.accountStats.a':
+    'Die Aufnahmezeit summiert die Dauer deiner Cloud-Spuren. Die Zähler sind Gruppen, Repertoires, Lieder und Sessions.',
 
   'nav.library': 'Bibliothek',
   'nav.myLibrary': 'Meine Bibliothek',

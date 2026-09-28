@@ -7,7 +7,7 @@ export const no: Record<MessageKey, string> = {
   'seo.home.description':
     'Flerkanalsopptaker i nettleseren: legg spor oppå hverandre, del økter og samarbeid på nett. Gratis, uten installasjon.',
   'seo.help.description':
-    'polyrecorder-hjelp: brukerveiledning, sporjustering, hurtigtaster og opptakstips.',
+    'polyrecorder-hjelp: gjestemodus, Simple/Mix/Justering, skybibliotek, deling, FAQ og hurtigtaster.',
   'seo.legal.description':
     'Juridisk informasjon for polyrecorder: utgiver, hosting og åndsverk.',
   'seo.privacy.description':
@@ -401,17 +401,91 @@ export const no: Record<MessageKey, string> = {
 
   'help.title': 'Hjelp',
   'help.close': 'Lukk hjelp',
-  'help.customize.title': 'Tilpasning',
-  'help.customize.body1':
-    'Prosjektnavnet endres øverst ved å klikke på tittelen{f2}. Du kan også gi nytt navn til hvert spor ved å klikke på det i listen.',
-  'help.customize.f2': ' (eller med F2)',
-  'help.customize.body2':
-    'Disse navnene brukes i MP3-filen: prosjekttittelen, og — hvis ikke alle spor er valgt — navnene på eksporterte spor, f.eks. «Min polyfoni_Bass 1 - Bass 2.mp3».',
+  'help.toc.aria': 'Innholdsfortegnelse for hjelp',
+  'help.toc.start': 'Kom i gang',
+  'help.toc.guest': 'Gjest og konto',
+  'help.toc.modes': 'Moduser',
+  'help.toc.record': 'Opptak',
+  'help.toc.sync': 'Synkronisering',
+  'help.toc.mix': 'Mix og eksport',
+  'help.toc.import': 'Import',
+  'help.toc.library': 'Bibliotek',
+  'help.toc.share': 'Deling',
+  'help.toc.account': 'Konto',
+  'help.toc.devices': 'Enheter',
+  'help.toc.shortcuts': 'Hurtigtaster',
+  'help.toc.faq': 'FAQ',
+
+  'help.start.title': 'Kom i gang',
+  'help.start.body1':
+    'Du kan ta opp med en gang som gjest — uten konto. Hodetelefoner anbefales sterkt, så mikrofonen ikke plukker opp høyttalerne.',
+  'help.start.body2':
+    'For å justere flere stemmer: 1-2-3-4 på første spor, deretter 3-4 på de neste. Detaljer finner du under Synkronisering nedenfor.',
+  'help.start.howtoLink': 'Se veiledning for justering',
+
+  'help.guest.title': 'Gjestemodus og innlogging',
+  'help.guest.body1':
+    'Som gjest blir opptakene på denne enheten (lokalt utkast). Etter stopp får du en invitasjon til å logge inn, så du ikke mister dem og kan dele.',
+  'help.guest.body2':
+    'Innlogging skjer med magisk lenke på e-post (ingen passord). Åpne lenken i samme nettleser: utkastet lastes inn, deretter lagres sporene på kontoen din som etter et nettopp ferdig opptak.',
+  'help.guest.body3':
+    'Bytter du enhet eller nettleser før innlogging, er det lokale utkastet ikke lenger tilgjengelig.',
+
+  'help.modes.title': 'Modusene Simple, Mix og Justering',
+  'help.modes.body1':
+    'Velgeren mellom dekkene har tre modi. Simple: ta opp og lytt. Mix: volum per spor og master, fremheving, MP3-eksport. Justering: manuelle forskyvninger, autojustering og advarsler.',
+  'help.modes.body2':
+    'Autojustering kan også settes på dekket (og i preferanser): den gjelder gjeldende økt.',
+
+  'help.record.title': 'Opptak',
+  'help.record.body1':
+    'Ta opp for å starte, Neste spor for å legge til et opptak (andre spor spiller i monitoring), Stopp for å avslutte, og forkast-ikonet for å kaste gjeldende opptak.',
+  'help.record.body2':
+    'Prosjektnavnet endres øverst (tittel){f2}. Gi nytt navn til spor ved å klikke på dem. Navnene brukes også i eksportert MP3.',
+  'help.record.f2': ' — snarvei F2',
+
   'help.sync.title': 'Synkronisering',
   'help.sync.body1':
     'For å justere sporene bør det første (referanse) starte med fire tydelige, jevne markører (1-2-3-4, eller et annet hørbart 4-taktsignal). Senere spor tar bare 3. og 4. taktslag på nytt, deretter stemmen. polyrecorder bruker dem til å måle og rette latensforskyvning automatisk.',
   'help.sync.body2':
     'Bakgrunnsstøy kan hindre gjenkjenning av 1-2-3-4. Start da opptaket på nytt for et solid referansespor—ellers må alt justeres for hånd. Det samme gjelder 3-4 på senere spor: en svak eller støyete markør ødelegger autojustering for det opptaket.',
+  'help.sync.body3':
+    'I Simple-modus kan et «!» vises ved et spor som er for forskjøvet — det åpner Justering. Papirkurven blir stående ved siden av.',
+
+  'help.mix.title': 'Mix og eksport',
+  'help.mix.body1':
+    'I Mix-modus justerer du volum per spor og master, demper, fremhever et spor og laster ned en MP3 av mixen (bare valgte spor).',
+  'help.mix.body2':
+    'Du kan også spille / pause fra transportlinjen under dekket.',
+
+  'help.import.title': 'Lydimport',
+  'help.import.body1':
+    'Importer en lydfil (importknapp eller dra-og-slipp på dekket). Vanlige formater: MP3, WAV, OGG, M4A m.m.',
+  'help.import.body2':
+    'Et importert spor uten 1-2-3-4 / 3-4 justeres ikke automatisk: slå av autojustering eller juster forskyvning i Justering-modus.',
+
+  'help.library.title': 'Skybibliotek',
+  'help.library.body1':
+    'Innlogget ligger økter i Mitt bibliotek: grupper → repertoarer → sanger → økter. Brødsmulestien over tittelen viser hvor du er.',
+  'help.library.body2':
+    'Første lagring fra startsiden lager vanligvis en sang under Personlig / Generelt. Hver ny gjesteserie fulgt av innlogging lager en ny sang (ingenting overskriver den forrige).',
+
+  'help.share.title': 'Deling og samarbeid',
+  'help.share.body1':
+    'På en sang kan du gjøre den offentlig og kopiere øktlenken. Slå på samarbeid så andre innloggede kontoer kan legge til spor.',
+  'help.share.body2':
+    'I skrivebeskyttet visning kan en gjest likevel ta opp lokalt; uten samarbeid går ingenting til skyen. Med samarbeid lastes nye opptak opp etter innlogging.',
+
+  'help.account.title': 'Konto',
+  'help.account.body1':
+    'Logg inn med e-post eller visningsnavn (magisk lenke). I kontoinnstillinger endrer du e-post og pseudo, og ser total opptakstid samt antall grupper, repertoarer, sanger og økter.',
+  'help.account.body2':
+    'Sletting av kontoen sletter tilhørende data for godt. Se personvern og vilkår for detaljer.',
+
+  'help.devices.title': 'Enheter og innstillinger',
+  'help.devices.body1':
+    'Under Preferanser: mikrofon og utganger (avhengig av nettleser), lys/mørk tema, språk, hopp over opptakt (avspilling eller eksport), autojustering, advarsler og automatisk skylagring.',
+
   'help.shortcuts.title': 'Hurtigtaster',
   'help.shortcuts.recording': 'Opptak',
   'help.shortcuts.record': 'Ta opp',
@@ -426,6 +500,66 @@ export const no: Record<MessageKey, string> = {
   'help.shortcuts.editTitle': 'Rediger tittel',
   'help.shortcuts.closePanels':
     'Lukk Hjelp / Preferanser / Konto / Bibliotek',
+
+  'help.faq.title': 'FAQ',
+  'help.faq.accountNeeded.q': 'Trenger jeg en konto?',
+  'help.faq.accountNeeded.a':
+    'Ikke for å starte: du kan ta opp som gjest. Konto (bare e-post) trengs for sky, deling og samarbeid.',
+  'help.faq.guestKeepTakes.q':
+    'Hva skjer med opptakene hvis jeg tar opp som gjest og deretter logger inn?',
+  'help.faq.guestKeepTakes.a':
+    'De gjenopprettes fra det lokale utkastet i denne nettleseren og lastes deretter opp til kontoen din som etter et vanlig ferdig opptak — vanligvis som en ny sang.',
+  'help.faq.guestLost.q':
+    'Mister jeg gjesteopptak hvis jeg bytter enhet?',
+  'help.faq.guestLost.a':
+    'Ja: utkastet blir på enheten og nettleseren der du tok opp. Logg inn derfra for å hente dem.',
+  'help.faq.headphones.q': 'Hvorfor hodetelefoner?',
+  'help.faq.headphones.a':
+    'Uten dem kan mikrofonen plukke opp høyttalerne — det ødelegger justering og kvalitet. Monitoring med hodetelefoner unngår tilbakekobling.',
+  'help.faq.modes.q': 'Hva er Simple, Mix og Justering til?',
+  'help.faq.modes.a':
+    'Simple for å ta opp og lytte, Mix for volum og MP3-eksport, Justering for å synkronisere spor (forskyvninger og autojustering).',
+  'help.faq.skew.q': 'Sporene er ikke justert — hva gjør jeg?',
+  'help.faq.skew.a':
+    'Sjekk markørene 1-2-3-4 / 3-4, ta et rent opptak på nytt, eller åpne Justering ( «!» på et spor åpner den) for manuell justering eller ny autojustering.',
+  'help.faq.countInVsAlign.q':
+    'Forskjell mellom hopp over opptakt og autojustering?',
+  'help.faq.countInVsAlign.a':
+    'Hopp over opptakt fjerner opptakten ved avspilling eller eksport. Autojustering retter spor med 1-2-3-4 / 3-4 for å kompensere latens.',
+  'help.faq.import.q': 'Kan jeg importere en MP3 uten 1-2-3-4?',
+  'help.faq.import.a':
+    'Ja. Slå da av autojustering eller juster for hånd i Justering — uten markører virker ikke autojustering.',
+  'help.faq.storage.q': 'Hvor lagres opptakene mine?',
+  'help.faq.storage.a':
+    'Som gjest: bare på denne enheten (lokalt utkast). Innlogget med skylagring: i biblioteket ditt (Personlig / Generelt som standard for første økt).',
+  'help.faq.libraryWhere.q':
+    'Hvor finner jeg en nettopp lagret økt?',
+  'help.faq.libraryWhere.a':
+    'Åpne Mitt bibliotek: vanligvis Personlig → Generelt, deretter sangen som ble laget. Brødsmulene over tittelen viser stien.',
+  'help.faq.share.q': 'Hvordan deler jeg en sang?',
+  'help.faq.share.a':
+    'Gjør sangen offentlig fra biblioteket eller verktøylinjen, og kopier øktlenken.',
+  'help.faq.collab.q': 'Hvordan samarbeider vi?',
+  'help.faq.collab.a':
+    'Offentlig sang + samarbeidsvalg. Andre logger inn og legger til spor. En gjest kan forberede lokalt; med samarbeid lastes opptaket opp etter innlogging.',
+  'help.faq.browsers.q': 'Hvilke nettlesere og tillatelser?',
+  'help.faq.browsers.a':
+    'En ny nettleser (Chrome, Firefox, Safari, Edge…) med mikrofontillatelse. Noen enhetsvalg avhenger av systemet.',
+  'help.faq.sizeLimit.q': 'Finnes det en størrelsesgrense?',
+  'help.faq.sizeLimit.a':
+    'Ja: omtrent 100 MB per fil til skyen.',
+  'help.faq.deleteAccount.q': 'Hvordan sletter jeg kontoen?',
+  'help.faq.deleteAccount.a':
+    'Kontoinnstillinger → Slett kontoen min. Det er permanent. Se også personvern og vilkår.',
+  'help.faq.deleteAccount.privacy': 'Personvern',
+  'help.faq.deleteAccount.terms': 'Vilkår',
+  'help.faq.pwa.q': 'Fungerer appen frakoblet?',
+  'help.faq.pwa.a':
+    'polyrecorder kan installeres (PWA). Lokalt opptak kan fungere frakoblet; sky, innlogging og deling krever Internett.',
+  'help.faq.accountStats.q':
+    'Hva betyr tallene under Min konto?',
+  'help.faq.accountStats.a':
+    'Opptakstid summerer varigheten av sky-sporene dine. Tellere er grupper, repertoarer, sanger og økter.',
 
   'nav.library': 'Bibliotek',
   'nav.myLibrary': 'Mitt bibliotek',
