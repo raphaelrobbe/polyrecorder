@@ -25,8 +25,12 @@ const BROWSER_ALIASES: Record<string, Locale> = {
 const STORAGE_KEY = 'polyrecorder-locale'
 const localeCodes = new Set<string>(LOCALES.map((item) => item.code))
 
-/** Must match `useLocale` getServerSnapshot — stable during SSR + hydration. */
-export const SSR_LOCALE: Locale = 'en'
+/**
+ * Locale used for SSR, Open Graph crawlers (WhatsApp, etc.), and the first
+ * client paint before localStorage / browser preference apply.
+ * French is the product source language — share previews must not fall back to English.
+ */
+export const SSR_LOCALE: Locale = 'fr'
 
 /**
  * Until the client marks itself ready, `getLocale()` returns `SSR_LOCALE` so
@@ -78,7 +82,7 @@ function detectBrowserLocale(): Locale {
   } catch {
     // ignore
   }
-  return 'en'
+  return 'fr'
 }
 
 export function getStoredLocale(): Locale | null {

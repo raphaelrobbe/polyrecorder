@@ -441,6 +441,9 @@ export const fr = {
 
   'help.title': 'Aide',
   'help.close': "Fermer l'aide",
+  'help.search.placeholder': 'Rechercher…',
+  'help.search.aria': 'Rechercher dans l’aide',
+  'help.search.empty': 'Aucune rubrique ne correspond à cette recherche.',
   'help.toc.aria': 'Sommaire de l’aide',
   'help.toc.start': 'Démarrage',
   'help.toc.guest': 'Invité et compte',

@@ -440,6 +440,9 @@ export const en: Record<MessageKey, string> = {
 
   'help.title': 'Help',
   'help.close': 'Close help',
+  'help.search.placeholder': 'Search…',
+  'help.search.aria': 'Search help',
+  'help.search.empty': 'No sections match this search.',
   'help.toc.aria': 'Help table of contents',
   'help.toc.start': 'Getting started',
   'help.toc.guest': 'Guest & account',

@@ -38,10 +38,28 @@ function faqKeys(id: FaqId): { q: MessageKey; a: MessageKey } {
   }
 }
 
+/** Whether any FAQ entry matches the query (empty query → true). */
+export function helpFaqMatchesQuery(query: string): boolean {
+  const qNorm = query.trim().toLowerCase()
+  if (!qNorm) return true
+  return HELP_FAQ_IDS.some((id) => {
+    const { q, a } = faqKeys(id)
+    return `${t(q)}\n${t(a)}`.toLowerCase().includes(qNorm)
+  })
+}
+
 /** FAQ accordions at the bottom of /aide (several may stay open). */
-export function HelpFaq({ className }: { className?: string }) {
+export function HelpFaq({
+  className,
+  filterQuery = '',
+}: {
+  className?: string
+  /** Case-insensitive filter over question + answer text. */
+  filterQuery?: string
+}) {
   useLocale()
   const [openIds, setOpenIds] = useState<Set<FaqId>>(() => new Set())
+  const qNorm = filterQuery.trim().toLowerCase()
 
   const toggle = (id: FaqId) => {
     setOpenIds((prev) => {
@@ -52,6 +70,15 @@ export function HelpFaq({ className }: { className?: string }) {
     })
   }
 
+  const visibleIds = HELP_FAQ_IDS.filter((id) => {
+    if (!qNorm) return true
+    const { q, a } = faqKeys(id)
+    const hay = `${t(q)}\n${t(a)}`.toLowerCase()
+    return hay.includes(qNorm)
+  })
+
+  if (visibleIds.length === 0) return null
+
   return (
     <HelpSection
       id="help-faq"
@@ -59,9 +86,9 @@ export function HelpFaq({ className }: { className?: string }) {
       className={className}
     >
       <ul className="m-0 flex list-none flex-col gap-[0.45rem] p-0">
-        {HELP_FAQ_IDS.map((id) => {
+        {visibleIds.map((id) => {
           const { q, a } = faqKeys(id)
-          const open = openIds.has(id)
+          const open = openIds.has(id) || Boolean(qNorm)
           const panelId = `help-faq-${id}`
           return (
             <li

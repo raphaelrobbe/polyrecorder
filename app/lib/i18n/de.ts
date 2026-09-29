@@ -442,6 +442,9 @@ export const de: Record<MessageKey, string> = {
 
   'help.title': 'Hilfe',
   'help.close': 'Hilfe schließen',
+  'help.search.placeholder': 'Suchen…',
+  'help.search.aria': 'Hilfe durchsuchen',
+  'help.search.empty': 'Keine Rubrik entspricht dieser Suche.',
   'help.toc.aria': 'Inhaltsverzeichnis der Hilfe',
   'help.toc.start': 'Einstieg',
   'help.toc.guest': 'Gast & Konto',

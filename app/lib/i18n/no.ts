@@ -441,6 +441,9 @@ export const no: Record<MessageKey, string> = {
 
   'help.title': 'Hjelp',
   'help.close': 'Lukk hjelp',
+  'help.search.placeholder': 'Søk…',
+  'help.search.aria': 'Søk i hjelpen',
+  'help.search.empty': 'Ingen rubrikker matcher dette søket.',
   'help.toc.aria': 'Innholdsfortegnelse for hjelp',
   'help.toc.start': 'Kom i gang',
   'help.toc.guest': 'Gjest og konto',
