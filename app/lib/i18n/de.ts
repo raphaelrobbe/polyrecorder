@@ -28,9 +28,12 @@ export const de: Record<MessageKey, string> = {
 
   'deck.ariaLabel': 'Rekorder',
   'deck.toolsAria': 'Bibliothek und Modi',
+  'deck.newSession': 'Neue Sitzung',
+  'deck.newSession.back': 'Zurück',
 
   'common.close': 'Schließen',
   'common.delete': 'Löschen',
+  'common.validate': 'Bestätigen',
 
   'error.title': 'Ups',
   'error.lead':

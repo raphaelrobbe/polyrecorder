@@ -28,9 +28,12 @@ export const no: Record<MessageKey, string> = {
 
   'deck.ariaLabel': 'Opptaker',
   'deck.toolsAria': 'Bibliotek og modi',
+  'deck.newSession': 'Ny økt',
+  'deck.newSession.back': 'Tilbake',
 
   'common.close': 'Lukk',
   'common.delete': 'Slett',
+  'common.validate': 'Bekreft',
 
   'error.title': 'Oi',
   'error.lead':

@@ -28,9 +28,12 @@ export const en: Record<MessageKey, string> = {
 
   'deck.ariaLabel': 'Recorder',
   'deck.toolsAria': 'Library and modes',
+  'deck.newSession': 'New session',
+  'deck.newSession.back': 'Back',
 
   'common.close': 'Close',
   'common.delete': 'Delete',
+  'common.validate': 'Confirm',
 
   'error.title': 'Oops',
   'error.lead': 'Something went wrong. You can go back to the recorder and try again.',

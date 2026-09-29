@@ -26,9 +26,12 @@ export const fr = {
 
   'deck.ariaLabel': 'Enregistreur',
   'deck.toolsAria': 'Bibliothèque et modes',
+  'deck.newSession': 'Nouvelle session',
+  'deck.newSession.back': 'Retour',
 
   'common.close': 'Fermer',
   'common.delete': 'Supprimer',
+  'common.validate': 'Valider',
 
   'error.title': 'Oups',
   'error.lead':

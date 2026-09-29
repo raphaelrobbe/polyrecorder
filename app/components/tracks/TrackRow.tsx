@@ -214,14 +214,17 @@ export function TrackRow({
     mixChipColumn ||
     calageChipColumn
   const chipSlotClass =
-    'grid h-[1.15rem] w-[1.15rem] shrink-0 place-items-center max-sm:h-[1.05rem] max-sm:w-[1.05rem]'
+    'grid h-[1.65rem] w-[1.65rem] shrink-0 place-items-center max-sm:h-[1.45rem] max-sm:w-[1.45rem]'
+  /** Match trash control size/radius; beat Button `trash` max-sm defaults. */
+  const chipBtnClass =
+    'h-full w-full max-sm:!h-full max-sm:!w-full rounded-lg max-sm:rounded-lg p-0 text-[0.78rem] font-extrabold leading-none max-sm:text-[0.7rem]'
   const dupChipButton = showDuplicateNameChip ? (
     <Button
       variant="trash"
       className={cn(
-        'h-full w-full rounded-md border-ink/28 bg-ink/8 p-0 text-[0.68rem] font-extrabold leading-none text-ink',
+        chipBtnClass,
+        'border-ink/28 bg-ink/8 text-ink',
         'hover:enabled:border-ink/35 hover:enabled:bg-ink/12 hover:enabled:text-ink',
-        'max-sm:text-[0.62rem]',
       )}
       title={t('warn.duplicateName.hint')}
       aria-label={t('warn.duplicateName.aria', { name: track.name })}
@@ -245,9 +248,9 @@ export function TrackRow({
     <Button
       variant="trash"
       className={cn(
-        'h-full w-full rounded-md border-mode-mix-border bg-mode-mix-bg p-0 text-[0.68rem] font-extrabold leading-none text-mode-mix',
+        chipBtnClass,
+        'border-mode-mix-border bg-mode-mix-bg text-mode-mix',
         'hover:enabled:border-mode-mix-border hover:enabled:bg-mode-mix-hover hover:enabled:text-mode-mix',
-        'max-sm:text-[0.62rem]',
       )}
       title={t('mix.clip.record.hint')}
       aria-label={t('mix.clip.record.aria')}
@@ -267,9 +270,9 @@ export function TrackRow({
     <Button
       variant="trash"
       className={cn(
-        'h-full w-full rounded-md border-mode-align-border bg-mode-align-bg p-0 text-[0.68rem] font-extrabold leading-none text-mode-align',
+        chipBtnClass,
+        'border-mode-align-border bg-mode-align-bg text-mode-align',
         'hover:enabled:border-mode-align-border hover:enabled:bg-mode-align-hover hover:enabled:text-mode-align',
-        'max-sm:text-[0.62rem]',
       )}
       title={attentionTitle}
       aria-label={attentionAria}

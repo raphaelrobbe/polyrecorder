@@ -36,6 +36,7 @@ import { CheckboxOption } from './CheckboxOption'
 import { Deck } from './Deck'
 import { IconChevron, IconClose, IconDiscard, IconGlobe } from './icons'
 import { LibraryBreadcrumb } from './library/LibraryBreadcrumb'
+import { NewSessionMenu } from './NewSessionMenu'
 import { SongShareButton } from './library/SongOwnerToolbar'
 import { ModeTools, DeckModes } from './ModeTools'
 import { PianoKeyboard } from './PianoKeyboard'
@@ -204,6 +205,10 @@ export function DeckMain({ className }: DeckMainProps) {
     <div className={cn('flex flex-col', className)}>
       <DeckModes className="mb-[0.85rem] w-full self-stretch" />
       <div className="flex flex-col gap-[0.85rem]">
+      <div className="relative">
+      {user ? (
+        <NewSessionMenu className="absolute right-[1.35rem] top-[1.35rem] z-20 max-sm:right-[0.85rem] max-sm:top-[1.05rem]" />
+      ) : null}
       <Deck enableAudioDrop>
       {deckLibraryPath ? (
         <LibraryBreadcrumb
@@ -538,6 +543,7 @@ export function DeckMain({ className }: DeckMainProps) {
 
       <CalagePanel />
       </Deck>
+      </div>
 
       <ModeTools
         className="w-full self-stretch"

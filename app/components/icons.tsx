@@ -277,6 +277,35 @@ export function IconClose({ className }: { className?: string }) {
   )
 }
 
+export function IconCheck(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.25"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M5.5 12.5 10 17l8.5-9"
+      />
+    </Icon>
+  )
+}
+
+export function IconPlus(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2.25"
+        strokeLinecap="round"
+        d="M12 5.5v13M5.5 12h13"
+      />
+    </Icon>
+  )
+}
+
 /** Chevron pointing down; rotate −90° when collapsed. */
 export function IconChevron(props: Omit<IconProps, 'children'>) {
   return (
