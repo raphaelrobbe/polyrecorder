@@ -15,6 +15,8 @@ export const de: Record<MessageKey, string> = {
     'Datenschutzerklärung von polyrecorder: erhobene Daten, Zwecke und deine Rechte.',
   'seo.terms.description':
     'Nutzungsbedingungen von polyrecorder: Konto, Inhalte und Verantwortlichkeiten.',
+  'seo.contact.description':
+    'polyrecorder kontaktieren: Formular für Fragen, Meldungen und kontobezogene Anliegen.',
   'seo.sitemap.description':
     'Sitemap von polyrecorder: App-Seiten, Konto und rechtliche Informationen.',
   'seo.library.user.description':
@@ -49,7 +51,27 @@ export const de: Record<MessageKey, string> = {
   'nav.legal': 'Impressum',
   'nav.privacy': 'Datenschutz',
   'nav.terms': 'AGB',
+  'nav.contact': 'Kontakt',
   'nav.sitemap': 'Sitemap',
+
+  'contact.title': 'Kontakt',
+  'contact.close': 'Kontaktformular schließen',
+  'contact.formLink': 'Kontaktformular',
+  'contact.lead':
+    'Eine Frage, ein Problem, eine Idee? Schreib uns — wir antworten per E-Mail.',
+  'contact.email': 'E-Mail',
+  'contact.message': 'Nachricht',
+  'contact.captcha': 'Anti-Robot-Prüfung',
+  'contact.submit': 'Senden',
+  'contact.sending': 'Senden…',
+  'contact.success':
+    'Nachricht gesendet. Du erhältst eine Antwort an die angegebene Adresse.',
+  'contact.error.email': 'Gib eine gültige E-Mail-Adresse ein.',
+  'contact.error.message': 'Schreib eine Nachricht vor dem Senden.',
+  'contact.error.captcha': 'Schließe die Anti-Robot-Prüfung ab.',
+  'contact.error.rateLimited':
+    'Zu viele Nachrichten. Versuche es in ein paar Minuten erneut.',
+  'contact.error.send': 'Senden gerade nicht möglich. Versuche es später erneut.',
 
   'legal.title': 'Impressum',
   'legal.close': 'Impressum schließen',
@@ -77,7 +99,7 @@ export const de: Record<MessageKey, string> = {
   'privacy.close': 'Datenschutzerklärung schließen',
   'privacy.controller.title': 'Verantwortlicher',
   'privacy.controller.body':
-    '{name} ({site}), {address}, erreichbar unter {email}, ist Verantwortlicher für die über die Anwendung erhobenen personenbezogenen Daten.',
+    '{name} ({site}), {address}, erreichbar über das {email}, ist Verantwortlicher für die über die Anwendung erhobenen personenbezogenen Daten.',
   'privacy.data.title': 'Erhobene Daten',
   'privacy.data.account':
     'Konto (bei Anmeldung): E-Mail-Adresse, Anzeigename, Authentifizierungssitzungen.',
@@ -96,7 +118,7 @@ export const de: Record<MessageKey, string> = {
     'Konto- und Bibliotheksdaten werden so lange gespeichert, wie das Konto besteht. Du kannst dein Konto in der App löschen; zugehörige Daten werden dann gelöscht. Technische Protokolle werden nur so lange wie für die Diagnose nötig aufbewahrt.',
   'privacy.rights.title': 'Deine Rechte',
   'privacy.rights.body':
-    'Du hast Rechte auf Auskunft, Berichtigung, Löschung, Widerspruch, Einschränkung und Datenübertragbarkeit. Du kannst sie über {email} ausüben oder indem du dein Konto in den Einstellungen löschst. Du kannst auch eine Beschwerde bei einer Aufsichtsbehörde einreichen (in Frankreich: CNIL, cnil.fr).',
+    'Du hast Rechte auf Auskunft, Berichtigung, Löschung, Widerspruch, Einschränkung und Datenübertragbarkeit. Du kannst sie über das {email} ausüben oder indem du dein Konto in den Einstellungen löschst. Du kannst auch eine Beschwerde bei einer Aufsichtsbehörde einreichen (in Frankreich: CNIL, cnil.fr).',
   'privacy.cookies.title': 'Cookies und lokaler Speicher',
   'privacy.cookies.guest':
     'Als Gast setzt polyrecorder keine Cookies.',
@@ -152,7 +174,7 @@ export const de: Record<MessageKey, string> = {
     'Der Herausgeber kann diese Bedingungen ändern. Das Inkrafttreten steht oben auf der Seite. Weiterbenutzung nach einer Aktualisierung gilt als Annahme. Bei einer wesentlichen Änderung im Zusammenhang mit einem kostenpflichtigen Angebot erfolgt vor dem Kauf eine klare Information.',
   'terms.law.title': 'Anwendbares Recht',
   'terms.law.body':
-    'Diese Bedingungen unterliegen französischem Recht. Bei Streitigkeiten kannst du {email} kontaktieren. Scheitert eine einvernehmliche Lösung, sind die zuständigen französischen Gerichte angerufen, vorbehaltlich zwingender Verbraucherschutzvorschriften.',
+    'Diese Bedingungen unterliegen französischem Recht. Bei Streitigkeiten kannst du das {email} nutzen. Scheitert eine einvernehmliche Lösung, sind die zuständigen französischen Gerichte angerufen, vorbehaltlich zwingender Verbraucherschutzvorschriften.',
   'terms.legalLink': 'Siehe auch das',
 
   'sitemap.title': 'Sitemap',

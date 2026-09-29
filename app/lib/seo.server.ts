@@ -19,6 +19,7 @@ const STATIC_PATHS: Array<{
   { path: '/legal', changefreq: 'yearly', priority: 0.3 },
   { path: '/privacy', changefreq: 'yearly', priority: 0.3 },
   { path: '/terms', changefreq: 'yearly', priority: 0.3 },
+  { path: '/contact', changefreq: 'yearly', priority: 0.3 },
   { path: '/sitemap', changefreq: 'monthly', priority: 0.2 },
 ]
 

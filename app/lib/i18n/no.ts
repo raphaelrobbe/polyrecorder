@@ -15,6 +15,8 @@ export const no: Record<MessageKey, string> = {
     'Personvernerklæring for polyrecorder: data vi samler inn, formål og dine rettigheter.',
   'seo.terms.description':
     'Vilkår for bruk av polyrecorder: konto, innhold og ansvar.',
+  'seo.contact.description':
+    'Kontakt polyrecorder: skjema for spørsmål, rapporter og kontohenvendelser.',
   'seo.sitemap.description':
     'Nettstedskart for polyrecorder: appsider, konto og juridisk informasjon.',
   'seo.library.user.description':
@@ -49,7 +51,27 @@ export const no: Record<MessageKey, string> = {
   'nav.legal': 'Juridisk',
   'nav.privacy': 'Personvern',
   'nav.terms': 'Vilkår',
+  'nav.contact': 'Kontakt',
   'nav.sitemap': 'Nettstedskart',
+
+  'contact.title': 'Kontakt',
+  'contact.close': 'Lukk kontaktskjemaet',
+  'contact.formLink': 'kontaktskjemaet',
+  'contact.lead':
+    'Et spørsmål, et problem, en idé? Send oss en melding — vi svarer på e-post.',
+  'contact.email': 'E-post',
+  'contact.message': 'Melding',
+  'contact.captcha': 'Anti-robot-sjekk',
+  'contact.submit': 'Send',
+  'contact.sending': 'Sender…',
+  'contact.success':
+    'Melding sendt. Du får svar på adressen du oppga.',
+  'contact.error.email': 'Oppgi en gyldig e-postadresse.',
+  'contact.error.message': 'Skriv en melding før du sender.',
+  'contact.error.captcha': 'Fullfør anti-robot-sjekken.',
+  'contact.error.rateLimited':
+    'For mange meldinger. Prøv igjen om noen minutter.',
+  'contact.error.send': 'Kan ikke sende akkurat nå. Prøv igjen senere.',
 
   'legal.title': 'Juridisk informasjon',
   'legal.close': 'Lukk juridisk informasjon',
@@ -77,7 +99,7 @@ export const no: Record<MessageKey, string> = {
   'privacy.close': 'Lukk personvernerklæringen',
   'privacy.controller.title': 'Behandlingsansvarlig',
   'privacy.controller.body':
-    '{name} ({site}), {address}, kontaktbar på {email}, er behandlingsansvarlig for personopplysninger samlet inn via applikasjonen.',
+    '{name} ({site}), {address}, kontaktbar via {email}, er behandlingsansvarlig for personopplysninger samlet inn via applikasjonen.',
   'privacy.data.title': 'Opplysninger som samles inn',
   'privacy.data.account':
     'Konto (hvis du logger inn): e-postadresse, visningsnavn, autentiseringsøkter.',
@@ -152,7 +174,7 @@ export const no: Record<MessageKey, string> = {
     'Utgiveren kan endre disse vilkårene. Ikrafttredelsesdato står øverst på siden. Fortsatt bruk etter en oppdatering betyr at du godtar de nye vilkårene. Ved vesentlig endring knyttet til et betalt tilbud gis klar informasjon før kjøp.',
   'terms.law.title': 'Lovvalg',
   'terms.law.body':
-    'Disse vilkårene er underlagt fransk rett. Ved tvist kan du kontakte {email}. Dersom minnelig løsning ikke oppnås, er franske domstoler kompetente, med forbehold om ufravikelige forbrukervernregler.',
+    'Disse vilkårene er underlagt fransk rett. Ved tvist kan du bruke {email}. Dersom minnelig løsning ikke oppnås, er franske domstoler kompetente, med forbehold om ufravikelige forbrukervernregler.',
   'terms.legalLink': 'Se også',
 
   'sitemap.title': 'Nettstedskart',

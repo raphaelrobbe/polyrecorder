@@ -10,6 +10,7 @@ export const RESERVED_PSEUDOS = [
   'chanson',
   'compte',
   'connexion',
+  'contact',
   'groupe',
   'groupes',
   'legal',

@@ -57,6 +57,7 @@ export function SitemapPanel({ className }: SitemapPanelProps) {
           <SitemapLink to="/legal" label={t('nav.legal')} />
           <SitemapLink to="/privacy" label={t('nav.privacy')} />
           <SitemapLink to="/terms" label={t('nav.terms')} />
+          <SitemapLink to="/contact" label={t('nav.contact')} />
           <SitemapLink to="/sitemap" label={t('nav.sitemap')} />
         </ul>
       </HelpSection>

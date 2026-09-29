@@ -13,6 +13,8 @@ export const fr = {
     'Politique de confidentialité de polyrecorder : données collectées, finalités et tes droits.',
   'seo.terms.description':
     'Conditions générales d’utilisation de polyrecorder : compte, contenus et responsabilités.',
+  'seo.contact.description':
+    'Contacter polyrecorder : formulaire pour questions, signalements et demandes liées au compte.',
   'seo.sitemap.description':
     'Plan du site polyrecorder : accès aux pages de l’application, du compte et des infos légales.',
   'seo.library.user.description':
@@ -47,7 +49,27 @@ export const fr = {
   'nav.legal': 'Mentions légales',
   'nav.privacy': 'Confidentialité',
   'nav.terms': 'CGU',
+  'nav.contact': 'Contact',
   'nav.sitemap': 'Plan du site',
+
+  'contact.title': 'Contact',
+  'contact.close': 'Fermer le formulaire de contact',
+  'contact.formLink': 'formulaire de contact',
+  'contact.lead':
+    'Une question, un souci, une idée ? Envoie-nous un message — on te répondra par email.',
+  'contact.email': 'Email',
+  'contact.message': 'Message',
+  'contact.captcha': 'Vérification anti-robot',
+  'contact.submit': 'Envoyer',
+  'contact.sending': 'Envoi…',
+  'contact.success':
+    'Message envoyé. Tu recevras une réponse à l’adresse indiquée.',
+  'contact.error.email': 'Indique une adresse email valide.',
+  'contact.error.message': 'Écris un message avant d’envoyer.',
+  'contact.error.captcha': 'Valide la vérification anti-robot.',
+  'contact.error.rateLimited':
+    'Trop de messages envoyés. Réessaie dans quelques minutes.',
+  'contact.error.send': 'Envoi impossible pour le moment. Réessaie plus tard.',
 
   'legal.title': 'Mentions légales',
   'legal.close': 'Fermer les mentions légales',
@@ -75,7 +97,7 @@ export const fr = {
   'privacy.close': 'Fermer la politique de confidentialité',
   'privacy.controller.title': 'Responsable du traitement',
   'privacy.controller.body':
-    '{name} ({site}), {address}, joignable à {email}, est responsable du traitement des données personnelles collectées via l’application.',
+    '{name} ({site}), {address}, joignable via le {email}, est responsable du traitement des données personnelles collectées via l’application.',
   'privacy.data.title': 'Données collectées',
   'privacy.data.account':
     'Compte (si tu te connectes) : adresse e-mail, pseudo, sessions d’authentification.',
@@ -94,7 +116,7 @@ export const fr = {
     'Les données de compte et de bibliothèque sont conservées tant que le compte existe. Tu peux supprimer ton compte depuis l’application ; les données associées sont alors effacées. Les journaux techniques sont conservés le temps nécessaire au diagnostic.',
   'privacy.rights.title': 'Tes droits',
   'privacy.rights.body':
-    'Tu disposes des droits d’accès, de rectification, d’effacement, d’opposition, de limitation et de portabilité. Tu peux les exercer via {email}, ou en supprimant ton compte dans les paramètres. Tu peux aussi introduire une réclamation auprès de la CNIL (cnil.fr).',
+    'Tu disposes des droits d’accès, de rectification, d’effacement, d’opposition, de limitation et de portabilité. Tu peux les exercer via le {email}, ou en supprimant ton compte dans les paramètres. Tu peux aussi introduire une réclamation auprès de la CNIL (cnil.fr).',
   'privacy.cookies.title': 'Cookies et stockage local',
   'privacy.cookies.guest':
     'En navigation en invité, polyrecorder ne dépose aucun cookie.',
@@ -150,7 +172,7 @@ export const fr = {
     'L’éditeur peut modifier les CGU. La date d’entrée en vigueur est indiquée en tête de page. En continuant à utiliser le service après une mise à jour, tu acceptes les nouvelles conditions. Pour un changement substantiel lié à une offre payante, une information claire sera fournie avant souscription.',
   'terms.law.title': 'Droit applicable',
   'terms.law.body':
-    'Les présentes CGU sont régies par le droit français. En cas de litige, tu peux contacter {email}. À défaut d’accord amiable, les tribunaux français compétents seront saisis, sous réserve des règles protectrices applicables au consommateur.',
+    'Les présentes CGU sont régies par le droit français. En cas de litige, tu peux utiliser le {email}. À défaut d’accord amiable, les tribunaux français compétents seront saisis, sous réserve des règles protectrices applicables au consommateur.',
   'terms.legalLink': 'Voir aussi les',
 
   'sitemap.title': 'Plan du site',

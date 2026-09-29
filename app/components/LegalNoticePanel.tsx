@@ -2,6 +2,7 @@ import { Link } from '@remix-run/react'
 import { useLocale } from '../hooks/useLocale'
 import { t } from '../lib/i18n'
 import { LEGAL } from '../lib/legal'
+import { withContactLink } from './ContactLink'
 import { DeckOverlayPanel } from './DeckOverlayPanel'
 import { HelpSection, HelpText } from './HelpSection'
 
@@ -35,9 +36,7 @@ export function LegalNoticePanel({ className }: LegalNoticePanelProps) {
             name: LEGAL.publicationDirector,
           })}
         </HelpText>
-        <HelpText>
-          {t('legal.contact', { email: LEGAL.contactEmail })}
-        </HelpText>
+        <HelpText>{withContactLink(t('legal.contact'))}</HelpText>
       </HelpSection>
 
       <HelpSection title={t('legal.host.title')}>

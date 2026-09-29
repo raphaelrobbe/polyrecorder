@@ -47,6 +47,13 @@ export function LegalFooter({ className }: LegalFooterProps) {
       <button
         type="button"
         className={linkClass}
+        onClick={() => navigate('/contact')}
+      >
+        {t('nav.contact')}
+      </button>
+      <button
+        type="button"
+        className={linkClass}
         onClick={() => navigate('/sitemap')}
       >
         {t('nav.sitemap')}

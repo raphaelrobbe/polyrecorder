@@ -15,6 +15,8 @@ export const en: Record<MessageKey, string> = {
     'polyrecorder privacy policy: data we collect, why, and your rights.',
   'seo.terms.description':
     'polyrecorder terms of use: account, content, and responsibilities.',
+  'seo.contact.description':
+    'Contact polyrecorder: form for questions, reports, and account-related requests.',
   'seo.sitemap.description':
     'polyrecorder site map: app pages, account, and legal information.',
   'seo.library.user.description':
@@ -48,7 +50,27 @@ export const en: Record<MessageKey, string> = {
   'nav.legal': 'Legal notice',
   'nav.privacy': 'Privacy',
   'nav.terms': 'Terms',
+  'nav.contact': 'Contact',
   'nav.sitemap': 'Sitemap',
+
+  'contact.title': 'Contact',
+  'contact.close': 'Close the contact form',
+  'contact.formLink': 'contact form',
+  'contact.lead':
+    'A question, an issue, an idea? Send us a message — we’ll reply by email.',
+  'contact.email': 'Email',
+  'contact.message': 'Message',
+  'contact.captcha': 'Anti-robot check',
+  'contact.submit': 'Send',
+  'contact.sending': 'Sending…',
+  'contact.success':
+    'Message sent. You’ll get a reply at the address you provided.',
+  'contact.error.email': 'Enter a valid email address.',
+  'contact.error.message': 'Write a message before sending.',
+  'contact.error.captcha': 'Complete the anti-robot check.',
+  'contact.error.rateLimited':
+    'Too many messages sent. Try again in a few minutes.',
+  'contact.error.send': 'Couldn’t send right now. Try again later.',
 
   'legal.title': 'Legal notice',
   'legal.close': 'Close legal notice',
@@ -76,7 +98,7 @@ export const en: Record<MessageKey, string> = {
   'privacy.close': 'Close privacy policy',
   'privacy.controller.title': 'Data controller',
   'privacy.controller.body':
-    '{name} ({site}), {address}, reachable at {email}, is the controller of personal data collected through the application.',
+    '{name} ({site}), {address}, reachable via the {email}, is the controller of personal data collected through the application.',
   'privacy.data.title': 'Data collected',
   'privacy.data.account':
     'Account (if you sign in): email address, display name, authentication sessions.',
@@ -95,7 +117,7 @@ export const en: Record<MessageKey, string> = {
     'Account and library data are kept for as long as the account exists. You can delete your account in the app; associated data is then erased. Technical logs are kept only as long as needed for diagnostics.',
   'privacy.rights.title': 'Your rights',
   'privacy.rights.body':
-    'You have rights of access, rectification, erasure, objection, restriction and portability. You can exercise them via {email}, or by deleting your account in settings. You may also lodge a complaint with your supervisory authority (in France: CNIL, cnil.fr).',
+    'You have rights of access, rectification, erasure, objection, restriction and portability. You can exercise them via the {email}, or by deleting your account in settings. You may also lodge a complaint with your supervisory authority (in France: CNIL, cnil.fr).',
   'privacy.cookies.title': 'Cookies and local storage',
   'privacy.cookies.guest':
     'As a guest, polyrecorder sets no cookies.',
@@ -151,7 +173,7 @@ export const en: Record<MessageKey, string> = {
     'The publisher may update these terms. The effective date is shown at the top of the page. Continued use after an update means you accept the new terms. For a material change linked to a paid offer, clear information will be provided before purchase.',
   'terms.law.title': 'Governing law',
   'terms.law.body':
-    'These terms are governed by French law. In case of dispute, you may contact {email}. Failing amicable settlement, the competent French courts shall have jurisdiction, subject to mandatory consumer protection rules.',
+    'These terms are governed by French law. In case of dispute, you may use the {email}. Failing amicable settlement, the competent French courts shall have jurisdiction, subject to mandatory consumer protection rules.',
   'terms.legalLink': 'See also the',
 
   'sitemap.title': 'Sitemap',

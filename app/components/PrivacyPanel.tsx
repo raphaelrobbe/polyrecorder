@@ -2,6 +2,7 @@ import { Link } from '@remix-run/react'
 import { useLocale } from '../hooks/useLocale'
 import { t } from '../lib/i18n'
 import { LEGAL } from '../lib/legal'
+import { withContactLink } from './ContactLink'
 import { DeckOverlayPanel } from './DeckOverlayPanel'
 import { HelpSection, HelpText } from './HelpSection'
 
@@ -21,12 +22,13 @@ export function PrivacyPanel({ className }: PrivacyPanelProps) {
     >
       <HelpSection title={t('privacy.controller.title')}>
         <HelpText>
-          {t('privacy.controller.body', {
-            name: LEGAL.publisherName,
-            address: LEGAL.address,
-            email: LEGAL.contactEmail,
-            site: LEGAL.siteName,
-          })}
+          {withContactLink(
+            t('privacy.controller.body', {
+              name: LEGAL.publisherName,
+              address: LEGAL.address,
+              site: LEGAL.siteName,
+            }),
+          )}
         </HelpText>
       </HelpSection>
 
@@ -53,9 +55,7 @@ export function PrivacyPanel({ className }: PrivacyPanelProps) {
       </HelpSection>
 
       <HelpSection title={t('privacy.rights.title')}>
-        <HelpText>
-          {t('privacy.rights.body', { email: LEGAL.contactEmail })}
-        </HelpText>
+        <HelpText>{withContactLink(t('privacy.rights.body'))}</HelpText>
       </HelpSection>
 
       <HelpSection title={t('privacy.cookies.title')}>

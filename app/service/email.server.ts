@@ -16,6 +16,7 @@ export async function sendMail(options: {
   subject: string
   text: string
   html: string
+  replyTo?: string
 }): Promise<{ ok: true } | { ok: false; reason: string; detail?: string }> {
   const smtp = getSmtpConfig()
   if (!smtp) {
@@ -31,6 +32,7 @@ export async function sendMail(options: {
     console.info('[email:dev] SMTP not configured — message dumped:\n', {
       to: options.to,
       subject: options.subject,
+      replyTo: options.replyTo,
       text: options.text,
     })
     return { ok: true }
@@ -50,6 +52,7 @@ export async function sendMail(options: {
     await transporter.sendMail({
       from: smtp.from,
       to: options.to,
+      replyTo: options.replyTo,
       subject: options.subject,
       text: options.text,
       html: options.html,

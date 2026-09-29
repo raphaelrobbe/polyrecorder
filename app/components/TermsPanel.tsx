@@ -2,6 +2,7 @@ import { Link } from '@remix-run/react'
 import { useLocale } from '../hooks/useLocale'
 import { t } from '../lib/i18n'
 import { LEGAL, formatTermsEffectiveDate } from '../lib/legal'
+import { withContactLink } from './ContactLink'
 import { DeckOverlayPanel } from './DeckOverlayPanel'
 import { HelpSection, HelpText } from './HelpSection'
 
@@ -83,9 +84,7 @@ export function TermsPanel({ className }: TermsPanelProps) {
       </HelpSection>
 
       <HelpSection title={t('terms.law.title')}>
-        <HelpText>
-          {t('terms.law.body', { email: LEGAL.contactEmail })}
-        </HelpText>
+        <HelpText>{withContactLink(t('terms.law.body'))}</HelpText>
       </HelpSection>
 
       <HelpText>
