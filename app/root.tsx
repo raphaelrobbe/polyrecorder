@@ -42,10 +42,10 @@ export const links: LinksFunction = () => {
     },
     {
       rel: 'apple-touch-icon',
-      href: `${base}apple-touch-icon.png?v=2`,
+      href: `${base}apple-touch-icon.png?v=3`,
       sizes: '180x180',
     },
-    { rel: 'manifest', href: `${base}site.webmanifest?v=2` },
+    { rel: 'manifest', href: `${base}site.webmanifest?v=3` },
   ]
 }
 

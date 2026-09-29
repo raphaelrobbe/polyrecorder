@@ -104,6 +104,29 @@ function rasterMic(size: number): Buffer {
   return Buffer.from(resvg.render().asPng())
 }
 
+/**
+ * Mic centered on a black canvas with padding.
+ * Maskable / home-screen icons need ~20%+ safe margin or Android crops the top.
+ */
+function buildPaddedMicSvg(size: number, contentRatio: number): string {
+  const micSize = size * contentRatio
+  const micX = (size - micSize) / 2
+  const micY = (size - micSize) / 2
+  const scale = micSize / 32
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" role="img">
+  <title>polyrecorder</title>
+  <rect width="${size}" height="${size}" fill="#000000"/>
+  <g transform="translate(${micX}, ${micY}) scale(${scale})">
+    ${MIC_MARK}
+  </g>
+</svg>`
+}
+
+function rasterPaddedMic(size: number, contentRatio: number): Buffer {
+  return rasterSvg(buildPaddedMicSvg(size, contentRatio), size)
+}
+
 // Small favicons: mic only (wordmark would be illegible).
 const png16 = rasterMic(16)
 const png32 = rasterMic(32)
@@ -117,9 +140,25 @@ copyFileSync(join(publicDir, 'logo-mic.svg'), join(publicDir, 'favicon.svg'))
 writeFileSync(join(publicDir, 'icon-512.png'), rasterSvg(buildAppIconSvg(512), 512))
 writeFileSync(join(publicDir, 'icon-192.png'), rasterSvg(buildAppIconSvg(192), 192))
 
-// Home screen / PWA / Apple touch: mic only (OS already shows the app name).
+// PWA "any": full-bleed mic (desktop / taskbar).
 writeFileSync(join(publicDir, 'app-icon-512.png'), rasterMic(512))
 writeFileSync(join(publicDir, 'app-icon-192.png'), rasterMic(192))
-writeFileSync(join(publicDir, 'apple-touch-icon.png'), rasterMic(180))
+
+// Maskable: mic in the safe zone (~72%) so round Android masks don’t clip it.
+const MASKABLE_RATIO = 0.72
+writeFileSync(
+  join(publicDir, 'app-icon-maskable-512.png'),
+  rasterPaddedMic(512, MASKABLE_RATIO),
+)
+writeFileSync(
+  join(publicDir, 'app-icon-maskable-192.png'),
+  rasterPaddedMic(192, MASKABLE_RATIO),
+)
+
+// Apple touch: mild padding (iOS rounds corners).
+writeFileSync(
+  join(publicDir, 'apple-touch-icon.png'),
+  rasterPaddedMic(180, 0.8),
+)
 
 console.log('Favicon + app icon assets written to public/')
