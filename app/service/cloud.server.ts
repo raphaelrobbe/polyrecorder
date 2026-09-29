@@ -1703,6 +1703,74 @@ export async function updateTrackAssetMutes(
   return { ok: true }
 }
 
+function normalizeMuteRanges(
+  raw: unknown,
+): Array<{ startMs: number; endMs: number }> | null {
+  if (!Array.isArray(raw)) return null
+  const out: Array<{ startMs: number; endMs: number }> = []
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') return null
+    const startMs = Number((item as { startMs?: unknown }).startMs)
+    const endMs = Number((item as { endMs?: unknown }).endMs)
+    if (!Number.isFinite(startMs) || !Number.isFinite(endMs)) return null
+    if (endMs <= startMs) continue
+    out.push({
+      startMs: Math.max(0, Math.round(startMs)),
+      endMs: Math.max(0, Math.round(endMs)),
+    })
+  }
+  out.sort((a, b) => a.startMs - b.startMs)
+  return out
+}
+
+/**
+ * Persist non-destructive mute windows (buffer-local ms).
+ * Allowed for track uploader, or song owner when uploadedByUserId is legacy null.
+ */
+export async function setTrackAssetMuteRanges(
+  request: Request,
+  trackAssetId: string,
+  muteRangesRaw: unknown,
+): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  if (!trackAssetId) return { ok: false, reason: 'invalid' }
+
+  const muteRanges = normalizeMuteRanges(muteRangesRaw)
+  if (muteRanges == null) return { ok: false, reason: 'invalid' }
+
+  const asset = await prisma.trackAsset.findFirst({
+    where: { id: trackAssetId },
+    include: {
+      songPart: {
+        include: {
+          song: {
+            include: {
+              repertoire: { include: { group: { select: { userId: true } } } },
+            },
+          },
+        },
+      },
+    },
+  })
+  if (!asset) return { ok: false, reason: 'not_found' }
+
+  const isUploader = asset.uploadedByUserId === user.id
+  const isLegacyOwner =
+    asset.uploadedByUserId == null &&
+    asset.songPart.song.repertoire.group.userId === user.id
+  if (!isUploader && !isLegacyOwner) {
+    return { ok: false, reason: 'not_found' }
+  }
+
+  await prisma.trackAsset.update({
+    where: { id: asset.id },
+    data: { muteRanges },
+  })
+  return { ok: true }
+}
+
 export async function updateSongPartMasterVolume(
   request: Request,
   songPartId: string,
@@ -2104,6 +2172,7 @@ export async function openSong(
         offsetMs: track.offsetMs,
         volume: track.volume,
         muted: Boolean(track.muted),
+        muteRanges: normalizeMuteRanges(track.muteRanges) ?? [],
         contentType: track.contentType,
         uploadedByMe: Boolean(
           user && track.uploadedByUserId === user.id,

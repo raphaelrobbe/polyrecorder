@@ -8,7 +8,7 @@ export const en: Record<MessageKey, string> = {
   'seo.home.description':
     'Browser multitrack recorder: layer takes, share sessions, and collaborate online. Free, no install.',
   'seo.help.description':
-    'polyrecorder help: guest mode, Simple/Mix/Align modes, cloud library, sharing, FAQ, and shortcuts.',
+    'polyrecorder help: guest mode, Simple/Mix/Align/Cut modes, cloud library, sharing, FAQ, and shortcuts.',
   'seo.legal.description':
     'polyrecorder legal notice: publisher, hosting, and intellectual property.',
   'seo.privacy.description':
@@ -346,6 +346,35 @@ export const en: Record<MessageKey, string> = {
   'mode.mix.hint': 'Mix mode: per-track and master volumes',
   'mode.align': 'Align',
   'mode.align.hint': 'Align mode: track synchronization',
+  'mode.cut': 'Cut',
+  'mode.cut.hint': 'Cut mode: split, mute ranges, merge',
+
+  'cut.idle.hint': 'Set the playhead, then split to cut the tracks',
+  'cut.select.hint': 'Select one or more tracks',
+  'cut.select.confirm': 'Confirm',
+  'cut.cancel': 'Cancel',
+  'cut.edit.hint': 'Select segments, then Mute or Merge',
+  'cut.scissors': 'Split at playhead',
+  'cut.scissors.hint': 'Split all segments at the playhead',
+  'cut.scissors.aria': 'Split at playhead',
+  'cut.mute': 'Mute',
+  'cut.mute.hint': 'Mute the selected segments (non-destructive)',
+  'cut.mute.barAria': 'Muted ranges for {name}',
+  'cut.mute.barTitle': 'Muted section',
+  'cut.mute.remove': 'Remove this mute',
+  'cut.mute.removeAria': 'Remove muted range',
+  'cut.merge': 'Merge',
+  'cut.merge.hint': 'Merge selected segments into a new track',
+  'cut.merge.busy': 'Merging…',
+  'cut.merge.disabledEmpty': 'Select at least one segment',
+  'cut.merge.disabledOverlap':
+    'Unavailable: selected segments overlap on the timeline',
+  'cut.merge.trackName': 'Merge · {names}',
+  'cut.merge.trackNameFallback': 'Merge',
+  'cut.track.select': 'Include this track in cut mode',
+  'cut.track.selectAria': 'Select {name} for cutting',
+  'cut.segments.aria': 'Segments of {name}',
+  'cut.segment.toggle': 'Select or deselect this segment',
 
   'piano.toggle': 'Piano',
   'piano.toggle.show': 'Show piano',
@@ -500,11 +529,11 @@ export const en: Record<MessageKey, string> = {
   'help.guest.body3':
     'If you switch device or browser before signing in, the local draft is no longer available.',
 
-  'help.modes.title': 'Simple, Mix, and Align modes',
+  'help.modes.title': 'Simple, Mix, Align, and Cut modes',
   'help.modes.body1':
-    'The control on the right, between the decks, has three modes. Simple: record and listen. Mix: per-track and master volumes, highlight, MP3 export. Align: manual offsets, auto-align, and warnings. To the left of that row, the Piano button opens a pitch helper keyboard.',
+    'The control on the right, between the decks, has four modes. Simple: record and listen. Mix: per-track and master volumes, highlight, MP3 export. Align: manual offsets, auto-align, and warnings. Cut: split at the playhead, mute ranges without rewriting the file, or merge selected segments into a new track (gaps = silence). To the left of that row, the Piano button opens a pitch helper keyboard.',
   'help.modes.body2':
-    'Auto-align preference can also be set on the deck (and in Preferences): it applies to the current session.',
+    'In Cut mode, mute is local for everyone and only persists to the cloud if you own the track. Merge creates a track under your account (cloud upload if you are owner or collaborator). Auto-align preference can also be set on the deck (and in Preferences): it applies to the current session.',
 
   'help.metronome.title': 'Metronome',
   'help.metronome.body1':
@@ -514,7 +543,7 @@ export const en: Record<MessageKey, string> = {
 
   'help.piano.title': 'Piano',
   'help.piano.body1':
-    'The Piano button (left of Simple / Mix / Align) shows a two-octave keyboard. Tap the keys to hear notes and get your pitch before recording, or even during recording.',
+    'The Piano button (left of Simple / Mix / Align / Cut) shows a two-octave keyboard. Tap the keys to hear notes and get your pitch before recording, or even during recording.',
   'help.piano.body2':
     'Ideal with headphones: you hear the note, but it is not audible on the recording—the sound stays in the browser and is not picked up by the mic.',
 
@@ -598,9 +627,9 @@ export const en: Record<MessageKey, string> = {
   'help.faq.headphones.q': 'Why headphones?',
   'help.faq.headphones.a':
     'Without them, the mic can pick up the speakers—that hurts alignment and quality. Headphone monitoring avoids that feedback.',
-  'help.faq.modes.q': 'What are Simple, Mix, and Align for?',
+  'help.faq.modes.q': 'What are Simple, Mix, Align, and Cut for?',
   'help.faq.modes.a':
-    'Simple to record and listen, Mix for volumes and MP3 export, Align to sync tracks (offsets and auto-align).',
+    'Simple to record and listen, Mix for volumes and MP3 export, Align to sync tracks (offsets and auto-align), Cut to split at the playhead, mute ranges without changing the file, or merge a selection into a new track.',
   'help.faq.clipping.q': 'Why a clipping warning in Mix mode?',
   'help.faq.clipping.a':
     'A “!” at the end of a track means the take clipped while recording: re-record with a lower mic input level. A banner by the master means stacking tracks clips the mix — lower the master, or leave auto-correct on (~0.85 target) in Preferences.',

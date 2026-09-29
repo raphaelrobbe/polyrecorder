@@ -21,12 +21,13 @@ import { Button } from '../Button'
 import { IconAutoAlign, IconTrash } from '../icons'
 import { NoticeBanner } from '../StatusMessage'
 import { VolumeRibbon } from '../VolumeRibbon'
+import { CutModePanel } from '../CutModePanel'
 import { TrackMute } from './TrackMute'
 import { TrackRow } from './TrackRow'
 
 const TOUCH_REORDER_THRESHOLD_PX = 8
 const TOUCH_REORDER_EXCLUDE =
-  'input, textarea, select, button:not([data-drag-track]), [data-track-mute], [data-rename-track], [data-ms-nudge], [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-align-all], [data-toggle-track], [data-highlight-track], [data-volume-ribbon], [data-volume-percent]'
+  'input, textarea, select, button:not([data-drag-track]), [data-track-mute], [data-rename-track], [data-ms-nudge], [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-align-all], [data-toggle-track], [data-highlight-track], [data-volume-ribbon], [data-volume-percent], [data-cut-select-track], [data-cut-segment]'
 
 type DragOverState = { trackId: number; edge: 'before' | 'after' } | null
 
@@ -40,6 +41,8 @@ export function TracksList({ className }: TracksListProps) {
   const state = useSessionStore((s) => s.state)
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
+  const cutMode = useSessionStore((s) => s.cutMode)
+  const cutPhase = useSessionStore((s) => s.cutPhase)
   const autoAlignEnabled = useSessionStore((s) => s.autoAlignEnabled)
   const masterVolume = useSessionStore((s) => s.masterVolume)
   const mixClipWarning = useSessionStore((s) => s.mixClipWarning)
@@ -68,6 +71,9 @@ export function TracksList({ className }: TracksListProps) {
   const masterMuteIndeterminate =
     selectedCount > 0 && selectedCount < tracks.length
   const hasDeletableTracks = tracks.length > 0
+  const cutEditing = cutMode && cutPhase === 'edit'
+  const modeLocksReorder = calageMode || mixMode || cutEditing
+  const compactTrackChrome = calageMode || mixMode || cutEditing
 
   const duration = getMixDurationMs(tracks)
   const seekPosition = mixSeekMs
@@ -252,6 +258,7 @@ export function TracksList({ className }: TracksListProps) {
             ) : null}
           </div>
         ) : null}
+        {cutMode ? <CutModePanel /> : null}
         {calageMode && alignable.length > 0 ? (
           <div
             className="mb-[0.08rem] grid grid-cols-[1.55rem_minmax(0,1fr)_2.6rem_7.1rem] items-end gap-x-[0.1rem] pl-[0.35rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_2.3rem_6rem]"
@@ -277,7 +284,7 @@ export function TracksList({ className }: TracksListProps) {
         <div
           className={cn(
             'mb-[0.45rem] grid min-h-[2rem] items-center gap-x-[0.1rem] pl-[0.35rem]',
-            calageMode || mixMode
+            compactTrackChrome
               ? 'grid-cols-[1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.4rem_minmax(0,1fr)]'
               : 'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]',
             calageMode &&
@@ -285,13 +292,13 @@ export function TracksList({ className }: TracksListProps) {
               'mb-[0.2rem] grid-cols-[1.55rem_minmax(0,1fr)_2.6rem_7.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_2.3rem_6rem]',
           )}
         >
-          {calageMode || mixMode ? null : (
+          {compactTrackChrome ? null : (
             <span className="col-start-1" aria-hidden="true" />
           )}
           <TrackMute
             className={cn(
               'justify-self-center',
-              calageMode || mixMode ? 'col-start-1' : 'col-start-2',
+              compactTrackChrome ? 'col-start-1' : 'col-start-2',
             )}
             title={t('tracks.muteAll.hint')}
             ariaLabel={t('tracks.muteAll.aria')}
@@ -303,7 +310,7 @@ export function TracksList({ className }: TracksListProps) {
           <div
             className={cn(
               'flex w-full min-w-0 items-center justify-end py-[0.2rem] pr-[0.45rem] pl-[0.35rem] max-sm:pr-[0.3rem] max-sm:pl-[0.2rem]',
-              calageMode || mixMode ? 'col-start-2' : 'col-start-3',
+              compactTrackChrome ? 'col-start-2' : 'col-start-3',
             )}
           >
             <Button
@@ -312,7 +319,7 @@ export function TracksList({ className }: TracksListProps) {
               icon={<IconTrash />}
               aria-label={t('tracks.deleteAll')}
               title={t('tracks.deleteAll')}
-              hidden={calageMode || mixMode || !hasDeletableTracks}
+              hidden={compactTrackChrome || !hasDeletableTracks}
               disabled={state === 'recording' || !hasDeletableTracks}
               onClick={() => {
                 const count = tracks.length
@@ -369,7 +376,7 @@ export function TracksList({ className }: TracksListProps) {
           data-tracks
           ref={listRef}
           onDragStart={(event) => {
-            if (calageMode || mixMode) return
+            if (modeLocksReorder) return
             const target = event.target
             if (!(target instanceof Element)) return
             const handle = target.closest<HTMLElement>('[data-drag-track]')
@@ -408,7 +415,7 @@ export function TracksList({ className }: TracksListProps) {
             commitDragOverFromPoint(event.clientY)
           }}
           onPointerDown={(event) => {
-            if (calageMode || mixMode) return
+            if (modeLocksReorder) return
             if (event.pointerType === 'mouse') return
             if (!(event.target instanceof Element)) return
             if (event.target.closest(TOUCH_REORDER_EXCLUDE)) return
@@ -424,7 +431,7 @@ export function TracksList({ className }: TracksListProps) {
             }
           }}
           onPointerMove={(event) => {
-            if (calageMode || mixMode) return
+            if (modeLocksReorder) return
             const touch = touchReorderRef.current
             if (!touch || touch.pointerId !== event.pointerId) return
             const dy = event.clientY - touch.startY

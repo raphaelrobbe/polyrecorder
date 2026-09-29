@@ -83,6 +83,14 @@ import {
   trimAudioBufferFrom,
 } from './audio/mix.client'
 import {
+  audibleMixRange,
+  bufferRangeFromMix,
+  mergeMuteRanges,
+  newSegmentId,
+  segmentsOverlap,
+  splitSegmentsAtPlayhead,
+} from './audio/segments.client'
+import {
   beginSaveWithMemory,
   downloadBlobLegacy,
   writeSaveTarget,
@@ -217,6 +225,7 @@ function applyGuestDraftToStore(draft: GuestDraft): void {
     url: URL.createObjectURL(row.blob),
     durationMs: row.durationMs,
     offsetMs: row.offsetMs,
+    muteRanges: row.muteRanges,
     cloudStatus: row.cloudStatus ?? 'local',
     cloudTrackId: row.cloudTrackId,
     cloudOwnedByMe: row.cloudOwnedByMe,
@@ -276,6 +285,10 @@ function applyGuestDraftToStore(draft: GuestDraft): void {
     sharedOwnerLabel: draft.sharedOwnerLabel,
     calageMode: false,
     mixMode: readOnly && !allowsCollab,
+    cutMode: false,
+    cutPhase: 'idle',
+    cutSelectedTrackIds: [],
+    cutWorkSegments: {},
     mixSeekMs: 0,
     mixClockText: '00:00.000',
     error: null,
@@ -692,7 +705,15 @@ export function setCalageMode(on: boolean) {
   }
   if (on) {
     clearTrackHighlights()
-    patch({ calageMode: true, mixMode: false, calageTipOpen: false })
+    patch({
+      calageMode: true,
+      mixMode: false,
+      cutMode: false,
+      cutPhase: 'idle',
+      cutSelectedTrackIds: [],
+      cutWorkSegments: {},
+      calageTipOpen: false,
+    })
     refreshSkewWarning()
     if (tracks.length > 0) void evaluateReferenceBeat()
     return
@@ -711,6 +732,10 @@ export function setMixMode(on: boolean) {
     patch({
       mixMode: true,
       calageMode: false,
+      cutMode: false,
+      cutPhase: 'idle',
+      cutSelectedTrackIds: [],
+      cutWorkSegments: {},
       calageTipOpen: false,
       error: null,
       notice: null,
@@ -724,8 +749,42 @@ export function setMixMode(on: boolean) {
   patch({ mixMode: false, mixClipWarning: false })
 }
 
-/** Exclusive deck work mode: simple (default), mix, or align. */
-export type DeckWorkMode = 'simple' | 'mix' | 'align'
+export function setCutMode(on: boolean) {
+  const { tracks } = get()
+  if (tracks.length === 0 && on) {
+    patch({ cutMode: false })
+    return
+  }
+  if (on) {
+    clearTrackHighlights()
+    const { cutWorkSegments, cutSelectedTrackIds } =
+      buildInitialCutWorkState()
+    patch({
+      cutMode: true,
+      mixMode: false,
+      calageMode: false,
+      calageTipOpen: false,
+      cutPhase: 'idle',
+      cutSelectedTrackIds,
+      cutWorkSegments,
+      mixClipWarning: false,
+      error: null,
+      notice: null,
+      noticeSuppressedId: null,
+    })
+    refreshSkewWarning()
+    return
+  }
+  patch({
+    cutMode: false,
+    cutPhase: 'idle',
+    cutSelectedTrackIds: [],
+    cutWorkSegments: {},
+  })
+}
+
+/** Exclusive deck work mode: simple (default), mix, align, or cut. */
+export type DeckWorkMode = 'simple' | 'mix' | 'align' | 'cut'
 
 export function setDeckMode(mode: DeckWorkMode) {
   if (mode === 'mix') {
@@ -736,8 +795,245 @@ export function setDeckMode(mode: DeckWorkMode) {
     setCalageMode(true)
     return
   }
+  if (mode === 'cut') {
+    setCutMode(true)
+    return
+  }
   setMixMode(false)
   setCalageMode(false)
+  setCutMode(false)
+}
+
+function buildInitialCutWorkState(): {
+  cutWorkSegments: Record<number, import('../common/types').CutWorkSegment[]>
+  cutSelectedTrackIds: number[]
+} {
+  const cutWorkSegments: Record<
+    number,
+    import('../common/types').CutWorkSegment[]
+  > = {}
+  const cutSelectedTrackIds: number[] = []
+  for (const track of get().tracks) {
+    if (track.isMetronome) continue
+    const range = audibleMixRange(track)
+    if (range.endMs <= range.startMs) continue
+    cutSelectedTrackIds.push(track.id)
+    cutWorkSegments[track.id] = [
+      {
+        id: newSegmentId(),
+        startMs: range.startMs,
+        endMs: range.endMs,
+        selected: false,
+      },
+    ]
+  }
+  return { cutWorkSegments, cutSelectedTrackIds }
+}
+
+function resetCutWorkState(): void {
+  const { cutWorkSegments, cutSelectedTrackIds } = buildInitialCutWorkState()
+  patch({
+    cutPhase: 'idle',
+    cutSelectedTrackIds,
+    cutWorkSegments,
+  })
+}
+
+/** Cancel découpage edits and return to idle (normal track chrome). */
+export function cancelCutSelection() {
+  if (!get().cutMode) return
+  resetCutWorkState()
+}
+
+export function toggleCutSegmentSelected(trackId: number, segmentId: string) {
+  if (!get().cutMode || get().cutPhase !== 'edit') return
+  const segments = get().cutWorkSegments[trackId]
+  if (!segments) return
+  patch({
+    cutWorkSegments: {
+      ...get().cutWorkSegments,
+      [trackId]: segments.map((seg) =>
+        seg.id === segmentId ? { ...seg, selected: !seg.selected } : seg,
+      ),
+    },
+  })
+}
+
+export function splitCutSegmentsAtPlayhead() {
+  if (!get().cutMode) return
+  let prev = get().cutWorkSegments
+  if (Object.keys(prev).length === 0) {
+    const built = buildInitialCutWorkState()
+    prev = built.cutWorkSegments
+    patch({
+      cutWorkSegments: built.cutWorkSegments,
+      cutSelectedTrackIds: built.cutSelectedTrackIds,
+    })
+  }
+  const playheadMs = getMixPositionMs()
+  const next: Record<number, import('../common/types').CutWorkSegment[]> = {}
+  for (const key of Object.keys(prev)) {
+    const trackId = Number(key)
+    next[trackId] = splitSegmentsAtPlayhead(prev[trackId]!, playheadMs)
+  }
+  const hasSplit = Object.values(next).some((segs) => segs.length > 1)
+  patch({
+    cutWorkSegments: next,
+    ...(hasSplit ? { cutPhase: 'edit' as const } : {}),
+  })
+}
+
+/** Selected cut work segments across all tracks (mix timeline). */
+export function selectedCutWorkSegments(): Array<{
+  trackId: number
+  startMs: number
+  endMs: number
+}> {
+  const out: Array<{ trackId: number; startMs: number; endMs: number }> = []
+  const work = get().cutWorkSegments
+  for (const [key, segments] of Object.entries(work)) {
+    const trackId = Number(key)
+    for (const seg of segments) {
+      if (!seg.selected) continue
+      out.push({ trackId, startMs: seg.startMs, endMs: seg.endMs })
+    }
+  }
+  return out
+}
+
+export function cutMergeBlockedReason(): 'none' | 'empty' | 'overlap' {
+  const selected = selectedCutWorkSegments()
+  if (selected.length === 0) return 'empty'
+  if (segmentsOverlap(selected)) return 'overlap'
+  return 'none'
+}
+
+function persistCloudTrackMuteRanges(trackId: number) {
+  if (!canPersistCloudMix()) return
+  const track = get().tracks.find((t) => t.id === trackId)
+  if (!track?.cloudTrackId || isForeignCloudTrack(track)) return
+  postLibraryIntent(
+    {
+      intent: 'setTrackMuteRanges',
+      id: track.cloudTrackId,
+      muteRanges: track.muteRanges ?? [],
+    },
+    'set track mute ranges',
+  )
+}
+
+export function applyCutMute() {
+  if (!get().cutMode || get().cutPhase !== 'edit') return
+  const selected = selectedCutWorkSegments()
+  if (selected.length === 0) return
+
+  const byTrack = new Map<number, Array<{ startMs: number; endMs: number }>>()
+  for (const seg of selected) {
+    const list = byTrack.get(seg.trackId) ?? []
+    list.push({ startMs: seg.startMs, endMs: seg.endMs })
+    byTrack.set(seg.trackId, list)
+  }
+
+  const tracks = get().tracks.map((track) => {
+    const segs = byTrack.get(track.id)
+    if (!segs) return track
+    const added = segs.map((s) =>
+      bufferRangeFromMix(track, s.startMs, s.endMs),
+    )
+    const muteRanges = mergeMuteRanges([
+      ...(track.muteRanges ?? []),
+      ...added,
+    ])
+    return { ...track, muteRanges }
+  })
+
+  patch({ tracks })
+  for (const trackId of byTrack.keys()) {
+    persistCloudTrackMuteRanges(trackId)
+  }
+  scheduleGuestDraftSave()
+  resetCutWorkState()
+}
+
+/** Remove one mute window (buffer-local ms, as shown on the hatched bar). */
+export function removeCutMuteRange(
+  trackId: number,
+  startMs: number,
+  endMs: number,
+) {
+  if (!get().cutMode) return
+  if (!(endMs > startMs)) return
+  const track = get().tracks.find((t) => t.id === trackId)
+  if (!track) return
+
+  const merged = mergeMuteRanges(track.muteRanges ?? [])
+  const next = merged.filter(
+    (range) => range.startMs !== startMs || range.endMs !== endMs,
+  )
+  if (next.length === merged.length) return
+
+  const tracks = get().tracks.map((row) =>
+    row.id === trackId
+      ? {
+          ...row,
+          muteRanges: next.length > 0 ? next : undefined,
+        }
+      : row,
+  )
+  patch({ tracks })
+  persistCloudTrackMuteRanges(trackId)
+  scheduleGuestDraftSave()
+}
+
+export async function mergeSelectedCutSegments(): Promise<boolean> {
+  if (!get().cutMode || get().cutPhase !== 'edit') return false
+  if (cutMergeBlockedReason() !== 'none') return false
+
+  const selected = selectedCutWorkSegments()
+  const pieces = selected
+    .map((seg) => {
+      const track = get().tracks.find((t) => t.id === seg.trackId)
+      if (!track) return null
+      return { track, startMs: seg.startMs, endMs: seg.endMs }
+    })
+    .filter((p): p is NonNullable<typeof p> => p != null)
+  if (pieces.length === 0) return false
+
+  const sourceTrackIds = [...new Set(pieces.map((p) => p.track.id))]
+  const offsetMs = Math.min(...pieces.map((p) => p.startMs))
+
+  try {
+    const { encodeAudioBufferForMerge, renderMergedCutBuffer } = await import(
+      './audio/encodeMerge.client'
+    )
+    const rendered = await renderMergedCutBuffer(pieces)
+    const { blob, durationMs } = await encodeAudioBufferForMerge(rendered)
+    const nameParts = sourceTrackIds
+      .map((id) => get().tracks.find((t) => t.id === id)?.name)
+      .filter((n): n is string => Boolean(n))
+    const name =
+      nameParts.length > 0
+        ? t('cut.merge.trackName', { names: nameParts.join(' + ') })
+        : t('cut.merge.trackNameFallback')
+
+    await appendTrackFromBlob(blob, {
+      durationMs,
+      offsetMs,
+      name,
+      fromCutMerge: true,
+    })
+
+    for (const id of sourceTrackIds) {
+      setTrackEnabled(id, false)
+    }
+    resetCutWorkState()
+    return true
+  } catch (error) {
+    setError(
+      error instanceof Error ? error.message : t('error.exportFailed'),
+    )
+    return false
+  }
 }
 
 const HIGHLIGHT_DIM_VOLUME = 0.3
@@ -1889,8 +2185,8 @@ export async function playTracks(
       },
     )
     if (!scheduled) continue
-    bufferSources.push(scheduled.source)
-    allSources.push(scheduled.source)
+    bufferSources.push(...scheduled.sources)
+    allSources.push(...scheduled.sources)
     playing.add(track.id)
   }
 
@@ -2134,8 +2430,8 @@ export async function beginOverdubRecording(monitor: Track[]): Promise<void> {
       },
     )
     if (!scheduled) continue
-    bufferSources.push(scheduled.source)
-    allSources.push(scheduled.source)
+    bufferSources.push(...scheduled.sources)
+    allSources.push(...scheduled.sources)
     playing.add(track.id)
   }
 
@@ -2250,7 +2546,12 @@ export async function finalizeCurrentTake(): Promise<Track> {
 /** Shared path: mic take or imported file → session track + cloud hook. */
 async function appendTrackFromBlob(
   blob: Blob,
-  options: { durationMs: number; offsetMs?: number; name?: string },
+  options: {
+    durationMs: number
+    offsetMs?: number
+    name?: string
+    fromCutMerge?: boolean
+  },
 ): Promise<Track> {
   const trackCounter = get().trackCounter + 1
   const tracks = get().tracks
@@ -2264,6 +2565,7 @@ async function appendTrackFromBlob(
     durationMs: options.durationMs,
     offsetMs: options.offsetMs ?? 0,
     cloudStatus: 'local',
+    ...(options.fromCutMerge ? { fromCutMerge: true } : {}),
   }
 
   const becameReference = get().referenceTrackId == null
@@ -2896,7 +3198,15 @@ export function deleteTrack(trackId: number) {
     trackClipById,
     ...(clearedMetro ? { metronomeBpm: null } : {}),
     ...(tracks.length === 0
-      ? { calageMode: false, mixMode: false, calageTipOpen: false }
+      ? {
+          calageMode: false,
+          mixMode: false,
+          cutMode: false,
+          cutPhase: 'idle' as const,
+          cutSelectedTrackIds: [],
+          cutWorkSegments: {},
+          calageTipOpen: false,
+        }
       : {}),
   })
   if (prevHighlights.length > 0) {
@@ -2972,6 +3282,10 @@ export function deleteAllTracks() {
     metronomeBpm: null,
     calageMode: false,
     mixMode: false,
+    cutMode: false,
+    cutPhase: 'idle',
+    cutSelectedTrackIds: [],
+    cutWorkSegments: {},
     mixSeekMs: 0,
     mixClockText: '00:00.000',
     guestSignInPrompt: false,
@@ -3062,6 +3376,10 @@ export function clearLocalDeckSession(): void {
     sessionTitle: defaultSessionTitle(),
     calageMode: false,
     mixMode: false,
+    cutMode: false,
+    cutPhase: 'idle',
+    cutSelectedTrackIds: [],
+    cutWorkSegments: {},
     mixSeekMs: 0,
     mixClockText: '00:00.000',
     error: null,
@@ -3165,6 +3483,10 @@ export async function loadCloudSongIntoSession(
     sharedOwnerLabel,
     calageMode: false,
     mixMode: readOnly && !canCloudContribute,
+    cutMode: false,
+    cutPhase: 'idle',
+    cutSelectedTrackIds: [],
+    cutWorkSegments: {},
     mixSeekMs: 0,
     mixClockText: '00:00.000',
     error: null,

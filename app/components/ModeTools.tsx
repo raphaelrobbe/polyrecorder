@@ -10,7 +10,7 @@ import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
 import { useLocale } from '../hooks/useLocale'
 import { useSessionStore } from '../store/sessionStore'
-import { IconAutoAlign, IconFaders } from './icons'
+import { IconAutoAlign, IconFaders, IconScissors } from './icons'
 
 type ModeToolsProps = {
   className?: string
@@ -22,9 +22,13 @@ type ModeToolsProps = {
 
 type ModeOption = {
   id: DeckWorkMode
-  labelKey: 'mode.simple' | 'mode.mix' | 'mode.align'
-  hintKey: 'mode.simple.hint' | 'mode.mix.hint' | 'mode.align.hint'
-  icon?: 'mix' | 'align'
+  labelKey: 'mode.simple' | 'mode.mix' | 'mode.align' | 'mode.cut'
+  hintKey:
+    | 'mode.simple.hint'
+    | 'mode.mix.hint'
+    | 'mode.align.hint'
+    | 'mode.cut.hint'
+  icon?: 'mix' | 'align' | 'cut'
 }
 
 const MODE_OPTIONS: ModeOption[] = [
@@ -45,6 +49,12 @@ const MODE_OPTIONS: ModeOption[] = [
     hintKey: 'mode.align.hint',
     icon: 'align',
   },
+  {
+    id: 'cut',
+    labelKey: 'mode.cut',
+    hintKey: 'mode.cut.hint',
+    icon: 'cut',
+  },
 ]
 
 const toolBtnClass = (active: boolean) =>
@@ -63,20 +73,23 @@ type DeckModesProps = {
   className?: string
 }
 
-/** Simple / Mix / Align — above the deck card, right-aligned when tracks exist. */
+/** Simple / Mix / Align / Cut — above the deck card, right-aligned when tracks exist. */
 export function DeckModes({ className }: DeckModesProps) {
   useLocale()
   const tracks = useSessionStore((s) => s.tracks)
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
+  const cutMode = useSessionStore((s) => s.cutMode)
 
   if (tracks.length === 0) return null
 
-  const active: DeckWorkMode = calageMode
-    ? 'align'
-    : mixMode
-      ? 'mix'
-      : 'simple'
+  const active: DeckWorkMode = cutMode
+    ? 'cut'
+    : calageMode
+      ? 'align'
+      : mixMode
+        ? 'mix'
+        : 'simple'
 
   return (
     <div
@@ -103,7 +116,9 @@ export function DeckModes({ className }: DeckModesProps) {
               ? 'bg-mode-mix text-on-mode-mix shadow-[0_4px_12px_color-mix(in_srgb,var(--mode-mix)_28%,transparent)]'
               : option.id === 'align'
                 ? 'bg-mode-align text-on-mode-align shadow-[0_4px_12px_color-mix(in_srgb,var(--mode-align)_28%,transparent)]'
-                : 'bg-ink text-on-ink shadow-[0_4px_12px_color-mix(in_srgb,var(--ink)_22%,transparent)]'
+                : option.id === 'cut'
+                  ? 'bg-mode-cut text-on-mode-cut shadow-[0_4px_12px_color-mix(in_srgb,var(--mode-cut)_28%,transparent)]'
+                  : 'bg-ink text-on-ink shadow-[0_4px_12px_color-mix(in_srgb,var(--ink)_22%,transparent)]'
           return (
             <button
               key={option.id}
@@ -136,6 +151,9 @@ export function DeckModes({ className }: DeckModesProps) {
               ) : null}
               {option.icon === 'align' ? (
                 <IconAutoAlign className="size-[0.95rem]" />
+              ) : null}
+              {option.icon === 'cut' ? (
+                <IconScissors className="size-[0.95rem]" />
               ) : null}
               {t(option.labelKey)}
             </button>

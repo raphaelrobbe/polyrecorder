@@ -8,7 +8,7 @@ export const no: Record<MessageKey, string> = {
   'seo.home.description':
     'Flerkanalsopptaker i nettleseren: legg spor oppå hverandre, del økter og samarbeid på nett. Gratis, uten installasjon.',
   'seo.help.description':
-    'polyrecorder-hjelp: gjestemodus, Simple/Mix/Justering, skybibliotek, deling, FAQ og hurtigtaster.',
+    'polyrecorder-hjelp: gjestemodus, Simple/Mix/Justering/Klipp, skybibliotek, deling, FAQ og hurtigtaster.',
   'seo.legal.description':
     'Juridisk informasjon for polyrecorder: utgiver, hosting og åndsverk.',
   'seo.privacy.description':
@@ -347,6 +347,36 @@ export const no: Record<MessageKey, string> = {
   'mode.mix.hint': 'Mix-modus: volum per spor og master',
   'mode.align': 'Justering',
   'mode.align.hint': 'Justeringsmodus: synkronisering av spor',
+  'mode.cut': 'Klipp',
+  'mode.cut.hint': 'Klippemodus: del, demp segmenter, flett',
+
+  'cut.idle.hint':
+    'Sett avspillingsmarkøren, del deretter for å klippe sporene',
+  'cut.select.hint': 'Velg ett eller flere spor',
+  'cut.select.confirm': 'Bekreft',
+  'cut.cancel': 'Avbryt',
+  'cut.edit.hint': 'Velg segmenter, deretter Gjør stum eller Flett',
+  'cut.scissors': 'Del ved avspillingsmarkøren',
+  'cut.scissors.hint': 'Del alle segmenter ved avspillingsmarkøren',
+  'cut.scissors.aria': 'Del ved avspillingsmarkøren',
+  'cut.mute': 'Gjør stum',
+  'cut.mute.hint': 'Gjør valgte segmenter stumme (ikke-destruktivt)',
+  'cut.mute.barAria': 'Dempede områder for {name}',
+  'cut.mute.barTitle': 'Dempet del',
+  'cut.mute.remove': 'Fjern denne dempingen',
+  'cut.mute.removeAria': 'Fjern dempet område',
+  'cut.merge': 'Flett',
+  'cut.merge.hint': 'Flett valgte segmenter til et nytt spor',
+  'cut.merge.busy': 'Fletter…',
+  'cut.merge.disabledEmpty': 'Velg minst ett segment',
+  'cut.merge.disabledOverlap':
+    'Utilgjengelig: valgte segmenter overlapper på tidslinjen',
+  'cut.merge.trackName': 'Flett · {names}',
+  'cut.merge.trackNameFallback': 'Flett',
+  'cut.track.select': 'Inkluder dette sporet i klippemodus',
+  'cut.track.selectAria': 'Velg {name} for klipping',
+  'cut.segments.aria': 'Segmenter av {name}',
+  'cut.segment.toggle': 'Velg eller fjern dette segmentet',
 
   'piano.toggle': 'Piano',
   'piano.toggle.show': 'Vis piano',
@@ -501,11 +531,11 @@ export const no: Record<MessageKey, string> = {
   'help.guest.body3':
     'Bytter du enhet eller nettleser før innlogging, er det lokale utkastet ikke lenger tilgjengelig.',
 
-  'help.modes.title': 'Modusene Simple, Mix og Justering',
+  'help.modes.title': 'Modusene Simple, Mix, Justering og Klipp',
   'help.modes.body1':
-    'Velgeren til høyre mellom dekkene har tre modi. Simple: ta opp og lytt. Mix: volum per spor og master, fremheving, MP3-eksport. Justering: manuelle forskyvninger, autojustering og advarsler. Til venstre i samme rad åpner Piano-knappen et hjelpetastatur for tonehøyde.',
+    'Velgeren til høyre mellom dekkene har fire modi. Simple: ta opp og lytt. Mix: volum per spor og master, fremheving, MP3-eksport. Justering: manuelle forskyvninger, autojustering og advarsler. Klipp: del ved avspillingsmarkøren, demp segmenter uten å skrive om filen, eller flett valgte segmenter til et nytt spor (hull = stillhet). Til venstre i samme rad åpner Piano-knappen et hjelpetastatur for tonehøyde.',
   'help.modes.body2':
-    'Autojustering kan også settes på dekket (og i preferanser): den gjelder gjeldende økt.',
+    'I klippemodus er demping lokal for alle og lagres bare i skyen hvis du eier sporet. Fletting lager et spor under kontoen din (skyopplasting hvis du er eier eller samarbeidspartner). Autojustering kan også settes på dekket (og i preferanser): den gjelder gjeldende økt.',
 
   'help.metronome.title': 'Metronom',
   'help.metronome.body1':
@@ -515,7 +545,7 @@ export const no: Record<MessageKey, string> = {
 
   'help.piano.title': 'Piano',
   'help.piano.body1':
-    'Piano-knappen (til venstre for Simple / Mix / Justering) viser et tastatur over to oktaver. Trykk på tangentene for å høre toner og finne tonen før du tar opp, eller til og med under opptaket.',
+    'Piano-knappen (til venstre for Simple / Mix / Justering / Klipp) viser et tastatur over to oktaver. Trykk på tangentene for å høre toner og finne tonen før du tar opp, eller til og med under opptaket.',
   'help.piano.body2':
     'Ideelt med hodetelefoner: du hører tonen, men den er ikke hørbar på opptaket — lyden blir i nettleseren og plukkes ikke opp av mikrofonen.',
 
@@ -600,9 +630,9 @@ export const no: Record<MessageKey, string> = {
   'help.faq.headphones.q': 'Hvorfor hodetelefoner?',
   'help.faq.headphones.a':
     'Uten dem kan mikrofonen plukke opp høyttalerne — det ødelegger justering og kvalitet. Monitoring med hodetelefoner unngår tilbakekobling.',
-  'help.faq.modes.q': 'Hva er Simple, Mix og Justering til?',
+  'help.faq.modes.q': 'Hva er Simple, Mix, Justering og Klipp til?',
   'help.faq.modes.a':
-    'Simple for å ta opp og lytte, Mix for volum og MP3-eksport, Justering for å synkronisere spor (forskyvninger og autojustering).',
+    'Simple for å ta opp og lytte, Mix for volum og MP3-eksport, Justering for å synke spor (forskyvninger og autojustering), Klipp for å dele ved spillehodet, dempe segmenter uten å endre filen, eller flette et utvalg til et nytt spor.',
   'help.faq.clipping.q': 'Hvorfor advarsel om klipping i Mix?',
   'help.faq.clipping.a':
     'Et «!» bakerst på sporet betyr klipping under opptak: ta opp på nytt med lavere mikrofonnivå. Et banner ved master betyr at stabling klipper mixen — senk master, eller la auto-korreksjon (~0,85) stå på under Innstillinger.',

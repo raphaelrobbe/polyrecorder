@@ -21,6 +21,7 @@ export type GuestDraftTrack = {
   blob: Blob
   volume: number
   enabled: boolean
+  muteRanges?: Array<{ startMs: number; endMs: number }>
   cloudStatus?: TrackCloudStatus
   cloudTrackId?: string
   cloudOwnedByMe?: boolean
@@ -254,6 +255,7 @@ export async function saveGuestDraft(
       blob: track.blob,
       volume: input.trackVolumes[track.id] ?? 1,
       enabled: input.enabledTrackIds.includes(track.id),
+      muteRanges: track.muteRanges,
       cloudStatus: track.cloudStatus,
       cloudTrackId: track.cloudTrackId,
       cloudOwnedByMe: track.cloudOwnedByMe,

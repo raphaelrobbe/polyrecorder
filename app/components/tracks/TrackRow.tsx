@@ -6,6 +6,7 @@ import {
   formatAlignDetail,
   formatCentis,
   formatTime,
+  getMixDurationMs,
   isDefaultTrackName,
 } from '../../lib/format'
 import { TRACK_VOLUME_MAX } from '../../lib/audio/mix.client'
@@ -26,6 +27,7 @@ import {
   setMixMode,
   showNotice,
   flushVolumeCloudPersist,
+  toggleCutSegmentSelected,
   toggleTrackHighlight,
 } from '../../lib/sessionActions.client'
 import {
@@ -45,6 +47,7 @@ import { MsOffsetEditor } from '../MsOffsetEditor'
 import { NudgeValueField } from '../NudgeValueField'
 import { VolumeRibbon } from '../VolumeRibbon'
 import { TrackDragHandle } from './TrackDragHandle'
+import { CutMuteBars } from './CutMuteBars'
 import { TrackMute } from './TrackMute'
 import { TrackNameInput } from './TrackNameInput'
 
@@ -68,6 +71,9 @@ export function TrackRow({
   const user = rootData?.user ?? null
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
+  const cutMode = useSessionStore((s) => s.cutMode)
+  const cutPhase = useSessionStore((s) => s.cutPhase)
+  const cutWorkSegments = useSessionStore((s) => s.cutWorkSegments)
   const readOnlySession = useSessionStore((s) => s.readOnlySession)
   const canCloudContribute = useSessionStore((s) => s.canCloudContribute)
   const enabledTrackIds = useSessionStore((s) => s.enabledTrackIds)
@@ -100,8 +106,9 @@ export function TrackRow({
       : ''
   const clock = formatCentis(getTrackPositionMs(track.id))
   const volume = trackVolumes[track.id] ?? getTrackVolume(track.id)
-  const hideDelete = calageMode || mixMode
-  const showDragHandle = !calageMode && !mixMode
+  const cutEditing = cutMode && cutPhase === 'edit'
+  const hideDelete = calageMode || mixMode || cutEditing
+  const showDragHandle = !calageMode && !mixMode && !cutEditing
   const uploaderHandle = formatPseudoHandle(track.uploadedByPseudo)
   const uploaderIsMe =
     track.cloudOwnedByMe === true ||
@@ -129,14 +136,15 @@ export function TrackRow({
     skewFingerprint.length > 0 &&
     skewFingerprint !== skewWarningDismissedKey
   const alignAttentionMessage = alignAttentionByTrackId[track.id]
-  const isSimpleMode = !mixMode && !calageMode
+  const isSimpleMode = !mixMode && !calageMode && !cutMode
   const beatWarningActive = referenceBeatWarning != null
   const showBeatAttention =
     beatWarningActive &&
     isReference &&
     showCalageWarnings &&
     autoAlignEnabled &&
-    !mixMode
+    !mixMode &&
+    !cutMode
   const showAlignAttention =
     Boolean(alignAttentionMessage) &&
     showCalageWarnings &&
@@ -357,6 +365,7 @@ export function TrackRow({
       className={cn(
         'relative grid grid-rows-[auto] items-center gap-x-[0.1rem] touch-manipulation animate-rise',
         'pl-[0.35rem]',
+        '[&:has([data-mute-menu-open])]:z-30',
         showDragHandle
           ? 'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]'
           : 'grid-cols-[1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.4rem_minmax(0,1fr)]',
@@ -387,7 +396,7 @@ export function TrackRow({
         className={cn(
           'row-start-1 flex flex-col items-center gap-[0.3rem]',
           showDragHandle ? 'col-start-2' : 'col-start-1',
-          mixMode && 'self-start pt-[0.2rem]',
+          (mixMode || cutEditing) && 'self-start pt-[0.2rem]',
         )}
       >
         <TrackMute
@@ -426,14 +435,14 @@ export function TrackRow({
           'row-start-1 flex w-full min-w-0 items-center gap-[0.35rem] rounded-[14px] border border-transparent bg-ink/4 box-border py-[0.28rem] pr-[0.4rem] pl-[0.5rem]',
           showDragHandle ? 'col-start-3' : 'col-start-2',
           'max-sm:gap-[0.2rem] max-sm:rounded-[12px] max-sm:py-[0.22rem] max-sm:pr-[0.28rem] max-sm:pl-[0.32rem]',
-          (calageMode || mixMode || showUploader) && 'items-start',
-          !isEnabled && 'opacity-55',
+          (calageMode || mixMode || cutEditing || showUploader) && 'items-start',
+          !isEnabled && !cutMode && 'opacity-55',
         )}
       >
         <div
           className={cn(
             'flex min-w-0 flex-auto items-center gap-[0.4rem]',
-            (calageMode || mixMode || showUploader) &&
+            (calageMode || mixMode || cutEditing || showUploader) &&
               'flex-col items-stretch gap-[0.15rem]',
           )}
         >
@@ -441,7 +450,7 @@ export function TrackRow({
             className={cn(
               'flex min-w-0 items-center gap-[0.4rem]',
               calageMode && 'w-full flex-col items-stretch gap-[0.12rem]',
-              (mixMode || showUploader) && !calageMode && 'w-full',
+              (mixMode || cutEditing || showUploader) && !calageMode && 'w-full',
             )}
           >
             <div
@@ -494,7 +503,11 @@ export function TrackRow({
                   value={nameDraft}
                   aria-label={t('tracks.name.aria')}
                   maxLength={40}
-                  className={cn(showUploader && !calageMode && 'py-0')}
+                  readOnly={cutEditing}
+                  className={cn(
+                    showUploader && !calageMode && 'py-0',
+                    cutEditing && 'pointer-events-none hover:bg-transparent',
+                  )}
                   onChange={(event) => {
                     setNameDraft(event.target.value)
                   }}
@@ -505,6 +518,10 @@ export function TrackRow({
                     }
                   }}
                   onFocus={(event) => {
+                    if (cutEditing) {
+                      event.currentTarget.blur()
+                      return
+                    }
                     if (!isDefaultTrackName(event.currentTarget.value)) return
                     event.currentTarget.select()
                     event.currentTarget.addEventListener(
@@ -517,6 +534,7 @@ export function TrackRow({
                     )
                   }}
                   onBlur={() => {
+                    if (cutEditing) return
                     const next =
                       nameDraft.trim().slice(0, 40) ||
                       defaultTrackName(index + 1)
@@ -594,8 +612,58 @@ export function TrackRow({
               />
             </div>
           ) : null}
+          {cutEditing &&
+          cutWorkSegments[track.id] &&
+          cutWorkSegments[track.id]!.length > 0
+            ? (() => {
+                const mixDur = Math.max(1, getMixDurationMs(tracks))
+                const segs = cutWorkSegments[track.id]!
+                return (
+                  <div
+                    className="relative h-[1.55rem] w-full min-w-0"
+                    role="group"
+                    aria-label={t('cut.segments.aria', { name: track.name })}
+                  >
+                    {segs.map((seg) => {
+                      const leftPct = (seg.startMs / mixDur) * 100
+                      const widthPct = Math.max(
+                        0.8,
+                        ((seg.endMs - seg.startMs) / mixDur) * 100,
+                      )
+                      return (
+                        <button
+                          key={seg.id}
+                          type="button"
+                          data-cut-segment={`${track.id}:${seg.id}`}
+                          aria-pressed={seg.selected}
+                          title={t('cut.segment.toggle')}
+                          onClick={() =>
+                            toggleCutSegmentSelected(track.id, seg.id)
+                          }
+                          style={{
+                            left: `${leftPct}%`,
+                            width: `${widthPct}%`,
+                          }}
+                          className={cn(
+                            'absolute top-0 bottom-0 min-w-[0.55rem] rounded-md border-[1.5px] px-[0.2rem] text-[0.62rem] font-bold tabular-nums',
+                            'cursor-pointer transition-[background,color,border-color] duration-120',
+                            'focus-visible:outline focus-visible:outline-2 focus-visible:outline-mode-cut/40 focus-visible:outline-offset-1',
+                            seg.selected
+                              ? 'border-mode-cut bg-mode-cut text-on-mode-cut'
+                              : 'border-mode-cut-border bg-mode-cut-bg text-mode-cut hover:bg-mode-cut-hover',
+                          )}
+                        />
+                      )
+                    })}
+                  </div>
+                )
+              })()
+            : null}
+          {cutMode && (track.muteRanges?.length ?? 0) > 0 ? (
+            <CutMuteBars track={track} />
+          ) : null}
         </div>
-        {!mixMode && (showCloudSave || cloudUploading) ? (
+        {!mixMode && !cutEditing && (showCloudSave || cloudUploading) ? (
           <Button
             variant="utility"
             className="ml-[0.15rem] shrink-0 max-sm:ml-[0.08rem]"

@@ -6,7 +6,7 @@ export const fr = {
   'seo.home.description':
     'Enregistreur multipiste dans le navigateur : superpose tes prises, partage tes sessions et collabore en ligne. Gratuit, sans installation.',
   'seo.help.description':
-    'Aide polyrecorder : mode invité, modes Simple/Mixage/Calage, bibliothèque cloud, partage, FAQ et raccourcis.',
+    'Aide polyrecorder : mode invité, modes Simple/Mixage/Calage/Découpage, bibliothèque cloud, partage, FAQ et raccourcis.',
   'seo.legal.description':
     'Mentions légales de polyrecorder : éditeur, hébergement et propriété intellectuelle.',
   'seo.privacy.description':
@@ -345,6 +345,37 @@ export const fr = {
   'mode.mix.hint': 'Mode mixage : volumes par piste et maître',
   'mode.align': 'Calage',
   'mode.align.hint': 'Mode calage : synchronisation des pistes',
+  'mode.cut': 'Découpage',
+  'mode.cut.hint': 'Mode découpage : couper, muter des morceaux, fusionner',
+
+  'cut.idle.hint':
+    'Placez le curseur de lecture, puis scindez pour découper les pistes',
+  'cut.select.hint': 'Sélectionnez une ou plusieurs pistes',
+  'cut.select.confirm': 'Confirmer',
+  'cut.cancel': 'Annuler',
+  'cut.edit.hint':
+    'Sélectionnez des morceaux, puis Rendre muet ou Fusionner',
+  'cut.scissors': 'Scinder au curseur de lecture',
+  'cut.scissors.hint': 'Scinder tous les segments au curseur de lecture',
+  'cut.scissors.aria': 'Scinder au curseur de lecture',
+  'cut.mute': 'Rendre muet',
+  'cut.mute.hint': 'Rendre muets les morceaux sélectionnés (non destructif)',
+  'cut.mute.barAria': 'Zones mutées de {name}',
+  'cut.mute.barTitle': 'Partie mutée',
+  'cut.mute.remove': 'Supprimer ce mute',
+  'cut.mute.removeAria': 'Supprimer la zone mutée',
+  'cut.merge': 'Fusionner',
+  'cut.merge.hint': 'Fusionner les morceaux sélectionnés en une nouvelle piste',
+  'cut.merge.busy': 'Fusion…',
+  'cut.merge.disabledEmpty': 'Sélectionnez au moins un morceau',
+  'cut.merge.disabledOverlap':
+    'Impossible : les morceaux sélectionnés se chevauchent sur la timeline',
+  'cut.merge.trackName': 'Fusion · {names}',
+  'cut.merge.trackNameFallback': 'Fusion',
+  'cut.track.select': 'Inclure cette piste dans le découpage',
+  'cut.track.selectAria': 'Sélectionner {name} pour le découpage',
+  'cut.segments.aria': 'Segments de {name}',
+  'cut.segment.toggle': 'Sélectionner ou désélectionner ce morceau',
 
   'piano.toggle': 'Piano',
   'piano.toggle.show': 'Afficher le piano',
@@ -501,11 +532,11 @@ export const fr = {
   'help.guest.body3':
     'Si tu changes d’appareil ou de navigateur avant de te connecter, le brouillon local n’est plus disponible.',
 
-  'help.modes.title': 'Modes Simple, Mixage et Calage',
+  'help.modes.title': 'Modes Simple, Mixage, Calage et Découpage',
   'help.modes.body1':
-    'Le sélecteur à droite, entre les decks, propose trois modes. Simple : enregistrer et écouter. Mixage : volumes par piste, volume maître, mise en avant et export MP3. Calage : décalages manuels, calage auto et avertissements. À gauche de cette ligne, le bouton Piano ouvre un clavier d’aide au ton.',
+    'Le sélecteur à droite, entre les decks, propose quatre modes. Simple : enregistrer et écouter. Mixage : volumes par piste, volume maître, mise en avant et export MP3. Calage : décalages manuels, calage auto et avertissements. Découpage : scinder au curseur de lecture, muter des morceaux (sans réécrire le fichier) ou les fusionner en une nouvelle piste (trous = silence). À gauche de cette ligne, le bouton Piano ouvre un clavier d’aide au ton.',
   'help.modes.body2':
-    'La préférence de calage automatique se règle aussi sur le deck (et dans les préférences) : elle s’applique à la session en cours.',
+    'En Découpage, le mute est local pour tout le monde et ne se sauvegarde en cloud que si tu es propriétaire de la piste. La fusion crée une piste à ton nom (upload cloud si tu es propriétaire ou collaborateur). La préférence de calage automatique se règle aussi sur le deck (et dans les préférences) : elle s’applique à la session en cours.',
 
   'help.metronome.title': 'Métronome',
   'help.metronome.body1':
@@ -515,7 +546,7 @@ export const fr = {
 
   'help.piano.title': 'Piano',
   'help.piano.body1':
-    'Le bouton Piano (à gauche des modes Simple / Mixage / Calage) affiche un clavier de deux octaves. Appuie sur les touches pour entendre les notes et te donner le ton avant d’enregistrer ou même pendant l’enregistrement.',
+    'Le bouton Piano (à gauche des modes Simple / Mixage / Calage / Découpage) affiche un clavier de deux octaves. Appuie sur les touches pour entendre les notes et te donner le ton avant d’enregistrer ou même pendant l’enregistrement.',
   'help.piano.body2':
     'Idéal avec un casque : tu entends la note, mais elle n’est pas audible dans l’enregistrement — le son reste dans le navigateur et n’est pas capté par le micro.',
 
@@ -599,9 +630,9 @@ export const fr = {
   'help.faq.headphones.q': 'Pourquoi un casque ?',
   'help.faq.headphones.a':
     'Sans casque, le micro peut reprendre les haut-parleurs : ça fausse le calage et la qualité. Le monitoring en casque évite ce retour.',
-  'help.faq.modes.q': 'À quoi servent Simple, Mixage et Calage ?',
+  'help.faq.modes.q': 'À quoi servent Simple, Mixage, Calage et Découpage ?',
   'help.faq.modes.a':
-    'Simple pour enregistrer et écouter, Mixage pour les volumes et l’export MP3, Calage pour synchroniser les pistes (offsets et calage auto).',
+    'Simple pour enregistrer et écouter, Mixage pour les volumes et l’export MP3, Calage pour synchroniser les pistes (offsets et calage auto), Découpage pour couper au playhead, muter des morceaux sans toucher au fichier, ou fusionner une sélection en une nouvelle piste.',
   'help.faq.clipping.q': 'Pourquoi un avertissement de saturation en mixage ?',
   'help.faq.clipping.a':
     'Un « ! » en bout de piste signifie que la prise a saturé à l’enregistrement : réenregistre en baissant le volume d’entrée. Un bandeau près du volume maître signale que la superposition des pistes sature le mix — baisse le master, ou laisse la correction auto (cible ~0,85) dans Préférences.',

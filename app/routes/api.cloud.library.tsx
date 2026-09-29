@@ -24,6 +24,7 @@ import {
   updateTrackAssetVolumes,
   updateTrackAssetMuted,
   updateTrackAssetMutes,
+  setTrackAssetMuteRanges,
   syncTrackAssetOrder,
 } from '~/service/cloud.server'
 
@@ -66,6 +67,7 @@ export async function action({ request }: ActionFunctionArgs) {
       offsetMs?: number
       volume?: number
       muted?: boolean
+      muteRanges?: unknown
       masterVolume?: number
       alignPrefs?: {
         autoAlignEnabled?: boolean
@@ -218,6 +220,14 @@ export async function action({ request }: ActionFunctionArgs) {
               muted: Boolean(u.muted),
             }))
           : [],
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'setTrackMuteRanges') {
+      const result = await setTrackAssetMuteRanges(
+        request,
+        String(body.id ?? ''),
+        body.muteRanges,
       )
       return json(result, { status: result.ok ? 200 : 400 })
     }

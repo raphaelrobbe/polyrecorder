@@ -357,6 +357,7 @@ export async function fetchAndHydrateSong(
         offsetMs: number
         volume: number
         muted: boolean
+        muteRanges?: Array<{ startMs: number; endMs: number }>
         contentType: string
         uploadedByMe: boolean
         uploadedByPseudo: string | null
@@ -398,6 +399,10 @@ export async function fetchAndHydrateSong(
       url: URL.createObjectURL(blob),
       durationMs: remote.durationMs,
       offsetMs: remote.offsetMs,
+      muteRanges:
+        Array.isArray(remote.muteRanges) && remote.muteRanges.length > 0
+          ? remote.muteRanges
+          : undefined,
       cloudStatus: 'synced',
       cloudTrackId: remote.id,
       cloudOwnedByMe: Boolean(remote.uploadedByMe),

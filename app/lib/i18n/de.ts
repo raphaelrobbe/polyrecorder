@@ -8,7 +8,7 @@ export const de: Record<MessageKey, string> = {
   'seo.home.description':
     'Mehrspur-Rekorder im Browser: Takes überlagern, Sessions teilen und online zusammenarbeiten. Kostenlos, ohne Installation.',
   'seo.help.description':
-    'polyrecorder-Hilfe: Gastmodus, Simple/Mix/Ausrichtung, Cloud-Bibliothek, Teilen, FAQ und Tastenkürzel.',
+    'polyrecorder-Hilfe: Gastmodus, Simple/Mix/Ausrichtung/Schneiden, Cloud-Bibliothek, Teilen, FAQ und Tastenkürzel.',
   'seo.legal.description':
     'Impressum von polyrecorder: Herausgeber, Hosting und geistiges Eigentum.',
   'seo.privacy.description':
@@ -347,6 +347,37 @@ export const de: Record<MessageKey, string> = {
   'mode.mix.hint': 'Mix-Modus: Lautstärke pro Spur und Master',
   'mode.align': 'Ausrichten',
   'mode.align.hint': 'Ausricht-Modus: Spurensynchronisation',
+  'mode.cut': 'Schneiden',
+  'mode.cut.hint': 'Schnittmodus: teilen, stummschalten, zusammenführen',
+
+  'cut.idle.hint':
+    'Setze den Abspielcursor, dann teilen, um die Spuren zu schneiden',
+  'cut.select.hint': 'Wähle eine oder mehrere Spuren',
+  'cut.select.confirm': 'Bestätigen',
+  'cut.cancel': 'Abbrechen',
+  'cut.edit.hint':
+    'Segmente wählen, dann Stummschalten oder Zusammenführen',
+  'cut.scissors': 'Am Abspielcursor teilen',
+  'cut.scissors.hint': 'Alle Segmente am Abspielcursor teilen',
+  'cut.scissors.aria': 'Am Abspielcursor teilen',
+  'cut.mute': 'Stummschalten',
+  'cut.mute.hint': 'Gewählte Segmente stummschalten (nicht destruktiv)',
+  'cut.mute.barAria': 'Stummgeschaltete Bereiche von {name}',
+  'cut.mute.barTitle': 'Stummgeschalteter Abschnitt',
+  'cut.mute.remove': 'Diesen Mute entfernen',
+  'cut.mute.removeAria': 'Stummgeschalteten Bereich entfernen',
+  'cut.merge': 'Zusammenführen',
+  'cut.merge.hint': 'Gewählte Segmente zu einer neuen Spur zusammenführen',
+  'cut.merge.busy': 'Zusammenführung…',
+  'cut.merge.disabledEmpty': 'Mindestens ein Segment wählen',
+  'cut.merge.disabledOverlap':
+    'Nicht möglich: gewählte Segmente überlappen auf der Timeline',
+  'cut.merge.trackName': 'Fusion · {names}',
+  'cut.merge.trackNameFallback': 'Fusion',
+  'cut.track.select': 'Diese Spur in den Schnittmodus einbeziehen',
+  'cut.track.selectAria': '{name} fürs Schneiden auswählen',
+  'cut.segments.aria': 'Segmente von {name}',
+  'cut.segment.toggle': 'Dieses Segment aus- oder abwählen',
 
   'piano.toggle': 'Piano',
   'piano.toggle.show': 'Klavier anzeigen',
@@ -502,11 +533,11 @@ export const de: Record<MessageKey, string> = {
   'help.guest.body3':
     'Wechselst du Gerät oder Browser vor der Anmeldung, ist der lokale Entwurf nicht mehr verfügbar.',
 
-  'help.modes.title': 'Modi Simple, Mix und Ausrichtung',
+  'help.modes.title': 'Modi Simple, Mix, Ausrichtung und Schneiden',
   'help.modes.body1':
-    'Rechts zwischen den Decks gibt es drei Modi. Simple: aufnehmen und hören. Mix: Spur- und Mastervolumen, Hervorhebung, MP3-Export. Ausrichtung: manuelle Offsets, Auto-Ausrichtung und Warnungen. Links in derselben Zeile öffnet die Taste Klavier eine Hilfs-Klaviatur zum Anstimmen.',
+    'Rechts zwischen den Decks gibt es vier Modi. Simple: aufnehmen und hören. Mix: Spur- und Mastervolumen, Hervorhebung, MP3-Export. Ausrichtung: manuelle Offsets, Auto-Ausrichtung und Warnungen. Schneiden: am Abspielcursor teilen, Bereiche stummschalten ohne die Datei umzuschreiben, oder gewählte Segmente zu einer neuen Spur zusammenführen (Lücken = Stille). Links in derselben Zeile öffnet die Taste Klavier eine Hilfs-Klaviatur zum Anstimmen.',
   'help.modes.body2':
-    'Die Auto-Ausrichtung lässt sich auch am Deck (und in den Präferenzen) einstellen: sie gilt für die aktuelle Session.',
+    'Im Schnittmodus ist Stummschaltung für alle lokal und wird nur in die Cloud geschrieben, wenn du die Spur besitzt. Zusammenführen erzeugt eine Spur unter deinem Konto (Cloud-Upload als Owner oder Mitwirkender). Die Auto-Ausrichtung lässt sich auch am Deck (und in den Präferenzen) einstellen: sie gilt für die aktuelle Session.',
 
   'help.metronome.title': 'Metronom',
   'help.metronome.body1':
@@ -516,7 +547,7 @@ export const de: Record<MessageKey, string> = {
 
   'help.piano.title': 'Klavier',
   'help.piano.body1':
-    'Die Taste Klavier (links von Simple / Mix / Ausrichtung) zeigt eine Klaviatur über zwei Oktaven. Tippe die Tasten, um Töne zu hören und dich vor der Aufnahme oder sogar während der Aufnahme einzustimmen.',
+    'Die Taste Klavier (links von Simple / Mix / Ausrichtung / Schneiden) zeigt eine Klaviatur über zwei Oktaven. Tippe die Tasten, um Töne zu hören und dich vor der Aufnahme oder sogar während der Aufnahme einzustimmen.',
   'help.piano.body2':
     'Ideal mit Kopfhörern: du hörst den Ton, aber er ist nicht auf der Aufnahme hörbar — der Klang bleibt im Browser und wird nicht vom Mikrofon erfasst.',
 
@@ -601,9 +632,9 @@ export const de: Record<MessageKey, string> = {
   'help.faq.headphones.q': 'Warum Kopfhörer?',
   'help.faq.headphones.a':
     'Ohne sie kann das Mikrofon die Lautsprecher aufnehmen — schlecht für Ausrichtung und Qualität. Monitoring mit Kopfhörer vermeidet das.',
-  'help.faq.modes.q': 'Wozu Simple, Mix und Ausrichtung?',
+  'help.faq.modes.q': 'Wozu Simple, Mix, Ausrichtung und Schneiden?',
   'help.faq.modes.a':
-    'Simple zum Aufnehmen und Hören, Mix für Lautstärken und MP3-Export, Ausrichtung zum Synchronisieren (Offsets und Auto-Ausrichtung).',
+    'Simple zum Aufnehmen und Hören, Mix für Lautstärken und MP3-Export, Ausrichtung zum Synchronisieren (Offsets und Auto-Ausrichtung), Schneiden zum Teilen am Playhead, stummschalten ohne Dateiänderung, oder Zusammenführen einer Auswahl zu einer neuen Spur.',
   'help.faq.clipping.q': 'Warum eine Übersteuerungswarnung im Mix?',
   'help.faq.clipping.a':
     'Ein „!“ am Spurende bedeutet Übersteuerung bei der Aufnahme: neu aufnehmen und den Mikrofonpegel senken. Ein Hinweis am Master bedeutet, dass das Stapeln den Mix übersteuert — Master senken oder Auto-Korrektur (~0,85) in den Einstellungen lassen.',

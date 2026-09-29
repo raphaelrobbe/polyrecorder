@@ -117,6 +117,7 @@ export function DeckMain({ className }: DeckMainProps) {
   const metronomeBpm = useSessionStore((s) => s.metronomeBpm)
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
+  const cutMode = useSessionStore((s) => s.cutMode)
   const notice = useSessionStore((s) => s.notice)
   const keyboardHintsEnabled = useSessionStore((s) => s.keyboardHintsEnabled)
   const tracks = useSessionStore((s) => s.tracks)
@@ -142,10 +143,10 @@ export function DeckMain({ className }: DeckMainProps) {
   const hasMetronome =
     metronomeBpm != null || tracks.some((track) => track.isMetronome)
   const showMetronomeAdd =
-    !calageMode && !mixMode && !hasMetronome && state !== 'recording'
-  /** Auto-align prefs only; hide in mix/calage or when there is nothing to show. */
+    !calageMode && !mixMode && !cutMode && !hasMetronome && state !== 'recording'
+  /** Auto-align prefs only; hide in mix/calage/cut or when there is nothing to show. */
   const showToolsDeck =
-    !calageMode && !mixMode && (Boolean(user) || showModes)
+    !calageMode && !mixMode && !cutMode && (Boolean(user) || showModes)
   const ownLibrary =
     Boolean(user) &&
     deckLibraryPath != null &&

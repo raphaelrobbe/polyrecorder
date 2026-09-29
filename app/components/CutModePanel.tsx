@@ -1,0 +1,125 @@
+import { useState } from 'react'
+import {
+  applyCutMute,
+  cancelCutSelection,
+  cutMergeBlockedReason,
+  mergeSelectedCutSegments,
+  selectedCutWorkSegments,
+  splitCutSegmentsAtPlayhead,
+} from '../lib/sessionActions.client'
+import { t } from '../lib/i18n'
+import { cn } from '../lib/utils'
+import { useLocale } from '../hooks/useLocale'
+import { useSessionStore } from '../store/sessionStore'
+import { Button } from './Button'
+import { IconScissors } from './icons'
+
+type CutModePanelProps = {
+  className?: string
+}
+
+/** Toolbar for découpage: scissors, mute, merge. */
+export function CutModePanel({ className }: CutModePanelProps) {
+  useLocale()
+  const cutMode = useSessionStore((s) => s.cutMode)
+  const cutPhase = useSessionStore((s) => s.cutPhase)
+  const cutWorkSegments = useSessionStore((s) => s.cutWorkSegments)
+  const [merging, setMerging] = useState(false)
+
+  // Re-subscribe when segment selection changes for merge button state.
+  useSessionStore((s) => s.cutWorkSegments)
+
+  if (!cutMode) return null
+
+  const selectedSegCount = selectedCutWorkSegments().length
+  const mergeBlock = cutMergeBlockedReason()
+  const mergeDisabled = merging || mergeBlock !== 'none'
+  const mergeTitle =
+    mergeBlock === 'overlap'
+      ? t('cut.merge.disabledOverlap')
+      : mergeBlock === 'empty'
+        ? t('cut.merge.disabledEmpty')
+        : t('cut.merge.hint')
+
+  const hasAnySegments = Object.values(cutWorkSegments).some(
+    (segs) => segs.length > 0,
+  )
+  const hasSplit = Object.values(cutWorkSegments).some(
+    (segs) => segs.length > 1,
+  )
+  const showMuteMerge = hasSplit && selectedSegCount > 0
+  const cutEditing = cutPhase === 'edit'
+
+  const onMerge = async () => {
+    if (mergeDisabled) return
+    setMerging(true)
+    try {
+      await mergeSelectedCutSegments()
+    } finally {
+      setMerging(false)
+    }
+  }
+
+  return (
+    <div
+      className={cn(
+        'mt-[0.85rem] mb-0.5 flex flex-col gap-[0.65rem]',
+        className,
+      )}
+    >
+      <p className="m-0 text-[0.84rem] font-semibold text-ink-soft">
+        {cutEditing ? t('cut.edit.hint') : t('cut.idle.hint')}
+      </p>
+      <div className="flex flex-col items-start gap-[0.55rem]">
+        <div className="flex flex-wrap items-center gap-[0.45rem]">
+          <Button
+            type="button"
+            variant="trim"
+            className="inline-flex items-center gap-[0.45rem] px-[0.95rem] py-[0.55rem] text-[0.88rem] [&_svg]:size-[1rem]"
+            icon={<IconScissors />}
+            disabled={!hasAnySegments}
+            title={t('cut.scissors.hint')}
+            aria-label={t('cut.scissors.aria')}
+            onClick={() => splitCutSegmentsAtPlayhead()}
+          >
+            {t('cut.scissors')}
+          </Button>
+          {cutEditing ? (
+            <Button
+              type="button"
+              variant="utility"
+              title={t('cut.cancel')}
+              onClick={() => cancelCutSelection()}
+            >
+              {t('cut.cancel')}
+            </Button>
+          ) : null}
+        </div>
+        {showMuteMerge ? (
+          <div className="flex flex-wrap items-center gap-[0.45rem]">
+            <Button
+              type="button"
+              variant="trim"
+              className="px-[0.95rem] py-[0.55rem] text-[0.88rem]"
+              title={t('cut.mute.hint')}
+              onClick={() => applyCutMute()}
+            >
+              {t('cut.mute')}
+            </Button>
+            <Button
+              type="button"
+              variant="trim"
+              className="px-[0.95rem] py-[0.55rem] text-[0.88rem]"
+              disabled={mergeDisabled}
+              title={mergeTitle}
+              aria-busy={merging}
+              onClick={() => void onMerge()}
+            >
+              {merging ? t('cut.merge.busy') : t('cut.merge')}
+            </Button>
+          </div>
+        ) : null}
+      </div>
+    </div>
+  )
+}

@@ -54,6 +54,11 @@ html.light {
   --mode-align-bg: color-mix(in srgb, var(--brand-5) 14%, transparent);
   --mode-align-hover: color-mix(in srgb, var(--brand-5) 12%, transparent);
   --on-mode-align: #ffffff;
+  --mode-cut: var(--brand-3);
+  --mode-cut-border: color-mix(in srgb, var(--brand-3) 42%, transparent);
+  --mode-cut-bg: color-mix(in srgb, var(--brand-3) 14%, transparent);
+  --mode-cut-hover: color-mix(in srgb, var(--brand-3) 12%, transparent);
+  --on-mode-cut: #ffffff;
   --line: color-mix(in srgb, var(--ink) 14%, transparent);
   --shadow: 0 18px 50px color-mix(in srgb, var(--ink) 12%, transparent);
   --highlight: rgb(255 255 255 / 0.72);
@@ -110,6 +115,11 @@ html.dark {
   --mode-align-bg: color-mix(in srgb, var(--brand-5) 18%, transparent);
   --mode-align-hover: color-mix(in srgb, var(--brand-5) 20%, transparent);
   --on-mode-align: #ffffff;
+  --mode-cut: var(--brand-3);
+  --mode-cut-border: color-mix(in srgb, var(--brand-3) 48%, transparent);
+  --mode-cut-bg: color-mix(in srgb, var(--brand-3) 18%, transparent);
+  --mode-cut-hover: color-mix(in srgb, var(--brand-3) 20%, transparent);
+  --on-mode-cut: #ffffff;
   --line: color-mix(in srgb, var(--ink) 16%, transparent);
   --shadow: 0 18px 50px rgb(0 0 0 / 0.5);
   --highlight: rgb(255 255 255 / 0.08);
@@ -170,6 +180,11 @@ html.dark {
   --color-mode-align-bg: var(--mode-align-bg);
   --color-mode-align-hover: var(--mode-align-hover);
   --color-on-mode-align: var(--on-mode-align);
+  --color-mode-cut: var(--mode-cut);
+  --color-mode-cut-border: var(--mode-cut-border);
+  --color-mode-cut-bg: var(--mode-cut-bg);
+  --color-mode-cut-hover: var(--mode-cut-hover);
+  --color-on-mode-cut: var(--on-mode-cut);
   --color-line: var(--line);
   --color-brand-1: var(--brand-1);
   --color-brand-2: var(--brand-2);

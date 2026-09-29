@@ -14,6 +14,11 @@ export type Track = {
    * Negative = skip the beginning (take began before mix t0 / pre-roll).
    */
   offsetMs: number
+  /**
+   * Non-destructive mute windows in buffer-local ms (survive offset re-align).
+   * S3 blob unchanged; playback/export skip or zero these ranges.
+   */
+  muteRanges?: Array<{ startMs: number; endMs: number }>
   /** Cloud sync state for authenticated users. */
   cloudStatus?: TrackCloudStatus
   /** Server TrackAsset id once reserved / synced. */
@@ -24,6 +29,16 @@ export type Track = {
   uploadedByPseudo?: string | null
   /** Synthetic click track (not uploaded); session tempo is stored separately. */
   isMetronome?: boolean
+  /** Created by découpage merge — keep a trash control even in cut mode. */
+  fromCutMerge?: boolean
+}
+
+/** Work segment in cut mode (mix-timeline ms). */
+export type CutWorkSegment = {
+  id: string
+  startMs: number
+  endMs: number
+  selected: boolean
 }
 
 

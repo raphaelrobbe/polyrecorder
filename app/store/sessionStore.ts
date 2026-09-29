@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type {
   AppState,
+  CutWorkSegment,
   ReferenceBeatWarning,
   TouchReorderState,
   Track,
@@ -35,6 +36,14 @@ export type SessionStoreState = {
 
   calageMode: boolean
   mixMode: boolean
+  /** Cut / découpage work mode (exclusive with mix + calage). */
+  cutMode: boolean
+  /** Cut UI: idle = normal track chrome; edit = after first scissors split. */
+  cutPhase: 'idle' | 'edit'
+  /** Tracks included in découpage (all non-metronome by default). */
+  cutSelectedTrackIds: number[]
+  /** Per-track work segments in mix-timeline ms. */
+  cutWorkSegments: Record<number, CutWorkSegment[]>
   mixListenActive: boolean
   mixPaused: boolean
   mixSeekMs: number
@@ -175,6 +184,7 @@ export type SessionStoreState = {
   setSongWorkName: (name: string) => void
   setCalageMode: (on: boolean) => void
   setMixMode: (on: boolean) => void
+  setCutMode: (on: boolean) => void
   setAutoplayAfterStop: (on: boolean) => void
   setSkipCountInPlayback: (on: boolean) => void
   setSkipCountInDownload: (on: boolean) => void
@@ -208,6 +218,10 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
 
   calageMode: false,
   mixMode: false,
+  cutMode: false,
+  cutPhase: 'idle',
+  cutSelectedTrackIds: [],
+  cutWorkSegments: {},
   mixListenActive: false,
   mixPaused: false,
   mixSeekMs: 0,
@@ -309,6 +323,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setSongWorkName: (name) => set({ songWorkName: name }),
   setCalageMode: (on) => set({ calageMode: on }),
   setMixMode: (on) => set({ mixMode: on }),
+  setCutMode: (on) => set({ cutMode: on }),
   setAutoplayAfterStop: (on) => set({ autoplayAfterStop: on }),
   setSkipCountInPlayback: (on) => set({ skipCountInPlayback: on }),
   setSkipCountInDownload: (on) => set({ skipCountInDownload: on }),

@@ -481,3 +481,34 @@ export function IconAutoAlign(props: Omit<IconProps, 'children'>) {
     </Icon>
   )
 }
+
+/** Scissors for cut / découpage mode. */
+export function IconScissors(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <circle
+        cx="6.2"
+        cy="6.2"
+        r="2.4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.65"
+      />
+      <circle
+        cx="6.2"
+        cy="17.8"
+        r="2.4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.65"
+      />
+      <path
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.65"
+        strokeLinecap="round"
+        d="M8.2 7.6 20 18.2M8.2 16.4 20 5.8"
+      />
+    </Icon>
+  )
+}

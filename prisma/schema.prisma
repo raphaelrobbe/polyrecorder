@@ -166,6 +166,8 @@ model TrackAsset {
   volume        Float     @default(1)
   /// Mute in the mix. Song owner or uploader editable.
   muted         Boolean   @default(false)
+  /// Non-destructive mute windows (buffer-local ms JSON array).
+  muteRanges    Json      @default("[]")
   /// Manual order among the part's tracks (deck list + reference).
   sortOrder     Int       @default(0)
   /// Client-side track id at upload time (best-effort).

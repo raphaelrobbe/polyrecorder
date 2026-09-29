@@ -1,5 +1,6 @@
 import type { Track, TrackPlayhead } from '../../common/types'
 import { t } from '../i18n'
+import { unmutedBufferIntervals } from './segments.client'
 import { ensureAudioContext, getBufferCache, getAudioContext } from './runtime.client'
 
 export const SKIP_COUNT_IN_PAD_S = 0.1
@@ -68,17 +69,25 @@ export async function renderSelectedMixBuffer(
 
   const volumes = options?.trackVolumes ?? {}
   for (const { track, buffer } of decoded) {
-    const source = offline.createBufferSource()
-    source.buffer = buffer
     const trackGain = offline.createGain()
     trackGain.gain.value = volumes[track.id] ?? 1
-    source.connect(trackGain)
     trackGain.connect(master)
     const delayS = Math.max(0, track.offsetMs) / 1000
     const skipS = Math.max(0, -track.offsetMs) / 1000
     const playableLen = Math.max(0, buffer.duration - skipS)
     if (playableLen <= 0) continue
-    source.start(delayS, skipS, playableLen)
+    const intervals = unmutedBufferIntervals(
+      track.muteRanges,
+      skipS,
+      skipS + playableLen,
+    )
+    for (const iv of intervals) {
+      const source = offline.createBufferSource()
+      source.buffer = buffer
+      source.connect(trackGain)
+      const intoPlayable = iv.startS - skipS
+      source.start(delayS + intoPlayable, iv.startS, iv.endS - iv.startS)
+    }
   }
 
   return offline.startRendering()
@@ -151,6 +160,7 @@ export type ScheduleTrackOptions = {
 /**
  * Schedule one track on the live context timeline.
  * Returns null when there is nothing left to play from `startAtMs`.
+ * Mute ranges are skipped as separate BufferSourceNodes on the same track gain.
  */
 export function scheduleTrackSource(
   ctx: AudioContext,
@@ -161,12 +171,14 @@ export function scheduleTrackSource(
   applyOffset: boolean,
   startAtMs = 0,
   options?: ScheduleTrackOptions,
-): { source: AudioBufferSourceNode; endAt: number; trackGain: GainNode } | null {
-  const source = ctx.createBufferSource()
-  source.buffer = buffer
+): {
+  source: AudioBufferSourceNode
+  sources: AudioBufferSourceNode[]
+  endAt: number
+  trackGain: GainNode
+} | null {
   const trackGain = ctx.createGain()
   trackGain.gain.value = options?.volume ?? 1
-  source.connect(trackGain)
   trackGain.connect(gain)
   options?.onTrackGain?.(track.id, trackGain)
 
@@ -179,7 +191,6 @@ export function scheduleTrackSource(
 
   if (playable <= 0 || startAtS >= trackEndS) {
     try {
-      source.disconnect()
       trackGain.disconnect()
     } catch {
       // ignore
@@ -192,7 +203,30 @@ export function scheduleTrackSource(
   const when = timelineStart + Math.max(0, delayS - startAtS)
   const bufferOffset = skipS + intoTrackS
 
-  source.start(when, bufferOffset, remainingS)
+  const intervals = unmutedBufferIntervals(
+    track.muteRanges,
+    bufferOffset,
+    bufferOffset + remainingS,
+  )
+  if (intervals.length === 0) {
+    try {
+      trackGain.disconnect()
+    } catch {
+      // ignore
+    }
+    return null
+  }
+
+  const sources: AudioBufferSourceNode[] = []
+  for (const iv of intervals) {
+    const source = ctx.createBufferSource()
+    source.buffer = buffer
+    source.connect(trackGain)
+    const offsetInRemaining = iv.startS - bufferOffset
+    const ivWhen = when + offsetInRemaining
+    source.start(ivWhen, iv.startS, iv.endS - iv.startS)
+    sources.push(source)
+  }
 
   const playhead: TrackPlayhead = {
     when,
@@ -201,5 +235,10 @@ export function scheduleTrackSource(
   }
   options?.onPlayhead?.(track.id, playhead)
 
-  return { source, endAt: when + remainingS, trackGain }
+  return {
+    source: sources[0]!,
+    sources,
+    endAt: when + remainingS,
+    trackGain,
+  }
 }

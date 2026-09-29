@@ -1,6 +1,7 @@
 import { vitePlugin as remix } from '@remix-run/dev'
 import { installGlobals } from '@remix-run/node'
 import tailwindcss from '@tailwindcss/vite'
+import type { Plugin } from 'vite'
 import { defineConfig } from 'vite'
 import tsconfigPaths from 'vite-tsconfig-paths'
 
@@ -12,8 +13,27 @@ declare module '@remix-run/node' {
   }
 }
 
+/** Chrome DevTools / CDP probes hit the Vite port by mistake — answer quietly. */
+function silenceDevtoolsProbes(): Plugin {
+  return {
+    name: 'silence-devtools-probes',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        const path = req.url?.split('?')[0] ?? ''
+        if (path === '/json' || path.startsWith('/json/')) {
+          res.statusCode = 204
+          res.end()
+          return
+        }
+        next()
+      })
+    },
+  }
+}
+
 export default defineConfig({
   plugins: [
+    silenceDevtoolsProbes(),
     remix({
       future: {
         v3_lazyRouteDiscovery: true,
