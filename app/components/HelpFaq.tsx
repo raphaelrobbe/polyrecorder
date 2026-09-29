@@ -12,6 +12,7 @@ export const HELP_FAQ_IDS = [
   'guestLost',
   'headphones',
   'modes',
+  'clipping',
   'metronome',
   'piano',
   'skew',

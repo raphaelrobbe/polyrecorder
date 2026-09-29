@@ -1,4 +1,5 @@
 import type { User as AppUser } from '~/common/user'
+import { clampLibraryTitle } from '~/lib/format'
 import { prisma } from './db.server'
 import { CLOUD_UPLOAD_MAX_BYTES, getS3KeyPrefix } from './env.server'
 import {
@@ -1228,7 +1229,7 @@ export async function createGroup(
   const userOrErr = await requireUser(request)
   if (!isUser(userOrErr)) return userOrErr
   const user = userOrErr
-  const trimmed = name.trim()
+  const trimmed = clampLibraryTitle(name)
   if (!trimmed) return { ok: false, reason: 'invalid' }
   const group = await prisma.group.create({
     data: {
@@ -1251,7 +1252,7 @@ export async function createRepertoire(
   const userOrErr = await requireUser(request)
   if (!isUser(userOrErr)) return userOrErr
   const user = userOrErr
-  const trimmed = name.trim()
+  const trimmed = clampLibraryTitle(name)
   if (!trimmed || !groupId) return { ok: false, reason: 'invalid' }
   const group = await assertOwnedGroup(user.id, groupId)
   if (!group) return { ok: false, reason: 'not_found' }
@@ -1289,7 +1290,7 @@ export async function createSong(
   const userOrErr = await requireUser(request)
   if (!isUser(userOrErr)) return userOrErr
   const user = userOrErr
-  const trimmed = name.trim()
+  const trimmed = clampLibraryTitle(name)
   if (!trimmed || !repertoireId) return { ok: false, reason: 'invalid' }
   const repertoire = await assertOwnedRepertoire(user.id, repertoireId)
   if (!repertoire) return { ok: false, reason: 'not_found' }
@@ -1301,12 +1302,11 @@ export async function createSong(
       sortOrder: await nextSongSortOrder(repertoire.id),
     },
   })
-  const trimmedPart = partName?.trim() || null
   const prefs = parseAlignPrefs(alignPrefs)
   const part = await prisma.songPart.create({
     data: {
       songId: song.id,
-      name: trimmedPart,
+      name: clampLibraryTitle(partName ?? '') || null,
       lastOpenedAt: new Date(),
       ...prefs,
     },
@@ -1333,7 +1333,7 @@ export async function createSongPart(
   const userOrErr = await requireUser(request)
   if (!isUser(userOrErr)) return userOrErr
   const user = userOrErr
-  const trimmed = name.trim() || null
+  const trimmed = clampLibraryTitle(name) || null
   if (!songId) return { ok: false, reason: 'invalid' }
   const song = await assertOwnedSong(user.id, songId)
   if (!song) return { ok: false, reason: 'not_found' }
@@ -1360,7 +1360,7 @@ export async function renameLibraryNode(
   const userOrErr = await requireUser(request)
   if (!isUser(userOrErr)) return userOrErr
   const user = userOrErr
-  const trimmed = name.trim()
+  const trimmed = clampLibraryTitle(name)
   if (!id) return { ok: false, reason: 'invalid' }
 
   if (kind === 'songPart') {

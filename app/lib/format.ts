@@ -122,15 +122,31 @@ export function filenameFromSessionTitle(sessionTitle: string): string {
 }
 
 /**
- * Build an MP3 download name from the session title and selection.
+ * Mix download stem: song name when loaded, plus session name if set.
+ * Guest / no song → session title (or default).
+ */
+export function downloadMixBasename(
+  sessionTitle: string,
+  songWorkName?: string | null,
+): string {
+  const song = sanitizeFilenamePart(songWorkName ?? '')
+  const session = sanitizeFilenamePart(sessionTitle)
+  if (song && session) return `${song} - ${session}`
+  if (song) return song
+  return session || filenameFromSessionTitle(sessionTitle)
+}
+
+/**
+ * Build an MP3 download name from song/session title and selection.
  * Pass `totalTrackCount` so a full selection can collapse to just the title.
  */
 export function downloadFilenameForSelection(
   sessionTitle: string,
   selected: Track[],
   totalTrackCount: number,
+  songWorkName?: string | null,
 ): string {
-  const title = filenameFromSessionTitle(sessionTitle)
+  const title = downloadMixBasename(sessionTitle, songWorkName)
   if (selected.length === 0 || selected.length === totalTrackCount) {
     return `${title}.mp3`
   }
@@ -140,7 +156,7 @@ export function downloadFilenameForSelection(
         sanitizeFilenamePart(track.name) || t('tracks.filenameFallback'),
     )
     .join(' - ')
-  return `${title}_${trackParts}.mp3`
+  return `${title} - ${trackParts}.mp3`
 }
 
 export function escapeHtml(value: string): string {
@@ -230,5 +246,12 @@ export function getMaxTrackDurationMs(tracks: Track[]): number {
 }
 
 export function normalizeSessionTitle(raw: string): string {
-  return raw.replace(/\s+/g, ' ').trim().slice(0, 60) || defaultSessionTitle()
+  return clampLibraryTitle(raw) || defaultSessionTitle()
+}
+
+/** Max length for group / repertoire / song / session titles. */
+export const LIBRARY_TITLE_MAX_LEN = 30
+
+export function clampLibraryTitle(raw: string): string {
+  return raw.replace(/\s+/g, ' ').trim().slice(0, LIBRARY_TITLE_MAX_LEN)
 }

@@ -5,10 +5,11 @@ import {
   useRouteLoaderData,
   Link,
 } from '@remix-run/react'
-import { isDefaultSessionTitle } from '../lib/format'
+import { isDefaultSessionTitle, LIBRARY_TITLE_MAX_LEN } from '../lib/format'
 import {
   discard,
   dismissGuestSignInPrompt,
+  dismissNotice,
   loadCloudSongIntoSession,
   normalizeAndSetSessionTitle,
   setError,
@@ -38,7 +39,7 @@ import { LibraryBreadcrumb } from './library/LibraryBreadcrumb'
 import { SongShareButton } from './library/SongOwnerToolbar'
 import { ModeTools, DeckModes } from './ModeTools'
 import { PianoKeyboard } from './PianoKeyboard'
-import { ErrorBanner } from './StatusMessage'
+import { NoticeBanner } from './StatusMessage'
 import { TracksList } from './tracks/TracksList'
 
 type DeckMainProps = {
@@ -114,7 +115,7 @@ export function DeckMain({ className }: DeckMainProps) {
   const metronomeBpm = useSessionStore((s) => s.metronomeBpm)
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
-  const error = useSessionStore((s) => s.error)
+  const notice = useSessionStore((s) => s.notice)
   const keyboardHintsEnabled = useSessionStore((s) => s.keyboardHintsEnabled)
   const tracks = useSessionStore((s) => s.tracks)
   const readOnlySession = useSessionStore((s) => s.readOnlySession)
@@ -286,7 +287,7 @@ export function DeckMain({ className }: DeckMainProps) {
                 <Link
                   to={librarySongPath(deckLibraryPath.songId)}
                   className={cn(
-                    'block w-full min-w-0 truncate rounded-[10px] px-[0.45rem] py-[0.2rem] text-center font-bold text-[1.35rem] leading-[1.25] text-ink no-underline',
+                    'block w-full min-w-0 break-words rounded-[10px] px-[0.45rem] py-[0.2rem] text-center font-bold text-[1.35rem] leading-[1.25] text-ink no-underline',
                     'transition-[color] duration-150',
                     'hover:underline hover:decoration-ink/25 hover:underline-offset-2',
                     'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
@@ -297,12 +298,12 @@ export function DeckMain({ className }: DeckMainProps) {
                   {songWorkName}
                 </Link>
               ) : (
-                <p className="m-0 w-full min-w-0 truncate px-[0.45rem] py-[0.2rem] text-center font-bold text-[1.35rem] leading-[1.25] text-ink">
+                <p className="m-0 w-full min-w-0 break-words px-[0.45rem] py-[0.2rem] text-center font-bold text-[1.35rem] leading-[1.25] text-ink">
                   {songWorkName}
                 </p>
               )}
               <div
-                className="mt-0.5 flex w-full min-w-0 items-center gap-[0.25rem]"
+                className="mt-0.5 flex w-full min-w-0 items-start gap-[0.25rem]"
                 style={hideSessionTitle ? { display: 'none' } : undefined}
               >
                 {showSessionNav ? (
@@ -323,7 +324,7 @@ export function DeckMain({ className }: DeckMainProps) {
                   rows={1}
                   readOnly={readOnlySession}
                   className={cn(
-                    'min-w-0 flex-1 resize-none overflow-hidden border-0 bg-transparent font-[inherit] text-[0.88rem] font-semibold leading-[1.3] text-center py-[0.15rem] px-[0.45rem] rounded-[8px] [font-synthesis:style] field-sizing-content text-ink-soft',
+                    'min-w-0 flex-1 resize-none overflow-hidden break-words border-0 bg-transparent font-[inherit] text-[0.88rem] font-semibold leading-[1.3] text-center py-[0.15rem] px-[0.45rem] rounded-[8px] [font-synthesis:style] field-sizing-content text-ink-soft',
                     !sessionTitle.trim() && sessionUnnamedPlaceholder && 'italic',
                     readOnlySession
                       ? 'cursor-default'
@@ -332,7 +333,7 @@ export function DeckMain({ className }: DeckMainProps) {
                   data-session-title
                   value={sessionTitle}
                   placeholder={sessionUnnamedPlaceholder}
-                  maxLength={60}
+                  maxLength={LIBRARY_TITLE_MAX_LEN}
                   aria-label={sessionTitleAria}
                   title={sessionTitleAria}
                   data-title-base={sessionTitleAria}
@@ -373,7 +374,7 @@ export function DeckMain({ className }: DeckMainProps) {
               rows={1}
               readOnly={readOnlySession}
               className={cn(
-                'w-full min-w-0 resize-none overflow-hidden border-0 bg-transparent font-[inherit] font-bold text-[1.35rem] leading-[1.25] text-center py-[0.2rem] px-[0.45rem] rounded-[10px] [font-synthesis:style] field-sizing-content',
+                'w-full min-w-0 resize-none overflow-hidden break-words border-0 bg-transparent font-[inherit] font-bold text-[1.35rem] leading-[1.25] text-center py-[0.2rem] px-[0.45rem] rounded-[10px] [font-synthesis:style] field-sizing-content',
                 readOnlySession
                   ? 'text-ink cursor-default'
                   : 'hover:bg-ink/6 focus:bg-ink/6 focus:outline-none focus:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ink)_18%,transparent)]',
@@ -385,7 +386,7 @@ export function DeckMain({ className }: DeckMainProps) {
               )}
               data-session-title
               value={sessionTitle}
-              maxLength={60}
+              maxLength={LIBRARY_TITLE_MAX_LEN}
               aria-label={sessionTitleAria}
               title={
                 readOnlySession
@@ -425,7 +426,7 @@ export function DeckMain({ className }: DeckMainProps) {
           )}
 
           {consultationCredit ? (
-            <p className="m-0 mt-1 max-w-full truncate text-center text-[0.72rem] font-semibold tracking-[0.02em] text-ink-soft">
+            <p className="m-0 mt-1 max-w-full break-words text-center text-[0.72rem] font-semibold tracking-[0.02em] text-ink-soft">
               {consultationCredit}
             </p>
           ) : null}
@@ -498,7 +499,27 @@ export function DeckMain({ className }: DeckMainProps) {
       </div>
       <TracksList />
 
-      <ErrorBanner hidden={!error}>{error}</ErrorBanner>
+      {notice ? (
+        <NoticeBanner
+          tone={notice.tone}
+          onDismiss={() => dismissNotice()}
+          actionLabel={
+            notice.action === 'disableAutoAlign'
+              ? t('warn.disableAutoAlign')
+              : undefined
+          }
+          onAction={
+            notice.action === 'disableAutoAlign'
+              ? () => setSessionAlignPref('autoAlignEnabled', false)
+              : undefined
+          }
+          title={
+            notice.tone === 'align' ? t('warn.skew.tooltip') : undefined
+          }
+        >
+          {notice.message}
+        </NoticeBanner>
+      ) : null}
 
       <CalagePanel />
       </Deck>

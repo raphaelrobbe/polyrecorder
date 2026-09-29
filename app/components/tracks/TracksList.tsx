@@ -3,15 +3,13 @@ import { formatCentis, getMixDurationMs } from '../../lib/format'
 import {
   alignableTracks,
   deleteAllTracks,
-  dismissSkewWarning,
+  dismissMixClipWarning,
   realignAllTracks,
   reorderTrack,
   seekMixTo,
   setAllTracksEnabled,
-  setCalageMode,
   setError,
   setMasterVolume,
-  setSessionAlignPref,
   flushVolumeCloudPersist,
 } from '../../lib/sessionActions.client'
 import { MASTER_VOLUME_MAX } from '../../lib/audio/mix.client'
@@ -21,6 +19,7 @@ import { cn } from '../../lib/utils'
 import { useSessionStore } from '../../store/sessionStore'
 import { Button } from '../Button'
 import { IconAutoAlign, IconTrash } from '../icons'
+import { NoticeBanner } from '../StatusMessage'
 import { VolumeRibbon } from '../VolumeRibbon'
 import { TrackMute } from './TrackMute'
 import { TrackRow } from './TrackRow'
@@ -43,16 +42,10 @@ export function TracksList({ className }: TracksListProps) {
   const mixMode = useSessionStore((s) => s.mixMode)
   const autoAlignEnabled = useSessionStore((s) => s.autoAlignEnabled)
   const masterVolume = useSessionStore((s) => s.masterVolume)
+  const mixClipWarning = useSessionStore((s) => s.mixClipWarning)
   const enabledTrackIds = useSessionStore((s) => s.enabledTrackIds)
   const mixClockText = useSessionStore((s) => s.mixClockText)
   const mixSeekMs = useSessionStore((s) => s.mixSeekMs)
-  const skewWarningMessage = useSessionStore((s) => s.skewWarningMessage)
-  const skewWarningShowOpenAdvanced = useSessionStore(
-    (s) => s.skewWarningShowOpenAdvanced,
-  )
-  const skewWarningShowDisableAutoAlign = useSessionStore(
-    (s) => s.skewWarningShowDisableAutoAlign,
-  )
   const setSeekDragActive = useSessionStore((s) => s.setSeekDragActive)
   const patch = useSessionStore((s) => s.patch)
 
@@ -228,23 +221,35 @@ export function TracksList({ className }: TracksListProps) {
           </p>
         ) : null}
         {mixMode ? (
-          <div
-            className="mb-[0.75rem] flex items-center gap-[0.55rem] max-sm:gap-[0.35rem]"
-            data-volume-ribbon
-          >
-            <span className="shrink-0 text-[0.84rem] font-semibold text-ink-soft max-sm:text-[0.76rem]">
-              {t('mix.masterVolume')}
-            </span>
-            <VolumeRibbon
-              className="min-w-0 flex-auto"
-              emphasis
-              label={t('mix.masterVolume')}
-              value={masterVolume}
-              max={MASTER_VOLUME_MAX}
-              onChange={setMasterVolume}
-              onChangeEnd={() => flushVolumeCloudPersist()}
-              onReset={() => setMasterVolume(1)}
-            />
+          <div className="mb-[0.75rem] flex flex-col gap-[0.35rem]">
+            <div
+              className="flex items-center gap-[0.55rem] max-sm:gap-[0.35rem]"
+              data-volume-ribbon
+            >
+              <span className="shrink-0 text-[0.84rem] font-semibold text-ink-soft max-sm:text-[0.76rem]">
+                {t('mix.masterVolume')}
+              </span>
+              <VolumeRibbon
+                className="min-w-0 flex-auto"
+                emphasis
+                label={t('mix.masterVolume')}
+                value={masterVolume}
+                max={MASTER_VOLUME_MAX}
+                onChange={setMasterVolume}
+                onChangeEnd={() => flushVolumeCloudPersist()}
+                onReset={() => setMasterVolume(1)}
+              />
+            </div>
+            {mixClipWarning ? (
+              <NoticeBanner
+                tone="mix"
+                compact
+                className="m-0 mt-0"
+                onDismiss={() => dismissMixClipWarning()}
+              >
+                {t('mix.clip.bus')}
+              </NoticeBanner>
+            ) : null}
           </div>
         ) : null}
         {calageMode && alignable.length > 0 ? (
@@ -463,48 +468,6 @@ export function TracksList({ className }: TracksListProps) {
             />
           ))}
         </ul>
-      </div>
-
-      <div
-        className="relative mt-4 flex flex-wrap items-center gap-x-3 gap-y-[0.55rem] rounded-[14px] border-[1.5px] border-warn-border bg-warn-bg py-[0.85rem] pr-[2.1rem] pl-[0.95rem] text-[0.88rem] leading-[1.35] text-warn [&_strong]:font-extrabold [&_strong]:tracking-[0.02em]"
-        data-skew-warning
-        hidden={!skewWarningMessage}
-        title={t('warn.skew.tooltip')}
-      >
-        <button
-          type="button"
-          className="absolute top-[0.35rem] right-[0.4rem] h-[1.6rem] w-[1.6rem] cursor-pointer rounded-lg border-0 bg-transparent p-0 text-[1.15rem] leading-none text-warn hover:bg-warn-hover"
-          data-dismiss-skew
-          aria-label={t('common.close')}
-          title={t('common.close')}
-          onClick={() => dismissSkewWarning()}
-        >
-          ×
-        </button>
-        <span data-skew-warning-text>{skewWarningMessage}</span>
-        {skewWarningShowDisableAutoAlign ? (
-          <Button
-            variant="default"
-            className="ml-auto border-[1.5px] border-warn-border bg-transparent px-3 py-[0.4rem] text-[0.8rem] text-warn hover:enabled:bg-warn-hover"
-            onClick={() => {
-              setSessionAlignPref('autoAlignEnabled', false)
-            }}
-          >
-            {t('warn.disableAutoAlign')}
-          </Button>
-        ) : null}
-        {skewWarningShowOpenAdvanced ? (
-          <Button
-            variant="default"
-            className="ml-auto border-[1.5px] border-warn-border bg-transparent px-3 py-[0.4rem] text-[0.8rem] text-warn hover:enabled:bg-warn-hover"
-            onClick={() => {
-              setError(null)
-              setCalageMode(true)
-            }}
-          >
-            {t('warn.openAlignMode')}
-          </Button>
-        ) : null}
       </div>
     </>
   )

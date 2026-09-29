@@ -98,6 +98,12 @@ export function DeckModes({ className }: DeckModesProps) {
       >
         {MODE_OPTIONS.map((option) => {
           const selected = active === option.id
+          const selectedTone =
+            option.id === 'mix'
+              ? 'bg-mode-mix text-on-mode-mix shadow-[0_4px_12px_color-mix(in_srgb,var(--mode-mix)_28%,transparent)]'
+              : option.id === 'align'
+                ? 'bg-mode-align text-on-mode-align shadow-[0_4px_12px_color-mix(in_srgb,var(--mode-align)_28%,transparent)]'
+                : 'bg-ink text-on-ink shadow-[0_4px_12px_color-mix(in_srgb,var(--ink)_22%,transparent)]'
           return (
             <button
               key={option.id}
@@ -110,7 +116,7 @@ export function DeckModes({ className }: DeckModesProps) {
                 option.icon === 'mix'
                   ? {
                       ['--fader-knob-fill' as string]: selected
-                        ? 'var(--on-ink)'
+                        ? 'var(--on-mode-mix)'
                         : 'var(--surface)',
                     }
                   : undefined
@@ -121,7 +127,7 @@ export function DeckModes({ className }: DeckModesProps) {
                 'cursor-pointer active:scale-[0.98]',
                 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
                 selected
-                  ? 'bg-ink text-on-ink shadow-[0_4px_12px_color-mix(in_srgb,var(--ink)_22%,transparent)]'
+                  ? selectedTone
                   : 'bg-transparent text-ink-soft hover:text-ink',
               )}
             >

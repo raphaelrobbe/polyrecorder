@@ -23,6 +23,8 @@ import {
   setTrackEnabled,
   setTrackVolume,
   setCalageMode,
+  setMixMode,
+  showNotice,
   flushVolumeCloudPersist,
   toggleTrackHighlight,
 } from '../../lib/sessionActions.client'
@@ -77,9 +79,11 @@ export function TrackRow({
   const skewWarningDismissedKey = useSessionStore(
     (s) => s.skewWarningDismissedKey,
   )
+  const referenceBeatWarning = useSessionStore((s) => s.referenceBeatWarning)
   const alignAttentionByTrackId = useSessionStore(
     (s) => s.alignAttentionByTrackId,
   )
+  const trackClipById = useSessionStore((s) => s.trackClipById)
   const showCalageWarnings = useSessionStore((s) => s.showCalageWarnings)
   const autoAlignEnabled = useSessionStore((s) => s.autoAlignEnabled)
   const metronomeBpm = useSessionStore((s) => s.metronomeBpm)
@@ -125,19 +129,177 @@ export function TrackRow({
     skewFingerprint.length > 0 &&
     skewFingerprint !== skewWarningDismissedKey
   const alignAttentionMessage = alignAttentionByTrackId[track.id]
+  const isSimpleMode = !mixMode && !calageMode
+  const beatWarningActive = referenceBeatWarning != null
+  const showBeatAttention =
+    beatWarningActive &&
+    isReference &&
+    showCalageWarnings &&
+    autoAlignEnabled &&
+    !mixMode
   const showAlignAttention =
     Boolean(alignAttentionMessage) &&
     showCalageWarnings &&
     autoAlignEnabled &&
-    !calageMode
+    (isSimpleMode || calageMode)
   const showSkewAttention =
     autoAlignEnabled &&
     showCalageWarnings &&
     skewActive &&
     !isReference &&
-    !calageMode &&
+    (isSimpleMode || calageMode) &&
     Math.abs(track.offsetMs) > OFFSET_WARN_MS
-  const showAttentionChip = showSkewAttention || showAlignAttention
+  const showAttentionChip =
+    showSkewAttention || showAlignAttention || showBeatAttention
+  const attentionTitle = showBeatAttention
+    ? referenceBeatWarning!.message
+    : (alignAttentionMessage ??
+      t('warn.skew.long', { names: track.name }))
+  const attentionAria = showBeatAttention
+    ? t('warn.beat.chip.aria')
+    : alignAttentionMessage
+      ? t('warn.attention')
+      : t('warn.skew.chip.aria', { name: track.name })
+  const nameKey = track.name.trim().toLowerCase()
+  const showDuplicateNameChip =
+    isSimpleMode &&
+    nameKey.length > 0 &&
+    tracks.filter((t) => t.name.trim().toLowerCase() === nameKey).length > 1
+  const showRecordClipChip =
+    (isSimpleMode || mixMode) &&
+    !track.isMetronome &&
+    Boolean(trackClipById[track.id])
+  /** Reserve chip columns so "!" line up across tracks (and stay next to trash). */
+  const simpleDupChipColumn =
+    isSimpleMode &&
+    tracks.some((t) => {
+      const key = t.name.trim().toLowerCase()
+      if (!key) return false
+      return tracks.filter((o) => o.name.trim().toLowerCase() === key).length > 1
+    })
+  const simpleMixChipColumn =
+    isSimpleMode &&
+    tracks.some((t) => !t.isMetronome && Boolean(trackClipById[t.id]))
+  const simpleCalageChipColumn =
+    isSimpleMode &&
+    showCalageWarnings &&
+    autoAlignEnabled &&
+    (beatWarningActive ||
+      Object.keys(alignAttentionByTrackId).length > 0 ||
+      (skewActive &&
+        tracks.some(
+          (t) =>
+            t.id !== referenceTrackId &&
+            Math.abs(t.offsetMs) > OFFSET_WARN_MS,
+        )))
+  const mixChipColumn =
+    mixMode &&
+    tracks.some((t) => !t.isMetronome && Boolean(trackClipById[t.id]))
+  const calageChipColumn =
+    calageMode &&
+    showCalageWarnings &&
+    autoAlignEnabled &&
+    (beatWarningActive ||
+      Object.keys(alignAttentionByTrackId).length > 0 ||
+      (skewActive &&
+        tracks.some(
+          (t) =>
+            t.id !== referenceTrackId &&
+            Math.abs(t.offsetMs) > OFFSET_WARN_MS,
+        )))
+  const chipRail =
+    simpleDupChipColumn ||
+    simpleMixChipColumn ||
+    simpleCalageChipColumn ||
+    mixChipColumn ||
+    calageChipColumn
+  const chipSlotClass =
+    'grid h-[1.15rem] w-[1.15rem] shrink-0 place-items-center max-sm:h-[1.05rem] max-sm:w-[1.05rem]'
+  const dupChipButton = showDuplicateNameChip ? (
+    <Button
+      variant="trash"
+      className={cn(
+        'h-full w-full rounded-md border-ink/28 bg-ink/8 p-0 text-[0.68rem] font-extrabold leading-none text-ink',
+        'hover:enabled:border-ink/35 hover:enabled:bg-ink/12 hover:enabled:text-ink',
+        'max-sm:text-[0.62rem]',
+      )}
+      title={t('warn.duplicateName.hint')}
+      aria-label={t('warn.duplicateName.aria', { name: track.name })}
+      onClick={() => {
+        showNotice({
+          id: `dup:${nameKey}`,
+          message: t('warn.duplicateName.hint'),
+          tone: 'simple',
+        })
+        const input = document.querySelector<HTMLInputElement>(
+          `input[data-rename-track="${track.id}"]`,
+        )
+        input?.focus()
+        input?.select()
+      }}
+    >
+      !
+    </Button>
+  ) : null
+  const mixChipButton = showRecordClipChip ? (
+    <Button
+      variant="trash"
+      className={cn(
+        'h-full w-full rounded-md border-mode-mix-border bg-mode-mix-bg p-0 text-[0.68rem] font-extrabold leading-none text-mode-mix',
+        'hover:enabled:border-mode-mix-border hover:enabled:bg-mode-mix-hover hover:enabled:text-mode-mix',
+        'max-sm:text-[0.62rem]',
+      )}
+      title={t('mix.clip.record.hint')}
+      aria-label={t('mix.clip.record.aria')}
+      onClick={() => {
+        if (!mixMode) setMixMode(true)
+        showNotice({
+          id: `mix-clip:${track.id}`,
+          message: t('mix.clip.record.hint'),
+          tone: 'mix',
+        })
+      }}
+    >
+      !
+    </Button>
+  ) : null
+  const calageChipButton = showAttentionChip ? (
+    <Button
+      variant="trash"
+      className={cn(
+        'h-full w-full rounded-md border-mode-align-border bg-mode-align-bg p-0 text-[0.68rem] font-extrabold leading-none text-mode-align',
+        'hover:enabled:border-mode-align-border hover:enabled:bg-mode-align-hover hover:enabled:text-mode-align',
+        'max-sm:text-[0.62rem]',
+      )}
+      title={attentionTitle}
+      aria-label={attentionAria}
+      onClick={() => {
+        if (showBeatAttention && referenceBeatWarning) {
+          showNotice({
+            id: referenceBeatWarning.key,
+            message: referenceBeatWarning.message,
+            tone: 'align',
+            action: 'disableAutoAlign',
+          })
+        } else if (alignAttentionMessage) {
+          showNotice({
+            id: `align:${track.id}`,
+            message: alignAttentionMessage,
+            tone: 'align',
+          })
+        } else {
+          showNotice({
+            id: `skew:${track.id}`,
+            message: t('warn.skew.long', { names: track.name }),
+            tone: 'align',
+          })
+        }
+        if (!calageMode) setCalageMode(true)
+      }}
+    >
+      !
+    </Button>
+  ) : null
   const showCloudSave =
     (!readOnlySession || canCloudContribute) &&
     user != null &&
@@ -146,9 +308,11 @@ export function TrackRow({
       track.cloudStatus === 'error' ||
       track.cloudStatus == null)
   const cloudUploading = track.cloudStatus === 'uploading'
-  const showDelete = track.isMetronome
-    ? !hideDelete
-    : !isReference && !hideDelete
+  const showDelete = !hideDelete
+  const deleteDisabled = isReference && autoAlignEnabled && !track.isMetronome
+  const deleteTitle = deleteDisabled
+    ? t('tracks.delete.referenceLocked')
+    : t('common.delete')
 
   const [nameDraft, setNameDraft] = useState(track.name)
   const [bpmDraft, setBpmDraft] = useState(
@@ -273,10 +437,16 @@ export function TrackRow({
           <div
             className={cn(
               'flex min-w-0 items-center gap-[0.4rem]',
-              (calageMode || mixMode || showUploader) && 'w-full',
+              calageMode && 'w-full flex-col items-stretch gap-[0.12rem]',
+              (mixMode || showUploader) && !calageMode && 'w-full',
             )}
           >
-            <div className="flex min-w-0 flex-auto flex-col gap-0">
+            <div
+              className={cn(
+                'flex min-w-0 flex-col gap-0',
+                calageMode ? 'w-full' : 'flex-auto',
+              )}
+            >
               {track.isMetronome ? (
                 <div className="inline-flex min-w-0 items-baseline gap-[0.35rem] py-[0.1rem]">
                   <span className="shrink-0 text-[0.82rem] font-bold text-ink">
@@ -321,7 +491,7 @@ export function TrackRow({
                   value={nameDraft}
                   aria-label={t('tracks.name.aria')}
                   maxLength={40}
-                  className={cn(showUploader && 'py-0')}
+                  className={cn(showUploader && !calageMode && 'py-0')}
                   onChange={(event) => {
                     setNameDraft(event.target.value)
                   }}
@@ -352,7 +522,7 @@ export function TrackRow({
                   }}
                 />
               )}
-              {showUploader ? (
+              {!calageMode && showUploader ? (
                 <span
                   className="truncate px-[0.15rem] text-[0.62rem] font-medium leading-[1.1] text-ink-soft/80"
                   title={t('tracks.uploadedBy', {
@@ -363,31 +533,54 @@ export function TrackRow({
                 </span>
               ) : null}
             </div>
-            <span
-              className={cn(
-                'ml-auto inline-flex shrink-0 flex-col items-end gap-[0.1rem] leading-[1.15]',
-                calageMode &&
-                  'ml-0 flex-row items-center justify-start gap-[0.55rem]',
-              )}
-              hidden={!calageMode || Boolean(track.isMetronome)}
-            >
-              {calageMode && !track.isMetronome ? (
-                <>
-                  <small
-                    className="text-[0.8rem] font-bold tracking-[0.02em] tabular-nums text-ink"
-                    data-track-clock={track.id}
+            {calageMode &&
+            (showUploader || !track.isMetronome) ? (
+              <div className="flex w-full min-w-0 items-center gap-[0.55rem]">
+                {showUploader ? (
+                  <span
+                    className="min-w-0 truncate px-[0.15rem] text-[0.62rem] font-medium leading-[1.1] text-ink-soft/80"
+                    title={t('tracks.uploadedBy', {
+                      pseudo: uploaderHandle ?? uploaderLabel!,
+                    })}
                   >
-                    {clock}
-                  </small>
-                  <small className="text-[0.72rem] tabular-nums text-ink-soft">
-                    {formatTime(track.durationMs)}
-                  </small>
-                </>
-              ) : null}
-            </span>
+                    {uploaderLabel}
+                  </span>
+                ) : null}
+                {!track.isMetronome ? (
+                  <span className="inline-flex shrink-0 items-center gap-[0.55rem] leading-[1.15]">
+                    <small
+                      className="text-[0.8rem] font-bold tracking-[0.02em] tabular-nums text-ink"
+                      data-track-clock={track.id}
+                    >
+                      {clock}
+                    </small>
+                    <small className="text-[0.72rem] tabular-nums text-ink-soft">
+                      {formatTime(track.durationMs)}
+                    </small>
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+            {mixMode && (showCloudSave || cloudUploading) ? (
+              <Button
+                variant="utility"
+                className="ml-auto shrink-0 self-center max-sm:ml-[0.08rem]"
+                icon={<IconCloudSave />}
+                disabled={cloudUploading}
+                aria-label={t('tracks.cloudSave', { name: track.name })}
+                title={
+                  cloudUploading
+                    ? t('tracks.cloudSaving')
+                    : t('tracks.cloudSave', { name: track.name })
+                }
+                onClick={() => {
+                  void uploadTrackToCloud(track.id)
+                }}
+              />
+            ) : null}
           </div>
           {mixMode ? (
-            <div data-volume-ribbon>
+            <div data-volume-ribbon className="w-full min-w-0">
               <VolumeRibbon
                 label={t('tracks.volume', { name: track.name })}
                 value={volume}
@@ -399,7 +592,7 @@ export function TrackRow({
             </div>
           ) : null}
         </div>
-        {showCloudSave || cloudUploading ? (
+        {!mixMode && (showCloudSave || cloudUploading) ? (
           <Button
             variant="utility"
             className="ml-[0.15rem] shrink-0 max-sm:ml-[0.08rem]"
@@ -416,36 +609,29 @@ export function TrackRow({
             }}
           />
         ) : null}
-        {showAttentionChip ? (
-          <Button
-            variant="trash"
-            className="ml-[0.15rem] h-[1.65rem] w-[1.65rem] shrink-0 rounded-lg border-warn-border bg-warn-bg text-[0.88rem] font-extrabold leading-none text-warn hover:enabled:border-warn-border hover:enabled:bg-warn-hover hover:enabled:text-warn max-sm:ml-[0.08rem] max-sm:h-[1.45rem] max-sm:w-[1.45rem] max-sm:text-[0.8rem]"
-            title={
-              alignAttentionMessage ??
-              t('warn.skew.long', { names: track.name })
-            }
-            aria-label={
-              alignAttentionMessage
-                ? t('warn.attention')
-                : t('warn.skew.chip.aria', { name: track.name })
-            }
-            onClick={() => {
-              if (alignAttentionMessage) setError(alignAttentionMessage)
-              else setError(null)
-              setCalageMode(true)
-            }}
-          >
-            !
-          </Button>
+        {chipRail ? (
+          <div className="ml-[0.12rem] flex shrink-0 items-center gap-[0.2rem] self-center max-sm:ml-[0.06rem]">
+            {simpleDupChipColumn ? (
+              <div className={chipSlotClass}>{dupChipButton}</div>
+            ) : null}
+            {simpleMixChipColumn || mixChipColumn ? (
+              <div className={chipSlotClass}>{mixChipButton}</div>
+            ) : null}
+            {simpleCalageChipColumn || calageChipColumn ? (
+              <div className={chipSlotClass}>{calageChipButton}</div>
+            ) : null}
+          </div>
         ) : null}
         {showDelete ? (
           <Button
             variant="trash"
             className="ml-[0.15rem] h-[1.65rem] w-[1.65rem] shrink-0 rounded-lg border-ink/18 text-ink/55 [&_svg]:size-[0.82rem] max-sm:ml-[0.08rem] max-sm:h-[1.45rem] max-sm:w-[1.45rem] max-sm:[&_svg]:size-[0.72rem]"
             icon={<IconTrash />}
+            disabled={deleteDisabled}
             aria-label={t('tracks.delete', { name: track.name })}
-            title={t('common.delete')}
+            title={deleteTitle}
             onClick={() => {
+              if (deleteDisabled) return
               const ok = window.confirm(
                 t('tracks.delete.confirm', { name: track.name }),
               )

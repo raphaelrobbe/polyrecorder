@@ -7,6 +7,7 @@ import {
 } from 'react'
 import { useLocale } from '../hooks/useLocale'
 import { readAlignPrefs } from '../lib/alignPrefs'
+import { LIBRARY_TITLE_MAX_LEN } from '../lib/format'
 import { t, tp } from '../lib/i18n'
 import { clearLocalDeckSession, loadCloudSongIntoSession, refreshOpenDeckForSong, syncDeckLabelsAfterLibraryRename } from '../lib/sessionActions.client'
 import { librarySessionPath } from '../lib/libraryPaths'
@@ -906,12 +907,19 @@ function AddNodeRow({
   useLocale()
   const [draft, setDraft] = useState(defaultLabel)
   const [busy, setBusy] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const isDefault = draft.trim() === defaultLabel
 
   useEffect(() => {
     setDraft(defaultLabel)
   }, [defaultLabel])
+
+  useEffect(() => {
+    const el = inputRef.current
+    if (!el) return
+    el.style.height = '0px'
+    el.style.height = `${el.scrollHeight}px`
+  }, [draft])
 
   const focusAndSelect = () => {
     const el = inputRef.current
@@ -944,7 +952,7 @@ function AddNodeRow({
 
   return (
     <li className={className}>
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-start gap-1.5">
         {dragGutter ? (
           <span className="w-[1.1rem] shrink-0" aria-hidden="true" />
         ) : null}
@@ -956,7 +964,7 @@ function AddNodeRow({
           onClick={focusAndSelect}
           className={cn(
             accordionControlClass,
-            'text-[1.25rem] font-medium leading-none',
+            'mt-[1.15rem] text-[1.25rem] font-medium leading-none',
           )}
         >
           <span aria-hidden="true">+</span>
@@ -970,16 +978,16 @@ function AddNodeRow({
           >
             {levelLabel}
           </p>
-          <input
+          <textarea
             ref={inputRef}
-            type="text"
+            rows={1}
             value={draft}
             disabled={busy}
             aria-label={defaultLabel}
-            maxLength={80}
+            maxLength={LIBRARY_TITLE_MAX_LEN}
             spellCheck={false}
             className={cn(
-              'm-0 mt-0.5 w-auto max-w-full min-w-[5.5ch] rounded-[8px] border-0 bg-transparent py-[0.1rem] pl-0 pr-9 font-[inherit] field-sizing-content',
+              'm-0 mt-0.5 w-full max-w-full min-w-[5.5ch] resize-none overflow-hidden break-words rounded-[8px] border-0 bg-transparent py-[0.1rem] pl-0 pr-9 font-[inherit] leading-[1.25] field-sizing-content',
               'hover:bg-ink/6 focus:bg-ink/6 focus:outline-none',
               'focus:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ink)_18%,transparent)]',
               'disabled:opacity-55',
@@ -988,7 +996,9 @@ function AddNodeRow({
                 : 'text-ink',
               inputClassName,
             )}
-            onChange={(event) => setDraft(event.target.value)}
+            onChange={(event) =>
+              setDraft(event.target.value.replace(/\n/g, ' '))
+            }
             onFocus={(event) => {
               if (event.currentTarget.value.trim() !== defaultLabel) return
               event.currentTarget.select()
@@ -1103,12 +1113,19 @@ function AddLeafRow({
   useLocale()
   const [draft, setDraft] = useState(defaultLabel)
   const [busy, setBusy] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
   const isDefault = draft.trim() === defaultLabel
 
   useEffect(() => {
     setDraft(defaultLabel)
   }, [defaultLabel])
+
+  useEffect(() => {
+    const el = inputRef.current
+    if (!el) return
+    el.style.height = '0px'
+    el.style.height = `${el.scrollHeight}px`
+  }, [draft])
 
   const focusAndSelect = () => {
     const el = inputRef.current
@@ -1151,7 +1168,7 @@ function AddLeafRow({
         alignWithRowFrame ? 'pr-1.5' : 'px-1.5',
       )}
     >
-      <div className="flex min-w-0 items-center gap-1.5">
+      <div className="flex min-w-0 items-start gap-1.5">
         {showDragGutter ? (
           <span className="w-[1.1rem] shrink-0" aria-hidden="true" />
         ) : null}
@@ -1172,16 +1189,16 @@ function AddLeafRow({
         >
           <span aria-hidden="true">+</span>
         </button>
-        <input
+        <textarea
           ref={inputRef}
-          type="text"
+          rows={1}
           value={draft}
           disabled={busy}
           aria-label={defaultLabel}
-          maxLength={80}
+          maxLength={LIBRARY_TITLE_MAX_LEN}
           spellCheck={false}
           className={cn(
-            'm-0 w-auto max-w-full min-w-[5.5ch] rounded-[8px] border-0 bg-transparent py-[0.1rem] pl-[0.15rem] pr-9 font-[inherit] field-sizing-content',
+            'm-0 w-full max-w-full min-w-[5.5ch] resize-none overflow-hidden break-words rounded-[8px] border-0 bg-transparent py-[0.1rem] pl-[0.15rem] pr-9 font-[inherit] leading-[1.25] field-sizing-content',
             'text-[0.9rem]',
             'hover:bg-ink/6 focus:bg-ink/6 focus:outline-none',
             'focus:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ink)_18%,transparent)]',
@@ -1190,7 +1207,9 @@ function AddLeafRow({
               ? 'italic font-medium text-ink/45 [font-synthesis:style]'
               : 'font-medium text-ink',
           )}
-          onChange={(event) => setDraft(event.target.value)}
+          onChange={(event) =>
+            setDraft(event.target.value.replace(/\n/g, ' '))
+          }
           onFocus={(event) => {
             if (event.currentTarget.value.trim() !== defaultLabel) return
             event.currentTarget.select()
@@ -1236,30 +1255,41 @@ function LibraryNameInput({
   allowEmpty?: boolean
 }) {
   const [draft, setDraft] = useState(value)
+  const ref = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
     setDraft(value)
   }, [value])
 
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    el.style.height = '0px'
+    el.style.height = `${el.scrollHeight}px`
+  }, [draft])
+
   const showPlaceholderStyle = allowEmpty && !draft.trim() && Boolean(placeholder)
 
   return (
-    <input
-      type="text"
+    <textarea
+      ref={ref}
+      rows={1}
       value={draft}
       placeholder={placeholder}
       aria-label={ariaLabel}
-      maxLength={80}
+      maxLength={LIBRARY_TITLE_MAX_LEN}
       spellCheck={false}
       className={cn(
-        'relative z-[1] m-0 w-auto max-w-full min-w-[5.5ch] rounded-[8px] border-0 bg-transparent py-[0.1rem] pl-[0.25rem] pr-9 font-[inherit] text-inherit field-sizing-content',
+        'relative z-[1] m-0 w-full max-w-full min-w-[5.5ch] resize-none overflow-hidden break-words rounded-[8px] border-0 bg-transparent py-[0.1rem] pl-[0.25rem] pr-9 font-[inherit] text-inherit leading-[1.25] field-sizing-content',
         'hover:bg-ink/6 focus:bg-ink/6 focus:outline-none',
         'focus:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ink)_18%,transparent)]',
         className,
         showPlaceholderStyle &&
           'italic text-ink-soft [font-synthesis:style] placeholder:italic placeholder:text-ink-soft',
       )}
-      onChange={(event) => setDraft(event.target.value)}
+      onChange={(event) =>
+        setDraft(event.target.value.replace(/\n/g, ' '))
+      }
       onClick={(event) => event.stopPropagation()}
       onKeyDown={(event) => {
         if (event.key === 'Enter') {
@@ -1528,7 +1558,11 @@ export function LibraryPanel({ className }: LibraryPanelProps) {
       bodyClassName="flex flex-col gap-4"
       closeAriaLabel={t('library.close')}
     >
-      {error ? <ErrorBanner className="mt-0">{error}</ErrorBanner> : null}
+      {error ? (
+        <ErrorBanner className="mt-0" onDismiss={() => setError(null)}>
+          {error}
+        </ErrorBanner>
+      ) : null}
       {loading ? (
         <p className="m-0 text-[0.9rem] text-ink-soft">{t('library.opening')}</p>
       ) : !tree ? (

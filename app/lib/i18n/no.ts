@@ -304,6 +304,15 @@ export const no: Record<MessageKey, string> = {
   'mix.download.hint': 'Last ned mix av valgte spor (MP3)',
   'mix.seekAria': 'Avspillingsposisjon',
   'mix.masterVolume': 'Mastervolum',
+  'mix.clip.record.hint':
+    'Klipping ved opptak. Ta opp sporet på nytt og sjekk mikrofonens inngangsnivå.',
+  'mix.clip.record.aria': 'Klipping ved opptak',
+  'mix.clip.bus':
+    'Mix klipper: senk mastervolumet (eller sporvolumene).',
+  'settings.autoClipCorrect':
+    'Korriger mastervolum automatisk (klipping eller for lavt volum)',
+  'settings.autoClipCorrect.hint':
+    'Setter master slik at mixen peaker rundt 0,85 (opp eller ned). Hvis du endrer den manuelt over sikker terskel, vises en advarsel.',
 
   'mode.groupAria': 'Arbeidsmoduser',
   'mode.label': 'Modus',
@@ -364,6 +373,8 @@ export const no: Record<MessageKey, string> = {
   'tracks.highlight': 'Fremhev {name}',
   'tracks.delete': 'Slett {name}',
   'tracks.delete.confirm': 'Slette «{name}»?',
+  'tracks.delete.referenceLocked':
+    'Kan ikke slette referansesporet mens autojustering på opptakt er aktivert.',
   'tracks.cloudSave': 'Lagre {name} i skyen',
   'tracks.cloudSaving': 'Lagrer…',
   'tracks.ref.hint': 'Referansespor (1–2–3–4-markører)',
@@ -380,6 +391,9 @@ export const no: Record<MessageKey, string> = {
   'warn.attention': 'Obs',
   'warn.openAlignMode': 'Åpne justeringsmodus',
   'warn.disableAutoAlign': 'Slå av autojustering',
+  'warn.duplicateName.hint':
+    'To spor har samme navn. Gi ett av dem et nytt navn for å skille dem.',
+  'warn.duplicateName.aria': 'Duplikatnavn: {name}',
   'warn.beat.chip.aria':
     'Obs: problem med opptakten på referansesporet. Åpne justeringsmodus.',
   'warn.skew.tooltip':
@@ -496,6 +510,8 @@ export const no: Record<MessageKey, string> = {
   'help.mix.body1':
     'I Mix-modus justerer du volum per spor og master, demper, fremhever et spor og laster ned en MP3 av mixen (bare valgte spor).',
   'help.mix.body2':
+    'Selv om hvert spor er rent, kan stabling klippe mixen: polyrecorder overvåker bussen og kan sette master rundt ~0,85 automatisk (Innstillinger). Et «!» bakerst på sporet betyr klipping under opptak — ta opp på nytt med lavere mikrofonnivå.',
+  'help.mix.body3':
     'Du kan også spille / pause fra transportlinjen under dekket.',
 
   'help.import.title': 'Lydimport',
@@ -559,6 +575,9 @@ export const no: Record<MessageKey, string> = {
   'help.faq.modes.q': 'Hva er Simple, Mix og Justering til?',
   'help.faq.modes.a':
     'Simple for å ta opp og lytte, Mix for volum og MP3-eksport, Justering for å synkronisere spor (forskyvninger og autojustering).',
+  'help.faq.clipping.q': 'Hvorfor advarsel om klipping i Mix?',
+  'help.faq.clipping.a':
+    'Et «!» bakerst på sporet betyr klipping under opptak: ta opp på nytt med lavere mikrofonnivå. Et banner ved master betyr at stabling klipper mixen — senk master, eller la auto-korreksjon (~0,85) stå på under Innstillinger.',
   'help.faq.metronome.q': 'Hva er metronomet til?',
   'help.faq.metronome.a':
     'Det legger til et virtuelt spor i valgt tempo som kan være justeringsreferanse (marker 3-4 på opptakene). BPM lagres med økten; det er ikke en opplastet lydfil.',

@@ -12,6 +12,16 @@ import {
 } from '../common/devices'
 import { defaultSessionTitle } from '../lib/format'
 
+/** Chip / session warning tone (matches mode button colors). */
+export type NoticeTone = 'simple' | 'mix' | 'align' | 'warn'
+
+export type SessionNotice = {
+  id: string
+  message: string
+  tone: NoticeTone
+  action?: 'disableAutoAlign'
+}
+
 export type SessionStoreState = {
   tracks: Track[]
   trackCounter: number
@@ -36,6 +46,11 @@ export type SessionStoreState = {
   timerVisible: boolean
   calageTipOpen: boolean
   markingOpen: boolean
+
+  /** Dismissible deck notice (chip click or auto beat warning). */
+  notice: SessionNotice | null
+  /** Notice id closed with × — blocks auto-reopen until chip click or mode leave. */
+  noticeSuppressedId: string | null
 
   /** Per-track volume multipliers (1 = 100%). */
   trackVolumes: Record<number, number>
@@ -126,6 +141,18 @@ export type SessionStoreState = {
    * (banner text is only shown in calage mode).
    */
   alignAttentionByTrackId: Record<number, string>
+  /**
+   * Tracks whose decoded audio is clipped at capture (mix mode “!” / warn chip).
+   */
+  trackClipById: Record<number, boolean>
+  /**
+   * Mix bus peak with masterVolume = 1 (cached; refresh on track volume / new take).
+   */
+  mixPeakAtUnityMaster: number | null
+  /** True when mixPeakAtUnityMaster × masterVolume ≥ 1. */
+  mixClipWarning: boolean
+  /** Pref: silently lower master when the mix bus would clip (default on). */
+  autoClipCorrect: boolean
 
   keyboardHintsEnabled: boolean
   inputOverrideNote: string | null
@@ -153,6 +180,7 @@ export type SessionStoreState = {
   setSkipCountInDownload: (on: boolean) => void
   setShowCalageWarnings: (on: boolean) => void
   setAutoAlignEnabled: (on: boolean) => void
+  setAutoClipCorrect: (on: boolean) => void
   setAutoCloudSave: (on: boolean) => void
   setActiveSongPartId: (songPartId: string | null) => void
   setKeyboardHintsEnabled: (on: boolean) => void
@@ -191,6 +219,9 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   timerVisible: false,
   calageTipOpen: false,
   markingOpen: false,
+
+  notice: null,
+  noticeSuppressedId: null,
 
   trackVolumes: {},
   masterVolume: 1,
@@ -236,6 +267,10 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   skewWarningShowOpenAdvanced: false,
   skewWarningShowDisableAutoAlign: false,
   alignAttentionByTrackId: {},
+  trackClipById: {},
+  mixPeakAtUnityMaster: null,
+  mixClipWarning: false,
+  autoClipCorrect: true,
 
   // any-* : souris/trackpad présents même si le tactile est le pointeur principal
   keyboardHintsEnabled:
@@ -256,7 +291,19 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   dragTrackId: null,
   touchReorder: null,
 
-  setError: (error) => set({ error }),
+  setError: (error) => {
+    if (error == null) {
+      set((s) => ({
+        error: null,
+        ...(s.notice?.id === 'error' ? { notice: null } : {}),
+      }))
+      return
+    }
+    set({
+      error,
+      notice: { id: 'error', message: error, tone: 'warn' },
+    })
+  },
   setHint: (hint) => set({ hint }),
   setSessionTitle: (title) => set({ sessionTitle: title }),
   setSongWorkName: (name) => set({ songWorkName: name }),
@@ -267,6 +314,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setSkipCountInDownload: (on) => set({ skipCountInDownload: on }),
   setShowCalageWarnings: (on) => set({ showCalageWarnings: on }),
   setAutoAlignEnabled: (on) => set({ autoAlignEnabled: on }),
+  setAutoClipCorrect: (on) => set({ autoClipCorrect: on }),
   setAutoCloudSave: (on) => set({ autoCloudSave: on }),
   setActiveSongPartId: (songPartId) => set({ activeSongPartId: songPartId }),
   setKeyboardHintsEnabled: (on) => set({ keyboardHintsEnabled: on }),

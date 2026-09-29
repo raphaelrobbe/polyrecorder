@@ -303,6 +303,15 @@ export const en: Record<MessageKey, string> = {
   'mix.download.hint': 'Download the mix of selected tracks (MP3)',
   'mix.seekAria': 'Playback position',
   'mix.masterVolume': 'Master volume',
+  'mix.clip.record.hint':
+    'Clipping at recording. Re-record the track and check the mic input level.',
+  'mix.clip.record.aria': 'Clipping at recording',
+  'mix.clip.bus':
+    'Mix clipping: lower the master volume (or individual track volumes).',
+  'settings.autoClipCorrect':
+    'Auto-correct master volume (clipping or too quiet)',
+  'settings.autoClipCorrect.hint':
+    'Sets the master so the mix peaks around 0.85 (raises or lowers). If you change it by hand above the safe level, a warning appears.',
 
   'mode.groupAria': 'Work modes',
   'mode.label': 'Mode',
@@ -363,6 +372,8 @@ export const en: Record<MessageKey, string> = {
   'tracks.highlight': 'Highlight {name}',
   'tracks.delete': 'Delete {name}',
   'tracks.delete.confirm': 'Delete “{name}”?',
+  'tracks.delete.referenceLocked':
+    'Cannot delete the reference track while auto-align on count-in is enabled.',
   'tracks.cloudSave': 'Save {name} to the cloud',
   'tracks.cloudSaving': 'Saving…',
   'tracks.ref.hint': 'Reference track (1–2–3–4 markers)',
@@ -379,6 +390,9 @@ export const en: Record<MessageKey, string> = {
   'warn.attention': 'Warning',
   'warn.openAlignMode': 'Open align mode',
   'warn.disableAutoAlign': 'Disable auto-align',
+  'warn.duplicateName.hint':
+    'Two tracks share the same name. Rename one to tell them apart.',
+  'warn.duplicateName.aria': 'Duplicate name: {name}',
   'warn.beat.chip.aria':
     'Warning: count-in issue on the reference track. Open align mode.',
   'warn.skew.tooltip':
@@ -495,6 +509,8 @@ export const en: Record<MessageKey, string> = {
   'help.mix.body1':
     'In Mix mode, adjust each track and the master volume, mute, highlight a track, and download an MP3 of the mix (selected tracks only).',
   'help.mix.body2':
+    'Even when each track is clean, stacking them can clip the mix: polyrecorder watches the bus and can set the master around ~0.85 automatically (Preferences). A “!” at the end of a track means it clipped while recording — re-record with a lower mic input level.',
+  'help.mix.body3':
     'You can also play / pause from the transport bar under the deck.',
 
   'help.import.title': 'Audio import',
@@ -557,6 +573,9 @@ export const en: Record<MessageKey, string> = {
   'help.faq.modes.q': 'What are Simple, Mix, and Align for?',
   'help.faq.modes.a':
     'Simple to record and listen, Mix for volumes and MP3 export, Align to sync tracks (offsets and auto-align).',
+  'help.faq.clipping.q': 'Why a clipping warning in Mix mode?',
+  'help.faq.clipping.a':
+    'A “!” at the end of a track means the take clipped while recording: re-record with a lower mic input level. A banner by the master means stacking tracks clips the mix — lower the master, or leave auto-correct on (~0.85 target) in Preferences.',
   'help.faq.metronome.q': 'What is the metronome for?',
   'help.faq.metronome.a':
     'It adds a virtual track at the chosen tempo that can be the alignment reference (mark 3-4 on your takes). The BPM is saved with the session; it is not an uploaded audio file.',

@@ -48,7 +48,7 @@ export function LibraryBreadcrumb({ items, className }: LibraryBreadcrumbProps) 
               <Link
                 to={item.to}
                 className={cn(
-                  'inline-flex max-w-[11rem] items-center truncate rounded-full border border-line px-[0.42rem] py-[0.08rem]',
+                  'inline-flex max-w-[11rem] items-center break-words rounded-full border border-line px-[0.42rem] py-[0.08rem] text-left',
                   'font-bold text-ink no-underline transition-[background,border-color,color] duration-150',
                   'hover:border-ink/35 hover:bg-ink/6',
                   'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
@@ -59,14 +59,14 @@ export function LibraryBreadcrumb({ items, className }: LibraryBreadcrumbProps) 
             ) : item.to ? (
               <Link
                 to={item.to}
-                className="max-w-[10rem] truncate text-ink-soft underline-offset-2 hover:text-ink hover:underline"
+                className="max-w-[10rem] break-words text-left text-ink-soft underline-offset-2 hover:text-ink hover:underline"
               >
                 {label}
               </Link>
             ) : (
               <span
                 className={cn(
-                  'max-w-[12rem] truncate',
+                  'max-w-[12rem] break-words text-left',
                   isLast ? 'text-ink' : 'text-ink-soft',
                 )}
               >

@@ -212,6 +212,7 @@ export function HelpPanel({ className }: HelpPanelProps) {
       <HelpSection id="help-mix" title={t('help.mix.title')}>
         <HelpText>{t('help.mix.body1')}</HelpText>
         <HelpText>{t('help.mix.body2')}</HelpText>
+        <HelpText>{t('help.mix.body3')}</HelpText>
       </HelpSection>
 
       <HelpSection id="help-import" title={t('help.import.title')}>

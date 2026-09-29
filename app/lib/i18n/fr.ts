@@ -302,6 +302,15 @@ export const fr = {
     'Télécharger le mix des pistes sélectionnées (MP3)',
   'mix.seekAria': 'Position de lecture',
   'mix.masterVolume': 'Volume maître',
+  'mix.clip.record.hint':
+    'Saturation à l’enregistrement. Réenregistre la piste et vérifie le volume d’entrée du micro.',
+  'mix.clip.record.aria': 'Saturation à l’enregistrement',
+  'mix.clip.bus':
+    'Saturation du mix : baisse le volume maître (ou celui des pistes).',
+  'settings.autoClipCorrect':
+    'Correction automatique du volume maître (saturation ou volume trop faible)',
+  'settings.autoClipCorrect.hint':
+    'Règle le volume maître pour un niveau de mix autour de 0,85 (monte ou baisse). Si tu le changes à la main au-dessus du seuil, un avertissement s’affiche.',
 
   'mode.groupAria': 'Modes de travail',
   'mode.label': 'Mode',
@@ -364,6 +373,8 @@ export const fr = {
   'tracks.highlight': 'Mettre en valeur {name}',
   'tracks.delete': 'Supprimer {name}',
   'tracks.delete.confirm': 'Supprimer « {name} » ?',
+  'tracks.delete.referenceLocked':
+    'Impossible de supprimer la piste de référence tant que le calage automatique sur battue est activé.',
   'tracks.cloudSave': 'Enregistrer {name} sur le cloud',
   'tracks.cloudSaving': 'Enregistrement…',
   'tracks.ref.hint': 'Piste de référence (marquages 1–2–3–4)',
@@ -380,6 +391,9 @@ export const fr = {
   'warn.attention': 'Attention',
   'warn.openAlignMode': 'Ouvrir le mode calage',
   'warn.disableAutoAlign': 'Désactiver le calage automatique',
+  'warn.duplicateName.hint':
+    'Deux pistes portent le même nom. Renommes-en une pour les distinguer.',
+  'warn.duplicateName.aria': 'Nom en double : {name}',
   'warn.beat.chip.aria':
     'Attention : problème de battue sur la piste de référence. Ouvrir le mode calage.',
   'warn.skew.tooltip':
@@ -496,6 +510,8 @@ export const fr = {
   'help.mix.body1':
     'En mode Mixage, ajuste le volume de chaque piste et le volume maître, coupe le son (mute), mets en avant une piste, et télécharge un MP3 du mix (pistes sélectionnées uniquement).',
   'help.mix.body2':
+    'Même si chaque piste est saine, les superposer peut saturer le mix : polyrecorder surveille le bus et peut régler le volume maître vers ~0,85 automatiquement (Préférences). Un « ! » en bout de piste signale une saturation dès l’enregistrement — réenregistre alors en baissant le volume d’entrée du micro.',
+  'help.mix.body3':
     'Tu peux aussi lancer la lecture / pause depuis la barre de transport sous le deck.',
 
   'help.import.title': 'Import audio',
@@ -558,6 +574,9 @@ export const fr = {
   'help.faq.modes.q': 'À quoi servent Simple, Mixage et Calage ?',
   'help.faq.modes.a':
     'Simple pour enregistrer et écouter, Mixage pour les volumes et l’export MP3, Calage pour synchroniser les pistes (offsets et calage auto).',
+  'help.faq.clipping.q': 'Pourquoi un avertissement de saturation en mixage ?',
+  'help.faq.clipping.a':
+    'Un « ! » en bout de piste signifie que la prise a saturé à l’enregistrement : réenregistre en baissant le volume d’entrée. Un bandeau près du volume maître signale que la superposition des pistes sature le mix — baisse le master, ou laisse la correction auto (cible ~0,85) dans Préférences.',
   'help.faq.metronome.q': 'À quoi sert le métronome ?',
   'help.faq.metronome.a':
     'Il ajoute une piste virtuelle au tempo choisi, qui peut servir de référence de calage (3-4 sur les prises). Le BPM est mémorisé avec la session ; ce n’est pas un fichier audio uploadé.',

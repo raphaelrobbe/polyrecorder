@@ -14,6 +14,7 @@ import {
   writeActiveSongPartId,
 } from '../lib/cloudPrefs'
 import { readAlignPrefs } from '../lib/alignPrefs'
+import { readAutoClipCorrect } from '../lib/mixClipPrefs'
 import { librarySessionPath } from '../lib/libraryPaths'
 import {
   claimGuestDraftAfterSignIn,
@@ -58,6 +59,7 @@ export function RecorderApp({ children }: RecorderAppProps) {
       showCalageWarnings: defaults.showCalageWarnings,
       skipCountInPlayback: defaults.skipCountInPlayback,
       skipCountInDownload: defaults.skipCountInDownload,
+      autoClipCorrect: readAutoClipCorrect(),
       activeSongPartId: user ? readActiveSongPartId() : null,
     })
     void hydrateFileSystemMemory()

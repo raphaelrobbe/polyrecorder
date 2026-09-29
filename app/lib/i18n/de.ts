@@ -304,6 +304,15 @@ export const de: Record<MessageKey, string> = {
   'mix.download.hint': 'Mix der ausgewählten Spuren herunterladen (MP3)',
   'mix.seekAria': 'Wiedergabeposition',
   'mix.masterVolume': 'Master-Lautstärke',
+  'mix.clip.record.hint':
+    'Übersteuerung bei der Aufnahme. Nimm die Spur neu auf und prüfe den Mikrofon-Eingangspegel.',
+  'mix.clip.record.aria': 'Übersteuerung bei der Aufnahme',
+  'mix.clip.bus':
+    'Mix übersteuert: Master-Lautstärke (oder Spurpegel) senken.',
+  'settings.autoClipCorrect':
+    'Master-Lautstärke automatisch korrigieren (Übersteuerung oder zu leise)',
+  'settings.autoClipCorrect.hint':
+    'Stellt den Master so ein, dass der Mix etwa bei 0,85 peakt (hoch oder runter). Wenn du ihn manuell über den sicheren Wert hebst, erscheint eine Warnung.',
 
   'mode.groupAria': 'Arbeitsmodi',
   'mode.label': 'Modus',
@@ -365,6 +374,8 @@ export const de: Record<MessageKey, string> = {
   'tracks.highlight': '{name} hervorheben',
   'tracks.delete': '{name} löschen',
   'tracks.delete.confirm': '„{name}“ löschen?',
+  'tracks.delete.referenceLocked':
+    'Die Referenzspur kann nicht gelöscht werden, solange die Auto-Ausrichtung über den Auftakt aktiv ist.',
   'tracks.cloudSave': '{name} in die Cloud speichern',
   'tracks.cloudSaving': 'Wird gespeichert…',
   'tracks.ref.hint': 'Referenzspur (Markierungen 1–2–3–4)',
@@ -381,6 +392,9 @@ export const de: Record<MessageKey, string> = {
   'warn.attention': 'Achtung',
   'warn.openAlignMode': 'Ausricht-Modus öffnen',
   'warn.disableAutoAlign': 'Auto-Ausrichtung deaktivieren',
+  'warn.duplicateName.hint':
+    'Zwei Spuren haben denselben Namen. Benenne eine um, um sie zu unterscheiden.',
+  'warn.duplicateName.aria': 'Doppelter Name: {name}',
   'warn.beat.chip.aria':
     'Achtung: Problem mit dem Auftakt der Referenzspur. Ausricht-Modus öffnen.',
   'warn.skew.tooltip':
@@ -497,6 +511,8 @@ export const de: Record<MessageKey, string> = {
   'help.mix.body1':
     'Im Mix-Modus regelst du Spur- und Mastervolumen, stummschalten, eine Spur hervorheben und ein MP3 des Mixes herunterladen (nur ausgewählte Spuren).',
   'help.mix.body2':
+    'Auch wenn jede Spur sauber ist, kann das Stapeln den Mix übersteuern: polyrecorder überwacht den Bus und kann den Master automatisch auf ~0,85 setzen (Einstellungen). Ein „!“ am Spurende bedeutet Übersteuerung bei der Aufnahme — neu aufnehmen und den Mikrofonpegel prüfen.',
+  'help.mix.body3':
     'Play / Pause geht auch über die Transportleiste unter dem Deck.',
 
   'help.import.title': 'Audio-Import',
@@ -560,6 +576,9 @@ export const de: Record<MessageKey, string> = {
   'help.faq.modes.q': 'Wozu Simple, Mix und Ausrichtung?',
   'help.faq.modes.a':
     'Simple zum Aufnehmen und Hören, Mix für Lautstärken und MP3-Export, Ausrichtung zum Synchronisieren (Offsets und Auto-Ausrichtung).',
+  'help.faq.clipping.q': 'Warum eine Übersteuerungswarnung im Mix?',
+  'help.faq.clipping.a':
+    'Ein „!“ am Spurende bedeutet Übersteuerung bei der Aufnahme: neu aufnehmen und den Mikrofonpegel senken. Ein Hinweis am Master bedeutet, dass das Stapeln den Mix übersteuert — Master senken oder Auto-Korrektur (~0,85) in den Einstellungen lassen.',
   'help.faq.metronome.q': 'Wozu das Metronom?',
   'help.faq.metronome.a':
     'Es fügt eine virtuelle Spur im gewählten Tempo hinzu, die als Ausrichtungs-Referenz dienen kann (auf den Takes 3-4 markieren). Das BPM wird mit der Session gespeichert; es ist keine hochgeladene Audiodatei.',

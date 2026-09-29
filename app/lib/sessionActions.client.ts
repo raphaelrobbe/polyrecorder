@@ -11,13 +11,23 @@ import {
   getMixDurationMs,
   isDefaultSessionTitleAnyLocale,
   isDefaultTrackNameAnyLocale,
+  LIBRARY_TITLE_MAX_LEN,
   normalizeSessionTitle,
   parseDefaultTrackIndex,
 } from './format'
 import type { Locale } from './i18n'
 import { writeActiveSongPartId } from './cloudPrefs'
 import { librarySessionPath } from './libraryPaths'
+import { writeAutoClipCorrect } from './mixClipPrefs'
 import { markPwaUsefulSession } from './pwaInstallPrefs'
+import {
+  autoCorrectMasterVolume,
+  clearTrackPeakCache,
+  getTrackAbsPeak,
+  isRecordClipped,
+  measureMixPeakAtUnityMaster,
+  mixOutputWouldClip,
+} from './audio/clipDetect.client'
 import {
   applyAudioSink,
   clearBufferCache,
@@ -99,7 +109,7 @@ import {
   type GuestDraft,
 } from './guestDraft.client'
 import { isCloudSignedIn, maybeAutoUploadTrack } from './cloudUpload.client'
-import { useSessionStore, type SessionStoreState } from '../store/sessionStore'
+import { useSessionStore, type SessionNotice, type SessionStoreState } from '../store/sessionStore'
 import { t } from './i18n'
 
 // --- Module-private live playback maps (not in Zustand) ---
@@ -269,6 +279,9 @@ function applyGuestDraftToStore(draft: GuestDraft): void {
     mixSeekMs: 0,
     mixClockText: '00:00.000',
     error: null,
+    notice: null,
+    noticeSuppressedId: null,
+    referenceBeatDismissedKey: '',
   })
   clearRefPeaks()
   updateSessionTimerDisplay()
@@ -496,16 +509,24 @@ function skewFingerprint(
 export function refreshSkewWarning() {
   const {
     referenceBeatWarning,
-    referenceBeatDismissedKey,
     tracks,
     referenceTrackId,
     skewWarningDismissedKey,
     calageMode,
     showCalageWarnings,
     autoAlignEnabled,
+    notice,
+    noticeSuppressedId,
   } = get()
 
   if (!showCalageWarnings || !autoAlignEnabled) {
+    if (
+      notice &&
+      referenceBeatWarning &&
+      notice.id === referenceBeatWarning.key
+    ) {
+      patch({ notice: null, noticeSuppressedId: null })
+    }
     patch({
       skewWarningMessage: null,
       skewWarningShowOpenAdvanced: false,
@@ -514,20 +535,38 @@ export function refreshSkewWarning() {
     return
   }
 
-  const beatActive =
-    referenceBeatWarning != null &&
-    referenceBeatWarning.key !== referenceBeatDismissedKey
+  const beatActive = referenceBeatWarning != null
 
-  // Battue warning banner (chip on reference track removed in favor of CTA).
-  if (beatActive) {
+  // Full battue text auto-opens only in calage (unless user closed it with ×).
+  if (beatActive && calageMode) {
+    if (noticeSuppressedId !== referenceBeatWarning.key) {
+      showNotice({
+        id: referenceBeatWarning.key,
+        message: referenceBeatWarning.message,
+        tone: 'align',
+        action: 'disableAutoAlign',
+      })
+    }
+  } else if (
+    notice &&
+    referenceBeatWarning &&
+    notice.id === referenceBeatWarning.key &&
+    !calageMode
+  ) {
+    // Leaving calage: hide banner; keep "!" chip; allow auto-open next time.
+    patch({ notice: null, noticeSuppressedId: null })
+  }
+
+  if (beatActive && calageMode) {
     patch({
-      skewWarningMessage: referenceBeatWarning.message,
+      skewWarningMessage: null,
       skewWarningShowOpenAdvanced: false,
-      skewWarningShowDisableAutoAlign: true,
+      skewWarningShowDisableAutoAlign: false,
     })
     return
   }
 
+  // Offset skew: chip only — no auto banner.
   const skewed = tracks
     .map((track, index) => ({ track, index }))
     .filter(
@@ -556,52 +595,43 @@ export function refreshSkewWarning() {
     return
   }
 
-  // Offset skew banner only in calage (outside: chip left of trash on each track).
-  if (!calageMode) {
-    patch({
-      skewWarningMessage: null,
-      skewWarningShowOpenAdvanced: false,
-      skewWarningShowDisableAutoAlign: false,
-    })
-    return
-  }
-
-  const names = skewed.map(({ track }) => track.name).join(', ')
   patch({
-    skewWarningMessage: t('warn.skew.short', { names }),
+    skewWarningMessage: null,
     skewWarningShowOpenAdvanced: false,
     skewWarningShowDisableAutoAlign: false,
   })
 }
 
 export function dismissSkewWarning() {
-  const {
-    referenceBeatWarning,
-    referenceBeatDismissedKey,
-    tracks,
-    referenceTrackId,
-  } = get()
+  dismissNotice()
+}
 
-  if (
-    referenceBeatWarning &&
-    referenceBeatWarning.key !== referenceBeatDismissedKey
-  ) {
-    patch({ referenceBeatDismissedKey: referenceBeatWarning.key })
-    refreshSkewWarning()
-    return
-  }
+/**
+ * Open a dismissible notice. Same `id` already visible → no-op (no duplicate).
+ * Clears suppress so a closed banner can be reopened from its "!".
+ */
+export function showNotice(notice: SessionNotice) {
+  const current = get().notice
+  if (current?.id === notice.id) return
 
-  const skewed = tracks
-    .map((track, index) => ({ track, index }))
-    .filter(
-      ({ track }) =>
-        track.id !== referenceTrackId &&
-        Math.abs(track.offsetMs) > OFFSET_WARN_MS,
-    )
   patch({
-    skewWarningDismissedKey: skewFingerprint(skewed),
-    skewWarningMessage: null,
+    notice,
+    error: null,
+    noticeSuppressedId: null,
+    // Legacy permanent-dismiss key no longer hides the beat "!".
+    referenceBeatDismissedKey: '',
   })
+}
+
+export function dismissNotice() {
+  const notice = get().notice
+  if (!notice) return
+  // × only hides the banner; the "!" chip stays so the user can reopen.
+  patch({ notice: null, noticeSuppressedId: notice.id })
+}
+
+export function dismissMixClipWarning() {
+  patch({ mixClipWarning: false })
 }
 
 export function updateSessionTimerDisplay() {
@@ -650,7 +680,7 @@ function applyReferencePeaksLabel(reference: Track, peaks: number[]) {
 }
 
 export function setError(message: string | null) {
-  patch({ error: message })
+  useSessionStore.getState().setError(message)
 }
 
 export function setCalageMode(on: boolean) {
@@ -665,11 +695,9 @@ export function setCalageMode(on: boolean) {
     patch({ calageMode: true, mixMode: false, calageTipOpen: false })
     refreshSkewWarning()
     if (tracks.length > 0) void evaluateReferenceBeat()
-    const attentionMessages = Object.values(get().alignAttentionByTrackId)
-    if (attentionMessages[0]) setError(attentionMessages[0]!)
     return
   }
-  patch({ calageMode: false, calageTipOpen: false, error: null })
+  patch({ calageMode: false, calageTipOpen: false })
   refreshSkewWarning()
 }
 
@@ -685,12 +713,15 @@ export function setMixMode(on: boolean) {
       calageMode: false,
       calageTipOpen: false,
       error: null,
+      notice: null,
+      noticeSuppressedId: null,
     })
     refreshSkewWarning()
+    void refreshTrackClipFlags()
     return
   }
   clearTrackHighlights()
-  patch({ mixMode: false })
+  patch({ mixMode: false, mixClipWarning: false })
 }
 
 /** Exclusive deck work mode: simple (default), mix, or align. */
@@ -730,6 +761,7 @@ function applyHighlightVolumes(highlighted: number[]) {
   patch({ trackVolumes: volumes })
   syncLiveTrackGains()
   persistCloudMixVolumes()
+  scheduleMixPeakRefresh()
 }
 
 function clearTrackHighlights() {
@@ -779,16 +811,115 @@ export function setTrackVolume(trackId: number, volume: number) {
   }
   schedulePersistTrackVolume(trackId)
   scheduleGuestDraftSave()
+  scheduleMixPeakRefresh()
 }
 
 export function setMasterVolume(volume: number) {
   const next = clampMasterVolume(volume)
-  patch({ masterVolume: next })
+  const peak = get().mixPeakAtUnityMaster
+  patch({
+    masterVolume: next,
+    mixClipWarning: mixOutputWouldClip(peak, next),
+  })
   const master = getPlaybackGain()
   if (master) {
     master.gain.value = next
   }
   schedulePersistMasterVolume()
+}
+
+export function setAutoClipCorrectPref(on: boolean) {
+  writeAutoClipCorrect(on)
+  patch({ autoClipCorrect: on })
+  if (on) scheduleMixPeakRefresh()
+  else {
+    const peak = get().mixPeakAtUnityMaster
+    patch({
+      mixClipWarning: mixOutputWouldClip(peak, get().masterVolume),
+    })
+  }
+}
+
+const MIX_PEAK_REFRESH_MS = 280
+let mixPeakRefreshTimer: ReturnType<typeof setTimeout> | null = null
+let mixPeakRefreshGen = 0
+
+/** Debounced offline peak at master=1; optional silent master auto-correct. */
+export function scheduleMixPeakRefresh() {
+  if (mixPeakRefreshTimer) clearTimeout(mixPeakRefreshTimer)
+  mixPeakRefreshTimer = setTimeout(() => {
+    mixPeakRefreshTimer = null
+    void refreshMixPeakAtUnityMaster()
+  }, MIX_PEAK_REFRESH_MS)
+}
+
+async function refreshMixPeakAtUnityMaster(): Promise<void> {
+  const gen = ++mixPeakRefreshGen
+  const { tracks, trackVolumes, enabledTrackIds, autoClipCorrect, masterVolume } =
+    get()
+  const playable = tracks.filter((track) => track.blob.size > 0)
+  if (playable.length === 0) {
+    if (gen !== mixPeakRefreshGen) return
+    patch({
+      mixPeakAtUnityMaster: null,
+      mixClipWarning: false,
+    })
+    return
+  }
+
+  try {
+    const peak = await measureMixPeakAtUnityMaster(
+      tracks,
+      trackVolumes,
+      enabledTrackIds,
+    )
+    if (gen !== mixPeakRefreshGen) return
+
+    let nextMaster = masterVolume
+    if (autoClipCorrect && peak > 0) {
+      nextMaster = clampMasterVolume(
+        autoCorrectMasterVolume(peak, masterVolume),
+      )
+    }
+
+    patch({
+      mixPeakAtUnityMaster: peak,
+      masterVolume: nextMaster,
+      mixClipWarning: mixOutputWouldClip(peak, nextMaster),
+    })
+    if (nextMaster !== masterVolume) {
+      const master = getPlaybackGain()
+      if (master) master.gain.value = nextMaster
+      schedulePersistMasterVolume()
+    }
+  } catch {
+    if (gen !== mixPeakRefreshGen) return
+    // Keep previous cache; don't clear on transient decode errors.
+  }
+}
+
+/** Decode peaks for record-clip badges; refresh mix bus peak. */
+export async function refreshTrackClipFlags(
+  trackIds?: number[],
+): Promise<void> {
+  const tracks = get().tracks.filter((track) => {
+    if (track.isMetronome || track.blob.size === 0) return false
+    if (trackIds && !trackIds.includes(track.id)) return false
+    return true
+  })
+  const next: Record<number, boolean> = { ...get().trackClipById }
+  await Promise.all(
+    tracks.map(async (track) => {
+      try {
+        const peak = await getTrackAbsPeak(track)
+        next[track.id] = isRecordClipped(peak)
+      } catch {
+        // leave previous flag
+      }
+    }),
+  )
+  patch({ trackClipById: next })
+  scheduleMixPeakRefresh()
 }
 
 /** Flush pending volume POSTs (call on slider pointer-up / blur). */
@@ -1333,6 +1464,7 @@ export function applyManualTrackOffset(trackId: number, offsetMs: number) {
   refreshSkewWarning()
   persistCloudTrackOffset(trackId)
   scheduleGuestDraftSave()
+  scheduleMixPeakRefresh()
 }
 
 export async function evaluateReferenceBeat(): Promise<void> {
@@ -1634,6 +1766,7 @@ export async function downloadSelectedMix() {
     get().sessionTitle,
     selected,
     get().tracks.length,
+    get().songWorkName,
   )
 
   // Pick save location first while the click gesture is still valid.
@@ -2159,6 +2292,7 @@ async function appendTrackFromBlob(
   )
   scheduleGuestDraftSave()
   markPwaUsefulSession()
+  void refreshTrackClipFlags([track.id])
   return track
 }
 
@@ -2678,6 +2812,7 @@ export function setTrackEnabled(trackId: number, enabled: boolean) {
   // Song owner or track uploader: persist; others keep a local mute only.
   persistCloudTrackMuted(trackId)
   scheduleGuestDraftSave()
+  scheduleMixPeakRefresh()
 }
 
 export function setAllTracksEnabled(enabled: boolean) {
@@ -2689,6 +2824,7 @@ export function setAllTracksEnabled(enabled: boolean) {
   }
   persistCloudTrackMutes(tracks.map((track) => track.id))
   scheduleGuestDraftSave()
+  scheduleMixPeakRefresh()
 }
 
 export function renameTrack(trackId: number, name: string) {
@@ -2744,6 +2880,9 @@ export function deleteTrack(trackId: number) {
   delete trackVolumes[trackId]
   const alignAttentionByTrackId = { ...get().alignAttentionByTrackId }
   delete alignAttentionByTrackId[trackId]
+  const trackClipById = { ...get().trackClipById }
+  delete trackClipById[trackId]
+  clearTrackPeakCache(trackId)
   const prevHighlights = get().highlightedTrackIds
   const nextHighlights = prevHighlights.filter((id) => id !== trackId)
   const clearedMetro = Boolean(track.isMetronome)
@@ -2754,6 +2893,7 @@ export function deleteTrack(trackId: number) {
     trackAlignDetails,
     trackVolumes,
     alignAttentionByTrackId,
+    trackClipById,
     ...(clearedMetro ? { metronomeBpm: null } : {}),
     ...(tracks.length === 0
       ? { calageMode: false, mixMode: false, calageTipOpen: false }
@@ -2761,6 +2901,8 @@ export function deleteTrack(trackId: number) {
   })
   if (prevHighlights.length > 0) {
     applyHighlightVolumes(nextHighlights)
+  } else {
+    scheduleMixPeakRefresh()
   }
   syncReferenceTrackRules()
   updateSessionTimerDisplay()
@@ -2812,6 +2954,7 @@ export function deleteAllTracks() {
   clearBufferCache()
   trackGains.clear()
   trackPlayheads.clear()
+  clearTrackPeakCache()
   patch({
     tracks: [],
     enabledTrackIds: [],
@@ -2820,6 +2963,9 @@ export function deleteAllTracks() {
     referenceTrackId: null,
     trackAlignDetails: {},
     alignAttentionByTrackId: {},
+    trackClipById: {},
+    mixPeakAtUnityMaster: null,
+    mixClipWarning: false,
     trackVolumes: {},
     masterVolume: 1,
     trackCounter: 0,
@@ -2886,6 +3032,7 @@ export function clearLocalDeckSession(): void {
   clearBufferCache()
   trackGains.clear()
   trackPlayheads.clear()
+  clearTrackPeakCache()
   patch({
     tracks: [],
     enabledTrackIds: [],
@@ -2894,6 +3041,9 @@ export function clearLocalDeckSession(): void {
     referenceTrackId: null,
     trackAlignDetails: {},
     alignAttentionByTrackId: {},
+    trackClipById: {},
+    mixPeakAtUnityMaster: null,
+    mixClipWarning: false,
     trackVolumes: {},
     masterVolume: 1,
     trackCounter: 0,
@@ -2915,6 +3065,9 @@ export function clearLocalDeckSession(): void {
     mixSeekMs: 0,
     mixClockText: '00:00.000',
     error: null,
+    notice: null,
+    noticeSuppressedId: null,
+    referenceBeatDismissedKey: '',
     hint: '',
     guestSignInPrompt: false,
   })
@@ -2950,6 +3103,7 @@ export async function loadCloudSongIntoSession(
   clearBufferCache()
   trackGains.clear()
   trackPlayheads.clear()
+  clearTrackPeakCache()
 
   const enabledTrackIds = opened.enabledTrackIds
   const trackVolumes = { ...opened.trackVolumes }
@@ -2986,6 +3140,9 @@ export async function loadCloudSongIntoSession(
     referenceTrackId: opened.tracks[0]?.id ?? null,
     trackAlignDetails: {},
     alignAttentionByTrackId: {},
+    trackClipById: {},
+    mixPeakAtUnityMaster: null,
+    mixClipWarning: false,
     trackVolumes,
     masterVolume: opened.part.masterVolume,
     autoAlignEnabled: opened.part.autoAlignEnabled,
@@ -3011,6 +3168,8 @@ export async function loadCloudSongIntoSession(
     mixSeekMs: 0,
     mixClockText: '00:00.000',
     error: null,
+    notice: null,
+    noticeSuppressedId: null,
     ...(readOnly
       ? {
           referenceBeatDismissedKey: '',
@@ -3025,6 +3184,7 @@ export async function loadCloudSongIntoSession(
     await hydrateMetronomeFromBpm(opened.part.metronomeBpm)
   }
   if (get().tracks.length > 0) void evaluateReferenceBeat()
+  void refreshTrackClipFlags()
   return true
 }
 
@@ -3089,7 +3249,7 @@ export function normalizeAndSetSessionTitle(raw: string) {
   // Cloud sessions may be unnamed (null); local guest titles keep the default.
   const name =
     songPartId && !get().readOnlySession
-      ? raw.replace(/\s+/g, ' ').trim().slice(0, 60)
+      ? raw.replace(/\s+/g, ' ').trim().slice(0, LIBRARY_TITLE_MAX_LEN)
       : normalizeSessionTitle(raw)
   patch({ sessionTitle: name })
   scheduleGuestDraftSave()

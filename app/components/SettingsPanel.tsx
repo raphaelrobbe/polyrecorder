@@ -8,10 +8,14 @@ import {
   writeAlignPrefs,
   type AlignPrefs,
 } from '../lib/alignPrefs'
+import {
+  writeAutoClipCorrect,
+} from '../lib/mixClipPrefs'
 import { useLocale } from '../hooks/useLocale'
 import { t } from '../lib/i18n'
 import type { loader as rootLoader } from '../root'
 import { useSessionStore } from '../store/sessionStore'
+import { setAutoClipCorrectPref } from '../lib/sessionActions.client'
 import { DeckOverlayPanel } from './DeckOverlayPanel'
 import { CheckboxOption, OptionGroup } from './CheckboxOption'
 import { LocaleButtons } from './LocaleButtons'
@@ -30,6 +34,7 @@ export function SettingsPanel({ className }: SettingsPanelProps) {
   const user = rootData?.user ?? null
   const autoplayAfterStop = useSessionStore((s) => s.autoplayAfterStop)
   const autoCloudSave = useSessionStore((s) => s.autoCloudSave)
+  const autoClipCorrect = useSessionStore((s) => s.autoClipCorrect)
   const setAutoplayAfterStop = useSessionStore((s) => s.setAutoplayAfterStop)
   const setAutoCloudSave = useSessionStore((s) => s.setAutoCloudSave)
   const [defaults, setDefaults] = useState<AlignPrefs>(() => readAlignPrefs())
@@ -90,6 +95,17 @@ export function SettingsPanel({ className }: SettingsPanelProps) {
         onCheckedChange={setAutoplayAfterStop}
       >
         {t('settings.autoplay')}
+      </CheckboxOption>
+
+      <CheckboxOption
+        title={t('settings.autoClipCorrect.hint')}
+        checked={autoClipCorrect}
+        onCheckedChange={(on) => {
+          writeAutoClipCorrect(on)
+          setAutoClipCorrectPref(on)
+        }}
+      >
+        {t('settings.autoClipCorrect')}
       </CheckboxOption>
 
       <OptionGroup title={t('settings.defaultsForNewProjects')} stack>
