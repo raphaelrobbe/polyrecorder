@@ -1,9 +1,9 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import {
+  Link,
   useNavigate,
   useRevalidator,
   useRouteLoaderData,
-  Link,
 } from '@remix-run/react'
 import { isDefaultSessionTitle, LIBRARY_TITLE_MAX_LEN } from '../lib/format'
 import {
@@ -12,6 +12,7 @@ import {
   dismissNotice,
   loadCloudSongIntoSession,
   normalizeAndSetSessionTitle,
+  normalizeAndSetSongWorkName,
   setError,
   setSessionAlignPref,
 } from '../lib/sessionActions.client'
@@ -21,7 +22,6 @@ import {
   libraryGroupPath,
   libraryRepertoirePath,
   librarySessionPath,
-  librarySongPath,
   libraryUserPath,
 } from '../lib/libraryPaths'
 import { cn } from '../lib/utils'
@@ -107,6 +107,7 @@ export function DeckMain({ className }: DeckMainProps) {
   const sessionTitle = useSessionStore((s) => s.sessionTitle)
   const setSessionTitle = useSessionStore((s) => s.setSessionTitle)
   const songWorkName = useSessionStore((s) => s.songWorkName)
+  const setSongWorkName = useSessionStore((s) => s.setSongWorkName)
   const timerText = useSessionStore((s) => s.timerText)
   const recordingTimerVisible = useSessionStore((s) => s.recordingTimerVisible)
   const forgottenStopHint = useSessionStore((s) => s.forgottenStopHint)
@@ -126,6 +127,7 @@ export function DeckMain({ className }: DeckMainProps) {
   const state = useSessionStore((s) => s.state)
   const deckSongPartId = useSessionStore((s) => s.deckSongPartId)
   const deckSongPartSiblings = useSessionStore((s) => s.deckSongPartSiblings)
+  const songTitleRef = useRef<HTMLTextAreaElement>(null)
   const sessionTitleRef = useRef<HTMLTextAreaElement>(null)
   const [sessionNavBusy, setSessionNavBusy] = useState(false)
   const [pianoOpen, setPianoOpen] = useState(false)
@@ -191,10 +193,11 @@ export function DeckMain({ className }: DeckMainProps) {
   }
 
   useLayoutEffect(() => {
-    const el = sessionTitleRef.current
-    if (!el) return
-    el.style.height = '0px'
-    el.style.height = `${el.scrollHeight}px`
+    for (const el of [songTitleRef.current, sessionTitleRef.current]) {
+      if (!el) continue
+      el.style.height = '0px'
+      el.style.height = `${el.scrollHeight}px`
+    }
   }, [sessionTitle, songWorkName])
 
   return (
@@ -283,25 +286,37 @@ export function DeckMain({ className }: DeckMainProps) {
         <div className="col-start-2 flex w-[min(100%,22rem)] min-w-0 flex-col items-center justify-self-center">
           {cloudSongLoaded ? (
             <>
-              {deckLibraryPath?.songId ? (
-                <Link
-                  to={librarySongPath(deckLibraryPath.songId)}
-                  className={cn(
-                    'block w-full min-w-0 break-words rounded-[10px] px-[0.45rem] py-[0.2rem] text-center font-bold text-[1.35rem] leading-[1.25] text-ink no-underline',
-                    'transition-[color] duration-150',
-                    'hover:underline hover:decoration-ink/25 hover:underline-offset-2',
-                    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
-                  )}
-                  aria-label={songTitleAria}
-                  title={t('song.title.openLibrary')}
-                >
-                  {songWorkName}
-                </Link>
-              ) : (
-                <p className="m-0 w-full min-w-0 break-words px-[0.45rem] py-[0.2rem] text-center font-bold text-[1.35rem] leading-[1.25] text-ink">
-                  {songWorkName}
-                </p>
-              )}
+              <textarea
+                ref={songTitleRef}
+                rows={1}
+                readOnly={readOnlySession}
+                className={cn(
+                  'w-full min-w-0 resize-none overflow-hidden break-words border-0 bg-transparent font-[inherit] text-[1.35rem] font-bold leading-[1.25] text-center py-[0.2rem] px-[0.45rem] rounded-[10px] [font-synthesis:style] field-sizing-content text-ink',
+                  readOnlySession
+                    ? 'cursor-default'
+                    : 'hover:bg-ink/6 focus:bg-ink/6 focus:outline-none focus:shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--ink)_18%,transparent)]',
+                )}
+                data-song-title
+                value={songWorkName ?? ''}
+                maxLength={LIBRARY_TITLE_MAX_LEN}
+                aria-label={songTitleAria}
+                title={songTitleAria}
+                spellCheck={false}
+                onChange={(event) => {
+                  if (readOnlySession) return
+                  setSongWorkName(event.target.value.replace(/\n/g, ' '))
+                }}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    event.currentTarget.blur()
+                  }
+                }}
+                onBlur={(event) => {
+                  if (readOnlySession) return
+                  normalizeAndSetSongWorkName(event.currentTarget.value)
+                }}
+              />
               <div
                 className="mt-0.5 flex w-full min-w-0 items-start gap-[0.25rem]"
                 style={hideSessionTitle ? { display: 'none' } : undefined}
