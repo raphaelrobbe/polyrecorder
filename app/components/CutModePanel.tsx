@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
   applyCutMute,
   cancelCutSelection,
@@ -23,7 +22,7 @@ export function CutModePanel({ className }: CutModePanelProps) {
   useLocale()
   const cutMode = useSessionStore((s) => s.cutMode)
   const cutWorkSegments = useSessionStore((s) => s.cutWorkSegments)
-  const [merging, setMerging] = useState(false)
+  const merging = useSessionStore((s) => s.cutMerging)
 
   // Re-subscribe when segment selection changes for merge button state.
   useSessionStore((s) => s.cutWorkSegments)
@@ -46,16 +45,11 @@ export function CutModePanel({ className }: CutModePanelProps) {
   const hasSplit = Object.values(cutWorkSegments).some(
     (segs) => segs.length > 1,
   )
-  const muteDisabled = selectedSegCount === 0
+  const muteDisabled = merging || selectedSegCount === 0
 
-  const onMerge = async () => {
+  const onMerge = () => {
     if (mergeDisabled) return
-    setMerging(true)
-    try {
-      await mergeSelectedCutSegments()
-    } finally {
-      setMerging(false)
-    }
+    void mergeSelectedCutSegments()
   }
 
   return (
@@ -64,9 +58,10 @@ export function CutModePanel({ className }: CutModePanelProps) {
         'mt-[0.85rem] mb-0.5 flex flex-col gap-[0.65rem]',
         className,
       )}
+      aria-busy={merging || undefined}
     >
       <p className="m-0 text-[0.84rem] font-semibold text-ink-soft">
-        {t('cut.edit.hint')}
+        {merging ? t('cut.merge.progress') : t('cut.edit.hint')}
       </p>
       <div className="flex flex-col items-start gap-[0.55rem]">
         <div className="flex flex-wrap items-center gap-[0.45rem]">
@@ -75,7 +70,7 @@ export function CutModePanel({ className }: CutModePanelProps) {
             variant="trim"
             className="inline-flex items-center gap-[0.45rem] px-[0.95rem] py-[0.55rem] text-[0.88rem] [&_svg]:size-[1rem]"
             icon={<IconScissors />}
-            disabled={!hasAnySegments}
+            disabled={merging || !hasAnySegments}
             title={t('cut.scissors.hint')}
             aria-label={t('cut.scissors.aria')}
             onClick={() => splitCutSegmentsAtPlayhead()}
@@ -85,7 +80,7 @@ export function CutModePanel({ className }: CutModePanelProps) {
           <Button
             type="button"
             variant="utility"
-            disabled={!hasSplit}
+            disabled={merging || !hasSplit}
             title={t('cut.reset')}
             onClick={() => cancelCutSelection()}
           >
@@ -110,7 +105,7 @@ export function CutModePanel({ className }: CutModePanelProps) {
             disabled={mergeDisabled}
             title={mergeTitle}
             aria-busy={merging}
-            onClick={() => void onMerge()}
+            onClick={onMerge}
           >
             {merging ? t('cut.merge.busy') : t('cut.merge')}
           </Button>

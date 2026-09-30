@@ -46,6 +46,12 @@ export type SessionStoreState = {
   cutWorkSegments: Record<number, CutWorkSegment[]>
   /** Découpage preview speed (1 | 0.5 | 0.25). */
   cutPlaybackRate: number
+  /** Cut merge (Fusionner) in progress. */
+  cutMerging: boolean
+  /** Placeholder track id receiving merge progress (null when idle). */
+  cutMergeTrackId: number | null
+  /** Overall merge progress 0–1 while cutMerging. */
+  cutMergeProgress: number
   mixListenActive: boolean
   mixPaused: boolean
   mixSeekMs: number
@@ -58,6 +64,8 @@ export type SessionStoreState = {
    * this punch-in take against it. Null = idle.
    */
   contentSyncPickFromId: number | null
+  /** Calage: pick a new reference track (click REF. then a target). */
+  referencePickActive: boolean
   meterVisible: boolean
   timerVisible: boolean
   calageTipOpen: boolean
@@ -167,9 +175,19 @@ export type SessionStoreState = {
   mixPeakAtUnityMaster: number | null
   /** True when mixPeakAtUnityMaster × masterVolume ≥ 1. */
   mixClipWarning: boolean
-  /** Pref: silently lower master when the mix bus would clip (default on). */
-  autoClipCorrect: boolean
-
+  /**
+   * Pref: auto-lower master when the mix bus would clip.
+   */
+  autoMasterPreventClip: boolean
+  /**
+   * Pref: auto-raise master toward ~0.85 peak when the mix is too quiet.
+   */
+  autoMasterBoost: boolean
+  /**
+   * After an auto master correction in mix mode: which pref caused it
+   * (shown as a checkbox under the deck). Null when idle.
+   */
+  masterAutoCorrectHint: 'prevent' | 'boost' | null
   keyboardHintsEnabled: boolean
   inputOverrideNote: string | null
 
@@ -197,7 +215,8 @@ export type SessionStoreState = {
   setSkipCountInDownload: (on: boolean) => void
   setShowCalageWarnings: (on: boolean) => void
   setAutoAlignEnabled: (on: boolean) => void
-  setAutoClipCorrect: (on: boolean) => void
+  setAutoMasterPreventClip: (on: boolean) => void
+  setAutoMasterBoost: (on: boolean) => void
   setAutoCloudSave: (on: boolean) => void
   setActiveSongPartId: (songPartId: string | null) => void
   setKeyboardHintsEnabled: (on: boolean) => void
@@ -230,6 +249,9 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   cutSelectedTrackIds: [],
   cutWorkSegments: {},
   cutPlaybackRate: 1,
+  cutMerging: false,
+  cutMergeTrackId: null,
+  cutMergeProgress: 0,
   mixListenActive: false,
   mixPaused: false,
   mixSeekMs: 0,
@@ -238,6 +260,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   mixClockText: '00:00.000',
   mixSeekRatio: 0,
   contentSyncPickFromId: null,
+  referencePickActive: false,
   meterVisible: false,
   timerVisible: false,
   calageTipOpen: false,
@@ -293,7 +316,9 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   trackClipById: {},
   mixPeakAtUnityMaster: null,
   mixClipWarning: false,
-  autoClipCorrect: true,
+  autoMasterPreventClip: true,
+  autoMasterBoost: true,
+  masterAutoCorrectHint: null,
 
   // any-* : souris/trackpad présents même si le tactile est le pointeur principal
   keyboardHintsEnabled:
@@ -338,7 +363,8 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   setSkipCountInDownload: (on) => set({ skipCountInDownload: on }),
   setShowCalageWarnings: (on) => set({ showCalageWarnings: on }),
   setAutoAlignEnabled: (on) => set({ autoAlignEnabled: on }),
-  setAutoClipCorrect: (on) => set({ autoClipCorrect: on }),
+  setAutoMasterPreventClip: (on) => set({ autoMasterPreventClip: on }),
+  setAutoMasterBoost: (on) => set({ autoMasterBoost: on }),
   setAutoCloudSave: (on) => set({ autoCloudSave: on }),
   setActiveSongPartId: (songPartId) => set({ activeSongPartId: songPartId }),
   setKeyboardHintsEnabled: (on) => set({ keyboardHintsEnabled: on }),

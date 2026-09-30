@@ -13,6 +13,7 @@ function floatTo16BitPCM(input: Float32Array): Int16Array {
 export async function encodeAudioBufferToMp3(
   buffer: AudioBuffer,
   kbps = 128,
+  onProgress?: (ratio: number) => void,
 ): Promise<Blob> {
   const channels = Math.min(2, Math.max(1, buffer.numberOfChannels))
   const sampleRate = buffer.sampleRate
@@ -31,17 +32,26 @@ export async function encodeAudioBufferToMp3(
     parts.push(copy.buffer)
   }
 
-  for (let i = 0; i < left.length; i += blockSize) {
-    const leftChunk = left.subarray(i, Math.min(i + blockSize, left.length))
-    const rightChunk = right.subarray(i, Math.min(i + blockSize, right.length))
+  const total = left.length
+  let lastYield = 0
+  for (let i = 0; i < total; i += blockSize) {
+    const leftChunk = left.subarray(i, Math.min(i + blockSize, total))
+    const rightChunk = right.subarray(i, Math.min(i + blockSize, total))
     const encoded =
       channels > 1
         ? encoder.encodeBuffer(leftChunk, rightChunk)
         : encoder.encodeBuffer(leftChunk)
     pushEncoded(encoded)
+    if (onProgress && i - lastYield > sampleRate * 0.25) {
+      lastYield = i
+      onProgress(Math.min(1, i / total))
+      // Keep the UI responsive on long encodes.
+      await new Promise<void>((resolve) => setTimeout(resolve, 0))
+    }
   }
 
   pushEncoded(encoder.flush())
+  onProgress?.(1)
 
   return new Blob(parts, { type: 'audio/mpeg' })
 }

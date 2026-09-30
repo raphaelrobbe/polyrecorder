@@ -80,6 +80,7 @@ export function DeckModes({ className }: DeckModesProps) {
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
   const cutMode = useSessionStore((s) => s.cutMode)
+  const cutMerging = useSessionStore((s) => s.cutMerging)
 
   if (tracks.length === 0) return null
 
@@ -104,9 +105,11 @@ export function DeckModes({ className }: DeckModesProps) {
       <div
         role="radiogroup"
         aria-label={t('mode.groupAria')}
+        aria-disabled={cutMerging || undefined}
         className={cn(
           'inline-flex items-stretch rounded-full border-[1.5px] border-line bg-surface p-[0.18rem]',
           'shadow-[inset_0_1px_0_color-mix(in_srgb,var(--ink)_4%,transparent)]',
+          cutMerging && 'pointer-events-none opacity-55',
         )}
       >
         {MODE_OPTIONS.map((option) => {
@@ -127,6 +130,7 @@ export function DeckModes({ className }: DeckModesProps) {
               type="button"
               role="radio"
               aria-checked={selected}
+              disabled={cutMerging}
               title={t(option.hintKey)}
               onClick={() => setDeckMode(option.id)}
               style={
@@ -141,7 +145,7 @@ export function DeckModes({ className }: DeckModesProps) {
               className={cn(
                 'inline-flex items-center justify-center gap-[0.3rem] rounded-full px-[0.72rem] py-[0.42rem]',
                 'font-[inherit] text-[0.82rem] font-bold tracking-[0.01em] transition-[background,color,box-shadow,transform] duration-160',
-                'cursor-pointer active:scale-[0.98]',
+                'cursor-pointer active:scale-[0.98] disabled:cursor-default disabled:active:scale-100',
                 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
                 selected
                   ? selectedTone

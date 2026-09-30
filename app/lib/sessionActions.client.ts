@@ -18,12 +18,15 @@ import {
 import type { Locale } from './i18n'
 import { writeActiveSongPartId } from './cloudPrefs'
 import { librarySessionPath } from './libraryPaths'
-import { writeAutoClipCorrect } from './mixClipPrefs'
+import {
+  writeAutoMasterBoost,
+  writeAutoMasterPreventClip,
+} from './mixClipPrefs'
 import { markPwaUsefulSession } from './pwaInstallPrefs'
 import {
-  autoCorrectMasterVolume,
   clearTrackPeakCache,
   getTrackAbsPeak,
+  idealMasterForTarget,
   isRecordClipped,
   measureMixPeakAtUnityMaster,
   mixOutputWouldClip,
@@ -131,6 +134,8 @@ let preferMimeType = ''
 let pendingTakeOffsetMs = 0
 /** When true, the take being finalized was a mid-mix punch-in. */
 let pendingTakePunchIn = false
+/** Mix playhead to restore when discarding the in-progress take. */
+let pendingTakeRestartMs = 0
 /** Mix position above this → punch-in / show content Sync. */
 const PUNCH_IN_POSITION_MS = 50
 let mixEpochPerf: number | null = null
@@ -552,10 +557,14 @@ export function refreshSkewWarning() {
   } = get()
 
   if (!showCalageWarnings || !autoAlignEnabled) {
+    // Clear the banner even if referenceBeatWarning was already nulled
+    // (e.g. evaluateReferenceBeat runs before refresh when auto-align turns off).
     if (
       notice &&
-      referenceBeatWarning &&
-      notice.id === referenceBeatWarning.key
+      (notice.action === 'disableAutoAlign' ||
+        notice.id.startsWith('beat:') ||
+        (referenceBeatWarning != null &&
+          notice.id === referenceBeatWarning.key))
     ) {
       patch({ notice: null, noticeSuppressedId: null })
     }
@@ -732,12 +741,13 @@ export function setCalageMode(on: boolean) {
       cutSelectedTrackIds: [],
       cutWorkSegments: {},
       calageTipOpen: false,
+      masterAutoCorrectHint: null,
     })
     refreshSkewWarning()
     if (tracks.length > 0) void evaluateReferenceBeat()
     return
   }
-  patch({ calageMode: false, calageTipOpen: false })
+  patch({ calageMode: false, calageTipOpen: false, referencePickActive: false })
   refreshSkewWarning()
 }
 
@@ -756,6 +766,7 @@ export function setMixMode(on: boolean) {
       cutSelectedTrackIds: [],
       cutWorkSegments: {},
       calageTipOpen: false,
+      referencePickActive: false,
       error: null,
       notice: null,
       noticeSuppressedId: null,
@@ -765,10 +776,11 @@ export function setMixMode(on: boolean) {
     return
   }
   clearTrackHighlights()
-  patch({ mixMode: false, mixClipWarning: false })
+  patch({ mixMode: false, mixClipWarning: false, masterAutoCorrectHint: null })
 }
 
 export function setCutMode(on: boolean) {
+  if (get().cutMerging) return
   const { tracks } = get()
   if (tracks.length === 0 && on) {
     patch({ cutMode: false })
@@ -783,11 +795,13 @@ export function setCutMode(on: boolean) {
       mixMode: false,
       calageMode: false,
       calageTipOpen: false,
+      referencePickActive: false,
       cutPhase: 'edit',
       cutSelectedTrackIds,
       cutWorkSegments,
       cutPlaybackRate: 1,
       mixClipWarning: false,
+      masterAutoCorrectHint: null,
       error: null,
       notice: null,
       noticeSuppressedId: null,
@@ -808,6 +822,7 @@ export function setCutMode(on: boolean) {
 export type DeckWorkMode = 'simple' | 'mix' | 'align' | 'cut'
 
 export function setDeckMode(mode: DeckWorkMode) {
+  if (get().cutMerging) return
   if (mode === 'mix') {
     setMixMode(true)
     return
@@ -872,7 +887,7 @@ function clearCutSegmentSelection(): void {
 
 /** Toggle découpage preview speed (0.5 / 0.25); same value again returns to 1×. */
 export function setCutPlaybackRate(rate: 0.5 | 0.25 | 1) {
-  if (!get().cutMode) return
+  if (!get().cutMode || get().cutMerging) return
   const current = get().cutPlaybackRate
   const next = rate === current ? 1 : rate
 
@@ -901,12 +916,12 @@ export function setCutPlaybackRate(rate: 0.5 | 0.25 | 1) {
 
 /** Reset découpage cuts to one segment per track (initial cut state). */
 export function cancelCutSelection() {
-  if (!get().cutMode) return
+  if (!get().cutMode || get().cutMerging) return
   resetCutWorkState()
 }
 
 export function toggleCutSegmentSelected(trackId: number, segmentId: string) {
-  if (!get().cutMode || get().cutPhase !== 'edit') return
+  if (!get().cutMode || get().cutPhase !== 'edit' || get().cutMerging) return
   const segments = get().cutWorkSegments[trackId]
   if (!segments) return
   patch({
@@ -920,7 +935,7 @@ export function toggleCutSegmentSelected(trackId: number, segmentId: string) {
 }
 
 export function splitCutSegmentsAtPlayhead() {
-  if (!get().cutMode) return
+  if (!get().cutMode || get().cutMerging) return
   let prev = get().cutWorkSegments
   if (Object.keys(prev).length === 0) {
     const built = buildInitialCutWorkState()
@@ -983,7 +998,7 @@ function persistCloudTrackMuteRanges(trackId: number) {
 }
 
 export function applyCutMute() {
-  if (!get().cutMode || get().cutPhase !== 'edit') return
+  if (!get().cutMode || get().cutPhase !== 'edit' || get().cutMerging) return
   const selected = selectedCutWorkSegments()
   if (selected.length === 0) return
 
@@ -1045,8 +1060,72 @@ export function removeCutMuteRange(
   scheduleGuestDraftSave()
 }
 
+/** Placeholder row shown while Fusionner encodes (progress on the track). */
+function beginPendingMergeTrack(options: {
+  name: string
+  durationMs: number
+  offsetMs: number
+}): Track {
+  const trackCounter = get().trackCounter + 1
+  const empty = new Blob([], { type: 'audio/webm' })
+  const track: Track = {
+    id: trackCounter,
+    name: options.name,
+    blob: empty,
+    url: URL.createObjectURL(empty),
+    durationMs: options.durationMs,
+    offsetMs: options.offsetMs,
+    cloudStatus: 'local',
+    fromCutMerge: true,
+    mergePending: true,
+  }
+  patch({
+    trackCounter,
+    tracks: [...get().tracks, track],
+    enabledTrackIds: [...get().enabledTrackIds, track.id],
+    trackVolumes: { ...get().trackVolumes, [track.id]: 1 },
+    cutMerging: true,
+    cutMergeTrackId: track.id,
+    cutMergeProgress: 0,
+  })
+  updateSessionTimerDisplay()
+  return track
+}
+
+async function finalizePendingMergeTrack(
+  trackId: number,
+  blob: Blob,
+  durationMs: number,
+): Promise<Track | null> {
+  const prev = get().tracks.find((t) => t.id === trackId)
+  if (!prev?.mergePending) return null
+  URL.revokeObjectURL(prev.url)
+  clearBufferCache(trackId)
+  const url = URL.createObjectURL(blob)
+  const next: Track = {
+    ...prev,
+    blob,
+    url,
+    durationMs,
+    mergePending: undefined,
+  }
+  patch({
+    tracks: get().tracks.map((t) => (t.id === trackId ? next : t)),
+  })
+  updateSessionTimerDisplay()
+  void import('./cloudUpload.client').then((mod) =>
+    mod.maybeAutoUploadTrack(trackId),
+  )
+  scheduleGuestDraftSave()
+  markPwaUsefulSession()
+  void refreshTrackClipFlags([trackId])
+  return next
+}
+
 export async function mergeSelectedCutSegments(): Promise<boolean> {
-  if (!get().cutMode || get().cutPhase !== 'edit') return false
+  if (!get().cutMode || get().cutPhase !== 'edit' || get().cutMerging) {
+    return false
+  }
   if (cutMergeBlockedReason() !== 'none') return false
 
   const selected = selectedCutWorkSegments()
@@ -1061,73 +1140,112 @@ export async function mergeSelectedCutSegments(): Promise<boolean> {
 
   const sourceTrackIds = [...new Set(pieces.map((p) => p.track.id))]
   const offsetMs = Math.min(...pieces.map((p) => p.startMs))
+  const endMs = Math.max(...pieces.map((p) => p.endMs))
+  const durationMs = Math.max(1, Math.round(endMs - offsetMs))
+  const nameParts = sourceTrackIds
+    .map((id) => get().tracks.find((t) => t.id === id)?.name)
+    .filter((n): n is string => Boolean(n))
+  const name =
+    nameParts.length > 0
+      ? t('cut.merge.trackName', { names: nameParts.join(' + ') })
+      : t('cut.merge.trackNameFallback')
+
+  setError(null)
+  const pending = beginPendingMergeTrack({ name, durationMs, offsetMs })
+
+  for (const id of sourceTrackIds) {
+    setTrackEnabled(id, false)
+  }
+
+  const pendingSeg: import('../common/types').CutWorkSegment = {
+    id: newSegmentId(),
+    startMs: offsetMs,
+    endMs: offsetMs + durationMs,
+    selected: false,
+  }
+  const cleared: Record<
+    number,
+    import('../common/types').CutWorkSegment[]
+  > = {}
+  for (const [key, segments] of Object.entries(get().cutWorkSegments)) {
+    cleared[Number(key)] = segments.map((seg) => ({
+      ...seg,
+      selected: false,
+    }))
+  }
+  cleared[pending.id] = [pendingSeg]
+  patch({
+    cutPhase: 'edit',
+    cutWorkSegments: cleared,
+    cutSelectedTrackIds: [
+      ...new Set([...get().cutSelectedTrackIds, pending.id]),
+    ],
+  })
 
   try {
-    const { encodeAudioBufferForMerge, renderMergedCutBuffer } = await import(
-      './audio/encodeMerge.client'
-    )
-    const rendered = await renderMergedCutBuffer(pieces)
-    const { blob, durationMs } = await encodeAudioBufferForMerge(rendered)
-    const nameParts = sourceTrackIds
-      .map((id) => get().tracks.find((t) => t.id === id)?.name)
-      .filter((n): n is string => Boolean(n))
-    const name =
-      nameParts.length > 0
-        ? t('cut.merge.trackName', { names: nameParts.join(' + ') })
-        : t('cut.merge.trackNameFallback')
+    const {
+      encodeAudioBufferForMerge,
+      renderMergedCutBuffer,
+      mergeProgressOverall,
+    } = await import('./audio/encodeMerge.client')
 
-    const mergedTrack = await appendTrackFromBlob(blob, {
-      durationMs,
-      offsetMs,
-      name,
-      fromCutMerge: true,
-    })
-
-    for (const id of sourceTrackIds) {
-      setTrackEnabled(id, false)
+    const onProgress = (update: {
+      phase: 'decode' | 'render' | 'encode' | 'save'
+      ratio: number
+    }) => {
+      patch({ cutMergeProgress: mergeProgressOverall(update) })
     }
+
+    const rendered = await renderMergedCutBuffer(pieces, onProgress)
+    const encoded = await encodeAudioBufferForMerge(rendered, onProgress)
+    onProgress({ phase: 'save', ratio: 0.35 })
+    const mergedTrack = await finalizePendingMergeTrack(
+      pending.id,
+      encoded.blob,
+      encoded.durationMs,
+    )
+    if (!mergedTrack) throw new Error(t('error.exportFailed'))
+    onProgress({ phase: 'save', ratio: 1 })
 
     const range = audibleMixRange(mergedTrack)
-    const withMerged: Record<
-      number,
-      import('../common/types').CutWorkSegment[]
-    > = { ...get().cutWorkSegments }
     if (range.endMs > range.startMs) {
-      withMerged[mergedTrack.id] = [
-        {
-          id: newSegmentId(),
-          startMs: range.startMs,
-          endMs: range.endMs,
-          selected: false,
+      patch({
+        cutWorkSegments: {
+          ...get().cutWorkSegments,
+          [mergedTrack.id]: [
+            {
+              id: newSegmentId(),
+              startMs: range.startMs,
+              endMs: range.endMs,
+              selected: false,
+            },
+          ],
         },
-      ]
+      })
     }
-    const cleared: Record<
-      number,
-      import('../common/types').CutWorkSegment[]
-    > = {}
-    for (const [key, segments] of Object.entries(withMerged)) {
-      cleared[Number(key)] = segments.map((seg) => ({
-        ...seg,
-        selected: false,
-      }))
-    }
-    patch({
-      cutPhase: 'edit',
-      cutWorkSegments: cleared,
-      cutSelectedTrackIds: [
-        ...new Set([
-          ...get().cutSelectedTrackIds,
-          mergedTrack.id,
-        ]),
-      ],
-    })
     return true
   } catch (error) {
+    for (const id of sourceTrackIds) {
+      setTrackEnabled(id, true)
+    }
+    patch({
+      cutMerging: false,
+      cutMergeTrackId: null,
+      cutMergeProgress: 0,
+    })
+    deleteTrack(pending.id)
     setError(
       error instanceof Error ? error.message : t('error.exportFailed'),
     )
     return false
+  } finally {
+    if (get().cutMergeTrackId === pending.id || get().cutMerging) {
+      patch({
+        cutMerging: false,
+        cutMergeTrackId: null,
+        cutMergeProgress: 0,
+      })
+    }
   }
 }
 
@@ -1219,9 +1337,14 @@ export function setMasterVolume(volume: number) {
   schedulePersistMasterVolume()
 }
 
-export function setAutoClipCorrectPref(on: boolean) {
-  writeAutoClipCorrect(on)
-  patch({ autoClipCorrect: on })
+export function setAutoMasterPreventClipPref(on: boolean) {
+  writeAutoMasterPreventClip(on)
+  patch({
+    autoMasterPreventClip: on,
+    ...(!on && get().masterAutoCorrectHint === 'prevent'
+      ? { masterAutoCorrectHint: null }
+      : {}),
+  })
   if (on) scheduleMixPeakRefresh()
   else {
     const peak = get().mixPeakAtUnityMaster
@@ -1229,6 +1352,17 @@ export function setAutoClipCorrectPref(on: boolean) {
       mixClipWarning: mixOutputWouldClip(peak, get().masterVolume),
     })
   }
+}
+
+export function setAutoMasterBoostPref(on: boolean) {
+  writeAutoMasterBoost(on)
+  patch({
+    autoMasterBoost: on,
+    ...(!on && get().masterAutoCorrectHint === 'boost'
+      ? { masterAutoCorrectHint: null }
+      : {}),
+  })
+  if (on) scheduleMixPeakRefresh()
 }
 
 const MIX_PEAK_REFRESH_MS = 280
@@ -1246,8 +1380,15 @@ export function scheduleMixPeakRefresh() {
 
 async function refreshMixPeakAtUnityMaster(): Promise<void> {
   const gen = ++mixPeakRefreshGen
-  const { tracks, trackVolumes, enabledTrackIds, autoClipCorrect, masterVolume } =
-    get()
+  const {
+    tracks,
+    trackVolumes,
+    enabledTrackIds,
+    autoMasterPreventClip,
+    autoMasterBoost,
+    masterVolume,
+    mixMode,
+  } = get()
   const playable = tracks.filter((track) => track.blob.size > 0)
   if (playable.length === 0) {
     if (gen !== mixPeakRefreshGen) return
@@ -1267,16 +1408,27 @@ async function refreshMixPeakAtUnityMaster(): Promise<void> {
     if (gen !== mixPeakRefreshGen) return
 
     let nextMaster = masterVolume
-    if (autoClipCorrect && peak > 0) {
-      nextMaster = clampMasterVolume(
-        autoCorrectMasterVolume(peak, masterVolume),
-      )
+    let hint: 'prevent' | 'boost' | null = null
+    const idealRaw = idealMasterForTarget(peak)
+    if (idealRaw != null && peak > 0) {
+      const ideal = clampMasterVolume(idealRaw)
+      const eps = 0.0005
+      if (ideal < masterVolume - eps && autoMasterPreventClip) {
+        nextMaster = ideal
+        hint = 'prevent'
+      } else if (ideal > masterVolume + eps && autoMasterBoost) {
+        nextMaster = ideal
+        hint = 'boost'
+      }
     }
 
     patch({
       mixPeakAtUnityMaster: peak,
       masterVolume: nextMaster,
       mixClipWarning: mixOutputWouldClip(peak, nextMaster),
+      ...(hint != null && nextMaster !== masterVolume && mixMode
+        ? { masterAutoCorrectHint: hint }
+        : {}),
     })
     if (nextMaster !== masterVolume) {
       const master = getPlaybackGain()
@@ -1572,7 +1724,16 @@ export function setSessionAlignPref(
     | 'skipCountInDownload',
   on: boolean,
 ): void {
-  patch({ [key]: on })
+  if (key === 'autoAlignEnabled' && !on) {
+    patch({
+      autoAlignEnabled: false,
+      skipCountInPlayback: false,
+      skipCountInDownload: false,
+    })
+    cancelReferencePick()
+  } else {
+    patch({ [key]: on })
+  }
   if (key === 'autoAlignEnabled' || key === 'showCalageWarnings') {
     void evaluateReferenceBeat()
   } else {
@@ -1826,6 +1987,7 @@ export function stopMixToStart() {
     mixClockText: formatCentis(0),
     mixSeekRatio: 0,
     contentSyncPickFromId: null,
+    referencePickActive: false,
   })
 }
 
@@ -1855,23 +2017,75 @@ export function reorderTrack(fromId: number, beforeId: number | null) {
   scheduleGuestDraftSave()
 }
 
-export function applyManualTrackOffset(trackId: number, offsetMs: number) {
-  const wasListening =
-    get().mixListenActive || get().playingTrackIds.length > 0
-  if (wasListening) stopPlayback({ resetSeek: false })
+/**
+ * Stop mix briefly for an align/offset change, keep the playhead, then
+ * resume (or re-pause) at the same position.
+ */
+async function withMixTransportPreserved(
+  work: () => void | Promise<void>,
+): Promise<void> {
+  const hasSources =
+    getPlaybackSources().length > 0 || get().playingTrackIds.length > 0
+  const wasPaused = Boolean(get().mixPaused && hasSources)
+  const wasPlaying = Boolean(!get().mixPaused && hasSources)
+  const positionMs = getMixPositionMs()
 
-  const tracks = get().tracks.map((track) =>
-    track.id === trackId ? { ...track, offsetMs } : track,
-  )
-  const trackAlignDetails = { ...get().trackAlignDetails }
-  delete trackAlignDetails[trackId]
-  const alignAttentionByTrackId = { ...get().alignAttentionByTrackId }
-  delete alignAttentionByTrackId[trackId]
-  patch({ tracks, trackAlignDetails, alignAttentionByTrackId })
-  refreshSkewWarning()
-  persistCloudTrackOffset(trackId)
-  scheduleGuestDraftSave()
-  scheduleMixPeakRefresh()
+  if (wasPlaying || wasPaused) {
+    stopPlayback({ resetSeek: false })
+  }
+  patch({
+    mixSeekMs: positionMs,
+    mixClockText: formatCentis(positionMs),
+  })
+
+  try {
+    await work()
+  } finally {
+    patch({
+      mixSeekMs: positionMs,
+      mixClockText: formatCentis(positionMs),
+    })
+    if (!wasPlaying && !wasPaused) return
+    const tracks = get().tracks
+    if (tracks.length === 0 || get().state === 'recording') return
+    try {
+      await playTracks(tracks, {
+        awaitEnd: true,
+        asMix: true,
+        applyOffsets: true,
+        startAtMs: positionMs,
+      })
+      if (wasPaused) {
+        const audioContext = getAudioContext()
+        if (audioContext) {
+          await audioContext.suspend()
+          setMixPausedBoth(true)
+          tickClockDisplays()
+        }
+      }
+    } catch (error) {
+      setError(
+        error instanceof Error ? error.message : t('error.playbackFailed'),
+      )
+    }
+  }
+}
+
+export function applyManualTrackOffset(trackId: number, offsetMs: number) {
+  void withMixTransportPreserved(() => {
+    const tracks = get().tracks.map((track) =>
+      track.id === trackId ? { ...track, offsetMs } : track,
+    )
+    const trackAlignDetails = { ...get().trackAlignDetails }
+    delete trackAlignDetails[trackId]
+    const alignAttentionByTrackId = { ...get().alignAttentionByTrackId }
+    delete alignAttentionByTrackId[trackId]
+    patch({ tracks, trackAlignDetails, alignAttentionByTrackId })
+    refreshSkewWarning()
+    persistCloudTrackOffset(trackId)
+    scheduleGuestDraftSave()
+    scheduleMixPeakRefresh()
+  })
 }
 
 /** Tracks that can show / use content Sync (punch-in or delayed start). */
@@ -1889,12 +2103,52 @@ export function beginContentSyncPick(trackId: number) {
     patch({ contentSyncPickFromId: null })
     return
   }
-  patch({ contentSyncPickFromId: trackId })
+  patch({ contentSyncPickFromId: trackId, referencePickActive: false })
 }
 
 export function cancelContentSyncPick() {
   if (get().contentSyncPickFromId == null) return
   patch({ contentSyncPickFromId: null })
+}
+
+export function beginReferencePick() {
+  if (!get().calageMode) return
+  if (get().tracks.length < 2) return
+  if (get().referencePickActive) {
+    patch({ referencePickActive: false })
+    return
+  }
+  patch({ referencePickActive: true, contentSyncPickFromId: null })
+}
+
+export function cancelReferencePick() {
+  if (!get().referencePickActive) return
+  patch({ referencePickActive: false })
+}
+
+/** Set the calage reference track (1–2–3–4 / metronome). */
+export function setReferenceTrack(trackId: number) {
+  const track = get().tracks.find((t) => t.id === trackId)
+  if (!track) return
+  if (get().referenceTrackId === trackId) {
+    cancelReferencePick()
+    return
+  }
+
+  void withMixTransportPreserved(() => {
+    clearRefPeaks()
+    const trackAlignDetails = { ...get().trackAlignDetails }
+    delete trackAlignDetails[trackId]
+    patch({
+      referenceTrackId: trackId,
+      trackAlignDetails,
+      referencePickActive: false,
+      referenceBeatDismissedKey: '',
+    })
+    scheduleGuestDraftSave()
+    void evaluateReferenceBeat()
+    refreshSkewWarning()
+  })
 }
 
 /**
@@ -2168,7 +2422,7 @@ export async function realignTrack(trackId: number): Promise<void> {
   if (!get().autoAlignEnabled) return
   setError(null)
   try {
-    await autoAlignTracksFromCounts([trackId])
+    await withMixTransportPreserved(() => autoAlignTracksFromCounts([trackId]))
   } catch (error) {
     const message =
       error instanceof Error ? error.message : t('error.autoAlignFailed')
@@ -2182,7 +2436,9 @@ export async function realignAllTracks(): Promise<void> {
   if (!get().autoAlignEnabled) return
   setError(null)
   try {
-    await autoAlignTracksFromCounts(alignableTracks().map((track) => track.id))
+    await withMixTransportPreserved(() =>
+      autoAlignTracksFromCounts(alignableTracks().map((track) => track.id)),
+    )
   } catch (error) {
     const message =
       error instanceof Error ? error.message : t('error.autoAlignFailed')
@@ -2531,6 +2787,7 @@ export async function beginRecording(options?: {
   recording.recorder.start()
   pendingTakeOffsetMs = options?.offsetMs ?? 0
   pendingTakePunchIn = false
+  pendingTakeRestartMs = pendingTakeOffsetMs
 
   await startMeter(stream, (level) => patch({ meterLevel: level }))
   startTimer(options?.timerFromPerf ?? performance.now())
@@ -2572,6 +2829,7 @@ export async function beginOverdubRecording(monitor: Track[]): Promise<void> {
     recording.recorder.start()
     pendingTakeOffsetMs = 0
     pendingTakePunchIn = false
+    pendingTakeRestartMs = 0
     mixEpochPerf = null
     await startMeter(stream, (level) => patch({ meterLevel: level }))
     startTimer()
@@ -2695,6 +2953,7 @@ export async function beginOverdubRecording(monitor: Track[]): Promise<void> {
           pendingTakeOffsetMs =
             mixEpochPerf !== null ? recordPerf - mixEpochPerf : 0
           pendingTakePunchIn = false
+          pendingTakeRestartMs = 0
           resolve()
         } catch (error) {
           setPendingRecording(null)
@@ -2721,6 +2980,7 @@ export async function finalizeCurrentTake(): Promise<Track> {
   const punchIn = pendingTakePunchIn
   pendingTakeOffsetMs = 0
   pendingTakePunchIn = false
+  pendingTakeRestartMs = 0
 
   const blob = await stopRecorderToBlob(active)
   stopMeterNodes()
@@ -3071,15 +3331,19 @@ function guessAudioMime(filename: string): string {
   return 'audio/mpeg'
 }
 
-export async function abortCurrentTake(): Promise<void> {
+export async function abortCurrentTake(options?: {
+  seekToMs?: number
+}): Promise<void> {
+  const seekToMs = Math.max(0, options?.seekToMs ?? 0)
   discardPendingRecording()
-  stopPlayback({ resetSeek: true })
+  stopPlayback({ resetSeek: false })
   stopMeterNodes()
   patch({ meterLevel: 0 })
   stopTimer()
   pendingTakeOffsetMs = 0
   pendingTakePunchIn = false
-  patch({ mixSeekMs: 0, mixClockText: formatCentis(0) })
+  pendingTakeRestartMs = 0
+  patch({ mixSeekMs: seekToMs, mixClockText: formatCentis(seekToMs) })
 
   const recording = getActiveRecording()
   setActiveRecording(null)
@@ -3092,13 +3356,18 @@ export async function abortCurrentTake(): Promise<void> {
   }
 }
 
-/** Throw away the in-progress take and punch in again from mix t0. */
+/** Throw away the in-progress take and restart from where it began. */
 export async function discard() {
   if (get().state !== 'recording') return
 
   try {
-    await abortCurrentTake()
-    if (get().tracks.length > 0) {
+    const restartAtMs = pendingTakeRestartMs
+    const restartPunchIn =
+      pendingTakePunchIn || restartAtMs > PUNCH_IN_POSITION_MS
+    await abortCurrentTake({ seekToMs: restartAtMs })
+    if (restartPunchIn && get().tracks.length > 0) {
+      await beginPunchInRecording()
+    } else if (get().tracks.length > 0) {
       await beginOverdubRecording(get().tracks.slice())
     } else {
       await beginRecording({ offsetMs: 0 })
@@ -3160,6 +3429,7 @@ export async function beginPunchInRecording(): Promise<void> {
   const posAtStart = getMixPositionMs()
   pendingTakeOffsetMs = Math.max(0, posAtStart - latencySec * 1000)
   pendingTakePunchIn = true
+  pendingTakeRestartMs = Math.max(0, posAtStart)
 
   await startMeter(stream, (level) => patch({ meterLevel: level }))
   startTimer(performance.now())
@@ -3186,6 +3456,7 @@ export async function startSession() {
     stopPlayback()
     pendingTakeOffsetMs = 0
     pendingTakePunchIn = false
+    pendingTakeRestartMs = 0
     if (get().tracks.length > 0) {
       await beginOverdubRecording(get().tracks.slice())
     } else {
@@ -3240,6 +3511,7 @@ export async function stopSession() {
         setActiveRecording(null)
         pendingTakeOffsetMs = 0
         pendingTakePunchIn = false
+        pendingTakeRestartMs = 0
         stopTimer()
         try {
           await stopRecorderToBlob(active)
@@ -3452,6 +3724,7 @@ export function renameTrack(trackId: number, name: string) {
 }
 
 export function deleteTrack(trackId: number) {
+  if (get().cutMerging && get().cutMergeTrackId === trackId) return
   const track = get().tracks.find((t) => t.id === trackId)
   if (!track) return
   if (get().playingTrackIds.length > 0 || get().mixListenActive) {
@@ -3459,6 +3732,9 @@ export function deleteTrack(trackId: number) {
   }
   if (get().contentSyncPickFromId === trackId) {
     cancelContentSyncPick()
+  }
+  if (get().referencePickActive) {
+    cancelReferencePick()
   }
   URL.revokeObjectURL(track.url)
   clearBufferCache(trackId)

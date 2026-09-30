@@ -328,16 +328,31 @@ export const en: Record<MessageKey, string> = {
   'mix.download': 'Download mix (MP3)',
   'mix.download.hint': 'Download the mix of selected tracks (MP3)',
   'mix.seekAria': 'Playback position',
+  'mix.scrub.aria': 'Playback seek and speed',
+  'mix.seek.back10': '- 10 s',
+  'mix.seek.back10.aria': 'Skip back 10 seconds',
+  'mix.seek.back10.hint': 'Move the playhead back 10 seconds',
+  'mix.seek.forward10': '+ 10 s',
+  'mix.seek.forward10.aria': 'Skip forward 10 seconds',
+  'mix.seek.forward10.hint': 'Move the playhead forward 10 seconds',
   'mix.masterVolume': 'Master volume',
   'mix.clip.record.hint':
     'Clipping at recording. Re-record the track and check the mic input level.',
   'mix.clip.record.aria': 'Clipping at recording',
   'mix.clip.bus':
     'Mix clipping: lower the master volume (or individual track volumes).',
-  'settings.autoClipCorrect':
-    'Auto-correct master volume (clipping or too quiet)',
-  'settings.autoClipCorrect.hint':
-    'Sets the master so the mix peaks around 0.85 (raises or lowers). If you change it by hand above the safe level, a warning appears.',
+  'settings.autoMasterPreventClip':
+    'Automatically lower master volume to prevent clipping',
+  'settings.autoMasterPreventClip.hint':
+    'If the mix exceeds 0 dBFS, lower the master toward ~0.85. You can still raise it by hand; a warning shows if it clips again.',
+  'settings.autoMasterBoost':
+    'Automatically raise master volume toward ~0.85',
+  'settings.autoMasterBoost.hint':
+    'If the mix is too quiet, raise the master toward a ~0.85 peak. Turn off if you prefer to stay quieter.',
+  'mix.autoMaster.hint.prevent':
+    'Master volume was lowered automatically to prevent clipping.',
+  'mix.autoMaster.hint.boost':
+    'Master volume was raised automatically toward ~0.85.',
 
   'mode.groupAria': 'Work modes',
   'mode.label': 'Mode',
@@ -371,6 +386,7 @@ export const en: Record<MessageKey, string> = {
   'cut.merge': 'Merge',
   'cut.merge.hint': 'Merge selected segments into a new track',
   'cut.merge.busy': 'Merging…',
+  'cut.merge.progress': 'Merging in progress…',
   'cut.merge.disabledEmpty': 'Select at least one segment',
   'cut.merge.disabledOverlap':
     'Unavailable: selected segments overlap on the timeline',
@@ -435,20 +451,28 @@ export const en: Record<MessageKey, string> = {
     'Cannot delete the reference track while auto-align on count-in is enabled.',
   'tracks.cloudSave': 'Save {name} to the cloud',
   'tracks.cloudSaving': 'Saving…',
-  'tracks.ref.hint': 'Reference track (1–2–3–4 markers)',
+  'tracks.ref.hint': 'Reference track (1–2–3–4 markers) — click to choose another',
   'tracks.ref.aria': 'Reference',
   'tracks.ref.badge': 'ref.',
+  'tracks.ref.pickHint': 'Choose the new reference track',
+  'tracks.ref.pickTarget.aria': 'Set {name} as reference track',
+  'tracks.ref.pickCancel': 'Cancel',
   'tracks.contentSync': 'sync',
   'tracks.contentSync.aria': 'Sync {name} to another track',
   'tracks.contentSync.hint':
     'Refine align by content correlation: click Sync then the track to follow',
   'tracks.contentSync.pickHint': 'Choose the track to align against',
+  'tracks.contentSync.pickAbout': 'About Sync',
+  'tracks.contentSync.pickTip':
+    'After a punch-in (recording while playing), the new track starts at the playhead with a provisional offset. Sync refines that align by correlating audio content: click the track that holds the same passage (often the one you were monitoring). polyrecorder looks for the best match around the current offset. Cancel closes the pick without changing anything.',
   'tracks.contentSync.pickTarget.aria': 'Align {from} to {name}',
   'tracks.contentSync.pickCancel': 'Cancel',
   'tracks.contentSync.weak':
     'Sync: not enough shared content — keeping provisional offset',
   'tracks.contentSync.failed': 'Could not sync this track',
   'tracks.span.aria': 'Placement of {name} on the mix timeline',
+  'tracks.span.seekAria': 'Set the playhead on the timeline (track {name})',
+  'tracks.span.seekHint': 'Click or drag to set the playhead',
   'tracks.autoAlign': 'Recalculate align',
   'tracks.autoAlign.named': 'Recalculate align for {name}',
   'tracks.offset.hint': 'Offset this track on playback',
@@ -576,15 +600,17 @@ export const en: Record<MessageKey, string> = {
   'help.sync.body2':
     'Background noise can block 1-2-3-4 detection. In that case, start the recording over so you get a solid reference track—otherwise everything must be aligned by hand. Same for later tracks’ 3-4: a weak or noisy marker breaks auto-align for that take.',
   'help.sync.body3':
-    'In Simple mode, a “!” may appear next to a track that’s too far off—it opens Align mode. The trash control stays available beside it.',
+    'In Align mode, the “ref.” badge marks the reference track. Click it to choose another (same visual pick as Sync)—useful if the first take is bad, or to switch to the metronome. You can also nudge offsets by hand (± ms) or re-run auto-align on a track.',
+  'help.sync.body4':
+    'Punch-in: while playing (or paused mid-mix), Record creates a track that starts at the current position. The sync button on that track then refines align by correlating content with another track you pick. Stop on the transport resets the playhead to 0 for a classic take from the start.',
 
   'help.mix.title': 'Mix & export',
   'help.mix.body1':
     'In Mix mode, adjust each track and the master volume, mute, highlight a track, and download an MP3 of the mix (selected tracks only).',
   'help.mix.body2':
-    'Even when each track is clean, stacking them can clip the mix: polyrecorder watches the bus and can set the master around ~0.85 automatically (Preferences). A “!” at the end of a track means it clipped while recording — re-record with a lower mic input level.',
+    'Even when each track is clean, stacking them can clip the mix: polyrecorder watches the bus. In Preferences you can auto-lower the master to prevent clipping, and/or auto-raise it toward ~0.85. A “!” at the end of a track means it clipped while recording — re-record with a lower mic input level.',
   'help.mix.body3':
-    'You can also play / pause from the transport bar under the deck.',
+    'You can also play / pause from the transport bar under the deck. Stop ends playback and returns to the start—handy before a new take from t0.',
 
   'help.import.title': 'Audio import',
   'help.import.body1':
@@ -648,7 +674,7 @@ export const en: Record<MessageKey, string> = {
     'Simple to record and listen, Mix for volumes and MP3 export, Align to sync tracks (offsets and auto-align), Cut to split at the playhead, mute ranges without changing the file, or merge a selection into a new track.',
   'help.faq.clipping.q': 'Why a clipping warning in Mix mode?',
   'help.faq.clipping.a':
-    'A “!” at the end of a track means the take clipped while recording: re-record with a lower mic input level. A banner by the master means stacking tracks clips the mix — lower the master, or leave auto-correct on (~0.85 target) in Preferences.',
+    'A “!” at the end of a track means the take clipped while recording: re-record with a lower mic input level. A banner by the master means stacking tracks clips the mix — lower the master, or turn on auto-lower to prevent clipping in Preferences (~0.85 target).',
   'help.faq.metronome.q': 'What is the metronome for?',
   'help.faq.metronome.a':
     'It adds a virtual track at the chosen tempo that can be the alignment reference (mark 3-4 on your takes). The BPM is saved with the session; it is not an uploaded audio file.',
@@ -657,7 +683,7 @@ export const en: Record<MessageKey, string> = {
     'No. The piano plays only in the browser to give you a pitch. With headphones you hear it without it reaching the mic or the take.',
   'help.faq.skew.q': 'Tracks aren’t aligned—what should I do?',
   'help.faq.skew.a':
-    'Check the 1-2-3-4 / 3-4 markers, try a clean take, or open Align mode (the “!” on a track opens it) to adjust manually or re-run auto-align.',
+    'Check the 1-2-3-4 / 3-4 markers, try a clean take, or open Align mode (the “!” on a track opens it) to adjust manually, change the reference (click “ref.”), or re-run auto-align.',
   'help.faq.countInVsAlign.q':
     'What’s the difference between count-in skip and auto-align?',
   'help.faq.countInVsAlign.a':

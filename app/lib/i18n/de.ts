@@ -329,16 +329,31 @@ export const de: Record<MessageKey, string> = {
   'mix.download': 'Mix herunterladen (MP3)',
   'mix.download.hint': 'Mix der ausgewählten Spuren herunterladen (MP3)',
   'mix.seekAria': 'Wiedergabeposition',
+  'mix.scrub.aria': 'Wiedergabeposition und -geschwindigkeit',
+  'mix.seek.back10': '- 10 s',
+  'mix.seek.back10.aria': '10 Sekunden zurück',
+  'mix.seek.back10.hint': 'Abspielposition 10 Sekunden zurücksetzen',
+  'mix.seek.forward10': '+ 10 s',
+  'mix.seek.forward10.aria': '10 Sekunden vor',
+  'mix.seek.forward10.hint': 'Abspielposition 10 Sekunden vorspulen',
   'mix.masterVolume': 'Master-Lautstärke',
   'mix.clip.record.hint':
     'Übersteuerung bei der Aufnahme. Nimm die Spur neu auf und prüfe den Mikrofon-Eingangspegel.',
   'mix.clip.record.aria': 'Übersteuerung bei der Aufnahme',
   'mix.clip.bus':
     'Mix übersteuert: Master-Lautstärke (oder Spurpegel) senken.',
-  'settings.autoClipCorrect':
-    'Master-Lautstärke automatisch korrigieren (Übersteuerung oder zu leise)',
-  'settings.autoClipCorrect.hint':
-    'Stellt den Master so ein, dass der Mix etwa bei 0,85 peakt (hoch oder runter). Wenn du ihn manuell über den sicheren Wert hebst, erscheint eine Warnung.',
+  'settings.autoMasterPreventClip':
+    'Master-Lautstärke automatisch senken, um Übersteuerung zu vermeiden',
+  'settings.autoMasterPreventClip.hint':
+    'Wenn der Mix 0 dBFS überschreitet, senkt der Master auf ~0,85. Du kannst ihn manuell anheben; bei erneuter Übersteuerung erscheint eine Warnung.',
+  'settings.autoMasterBoost':
+    'Master-Lautstärke automatisch auf ~0,85 anheben',
+  'settings.autoMasterBoost.hint':
+    'Wenn der Mix zu leise ist, hebt der Master auf einen Peak von ~0,85. Ausschalten, wenn du lieber leiser bleibst.',
+  'mix.autoMaster.hint.prevent':
+    'Die Master-Lautstärke wurde automatisch gesenkt, um Übersteuerung zu vermeiden.',
+  'mix.autoMaster.hint.boost':
+    'Die Master-Lautstärke wurde automatisch auf ~0,85 angehoben.',
 
   'mode.groupAria': 'Arbeitsmodi',
   'mode.label': 'Modus',
@@ -374,6 +389,7 @@ export const de: Record<MessageKey, string> = {
   'cut.merge': 'Zusammenführen',
   'cut.merge.hint': 'Gewählte Segmente zu einer neuen Spur zusammenführen',
   'cut.merge.busy': 'Zusammenführung…',
+  'cut.merge.progress': 'Zusammenführung läuft…',
   'cut.merge.disabledEmpty': 'Mindestens ein Segment wählen',
   'cut.merge.disabledOverlap':
     'Nicht möglich: gewählte Segmente überlappen auf der Timeline',
@@ -439,20 +455,30 @@ export const de: Record<MessageKey, string> = {
     'Die Referenzspur kann nicht gelöscht werden, solange die Auto-Ausrichtung über den Auftakt aktiv ist.',
   'tracks.cloudSave': '{name} in die Cloud speichern',
   'tracks.cloudSaving': 'Wird gespeichert…',
-  'tracks.ref.hint': 'Referenzspur (Markierungen 1–2–3–4)',
+  'tracks.ref.hint': 'Referenzspur (Markierungen 1–2–3–4) — tippen, um eine andere zu wählen',
   'tracks.ref.aria': 'Referenz',
   'tracks.ref.badge': 'Ref.',
+  'tracks.ref.pickHint': 'Wähle die neue Referenzspur',
+  'tracks.ref.pickTarget.aria': '{name} als Referenzspur setzen',
+  'tracks.ref.pickCancel': 'Abbrechen',
   'tracks.contentSync': 'sync',
   'tracks.contentSync.aria': '{name} an eine andere Spur synchronisieren',
   'tracks.contentSync.hint':
     'Ausrichtung per Inhaltskorrelation verfeinern: Sync tippen, dann die Zielspur',
   'tracks.contentSync.pickHint': 'Wähle die Spur zum Ausrichten',
+  'tracks.contentSync.pickAbout': 'Über Sync',
+  'tracks.contentSync.pickTip':
+    'Nach einem Punch-in (Aufnahme während der Wiedergabe) startet die neue Spur an der Playhead-Position mit einem vorläufigen Offset. Sync verfeinert die Ausrichtung per Inhaltskorrelation: tippe die Spur mit derselben Passage (oft die, die du im Monitoring gehört hast). polyrecorder sucht die beste Übereinstimmung um den aktuellen Offset. Abbrechen beendet die Auswahl ohne Änderung.',
   'tracks.contentSync.pickTarget.aria': '{from} an {name} ausrichten',
   'tracks.contentSync.pickCancel': 'Abbrechen',
   'tracks.contentSync.weak':
     'Sync: zu wenig gemeinsamer Inhalt — vorläufiger Offset behalten',
   'tracks.contentSync.failed': 'Spur konnte nicht synchronisiert werden',
   'tracks.span.aria': 'Position von {name} auf der Mix-Timeline',
+  'tracks.span.seekAria':
+    'Wiedergabemarkierung auf der Timeline setzen (Spur {name})',
+  'tracks.span.seekHint':
+    'Klicken oder ziehen, um die Wiedergabemarkierung zu setzen',
   'tracks.autoAlign': 'Ausrichtung neu berechnen',
   'tracks.autoAlign.named': 'Ausrichtung für {name} neu berechnen',
   'tracks.offset.hint': 'Diese Spur bei der Wiedergabe verschieben',
@@ -580,15 +606,17 @@ export const de: Record<MessageKey, string> = {
   'help.sync.body2':
     'Störgeräusche können die Erkennung von 1-2-3-4 verhindern. Dann besser von vorn aufnehmen, um eine solide Referenzspur zu haben—sonst muss alles manuell ausgerichtet werden. Dasselbe gilt für die 3-4 späterer Spuren: eine schwache oder verrauschte Markierung bricht die Auto-Ausrichtung dieses Takes.',
   'help.sync.body3':
-    'Im Simple-Modus kann ein „!“ neben einer zu stark versetzten Spur erscheinen — es öffnet den Ausrichtungsmodus. Der Papierkorb bleibt daneben verfügbar.',
+    'Im Ausrichtungsmodus kennzeichnet das Badge „Ref.“ die Referenzspur. Tippe darauf, um eine andere zu wählen (gleiche visuelle Auswahl wie Sync)—nützlich bei schlechtem ersten Take oder zum Wechsel aufs Metronom. Offsets kannst du auch manuell (± ms) nachziehen oder die Auto-Ausrichtung einer Spur neu starten.',
+  'help.sync.body4':
+    'Punch-in: Während der Wiedergabe (oder Pause mittendrin) erzeugt Aufnehmen eine Spur ab der aktuellen Position. Sync auf dieser Spur verfeinert die Ausrichtung per Inhaltskorrelation mit einer Spur, die du wählst. Stop am Transport setzt den Playhead auf 0 für einen klassischen Take vom Anfang.',
 
   'help.mix.title': 'Mix & Export',
   'help.mix.body1':
     'Im Mix-Modus regelst du Spur- und Mastervolumen, stummschalten, eine Spur hervorheben und ein MP3 des Mixes herunterladen (nur ausgewählte Spuren).',
   'help.mix.body2':
-    'Auch wenn jede Spur sauber ist, kann das Stapeln den Mix übersteuern: polyrecorder überwacht den Bus und kann den Master automatisch auf ~0,85 setzen (Einstellungen). Ein „!“ am Spurende bedeutet Übersteuerung bei der Aufnahme — neu aufnehmen und den Mikrofonpegel prüfen.',
+    'Auch wenn jede Spur sauber ist, kann das Stapeln den Mix übersteuern: polyrecorder überwacht den Bus. In den Einstellungen kannst du den Master automatisch senken (Anti-Übersteuerung) und/oder auf ~0,85 anheben. Ein „!“ am Spurende bedeutet Übersteuerung bei der Aufnahme — neu aufnehmen und den Mikrofonpegel prüfen.',
   'help.mix.body3':
-    'Play / Pause geht auch über die Transportleiste unter dem Deck.',
+    'Play / Pause geht auch über die Transportleiste unter dem Deck. Stop beendet und springt zum Anfang—praktisch vor einem neuen Take ab t0.',
 
   'help.import.title': 'Audio-Import',
   'help.import.body1':
@@ -653,7 +681,7 @@ export const de: Record<MessageKey, string> = {
     'Simple zum Aufnehmen und Hören, Mix für Lautstärken und MP3-Export, Ausrichtung zum Synchronisieren (Offsets und Auto-Ausrichtung), Schneiden zum Teilen am Playhead, stummschalten ohne Dateiänderung, oder Zusammenführen einer Auswahl zu einer neuen Spur.',
   'help.faq.clipping.q': 'Warum eine Übersteuerungswarnung im Mix?',
   'help.faq.clipping.a':
-    'Ein „!“ am Spurende bedeutet Übersteuerung bei der Aufnahme: neu aufnehmen und den Mikrofonpegel senken. Ein Hinweis am Master bedeutet, dass das Stapeln den Mix übersteuert — Master senken oder Auto-Korrektur (~0,85) in den Einstellungen lassen.',
+    'Ein „!“ am Spurende bedeutet Übersteuerung bei der Aufnahme: neu aufnehmen und den Mikrofonpegel senken. Ein Hinweis am Master bedeutet, dass das Stapeln den Mix übersteuert — Master senken oder Auto-Senken gegen Übersteuerung in den Einstellungen aktivieren (Ziel ~0,85).',
   'help.faq.metronome.q': 'Wozu das Metronom?',
   'help.faq.metronome.a':
     'Es fügt eine virtuelle Spur im gewählten Tempo hinzu, die als Ausrichtungs-Referenz dienen kann (auf den Takes 3-4 markieren). Das BPM wird mit der Session gespeichert; es ist keine hochgeladene Audiodatei.',
@@ -662,7 +690,7 @@ export const de: Record<MessageKey, string> = {
     'Nein. Das Klavier spielt nur im Browser zum Anstimmen. Mit Kopfhörern hörst du es, ohne dass es ins Mikrofon oder in den Take gelangt.',
   'help.faq.skew.q': 'Spuren sind nicht ausgerichtet — was tun?',
   'help.faq.skew.a':
-    'Prüfe die Markierungen 1-2-3-4 / 3-4, nimm sauber neu auf oder öffne den Ausrichtungsmodus (das „!“ an einer Spur führt dorthin) zum manuellen Nachziehen oder erneuten Auto-Ausrichten.',
+    'Prüfe die Markierungen 1-2-3-4 / 3-4, nimm sauber neu auf oder öffne den Ausrichtungsmodus (das „!“ an einer Spur führt dorthin) zum manuellen Nachziehen, Wechsel der Referenz (Tipp auf „Ref.“) oder erneuten Auto-Ausrichten.',
   'help.faq.countInVsAlign.q':
     'Unterschied zwischen Auftakt überspringen und Auto-Ausrichtung?',
   'help.faq.countInVsAlign.a':

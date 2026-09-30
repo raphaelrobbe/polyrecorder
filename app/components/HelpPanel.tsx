@@ -192,6 +192,7 @@ export function HelpPanel({ className }: HelpPanelProps) {
       t('help.sync.body1'),
       t('help.sync.body2'),
       t('help.sync.body3'),
+      t('help.sync.body4'),
     ),
     mix: matchesHelpQuery(
       search,
@@ -497,6 +498,7 @@ export function HelpPanel({ className }: HelpPanelProps) {
         <HelpText>{t('help.sync.body1')}</HelpText>
         <HelpText>{t('help.sync.body2')}</HelpText>
         <HelpText>{t('help.sync.body3')}</HelpText>
+        <HelpText>{t('help.sync.body4')}</HelpText>
       </HelpSection>
 
       <HelpSection id="help-mix" title={t('help.mix.title')} hidden={!show.mix}>

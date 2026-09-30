@@ -91,16 +91,24 @@ export function mixOutputWouldClip(
 }
 
 /**
- * Master volume so that mixPeakAtUnityMaster × master ≈ target
- * (raises or lowers; caller clamps to MASTER_VOLUME_MAX).
+ * Master volume so that mixPeakAtUnityMaster × master ≈ target.
+ * Caller decides whether to apply a raise, a lower, or neither.
  */
+export function idealMasterForTarget(
+  mixPeakAtUnityMaster: number,
+  target = MIX_AUTO_CORRECT_TARGET,
+): number | null {
+  if (!(mixPeakAtUnityMaster > 0) || !Number.isFinite(mixPeakAtUnityMaster)) {
+    return null
+  }
+  return target / mixPeakAtUnityMaster
+}
+
+/** @deprecated Prefer idealMasterForTarget + explicit raise/lower prefs. */
 export function autoCorrectMasterVolume(
   mixPeakAtUnityMaster: number,
   currentMaster: number,
   target = MIX_AUTO_CORRECT_TARGET,
 ): number {
-  if (!(mixPeakAtUnityMaster > 0) || !Number.isFinite(mixPeakAtUnityMaster)) {
-    return currentMaster
-  }
-  return target / mixPeakAtUnityMaster
+  return idealMasterForTarget(mixPeakAtUnityMaster, target) ?? currentMaster
 }

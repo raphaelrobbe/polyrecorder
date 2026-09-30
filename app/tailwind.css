@@ -271,8 +271,8 @@ html.dark {
     display: none !important;
   }
 
-  /* Punch-in content sync: whole-row hover darkens track chrome. */
-  [data-content-sync-target] .track-sync-chrome {
+  // Punch-in / reference pick: whole-row hover darkens track chrome.
+  [data-track-pick-target] .track-sync-chrome {
     background-color: color-mix(
       in srgb,
       var(--sync-track-tint) 12%,
@@ -280,8 +280,8 @@ html.dark {
     );
   }
 
-  [data-content-sync-target]:hover .track-sync-chrome,
-  [data-content-sync-target]:focus-visible .track-sync-chrome {
+  [data-track-pick-target]:hover .track-sync-chrome,
+  [data-track-pick-target]:focus-visible .track-sync-chrome {
     background-color: color-mix(
       in srgb,
       var(--sync-track-tint) 38%,
@@ -289,7 +289,7 @@ html.dark {
     );
   }
 
-  [data-content-sync-target]:active .track-sync-chrome {
+  [data-track-pick-target]:active .track-sync-chrome {
     background-color: color-mix(
       in srgb,
       var(--sync-track-tint) 48%,

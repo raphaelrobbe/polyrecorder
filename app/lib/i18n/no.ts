@@ -329,16 +329,31 @@ export const no: Record<MessageKey, string> = {
   'mix.download': 'Last ned mix (MP3)',
   'mix.download.hint': 'Last ned mix av valgte spor (MP3)',
   'mix.seekAria': 'Avspillingsposisjon',
+  'mix.scrub.aria': 'Avspillingsposisjon og hastighet',
+  'mix.seek.back10': '- 10 s',
+  'mix.seek.back10.aria': 'Hopp 10 sekunder bakover',
+  'mix.seek.back10.hint': 'Flytt avspillingshodet 10 sekunder bakover',
+  'mix.seek.forward10': '+ 10 s',
+  'mix.seek.forward10.aria': 'Hopp 10 sekunder frem',
+  'mix.seek.forward10.hint': 'Flytt avspillingshodet 10 sekunder frem',
   'mix.masterVolume': 'Mastervolum',
   'mix.clip.record.hint':
     'Klipping ved opptak. Ta opp sporet på nytt og sjekk mikrofonens inngangsnivå.',
   'mix.clip.record.aria': 'Klipping ved opptak',
   'mix.clip.bus':
     'Mix klipper: senk mastervolumet (eller sporvolumene).',
-  'settings.autoClipCorrect':
-    'Korriger mastervolum automatisk (klipping eller for lavt volum)',
-  'settings.autoClipCorrect.hint':
-    'Setter master slik at mixen peaker rundt 0,85 (opp eller ned). Hvis du endrer den manuelt over sikker terskel, vises en advarsel.',
+  'settings.autoMasterPreventClip':
+    'Senk mastervolum automatisk for å unngå klipping',
+  'settings.autoMasterPreventClip.hint':
+    'Hvis mixen går over 0 dBFS, senkes master mot ~0,85. Du kan fortsatt heve den manuelt; advarsel vises hvis den klipper igjen.',
+  'settings.autoMasterBoost':
+    'Øk mastervolum automatisk mot ~0,85',
+  'settings.autoMasterBoost.hint':
+    'Hvis mixen er for lav, heves master mot en peak på ~0,85. Slå av hvis du foretrekker å holde deg lavere.',
+  'mix.autoMaster.hint.prevent':
+    'Mastervolumet ble senket automatisk for å unngå klipping.',
+  'mix.autoMaster.hint.boost':
+    'Mastervolumet ble økt automatisk mot ~0,85.',
 
   'mode.groupAria': 'Arbeidsmoduser',
   'mode.label': 'Modus',
@@ -374,6 +389,7 @@ export const no: Record<MessageKey, string> = {
   'cut.merge': 'Flett',
   'cut.merge.hint': 'Flett valgte segmenter til et nytt spor',
   'cut.merge.busy': 'Fletter…',
+  'cut.merge.progress': 'Fletting pågår…',
   'cut.merge.disabledEmpty': 'Velg minst ett segment',
   'cut.merge.disabledOverlap':
     'Utilgjengelig: valgte segmenter overlapper på tidslinjen',
@@ -438,20 +454,29 @@ export const no: Record<MessageKey, string> = {
     'Kan ikke slette referansesporet mens autojustering på opptakt er aktivert.',
   'tracks.cloudSave': 'Lagre {name} i skyen',
   'tracks.cloudSaving': 'Lagrer…',
-  'tracks.ref.hint': 'Referansespor (1–2–3–4-markører)',
+  'tracks.ref.hint': 'Referansespor (1–2–3–4-markører) — klikk for å velge et annet',
   'tracks.ref.aria': 'Referanse',
   'tracks.ref.badge': 'ref.',
+  'tracks.ref.pickHint': 'Velg det nye referansesporet',
+  'tracks.ref.pickTarget.aria': 'Sett {name} som referansespor',
+  'tracks.ref.pickCancel': 'Avbryt',
   'tracks.contentSync': 'sync',
   'tracks.contentSync.aria': 'Synkroniser {name} mot et annet spor',
   'tracks.contentSync.hint':
     'Finjuster med innholdskorrelasjon: trykk Sync, deretter sporet å følge',
   'tracks.contentSync.pickHint': 'Velg sporet å justere mot',
+  'tracks.contentSync.pickAbout': 'Om Sync',
+  'tracks.contentSync.pickTip':
+    'Etter punch-in (opptak under avspilling) starter det nye sporet ved markøren med en midlertidig offset. Sync finjusterer justeringen ved å korrelere lydinnhold: klikk sporet som har samme passasje (ofte det du hørte i monitor). polyrecorder finner beste treff rundt gjeldende offset. Avbryt lukker valget uten endring.',
   'tracks.contentSync.pickTarget.aria': 'Juster {from} mot {name}',
   'tracks.contentSync.pickCancel': 'Avbryt',
   'tracks.contentSync.weak':
     'Sync: for lite felles innhold — beholder foreløpig offset',
   'tracks.contentSync.failed': 'Kunne ikke synkronisere dette sporet',
   'tracks.span.aria': 'Plassering av {name} på mix-tidslinjen',
+  'tracks.span.seekAria':
+    'Sett avspillingsmarkøren på tidslinjen (spor {name})',
+  'tracks.span.seekHint': 'Klikk eller dra for å sette avspillingsmarkøren',
   'tracks.autoAlign': 'Beregn justering på nytt',
   'tracks.autoAlign.named': 'Beregn justering for {name} på nytt',
   'tracks.offset.hint': 'Forskyv dette sporet ved avspilling',
@@ -579,15 +604,17 @@ export const no: Record<MessageKey, string> = {
   'help.sync.body2':
     'Bakgrunnsstøy kan hindre gjenkjenning av 1-2-3-4. Start da opptaket på nytt for et solid referansespor—ellers må alt justeres for hånd. Det samme gjelder 3-4 på senere spor: en svak eller støyete markør ødelegger autojustering for det opptaket.',
   'help.sync.body3':
-    'I Simple-modus kan et «!» vises ved et spor som er for forskjøvet — det åpner Justering. Papirkurven blir stående ved siden av.',
+    'I Justering viser merket «ref.» referansesporet. Klikk det for å velge et annet (samme visuelle valg som Sync)—nyttig hvis første opptak er dårlig, eller for å bytte til metronomen. Du kan også justere offset manuelt (± ms) eller kjøre autojustering på nytt for et spor.',
+  'help.sync.body4':
+    'Punch-in: under avspilling (eller pause midt i) lager Ta opp et spor som starter ved gjeldende posisjon. Sync på det sporet finjusterer deretter justeringen ved å korrelere innhold mot et spor du velger. Stopp på transporten setter markøren til 0 for et klassisk opptak fra starten.',
 
   'help.mix.title': 'Mix og eksport',
   'help.mix.body1':
     'I Mix-modus justerer du volum per spor og master, demper, fremhever et spor og laster ned en MP3 av mixen (bare valgte spor).',
   'help.mix.body2':
-    'Selv om hvert spor er rent, kan stabling klippe mixen: polyrecorder overvåker bussen og kan sette master rundt ~0,85 automatisk (Innstillinger). Et «!» bakerst på sporet betyr klipping under opptak — ta opp på nytt med lavere mikrofonnivå.',
+    'Selv om hvert spor er rent, kan stabling klippe mixen: polyrecorder overvåker bussen. Under Innstillinger kan du senke master auto for å unngå klipping, og/eller heve den auto mot ~0,85. Et «!» bakerst på sporet betyr klipping under opptak — ta opp på nytt med lavere mikrofonnivå.',
   'help.mix.body3':
-    'Du kan også spille / pause fra transportlinjen under dekket.',
+    'Du kan også spille / pause fra transportlinjen under dekket. Stopp avslutter og går tilbake til start—nyttig før et nytt opptak fra t0.',
 
   'help.import.title': 'Lydimport',
   'help.import.body1':
@@ -652,7 +679,7 @@ export const no: Record<MessageKey, string> = {
     'Simple for å ta opp og lytte, Mix for volum og MP3-eksport, Justering for å synke spor (forskyvninger og autojustering), Klipp for å dele ved spillehodet, dempe segmenter uten å endre filen, eller flette et utvalg til et nytt spor.',
   'help.faq.clipping.q': 'Hvorfor advarsel om klipping i Mix?',
   'help.faq.clipping.a':
-    'Et «!» bakerst på sporet betyr klipping under opptak: ta opp på nytt med lavere mikrofonnivå. Et banner ved master betyr at stabling klipper mixen — senk master, eller la auto-korreksjon (~0,85) stå på under Innstillinger.',
+    'Et «!» bakerst på sporet betyr klipping under opptak: ta opp på nytt med lavere mikrofonnivå. Et banner ved master betyr at stabling klipper mixen — senk master, eller slå på auto-senking mot klipping under Innstillinger (mål ~0,85).',
   'help.faq.metronome.q': 'Hva er metronomet til?',
   'help.faq.metronome.a':
     'Det legger til et virtuelt spor i valgt tempo som kan være justeringsreferanse (marker 3-4 på opptakene). BPM lagres med økten; det er ikke en opplastet lydfil.',
@@ -661,7 +688,7 @@ export const no: Record<MessageKey, string> = {
     'Nei. Pianoet spiller bare i nettleseren for å gi deg tonen. Med hodetelefoner hører du det uten at det går i mikrofonen eller opptaket.',
   'help.faq.skew.q': 'Sporene er ikke justert — hva gjør jeg?',
   'help.faq.skew.a':
-    'Sjekk markørene 1-2-3-4 / 3-4, ta et rent opptak på nytt, eller åpne Justering ( «!» på et spor åpner den) for manuell justering eller ny autojustering.',
+    'Sjekk markørene 1-2-3-4 / 3-4, ta et rent opptak på nytt, eller åpne Justering ( «!» på et spor åpner den) for manuell justering, bytte av referanse (klikk «ref.»), eller ny autojustering.',
   'help.faq.countInVsAlign.q':
     'Forskjell mellom hopp over opptakt og autojustering?',
   'help.faq.countInVsAlign.a':

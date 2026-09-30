@@ -1,68 +1,77 @@
 /**
  * Encode a rendered merge buffer for a new take.
- * Prefer WebM/Opus (MediaRecorder); fall back to MP3. Never WAV.
- * Loaded only on Fusionner click via dynamic import.
+ * Prefer offline WASM Opus→WebM; fall back to MP3. Never WAV.
+ * Encoder modules load only on Fusionner click via dynamic import.
  */
 
-async function encodeAudioBufferToWebmOpus(
-  buffer: AudioBuffer,
-): Promise<Blob> {
-  const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
-    ? 'audio/webm;codecs=opus'
-    : MediaRecorder.isTypeSupported('audio/webm')
-      ? 'audio/webm'
-      : ''
-  if (!mime) {
-    throw new Error('webm unsupported')
-  }
+export type MergeProgressPhase = 'decode' | 'render' | 'encode' | 'save'
 
-  const ctx = new AudioContext({ sampleRate: buffer.sampleRate })
-  try {
-    const dest = ctx.createMediaStreamDestination()
-    const source = ctx.createBufferSource()
-    source.buffer = buffer
-    source.connect(dest)
-
-    const chunks: BlobPart[] = []
-    const recorder = new MediaRecorder(dest.stream, { mimeType: mime })
-    const done = new Promise<Blob>((resolve, reject) => {
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) chunks.push(event.data)
-      }
-      recorder.onerror = () => reject(new Error('MediaRecorder error'))
-      recorder.onstop = () => resolve(new Blob(chunks, { type: mime }))
-    })
-
-    recorder.start(100)
-    await ctx.resume()
-    source.start(0)
-    await new Promise<void>((resolve) => {
-      source.onended = () => resolve()
-    })
-    // Let the last Opus packets flush.
-    await new Promise((resolve) => setTimeout(resolve, 80))
-    if (recorder.state !== 'inactive') recorder.stop()
-    const blob = await done
-    if (blob.size === 0) throw new Error('empty webm')
-    return blob
-  } finally {
-    await ctx.close().catch(() => {})
-  }
+export type MergeProgressUpdate = {
+  phase: MergeProgressPhase
+  /** 0–1 within the current phase. */
+  ratio: number
 }
 
-/** Encode merge result: WebM/Opus preferred, else MP3. */
+/** Map phase-local progress onto an overall 0–1 bar. */
+export function mergeProgressOverall(update: MergeProgressUpdate): number {
+  const ranges: Record<MergeProgressPhase, [number, number]> = {
+    decode: [0, 0.18],
+    render: [0.18, 0.38],
+    encode: [0.38, 0.9],
+    save: [0.9, 1],
+  }
+  const [from, to] = ranges[update.phase]
+  const local = Math.max(0, Math.min(1, update.ratio))
+  return from + (to - from) * local
+}
+
+type ProgressFn = (update: MergeProgressUpdate) => void
+
+/** Encode merge result: offline WebM/Opus preferred, else MP3. */
 export async function encodeAudioBufferForMerge(
   buffer: AudioBuffer,
+  onProgress?: ProgressFn,
 ): Promise<{ blob: Blob; durationMs: number }> {
   const durationMs = Math.max(1, Math.round(buffer.duration * 1000))
   try {
-    const blob = await encodeAudioBufferToWebmOpus(buffer)
+    const { encodeAudioBufferToWebmOpusOffline } = await import(
+      './opusWebmEncode.client'
+    )
+    const blob = await encodeAudioBufferToWebmOpusOffline(buffer, (ratio) => {
+      onProgress?.({ phase: 'encode', ratio })
+    })
     return { blob, durationMs }
   } catch {
     const { encodeAudioBufferToMp3 } = await import('../../mp3-encode.client')
-    const blob = await encodeAudioBufferToMp3(buffer, 192)
+    const blob = await encodeAudioBufferToMp3(buffer, 192, (ratio) => {
+      onProgress?.({ phase: 'encode', ratio })
+    })
     return { blob, durationMs }
   }
+}
+
+async function startRenderingWithProgress(
+  offline: OfflineAudioContext,
+  durationS: number,
+  onProgress?: ProgressFn,
+): Promise<AudioBuffer> {
+  if (onProgress && durationS > 0.08) {
+    const steps = Math.min(24, Math.max(4, Math.ceil(durationS / 0.4)))
+    for (let i = 1; i < steps; i++) {
+      const at = (i / steps) * durationS
+      void offline
+        .suspend(at)
+        .then(() => {
+          onProgress({ phase: 'render', ratio: i / steps })
+          return offline.resume()
+        })
+        .catch(() => {})
+    }
+  }
+  onProgress?.({ phase: 'render', ratio: 0 })
+  const rendered = await offline.startRendering()
+  onProgress?.({ phase: 'render', ratio: 1 })
+  return rendered
 }
 
 /**
@@ -76,6 +85,7 @@ export async function renderMergedCutBuffer(
     startMs: number
     endMs: number
   }>,
+  onProgress?: ProgressFn,
 ): Promise<AudioBuffer> {
   const { decodeTrack } = await import('./mix.client')
   const { bufferRangeFromMix, unmutedBufferIntervals } = await import(
@@ -94,8 +104,17 @@ export async function renderMergedCutBuffer(
   const uniqueTracks = [
     ...new Map(sorted.map((p) => [p.track.id, p.track])).values(),
   ]
+  let decodedCount = 0
   const decoded = await Promise.all(
-    uniqueTracks.map(async (track) => [track.id, await decodeTrack(track)] as const),
+    uniqueTracks.map(async (track) => {
+      const buffer = await decodeTrack(track)
+      decodedCount += 1
+      onProgress?.({
+        phase: 'decode',
+        ratio: decodedCount / uniqueTracks.length,
+      })
+      return [track.id, buffer] as const
+    }),
   )
   const buffers = new Map(decoded)
 
@@ -131,5 +150,5 @@ export async function renderMergedCutBuffer(
     }
   }
 
-  return offline.startRendering()
+  return startRenderingWithProgress(offline, durationS, onProgress)
 }

@@ -9,13 +9,17 @@ import {
   type AlignPrefs,
 } from '../lib/alignPrefs'
 import {
-  writeAutoClipCorrect,
+  writeAutoMasterBoost,
+  writeAutoMasterPreventClip,
 } from '../lib/mixClipPrefs'
 import { useLocale } from '../hooks/useLocale'
 import { t } from '../lib/i18n'
 import type { loader as rootLoader } from '../root'
 import { useSessionStore } from '../store/sessionStore'
-import { setAutoClipCorrectPref } from '../lib/sessionActions.client'
+import {
+  setAutoMasterBoostPref,
+  setAutoMasterPreventClipPref,
+} from '../lib/sessionActions.client'
 import { DeckOverlayPanel } from './DeckOverlayPanel'
 import { CheckboxOption, OptionGroup } from './CheckboxOption'
 import { LocaleButtons } from './LocaleButtons'
@@ -34,7 +38,8 @@ export function SettingsPanel({ className }: SettingsPanelProps) {
   const user = rootData?.user ?? null
   const autoplayAfterStop = useSessionStore((s) => s.autoplayAfterStop)
   const autoCloudSave = useSessionStore((s) => s.autoCloudSave)
-  const autoClipCorrect = useSessionStore((s) => s.autoClipCorrect)
+  const autoMasterPreventClip = useSessionStore((s) => s.autoMasterPreventClip)
+  const autoMasterBoost = useSessionStore((s) => s.autoMasterBoost)
   const setAutoplayAfterStop = useSessionStore((s) => s.setAutoplayAfterStop)
   const setAutoCloudSave = useSessionStore((s) => s.setAutoCloudSave)
   const [defaults, setDefaults] = useState<AlignPrefs>(() => readAlignPrefs())
@@ -98,14 +103,25 @@ export function SettingsPanel({ className }: SettingsPanelProps) {
       </CheckboxOption>
 
       <CheckboxOption
-        title={t('settings.autoClipCorrect.hint')}
-        checked={autoClipCorrect}
+        title={t('settings.autoMasterPreventClip.hint')}
+        checked={autoMasterPreventClip}
         onCheckedChange={(on) => {
-          writeAutoClipCorrect(on)
-          setAutoClipCorrectPref(on)
+          writeAutoMasterPreventClip(on)
+          setAutoMasterPreventClipPref(on)
         }}
       >
-        {t('settings.autoClipCorrect')}
+        {t('settings.autoMasterPreventClip')}
+      </CheckboxOption>
+
+      <CheckboxOption
+        title={t('settings.autoMasterBoost.hint')}
+        checked={autoMasterBoost}
+        onCheckedChange={(on) => {
+          writeAutoMasterBoost(on)
+          setAutoMasterBoostPref(on)
+        }}
+      >
+        {t('settings.autoMasterBoost')}
       </CheckboxOption>
 
       <OptionGroup title={t('settings.defaultsForNewProjects')} stack>
@@ -114,7 +130,17 @@ export function SettingsPanel({ className }: SettingsPanelProps) {
             <CheckboxOption
               className="min-w-0 flex-1"
               checked={defaults.autoAlignEnabled}
-              onCheckedChange={(on) => patchDefaults({ autoAlignEnabled: on })}
+              onCheckedChange={(on) =>
+                patchDefaults(
+                  on
+                    ? { autoAlignEnabled: true }
+                    : {
+                        autoAlignEnabled: false,
+                        skipCountInPlayback: false,
+                        skipCountInDownload: false,
+                      },
+                )
+              }
             >
               {t('settings.autoAlign')}
             </CheckboxOption>

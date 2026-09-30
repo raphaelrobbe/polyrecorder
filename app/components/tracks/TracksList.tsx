@@ -3,6 +3,7 @@ import { formatCentis, getMixDurationMs } from '../../lib/format'
 import {
   alignableTracks,
   cancelContentSyncPick,
+  cancelReferencePick,
   deleteAllTracks,
   dismissMixClipWarning,
   realignAllTracks,
@@ -28,7 +29,7 @@ import { TrackRow } from './TrackRow'
 
 const TOUCH_REORDER_THRESHOLD_PX = 8
 const TOUCH_REORDER_EXCLUDE =
-  'input, textarea, select, button:not([data-drag-track]), [data-track-mute], [data-rename-track], [data-ms-nudge], [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-align-all], [data-toggle-track], [data-highlight-track], [data-volume-ribbon], [data-volume-percent], [data-cut-select-track], [data-cut-segment], [data-content-sync], [data-content-sync-pick], [data-content-sync-target]'
+  'input, textarea, select, button:not([data-drag-track]), [data-track-mute], [data-rename-track], [data-ms-nudge], [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-align-all], [data-toggle-track], [data-highlight-track], [data-volume-ribbon], [data-volume-percent], [data-cut-select-track], [data-cut-segment], [data-content-sync], [data-content-sync-pick], [data-content-sync-target], [data-reference-pick], [data-track-pick-target]'
 
 type DragOverState = { trackId: number; edge: 'before' | 'after' } | null
 
@@ -51,6 +52,7 @@ export function TracksList({ className }: TracksListProps) {
   const mixClockText = useSessionStore((s) => s.mixClockText)
   const mixSeekMs = useSessionStore((s) => s.mixSeekMs)
   const contentSyncPickFromId = useSessionStore((s) => s.contentSyncPickFromId)
+  const referencePickActive = useSessionStore((s) => s.referencePickActive)
   const setSeekDragActive = useSessionStore((s) => s.setSeekDragActive)
   const patch = useSessionStore((s) => s.patch)
 
@@ -68,16 +70,17 @@ export function TracksList({ className }: TracksListProps) {
   const [dragOver, setDragOver] = useState<DragOverState>(null)
 
   useEffect(() => {
-    if (contentSyncPickFromId == null) return
+    if (contentSyncPickFromId == null && !referencePickActive) return
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault()
         cancelContentSyncPick()
+        cancelReferencePick()
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [contentSyncPickFromId])
+  }, [contentSyncPickFromId, referencePickActive])
 
   const alignable = alignableTracks()
   const selectedCount = enabledTrackIds.length
@@ -275,20 +278,29 @@ export function TracksList({ className }: TracksListProps) {
         {cutMode ? <CutModePanel /> : null}
         {calageMode && alignable.length > 0 ? (
           <div
-            className="mb-[0.08rem] grid grid-cols-[1.55rem_minmax(0,1fr)_2.6rem_7.1rem] items-end gap-x-[0.1rem] pl-[0.35rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_2.3rem_6rem]"
+            className={cn(
+              'mb-[0.08rem] grid items-end gap-x-[0.1rem] pl-[0.35rem]',
+              autoAlignEnabled
+                ? 'grid-cols-[1.55rem_minmax(0,1fr)_2.6rem_7.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_2.3rem_6rem]'
+                : 'grid-cols-[1.55rem_minmax(0,1fr)_7.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_6rem]',
+            )}
             aria-hidden="true"
           >
             <span className="col-start-1" />
             <span className="col-start-2" />
+            {autoAlignEnabled ? (
+              <span
+                className="col-start-3 text-center text-[0.58rem] font-extrabold uppercase tracking-[0.06em] text-ink-soft select-none"
+                title={t('tracks.alignAll.hint')}
+              >
+                {t('tracks.alignCol')}
+              </span>
+            ) : null}
             <span
-              className="col-start-3 text-center text-[0.58rem] font-extrabold uppercase tracking-[0.06em] text-ink-soft select-none"
-              title={t('tracks.alignAll.hint')}
-              hidden={!autoAlignEnabled}
-            >
-              {t('tracks.alignCol')}
-            </span>
-            <span
-              className="col-start-4 text-center text-[0.58rem] font-extrabold uppercase tracking-[0.06em] text-ink-soft select-none"
+              className={cn(
+                'text-center text-[0.58rem] font-extrabold uppercase tracking-[0.06em] text-ink-soft select-none',
+                autoAlignEnabled ? 'col-start-4' : 'col-start-3',
+              )}
               title={t('tracks.offset.hint')}
             >
               {t('tracks.offsetCol')}
@@ -303,7 +315,12 @@ export function TracksList({ className }: TracksListProps) {
               : 'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]',
             calageMode &&
               alignable.length > 0 &&
+              autoAlignEnabled &&
               'mb-[0.2rem] grid-cols-[1.55rem_minmax(0,1fr)_2.6rem_7.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_2.3rem_6rem]',
+            calageMode &&
+              alignable.length > 0 &&
+              !autoAlignEnabled &&
+              'mb-[0.2rem] grid-cols-[1.55rem_minmax(0,1fr)_7.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_6rem]',
           )}
         >
           {compactTrackChrome ? null : (
@@ -349,58 +366,65 @@ export function TracksList({ className }: TracksListProps) {
               }}
             />
           </div>
-          <Button
-            variant="nudge"
-            className="col-start-3 justify-self-center [&_svg]:size-[1.28rem]"
-            icon={<IconAutoAlign />}
-            hidden={!calageMode || !autoAlignEnabled || alignable.length === 0}
-            disabled={
-              alignable.length === 0 || !calageMode || !autoAlignEnabled
-            }
-            title={t('tracks.alignAll.hint')}
-            aria-label={t('tracks.alignAll.aria')}
-            data-align-all
-            data-align-header
-            onClick={() => {
-              void (async () => {
-                try {
-                  await realignAllTracks()
-                } catch (error) {
-                  setError(
-                    error instanceof Error
-                      ? error.message
-                      : t('error.autoAlignFailed'),
-                  )
-                }
-              })()
-            }}
-          />
+          {calageMode && autoAlignEnabled && alignable.length > 0 ? (
+            <Button
+              variant="nudge"
+              className="col-start-3 justify-self-center [&_svg]:size-[1.28rem]"
+              icon={<IconAutoAlign />}
+              disabled={alignable.length === 0}
+              title={t('tracks.alignAll.hint')}
+              aria-label={t('tracks.alignAll.aria')}
+              data-align-all
+              data-align-header
+              onClick={() => {
+                void (async () => {
+                  try {
+                    await realignAllTracks()
+                  } catch (error) {
+                    setError(
+                      error instanceof Error
+                        ? error.message
+                        : t('error.autoAlignFailed'),
+                    )
+                  }
+                })()
+              }}
+            />
+          ) : null}
           <span
-            className="col-start-4 w-full shrink-0 justify-self-center"
+            className={cn(
+              'w-full shrink-0 justify-self-center',
+              calageMode && autoAlignEnabled
+                ? 'col-start-4'
+                : 'col-start-3',
+            )}
             data-align-nudge-spacer
             hidden={!calageMode || alignable.length === 0}
             aria-hidden="true"
           />
         </div>
         {contentSyncPickFromId != null ? (
+          <ContentSyncPickBanner />
+        ) : null}
+        {referencePickActive ? (
           <div
             className={cn(
-              'mb-[0.35rem] flex items-center gap-[0.65rem] rounded-[14px] border-[1.5px] border-mode-simple-border bg-mode-simple-bg',
-              'px-[0.75rem] py-[0.55rem] text-[0.8rem] font-semibold leading-[1.3] text-mode-simple animate-rise',
+              'mb-[0.35rem] flex items-center gap-[0.65rem] rounded-[14px] border-[1.5px] border-mode-align-border bg-mode-align-bg',
+              'px-[0.75rem] py-[0.55rem] text-[0.8rem] font-semibold leading-[1.3] text-mode-align animate-rise',
             )}
             role="status"
-            data-content-sync-banner
+            data-reference-pick-banner
           >
             <span className="min-w-0 flex-auto">
-              {t('tracks.contentSync.pickHint')}
+              {t('tracks.ref.pickHint')}
             </span>
             <Button
               type="button"
               variant="trim"
-              className="shrink-0 border-mode-simple-border bg-transparent px-[0.55rem] py-[0.22rem] text-[0.72rem] text-mode-simple hover:enabled:bg-mode-simple-hover"
-              onClick={() => cancelContentSyncPick()}
+              className="shrink-0 border-mode-align-border bg-transparent px-[0.55rem] py-[0.22rem] text-[0.72rem] text-mode-align hover:enabled:bg-mode-align-hover"
+              onClick={() => cancelReferencePick()}
             >
-              {t('tracks.contentSync.pickCancel')}
+              {t('tracks.ref.pickCancel')}
             </Button>
           </div>
         ) : null}
@@ -513,5 +537,71 @@ export function TracksList({ className }: TracksListProps) {
         </ul>
       </div>
     </>
+  )
+}
+
+/** Banner while picking a content-sync target (+ optional “?” tip). */
+function ContentSyncPickBanner() {
+  useLocale()
+  const [tipOpen, setTipOpen] = useState(false)
+  const tipRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!tipOpen) return
+    const onPointerDown = (event: PointerEvent) => {
+      const target = event.target as Node | null
+      if (tipRef.current && target && !tipRef.current.contains(target)) {
+        setTipOpen(false)
+      }
+    }
+    window.addEventListener('pointerdown', onPointerDown)
+    return () => window.removeEventListener('pointerdown', onPointerDown)
+  }, [tipOpen])
+
+  return (
+    <div
+      ref={tipRef}
+      className={cn(
+        'mb-[0.35rem] flex flex-col gap-[0.45rem] rounded-[14px] border-[1.5px] border-mode-simple-border bg-mode-simple-bg',
+        'px-[0.75rem] py-[0.55rem] text-mode-simple animate-rise',
+      )}
+      role="status"
+      data-content-sync-banner
+    >
+      <div className="flex items-center gap-[0.65rem]">
+        <span className="min-w-0 flex-auto text-[0.8rem] font-semibold leading-[1.3]">
+          {t('tracks.contentSync.pickHint')}
+        </span>
+        <Button
+          type="button"
+          variant="round"
+          className="h-[1.25rem] w-[1.25rem] shrink-0 border-mode-simple-border text-[0.72rem] font-bold text-mode-simple hover:enabled:border-mode-simple hover:enabled:bg-mode-simple-hover aria-expanded:border-mode-simple aria-expanded:bg-mode-simple-hover max-sm:h-[1.15rem] max-sm:w-[1.15rem] max-sm:text-[0.68rem]"
+          aria-expanded={tipOpen}
+          aria-controls="content-sync-pick-tip"
+          title={t('tracks.contentSync.pickAbout')}
+          onClick={(event) => {
+            event.stopPropagation()
+            setTipOpen((open) => !open)
+          }}
+        >
+          ?
+        </Button>
+        <Button
+          type="button"
+          variant="trim"
+          className="shrink-0 border-mode-simple-border bg-transparent px-[0.55rem] py-[0.22rem] text-[0.72rem] text-mode-simple hover:enabled:bg-mode-simple-hover"
+          onClick={() => cancelContentSyncPick()}
+        >
+          {t('tracks.contentSync.pickCancel')}
+        </Button>
+      </div>
+      <p
+        className="m-0 text-[0.78rem] font-medium leading-[1.4] text-mode-simple/90 max-sm:text-[0.72rem]"
+        id="content-sync-pick-tip"
+        hidden={!tipOpen}
+      >
+        {t('tracks.contentSync.pickTip')}
+      </p>
+    </div>
   )
 }

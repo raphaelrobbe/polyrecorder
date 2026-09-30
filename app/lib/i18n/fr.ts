@@ -327,16 +327,31 @@ export const fr = {
   'mix.download.hint':
     'Télécharger le mix des pistes sélectionnées (MP3)',
   'mix.seekAria': 'Position de lecture',
+  'mix.scrub.aria': 'Déplacement et vitesse de lecture',
+  'mix.seek.back10': '- 10 s',
+  'mix.seek.back10.aria': 'Reculer de 10 secondes',
+  'mix.seek.back10.hint': 'Reculer le curseur de 10 secondes',
+  'mix.seek.forward10': '+ 10 s',
+  'mix.seek.forward10.aria': 'Avancer de 10 secondes',
+  'mix.seek.forward10.hint': 'Avancer le curseur de 10 secondes',
   'mix.masterVolume': 'Volume maître',
   'mix.clip.record.hint':
     'Saturation à l’enregistrement. Réenregistre la piste et vérifie le volume d’entrée du micro.',
   'mix.clip.record.aria': 'Saturation à l’enregistrement',
   'mix.clip.bus':
     'Saturation du mix : baisse le volume maître (ou celui des pistes).',
-  'settings.autoClipCorrect':
-    'Correction automatique du volume maître (saturation ou volume trop faible)',
-  'settings.autoClipCorrect.hint':
-    'Règle le volume maître pour un niveau de mix autour de 0,85 (monte ou baisse). Si tu le changes à la main au-dessus du seuil, un avertissement s’affiche.',
+  'settings.autoMasterPreventClip':
+    'Baisser automatiquement le volume maître pour éviter la saturation',
+  'settings.autoMasterPreventClip.hint':
+    'Si le mix dépasse 0 dBFS, baisse le master pour viser ~0,85. Tu peux toujours le remonter à la main ; un avertissement s’affiche s’il resature.',
+  'settings.autoMasterBoost':
+    'Augmenter automatiquement le volume maître jusqu’à ~0,85',
+  'settings.autoMasterBoost.hint':
+    'Si le mix est trop bas, monte le master pour viser un pic autour de 0,85. Décoche si tu préfères rester plus bas.',
+  'mix.autoMaster.hint.prevent':
+    'Le volume maître a été baissé automatiquement pour éviter la saturation.',
+  'mix.autoMaster.hint.boost':
+    'Le volume maître a été augmenté automatiquement pour viser ~0,85.',
 
   'mode.groupAria': 'Modes de travail',
   'mode.label': 'Mode',
@@ -372,6 +387,7 @@ export const fr = {
   'cut.merge': 'Fusionner',
   'cut.merge.hint': 'Fusionner les morceaux sélectionnés en une nouvelle piste',
   'cut.merge.busy': 'Fusion…',
+  'cut.merge.progress': 'Fusion en cours…',
   'cut.merge.disabledEmpty': 'Sélectionnez au moins un morceau',
   'cut.merge.disabledOverlap':
     'Impossible : les morceaux sélectionnés se chevauchent sur la timeline',
@@ -438,21 +454,31 @@ export const fr = {
     'Impossible de supprimer la piste de référence tant que le calage automatique sur battue est activé.',
   'tracks.cloudSave': 'Enregistrer {name} sur le cloud',
   'tracks.cloudSaving': 'Enregistrement…',
-  'tracks.ref.hint': 'Piste de référence (marquages 1–2–3–4)',
+  'tracks.ref.hint': 'Piste de référence (marquages 1–2–3–4) — cliquer pour en choisir une autre',
   'tracks.ref.aria': 'Référence',
   'tracks.ref.badge': 'réf.',
+  'tracks.ref.pickHint': 'Choisis la nouvelle piste de référence',
+  'tracks.ref.pickTarget.aria': 'Définir {name} comme piste de référence',
+  'tracks.ref.pickCancel': 'Annuler',
   'tracks.contentSync': 'sync',
   'tracks.contentSync.aria': 'Synchroniser {name} sur une autre piste',
   'tracks.contentSync.hint':
     'Affiner le calage par corrélation du contenu : clique Sync puis la piste à suivre',
   'tracks.contentSync.pickHint':
     'Choisis la piste sur laquelle caler',
+  'tracks.contentSync.pickAbout': 'À propos de Sync',
+  'tracks.contentSync.pickTip':
+    'Après un punch-in (enregistrement pendant la lecture), la nouvelle piste démarre à la position du curseur avec un offset provisoire. Sync affine ce calage en corrélant le contenu audio : clique la piste qui contient le même passage (souvent celle que tu écoutais en monitoring). polyrecorder cherche le meilleur alignement autour de l’offset actuel. Annuler ferme la sélection sans rien changer.',
   'tracks.contentSync.pickTarget.aria': 'Caler {from} sur {name}',
   'tracks.contentSync.pickCancel': 'Annuler',
   'tracks.contentSync.weak':
     'Sync : pas assez de contenu commun — offset provisoire conservé',
   'tracks.contentSync.failed': 'Impossible de synchroniser cette piste',
   'tracks.span.aria': 'Emplacement de {name} sur la timeline du mix',
+  'tracks.span.seekAria':
+    'Placer le curseur de lecture sur la timeline (piste {name})',
+  'tracks.span.seekHint':
+    'Cliquer ou glisser pour placer le curseur de lecture',
   'tracks.autoAlign': 'Recalculer le calage',
   'tracks.autoAlign.named': 'Recalculer le calage de {name}',
   'tracks.offset.hint': 'Décaler cette piste à la lecture',
@@ -580,15 +606,17 @@ export const fr = {
   'help.sync.body2':
     'Des bruits parasites peuvent empêcher la reconnaissance du 1-2-3-4. Dans ce cas, mieux vaut recommencer l’enregistrement de zéro pour repartir sur une bonne piste de référence : sinon tout devra être calé à la main. Idem pour le 3-4 des pistes suivantes : un marquage peu clair ou noyé dans le bruit fausse le calage auto de cette prise.',
   'help.sync.body3':
-    'En mode Simple, un « ! » peut apparaître à côté d’une piste trop décalée : il ouvre le mode Calage. La poubelle reste disponible à côté.',
+    'En mode Calage, le badge « réf. » désigne la piste de référence. Clique dessus pour en choisir une autre (même sélection visuelle que Sync) : utile si la première prise est mauvaise, ou pour basculer vers le métronome. Tu peux aussi ajuster les offsets à la main (± ms) ou relancer le calage auto sur une piste.',
+  'help.sync.body4':
+    'Punch-in : pendant la lecture (ou en pause mid-mix), Enregistrer crée une piste qui démarre à la position courante. Le bouton sync sur cette piste affine ensuite le calage en corrélant le contenu avec une autre piste que tu choisis. Stop sur le transport remet le curseur à 0 pour une prise classique depuis le début.',
 
   'help.mix.title': 'Mix et export',
   'help.mix.body1':
     'En mode Mixage, ajuste le volume de chaque piste et le volume maître, coupe le son (mute), mets en avant une piste, et télécharge un MP3 du mix (pistes sélectionnées uniquement).',
   'help.mix.body2':
-    'Même si chaque piste est saine, les superposer peut saturer le mix : polyrecorder surveille le bus et peut régler le volume maître vers ~0,85 automatiquement (Préférences). Un « ! » en bout de piste signale une saturation dès l’enregistrement — réenregistre alors en baissant le volume d’entrée du micro.',
+    'Même si chaque piste est saine, les superposer peut saturer le mix : polyrecorder surveille le bus. En Préférences, tu peux baisser le master auto pour éviter la saturation, et/ou le monter auto vers ~0,85. Un « ! » en bout de piste signale une saturation dès l’enregistrement — réenregistre alors en baissant le volume d’entrée du micro.',
   'help.mix.body3':
-    'Tu peux aussi lancer la lecture / pause depuis la barre de transport sous le deck.',
+    'Tu peux aussi lancer la lecture / pause depuis la barre de transport sous le deck. Stop arrête et remet au début ; utile avant un nouvel enregistrement depuis t0.',
 
   'help.import.title': 'Import audio',
   'help.import.body1':
@@ -652,7 +680,7 @@ export const fr = {
     'Simple pour enregistrer et écouter, Mixage pour les volumes et l’export MP3, Calage pour synchroniser les pistes (offsets et calage auto), Découpage pour couper au playhead, muter des morceaux sans toucher au fichier, ou fusionner une sélection en une nouvelle piste.',
   'help.faq.clipping.q': 'Pourquoi un avertissement de saturation en mixage ?',
   'help.faq.clipping.a':
-    'Un « ! » en bout de piste signifie que la prise a saturé à l’enregistrement : réenregistre en baissant le volume d’entrée. Un bandeau près du volume maître signale que la superposition des pistes sature le mix — baisse le master, ou laisse la correction auto (cible ~0,85) dans Préférences.',
+    'Un « ! » en bout de piste signifie que la prise a saturé à l’enregistrement : réenregistre en baissant le volume d’entrée. Un bandeau près du volume maître signale que la superposition des pistes sature le mix — baisse le master, ou active la baisse auto anti-saturation dans Préférences (cible ~0,85).',
   'help.faq.metronome.q': 'À quoi sert le métronome ?',
   'help.faq.metronome.a':
     'Il ajoute une piste virtuelle au tempo choisi, qui peut servir de référence de calage (3-4 sur les prises). Le BPM est mémorisé avec la session ; ce n’est pas un fichier audio uploadé.',
@@ -661,7 +689,7 @@ export const fr = {
     'Non. Le piano joue seulement dans le navigateur pour te donner le ton. Avec un casque, tu l’entends sans qu’il passe dans le micro ni dans la prise.',
   'help.faq.skew.q': 'Les pistes ne sont pas calées — que faire ?',
   'help.faq.skew.a':
-    'Vérifie les marquages 1-2-3-4 / 3-4, réessaie une prise propre, ou ouvre le mode Calage (le « ! » sur une piste y mène) pour ajuster manuellement ou relancer le calage auto.',
+    'Vérifie les marquages 1-2-3-4 / 3-4, réessaie une prise propre, ou ouvre le mode Calage (le « ! » sur une piste y mène) pour ajuster manuellement, changer la référence (clic sur « réf. »), ou relancer le calage auto.',
   'help.faq.countInVsAlign.q':
     'Différence entre avance de lecture et calage automatique ?',
   'help.faq.countInVsAlign.a':

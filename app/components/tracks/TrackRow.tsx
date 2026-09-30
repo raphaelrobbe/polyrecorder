@@ -14,6 +14,7 @@ import { OFFSET_WARN_MS } from '../../lib/audio/runtime.client'
 import {
   applyManualTrackOffset,
   beginContentSyncPick,
+  beginReferencePick,
   completeContentSyncAgainst,
   consumeMetronomeBpmFocusRequest,
   createOrUpdateMetronome,
@@ -23,10 +24,12 @@ import {
   realignTrack,
   renameTrack,
   setError,
+  setReferenceTrack,
   setTrackEnabled,
   setTrackVolume,
   setCalageMode,
   setMixMode,
+  seekMixTo,
   showNotice,
   flushVolumeCloudPersist,
   toggleCutSegmentSelected,
@@ -78,6 +81,10 @@ export function TrackRow({
   const cutMode = useSessionStore((s) => s.cutMode)
   const cutPhase = useSessionStore((s) => s.cutPhase)
   const cutWorkSegments = useSessionStore((s) => s.cutWorkSegments)
+  const cutMerging = useSessionStore((s) => s.cutMerging)
+  const cutMergeTrackId = useSessionStore((s) => s.cutMergeTrackId)
+  const cutMergeProgress = useSessionStore((s) => s.cutMergeProgress)
+  const appState = useSessionStore((s) => s.state)
   const readOnlySession = useSessionStore((s) => s.readOnlySession)
   const canCloudContribute = useSessionStore((s) => s.canCloudContribute)
   const enabledTrackIds = useSessionStore((s) => s.enabledTrackIds)
@@ -98,7 +105,11 @@ export function TrackRow({
   const autoAlignEnabled = useSessionStore((s) => s.autoAlignEnabled)
   const metronomeBpm = useSessionStore((s) => s.metronomeBpm)
   const contentSyncPickFromId = useSessionStore((s) => s.contentSyncPickFromId)
-  // Re-render on playhead ticks so per-track clocks stay live in calage mode.
+  const referencePickActive = useSessionStore((s) => s.referencePickActive)
+  const mixSeekMs = useSessionStore((s) => s.mixSeekMs)
+  const setSeekDragActive = useSessionStore((s) => s.setSeekDragActive)
+  const patch = useSessionStore((s) => s.patch)
+  // Re-render on playhead ticks so clocks + span seek caret stay live.
   useSessionStore((s) => s.mixClockText)
 
   const isEnabled = enabledTrackIds.includes(track.id)
@@ -113,10 +124,10 @@ export function TrackRow({
   const volume = trackVolumes[track.id] ?? getTrackVolume(track.id)
   const cutEditing = cutMode && cutPhase === 'edit'
   const contentSyncPickActive = contentSyncPickFromId != null
-  const hideDelete =
-    calageMode || mixMode || cutEditing || contentSyncPickActive
+  const pickActive = contentSyncPickActive || referencePickActive
+  const hideDelete = calageMode || mixMode || cutEditing || pickActive
   const showDragHandle =
-    !calageMode && !mixMode && !cutEditing && !contentSyncPickActive
+    !calageMode && !mixMode && !cutEditing && !pickActive
   const uploaderHandle = formatPseudoHandle(track.uploadedByPseudo)
   const uploaderIsMe =
     track.cloudOwnedByMe === true ||
@@ -339,6 +350,12 @@ export function TrackRow({
     contentSyncPickActive &&
     contentSyncPickFromId !== track.id &&
     !track.isMetronome
+  const isReferencePickSource = referencePickActive && isReference
+  const isReferencePickTarget = referencePickActive && !isReference
+  const isPickSource = isContentSyncSource || isReferencePickSource
+  const isPickTarget = isContentSyncTarget || isReferencePickTarget
+  const showOffsetCol = calageMode && !pickActive
+  const showRefAlignCol = showOffsetCol && autoAlignEnabled
   const contentSyncFromName =
     contentSyncPickFromId != null
       ? (tracks.find((t) => t.id === contentSyncPickFromId)?.name ?? '')
@@ -353,6 +370,14 @@ export function TrackRow({
         ((spanRange.endMs - spanRange.startMs) / mixDur) * 100,
       )
     : 0
+  const seekPct = `${Math.max(0, Math.min(1, mixSeekMs / mixDur)) * 100}%`
+  const spanSeekDisabled = pickActive || appState === 'recording'
+  const isMergePending =
+    Boolean(track.mergePending) ||
+    (cutMerging && cutMergeTrackId === track.id)
+  const mergeProgressPct = Math.round(
+    Math.max(0, Math.min(1, cutMergeProgress)) * 100,
+  )
 
   const [nameDraft, setNameDraft] = useState(track.name)
   const [bpmDraft, setBpmDraft] = useState(
@@ -362,6 +387,14 @@ export function TrackRow({
   useEffect(() => {
     setNameDraft(track.name)
   }, [track.name])
+
+  useEffect(() => {
+    if (!isMergePending) return
+    const el = document.querySelector<HTMLElement>(
+      `[data-track-id="${track.id}"]`,
+    )
+    el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  }, [isMergePending, track.id])
 
   useEffect(() => {
     if (!track.isMetronome) return
@@ -398,52 +431,64 @@ export function TrackRow({
         showDragHandle
           ? 'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]'
           : 'grid-cols-[1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.4rem_minmax(0,1fr)]',
-        calageMode &&
-          !contentSyncPickActive &&
+        showRefAlignCol &&
           'grid-cols-[1.55rem_minmax(0,1fr)_2.6rem_7.1rem] grid-rows-[auto_auto] gap-y-[0.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_2.3rem_6rem]',
+        showOffsetCol &&
+          !showRefAlignCol &&
+          'grid-cols-[1.55rem_minmax(0,1fr)_7.1rem] grid-rows-[auto_auto] gap-y-[0.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_6rem]',
         isDragging && 'opacity-45 touch-none',
         dragOver === 'before' &&
           'before:pointer-events-none before:absolute before:left-0 before:right-0 before:-top-[0.2rem] before:h-0.5 before:rounded-sm before:bg-ink before:content-[""]',
         dragOver === 'after' &&
           'after:pointer-events-none after:absolute after:bottom-[-0.2rem] after:left-0 after:right-0 after:h-0.5 after:rounded-sm after:bg-ink after:content-[""]',
-        isContentSyncSource && 'opacity-100',
-        contentSyncPickActive &&
-          !isContentSyncTarget &&
-          !isContentSyncSource &&
-          'pointer-events-none',
-        isContentSyncTarget && 'z-[1] cursor-pointer',
+        isPickSource && 'opacity-100',
+        pickActive && !isPickTarget && !isPickSource && 'pointer-events-none',
+        isPickTarget && 'z-[1] cursor-pointer',
+        isMergePending && 'opacity-90',
         className,
       )}
       data-track-id={track.id}
-      data-content-sync-target={isContentSyncTarget ? track.id : undefined}
+      data-merge-pending={isMergePending || undefined}
+      aria-busy={isMergePending || undefined}
+      data-track-pick-target={isPickTarget ? track.id : undefined}
       style={
-        isContentSyncTarget
+        isPickTarget
           ? { ['--sync-track-tint' as string]: trackBrandVar }
           : undefined
       }
-      role={isContentSyncTarget ? 'button' : undefined}
-      tabIndex={isContentSyncTarget ? 0 : undefined}
+      role={isPickTarget ? 'button' : undefined}
+      tabIndex={isPickTarget ? 0 : undefined}
       aria-label={
         isContentSyncTarget
           ? t('tracks.contentSync.pickTarget.aria', {
               from: contentSyncFromName,
               name: track.name,
             })
-          : undefined
+          : isReferencePickTarget
+            ? t('tracks.ref.pickTarget.aria', { name: track.name })
+            : undefined
       }
       onClick={
         isContentSyncTarget
           ? () => {
               void completeContentSyncAgainst(track.id)
             }
-          : undefined
+          : isReferencePickTarget
+            ? () => {
+                setReferenceTrack(track.id)
+              }
+            : undefined
       }
       onKeyDown={
-        isContentSyncTarget
+        isPickTarget
           ? (event) => {
               if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault()
-                void completeContentSyncAgainst(track.id)
+                if (isContentSyncTarget) {
+                  void completeContentSyncAgainst(track.id)
+                } else if (isReferencePickTarget) {
+                  setReferenceTrack(track.id)
+                }
               }
             }
           : undefined
@@ -453,7 +498,7 @@ export function TrackRow({
         aria-hidden="true"
         className="pointer-events-none absolute bottom-[0.15rem] left-0 top-[0.15rem] w-[0.18rem] rounded-full"
         style={{
-          background: isContentSyncSource
+          background: isPickSource
             ? 'color-mix(in srgb, var(--ink) 28%, transparent)'
             : trackBrandVar,
         }}
@@ -470,7 +515,7 @@ export function TrackRow({
           'row-start-1 flex flex-col items-center gap-[0.3rem]',
           showDragHandle ? 'col-start-2' : 'col-start-1',
           (mixMode || cutEditing) && 'self-start pt-[0.2rem]',
-          contentSyncPickActive && 'pointer-events-none',
+          pickActive && 'pointer-events-none',
         )}
       >
         <TrackMute
@@ -510,23 +555,23 @@ export function TrackRow({
           showDragHandle ? 'col-start-3' : 'col-start-2',
           'max-sm:gap-[0.2rem] max-sm:rounded-[12px] max-sm:py-[0.22rem] max-sm:pr-[0.28rem] max-sm:pl-[0.32rem]',
           (calageMode || mixMode || cutEditing || showUploader) &&
-            !contentSyncPickActive &&
+            !pickActive &&
             'items-start',
-          !isEnabled && !cutMode && !contentSyncPickActive && 'opacity-55',
-          isContentSyncSource && 'border-ink/18 bg-ink/8 text-ink-soft',
-          contentSyncPickActive &&
-            !isContentSyncSource &&
-            !isContentSyncTarget &&
+          !isEnabled && !cutMode && !pickActive && 'opacity-55',
+          isPickSource && 'border-ink/18 bg-ink/8 text-ink-soft',
+          pickActive &&
+            !isPickSource &&
+            !isPickTarget &&
             'border-ink/12 bg-ink/5 text-ink-soft',
-          !contentSyncPickActive &&
-            !isContentSyncSource &&
-            !isContentSyncTarget &&
+          !pickActive &&
+            !isPickSource &&
+            !isPickTarget &&
             'border-transparent bg-ink/4',
-          isContentSyncTarget &&
+          isPickTarget &&
             'track-sync-chrome border-[1.5px] transition-[background-color,border-color] duration-160',
         )}
         style={
-          isContentSyncTarget
+          isPickTarget
             ? {
                 borderColor: `color-mix(in srgb, ${trackBrandVar} 48%, transparent)`,
               }
@@ -598,13 +643,13 @@ export function TrackRow({
                     value={nameDraft}
                     aria-label={t('tracks.name.aria')}
                     maxLength={40}
-                    readOnly={cutEditing || contentSyncPickActive}
+                    readOnly={cutEditing || pickActive}
                     className={cn(
                       'min-w-0 flex-auto',
                       showUploader && !calageMode && 'py-0',
-                      (cutEditing || contentSyncPickActive) &&
+                      (cutEditing || pickActive) &&
                         'pointer-events-none hover:bg-transparent',
-                      isContentSyncSource && 'text-ink-soft',
+                      isPickSource && 'text-ink-soft',
                     )}
                     onChange={(event) => {
                       setNameDraft(event.target.value)
@@ -616,7 +661,7 @@ export function TrackRow({
                       }
                     }}
                     onFocus={(event) => {
-                      if (cutEditing || contentSyncPickActive) {
+                      if (cutEditing || pickActive) {
                         event.currentTarget.blur()
                         return
                       }
@@ -642,7 +687,7 @@ export function TrackRow({
                   />
                   {offersContentSync &&
                   !cutEditing &&
-                  (!contentSyncPickActive || isContentSyncSource) ? (
+                  (!pickActive || isContentSyncSource) ? (
                     <Button
                       type="button"
                       variant="trim"
@@ -677,18 +722,112 @@ export function TrackRow({
                   {uploaderLabel}
                 </span>
               ) : null}
-              {spanRange ? (
+              {isMergePending ? (
                 <div
-                  className="relative mt-[0.12rem] h-[0.42rem] w-full min-w-0 rounded-sm bg-ink/8"
-                  role="img"
-                  aria-label={t('tracks.span.aria', { name: track.name })}
+                  className="relative mt-[0.12rem] h-[0.55rem] w-full min-w-0 overflow-hidden rounded-sm bg-ink/10"
+                  role="progressbar"
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={mergeProgressPct}
+                  aria-label={t('cut.merge.progress')}
+                  title={t('cut.merge.progress')}
                 >
                   <span
-                    className="absolute top-0 bottom-0 rounded-sm bg-ink/28"
+                    className="absolute inset-y-0 left-0 rounded-sm bg-gradient-to-r from-mode-cut to-meter transition-[width] duration-150 ease-out"
+                    style={{ width: `${mergeProgressPct}%` }}
+                  />
+                </div>
+              ) : spanRange ? (
+                <div
+                  role="slider"
+                  tabIndex={spanSeekDisabled ? -1 : 0}
+                  className={cn(
+                    'relative mt-[0.12rem] h-[0.5rem] w-full min-w-0 touch-none rounded-sm bg-ink/8',
+                    'cursor-pointer transition-[background] duration-120 hover:bg-ink/12',
+                    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-1',
+                    spanSeekDisabled && 'pointer-events-none cursor-default',
+                  )}
+                  style={{ ['--span-seek' as string]: seekPct }}
+                  aria-label={t('tracks.span.seekAria', { name: track.name })}
+                  title={t('tracks.span.seekHint')}
+                  aria-valuemin={0}
+                  aria-valuemax={Math.round(mixDur)}
+                  aria-valuenow={Math.round(
+                    Math.max(0, Math.min(mixDur, mixSeekMs)),
+                  )}
+                  aria-disabled={spanSeekDisabled || undefined}
+                  onPointerDown={(event) => {
+                    if (spanSeekDisabled) return
+                    event.preventDefault()
+                    event.stopPropagation()
+                    setSeekDragActive(true)
+                    const rect = event.currentTarget.getBoundingClientRect()
+                    if (rect.width <= 0) return
+                    const ratio = Math.max(
+                      0,
+                      Math.min(1, (event.clientX - rect.left) / rect.width),
+                    )
+                    const ms = ratio * mixDur
+                    patch({
+                      mixSeekMs: ms,
+                      mixClockText: formatCentis(ms),
+                    })
+                    event.currentTarget.setPointerCapture(event.pointerId)
+                  }}
+                  onPointerMove={(event) => {
+                    if (!useSessionStore.getState().seekDragActive) return
+                    const rect = event.currentTarget.getBoundingClientRect()
+                    if (rect.width <= 0) return
+                    const ratio = Math.max(
+                      0,
+                      Math.min(1, (event.clientX - rect.left) / rect.width),
+                    )
+                    const ms = ratio * mixDur
+                    patch({
+                      mixSeekMs: ms,
+                      mixClockText: formatCentis(ms),
+                    })
+                  }}
+                  onPointerUp={(event) => {
+                    if (!useSessionStore.getState().seekDragActive) return
+                    setSeekDragActive(false)
+                    try {
+                      event.currentTarget.releasePointerCapture(event.pointerId)
+                    } catch {
+                      // ignore
+                    }
+                    void seekMixTo(useSessionStore.getState().mixSeekMs)
+                  }}
+                  onPointerCancel={() => setSeekDragActive(false)}
+                  onKeyDown={(event) => {
+                    if (spanSeekDisabled) return
+                    const step = event.shiftKey ? mixDur * 0.1 : mixDur * 0.02
+                    if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+                      event.preventDefault()
+                      event.stopPropagation()
+                      const delta =
+                        event.key === 'ArrowLeft' ? -step : step
+                      void seekMixTo(mixSeekMs + delta)
+                    } else if (event.key === 'Home') {
+                      event.preventDefault()
+                      void seekMixTo(0)
+                    } else if (event.key === 'End') {
+                      event.preventDefault()
+                      void seekMixTo(mixDur)
+                    }
+                  }}
+                >
+                  <span
+                    className="pointer-events-none absolute top-0 bottom-0 rounded-sm bg-ink/28"
                     style={{
                       left: `${spanLeftPct}%`,
                       width: `${spanWidthPct}%`,
                     }}
+                  />
+                  <span
+                    className="pointer-events-none absolute top-1/2 z-[1] h-[0.72rem] w-[2px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-ink/75 shadow-[0_0_0_1px_color-mix(in_srgb,var(--paper)_55%,transparent)]"
+                    style={{ left: 'var(--span-seek)' }}
+                    aria-hidden
                   />
                 </div>
               ) : null}
@@ -775,6 +914,7 @@ export function TrackRow({
                           type="button"
                           data-cut-segment={`${track.id}:${seg.id}`}
                           aria-pressed={seg.selected}
+                          disabled={cutMerging || isMergePending}
                           title={t('cut.segment.toggle')}
                           onClick={() =>
                             toggleCutSegmentSelected(track.id, seg.id)
@@ -787,6 +927,7 @@ export function TrackRow({
                             'absolute top-0 bottom-0 min-w-[0.55rem] rounded-md border-[1.5px] px-[0.2rem] text-[0.62rem] font-bold tabular-nums',
                             'cursor-pointer transition-[background,color,border-color] duration-120',
                             'focus-visible:outline focus-visible:outline-2 focus-visible:outline-mode-cut/40 focus-visible:outline-offset-1',
+                            'disabled:cursor-default disabled:opacity-70',
                             seg.selected
                               ? 'border-mode-cut bg-mode-cut text-on-mode-cut'
                               : 'border-mode-cut-border bg-mode-cut-bg text-mode-cut hover:bg-mode-cut-hover',
@@ -804,7 +945,7 @@ export function TrackRow({
         </div>
         {!mixMode &&
         !cutEditing &&
-        !contentSyncPickActive &&
+        !pickActive &&
         (showCloudSave || cloudUploading) ? (
           <Button
             variant="utility"
@@ -822,7 +963,7 @@ export function TrackRow({
             }}
           />
         ) : null}
-        {chipRail && !contentSyncPickActive ? (
+        {chipRail && !pickActive ? (
           <div className="ml-[0.12rem] flex shrink-0 items-center gap-[0.2rem] self-center max-sm:ml-[0.06rem]">
             {simpleDupChipColumn ? (
               <div className={chipSlotClass}>{dupChipButton}</div>
@@ -854,42 +995,59 @@ export function TrackRow({
           />
         ) : null}
       </div>
-      {calageMode && !contentSyncPickActive ? (
+      {showOffsetCol ? (
         <>
-          {isReference ? (
-            <span
-              className="col-start-3 row-start-1 inline-flex h-[1.35rem] w-full shrink-0 items-center justify-center justify-self-center text-[0.62rem] font-extrabold tracking-[0.04em] uppercase text-ink-soft select-none"
-              title={t('tracks.ref.hint')}
-              aria-label={t('tracks.ref.aria')}
-            >
-              {t('tracks.ref.badge')}
-            </span>
-          ) : (
-            <Button
-              variant="nudge"
-              className="col-start-3 row-start-1 justify-self-center [&_svg]:size-[1.28rem]"
-              icon={<IconAutoAlign />}
-              title={t('tracks.autoAlign')}
-              aria-label={t('tracks.autoAlign.named', { name: track.name })}
-              data-auto-align-track={track.id}
-              hidden={!autoAlignEnabled}
-              onClick={() => {
-                void (async () => {
-                  try {
-                    await realignTrack(track.id)
-                  } catch (error) {
-                    setError(
-                      error instanceof Error
-                        ? error.message
-                        : t('error.autoAlignFailed'),
-                    )
-                  }
-                })()
-              }}
-            />
-          )}
+          {showRefAlignCol ? (
+            isReference ? (
+              <button
+                type="button"
+                className={cn(
+                  'col-start-3 row-start-1 inline-flex h-[1.35rem] w-full shrink-0 items-center justify-center justify-self-center',
+                  'rounded-md border-0 bg-transparent p-0',
+                  'text-[0.62rem] font-extrabold tracking-[0.04em] uppercase text-ink-soft',
+                  'cursor-pointer transition-[color,background] duration-160',
+                  'hover:bg-ink/8 hover:text-ink',
+                  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
+                )}
+                title={t('tracks.ref.hint')}
+                aria-label={t('tracks.ref.aria')}
+                data-reference-pick
+                onClick={(event) => {
+                  event.stopPropagation()
+                  beginReferencePick()
+                }}
+              >
+                {t('tracks.ref.badge')}
+              </button>
+            ) : (
+              <Button
+                variant="nudge"
+                className="col-start-3 row-start-1 justify-self-center [&_svg]:size-[1.28rem]"
+                icon={<IconAutoAlign />}
+                title={t('tracks.autoAlign')}
+                aria-label={t('tracks.autoAlign.named', { name: track.name })}
+                data-auto-align-track={track.id}
+                onClick={() => {
+                  void (async () => {
+                    try {
+                      await realignTrack(track.id)
+                    } catch (error) {
+                      setError(
+                        error instanceof Error
+                          ? error.message
+                          : t('error.autoAlignFailed'),
+                      )
+                    }
+                  })()
+                }}
+              />
+            )
+          ) : null}
           <MsOffsetEditor
-            className="col-start-4 row-start-1 justify-self-center"
+            className={cn(
+              'row-start-1 justify-self-center',
+              showRefAlignCol ? 'col-start-4' : 'col-start-3',
+            )}
             title={t('tracks.offset.hint')}
             value={Math.round(track.offsetMs)}
             onChange={(next) => applyManualTrackOffset(track.id, next)}
@@ -900,7 +1058,8 @@ export function TrackRow({
           />
           <small
             className={cn(
-              'col-start-4 row-start-2 block max-w-[8.5rem] min-h-[1.55em] justify-self-center text-center text-[0.62rem] font-semibold leading-[1.25] tabular-nums text-ink-soft',
+              'row-start-2 block max-w-[8.5rem] min-h-[1.55em] justify-self-center text-center text-[0.62rem] font-semibold leading-[1.25] tabular-nums text-ink-soft',
+              showRefAlignCol ? 'col-start-4' : 'col-start-3',
               !alignDetailText && 'invisible',
             )}
           >

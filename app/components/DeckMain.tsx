@@ -13,9 +13,15 @@ import {
   loadCloudSongIntoSession,
   normalizeAndSetSessionTitle,
   normalizeAndSetSongWorkName,
+  setAutoMasterBoostPref,
+  setAutoMasterPreventClipPref,
   setError,
   setSessionAlignPref,
 } from '../lib/sessionActions.client'
+import {
+  writeAutoMasterBoost,
+  writeAutoMasterPreventClip,
+} from '../lib/mixClipPrefs'
 import { postLibrary } from '../lib/libraryApi.client'
 import { t } from '../lib/i18n'
 import {
@@ -118,6 +124,9 @@ export function DeckMain({ className }: DeckMainProps) {
   const calageMode = useSessionStore((s) => s.calageMode)
   const mixMode = useSessionStore((s) => s.mixMode)
   const cutMode = useSessionStore((s) => s.cutMode)
+  const masterAutoCorrectHint = useSessionStore((s) => s.masterAutoCorrectHint)
+  const autoMasterPreventClip = useSessionStore((s) => s.autoMasterPreventClip)
+  const autoMasterBoost = useSessionStore((s) => s.autoMasterBoost)
   const notice = useSessionStore((s) => s.notice)
   const keyboardHintsEnabled = useSessionStore((s) => s.keyboardHintsEnabled)
   const tracks = useSessionStore((s) => s.tracks)
@@ -545,6 +554,47 @@ export function DeckMain({ className }: DeckMainProps) {
       <CalagePanel />
       </Deck>
       </div>
+
+      {mixMode && masterAutoCorrectHint ? (
+        <div
+          className="mt-[0.55rem] px-1 max-sm:px-0.5 animate-rise"
+          role="status"
+          data-master-auto-correct-hint
+        >
+          <CheckboxOption
+            align="center"
+            className="text-[0.84rem] leading-[1.35]"
+            title={
+              masterAutoCorrectHint === 'prevent'
+                ? t('settings.autoMasterPreventClip.hint')
+                : t('settings.autoMasterBoost.hint')
+            }
+            checked={
+              masterAutoCorrectHint === 'prevent'
+                ? autoMasterPreventClip
+                : autoMasterBoost
+            }
+            onCheckedChange={(on) => {
+              if (masterAutoCorrectHint === 'prevent') {
+                writeAutoMasterPreventClip(on)
+                setAutoMasterPreventClipPref(on)
+              } else {
+                writeAutoMasterBoost(on)
+                setAutoMasterBoostPref(on)
+              }
+            }}
+          >
+            {masterAutoCorrectHint === 'prevent'
+              ? t('settings.autoMasterPreventClip')
+              : t('settings.autoMasterBoost')}
+          </CheckboxOption>
+          <p className="m-0 mt-[0.25rem] text-[0.72rem] font-medium leading-[1.35] text-ink-soft">
+            {masterAutoCorrectHint === 'prevent'
+              ? t('mix.autoMaster.hint.prevent')
+              : t('mix.autoMaster.hint.boost')}
+          </p>
+        </div>
+      ) : null}
 
       <ModeTools
         className="w-full self-stretch"

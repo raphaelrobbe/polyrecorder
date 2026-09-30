@@ -49,6 +49,11 @@ export default defineConfig({
   // Pre-bundle heavy audio deps so first lazy use does not trigger a Vite
   // "optimized dependencies changed" full reload (wipes guest in-memory deck).
   optimizeDeps: {
-    include: ['@breezystack/lamejs', '@soundtouchjs/audio-worklet'],
+    include: [
+      '@breezystack/lamejs',
+      '@soundtouchjs/audio-worklet',
+      'libopus-wasm',
+      'webm-muxer',
+    ],
   },
 })
