@@ -27,6 +27,7 @@
     "@remix-run/node": "^2.15.0",
     "@remix-run/react": "^2.15.0",
     "@remix-run/serve": "^2.15.0",
+    "@soundtouchjs/audio-worklet": "^2.1.1",
     "clsx": "^2.1.1",
     "dotenv": "^18.0.3",
     "isbot": "^5.2.2",

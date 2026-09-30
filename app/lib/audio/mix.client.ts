@@ -153,6 +153,8 @@ export type ScheduleTrackOptions = {
    * Defaults to 1 when omitted.
    */
   volume?: number
+  /** Playback speed (1 = normal). Affects buffer rate and schedule spacing. */
+  playbackRate?: number
   onTrackGain?: (trackId: number, gain: GainNode) => void
   onPlayhead?: (trackId: number, playhead: TrackPlayhead) => void
 }
@@ -200,7 +202,8 @@ export function scheduleTrackSource(
 
   const intoTrackS = Math.max(0, startAtS - delayS)
   const remainingS = playable - intoTrackS
-  const when = timelineStart + Math.max(0, delayS - startAtS)
+  const rate = Math.max(0.05, options?.playbackRate ?? 1)
+  const when = timelineStart + Math.max(0, delayS - startAtS) / rate
   const bufferOffset = skipS + intoTrackS
 
   const intervals = unmutedBufferIntervals(
@@ -221,9 +224,10 @@ export function scheduleTrackSource(
   for (const iv of intervals) {
     const source = ctx.createBufferSource()
     source.buffer = buffer
+    source.playbackRate.value = rate
     source.connect(trackGain)
     const offsetInRemaining = iv.startS - bufferOffset
-    const ivWhen = when + offsetInRemaining
+    const ivWhen = when + offsetInRemaining / rate
     source.start(ivWhen, iv.startS, iv.endS - iv.startS)
     sources.push(source)
   }
@@ -238,7 +242,7 @@ export function scheduleTrackSource(
   return {
     source: sources[0]!,
     sources,
-    endAt: when + remainingS,
+    endAt: when + remainingS / rate,
     trackGain,
   }
 }

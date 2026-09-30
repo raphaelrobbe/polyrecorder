@@ -31,6 +31,8 @@ export type Track = {
   isMetronome?: boolean
   /** Created by découpage merge — keep a trash control even in cut mode. */
   fromCutMerge?: boolean
+  /** Created via mid-mix punch-in — show content Sync control. */
+  punchIn?: boolean
 }
 
 /** Work segment in cut mode (mix-timeline ms). */

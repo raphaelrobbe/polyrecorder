@@ -323,6 +323,7 @@ export const de: Record<MessageKey, string> = {
   'track.metronome.label': 'Metronom',
 
   'mix.restart': 'Zum Anfang',
+  'mix.stop': 'Stop',
   'mix.play': 'Wiedergabe',
   'mix.pause': 'Pause',
   'mix.download': 'Mix herunterladen (MP3)',
@@ -355,8 +356,12 @@ export const de: Record<MessageKey, string> = {
   'cut.select.hint': 'Wähle eine oder mehrere Spuren',
   'cut.select.confirm': 'Bestätigen',
   'cut.cancel': 'Abbrechen',
+  'cut.reset': 'Zurücksetzen',
+  'cut.rate.aria': 'Wiedergabegeschwindigkeit',
+  'cut.rate.half': 'Wiedergabe mit halber Geschwindigkeit',
+  'cut.rate.quarter': 'Wiedergabe mit Viertelgeschwindigkeit',
   'cut.edit.hint':
-    'Segmente wählen, dann Stummschalten oder Zusammenführen',
+    'Am Abspielcursor teilen, Segmente wählen, dann Stummschalten oder Zusammenführen',
   'cut.scissors': 'Am Abspielcursor teilen',
   'cut.scissors.hint': 'Alle Segmente am Abspielcursor teilen',
   'cut.scissors.aria': 'Am Abspielcursor teilen',
@@ -437,6 +442,17 @@ export const de: Record<MessageKey, string> = {
   'tracks.ref.hint': 'Referenzspur (Markierungen 1–2–3–4)',
   'tracks.ref.aria': 'Referenz',
   'tracks.ref.badge': 'Ref.',
+  'tracks.contentSync': 'sync',
+  'tracks.contentSync.aria': '{name} an eine andere Spur synchronisieren',
+  'tracks.contentSync.hint':
+    'Ausrichtung per Inhaltskorrelation verfeinern: Sync tippen, dann die Zielspur',
+  'tracks.contentSync.pickHint': 'Wähle die Spur zum Ausrichten',
+  'tracks.contentSync.pickTarget.aria': '{from} an {name} ausrichten',
+  'tracks.contentSync.pickCancel': 'Abbrechen',
+  'tracks.contentSync.weak':
+    'Sync: zu wenig gemeinsamer Inhalt — vorläufiger Offset behalten',
+  'tracks.contentSync.failed': 'Spur konnte nicht synchronisiert werden',
+  'tracks.span.aria': 'Position von {name} auf der Mix-Timeline',
   'tracks.autoAlign': 'Ausrichtung neu berechnen',
   'tracks.autoAlign.named': 'Ausrichtung für {name} neu berechnen',
   'tracks.offset.hint': 'Diese Spur bei der Wiedergabe verschieben',
@@ -553,7 +569,7 @@ export const de: Record<MessageKey, string> = {
 
   'help.record.title': 'Aufnahme',
   'help.record.body1':
-    'Aufnehmen startet, Nächste Spur reiht einen Take ein (andere Spuren laufen im Monitoring), Stopp beendet, und das Verwerfen-Symbol löscht den laufenden Take.',
+    'Aufnehmen startet, Nächste Spur reiht einen Take ein (andere Spuren laufen im Monitoring), Stopp beendet, und das Verwerfen-Symbol löscht den laufenden Take. Während der Wiedergabe (oder Pause mittendrin) startet Aufnehmen einen Punch-in: die neue Spur beginnt an der aktuellen Position. Für einen Take vom Anfang: Stop (zurück auf 0), dann Aufnehmen. Auf einer Punch-in-Spur verfeinert Sync die Ausrichtung, indem du eine andere Spur zum Korrelieren wählst.',
   'help.record.body2':
     'Den Projektnamen änderst du oben (Titel){f2}. Spurnamen per Klick in der Liste. Diese Namen fließen auch in die exportierte MP3.',
   'help.record.f2': ' — Tastenkürzel F2',

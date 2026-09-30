@@ -49,6 +49,11 @@ html.light {
   --mode-mix-bg: color-mix(in srgb, var(--brand-2) 14%, transparent);
   --mode-mix-hover: color-mix(in srgb, var(--brand-2) 12%, transparent);
   --on-mode-mix: #ffffff;
+  --mode-simple: var(--brand-7);
+  --mode-simple-border: color-mix(in srgb, var(--brand-7) 42%, transparent);
+  --mode-simple-bg: color-mix(in srgb, var(--brand-7) 14%, transparent);
+  --mode-simple-hover: color-mix(in srgb, var(--brand-7) 12%, transparent);
+  --on-mode-simple: #ffffff;
   --mode-align: var(--brand-5);
   --mode-align-border: color-mix(in srgb, var(--brand-5) 42%, transparent);
   --mode-align-bg: color-mix(in srgb, var(--brand-5) 14%, transparent);
@@ -110,6 +115,11 @@ html.dark {
   --mode-mix-bg: color-mix(in srgb, var(--brand-2) 18%, transparent);
   --mode-mix-hover: color-mix(in srgb, var(--brand-2) 20%, transparent);
   --on-mode-mix: #ffffff;
+  --mode-simple: var(--brand-7);
+  --mode-simple-border: color-mix(in srgb, var(--brand-7) 48%, transparent);
+  --mode-simple-bg: color-mix(in srgb, var(--brand-7) 18%, transparent);
+  --mode-simple-hover: color-mix(in srgb, var(--brand-7) 20%, transparent);
+  --on-mode-simple: #ffffff;
   --mode-align: var(--brand-5);
   --mode-align-border: color-mix(in srgb, var(--brand-5) 48%, transparent);
   --mode-align-bg: color-mix(in srgb, var(--brand-5) 18%, transparent);
@@ -175,6 +185,11 @@ html.dark {
   --color-mode-mix-bg: var(--mode-mix-bg);
   --color-mode-mix-hover: var(--mode-mix-hover);
   --color-on-mode-mix: var(--on-mode-mix);
+  --color-mode-simple: var(--mode-simple);
+  --color-mode-simple-border: var(--mode-simple-border);
+  --color-mode-simple-bg: var(--mode-simple-bg);
+  --color-mode-simple-hover: var(--mode-simple-hover);
+  --color-on-mode-simple: var(--on-mode-simple);
   --color-mode-align: var(--mode-align);
   --color-mode-align-border: var(--mode-align-border);
   --color-mode-align-bg: var(--mode-align-bg);
@@ -254,6 +269,32 @@ html.dark {
 
   [hidden] {
     display: none !important;
+  }
+
+  /* Punch-in content sync: whole-row hover darkens track chrome. */
+  [data-content-sync-target] .track-sync-chrome {
+    background-color: color-mix(
+      in srgb,
+      var(--sync-track-tint) 12%,
+      transparent
+    );
+  }
+
+  [data-content-sync-target]:hover .track-sync-chrome,
+  [data-content-sync-target]:focus-visible .track-sync-chrome {
+    background-color: color-mix(
+      in srgb,
+      var(--sync-track-tint) 38%,
+      transparent
+    );
+  }
+
+  [data-content-sync-target]:active .track-sync-chrome {
+    background-color: color-mix(
+      in srgb,
+      var(--sync-track-tint) 48%,
+      transparent
+    );
   }
 }
 

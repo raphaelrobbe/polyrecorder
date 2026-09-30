@@ -323,6 +323,7 @@ export const no: Record<MessageKey, string> = {
   'track.metronome.label': 'Metronom',
 
   'mix.restart': 'Tilbake til start',
+  'mix.stop': 'Stopp',
   'mix.play': 'Spill av',
   'mix.pause': 'Pause',
   'mix.download': 'Last ned mix (MP3)',
@@ -355,7 +356,12 @@ export const no: Record<MessageKey, string> = {
   'cut.select.hint': 'Velg ett eller flere spor',
   'cut.select.confirm': 'Bekreft',
   'cut.cancel': 'Avbryt',
-  'cut.edit.hint': 'Velg segmenter, deretter Gjør stum eller Flett',
+  'cut.reset': 'Tilbakestill',
+  'cut.rate.aria': 'Avspillingshastighet',
+  'cut.rate.half': 'Avspilling i halv hastighet',
+  'cut.rate.quarter': 'Avspilling i kvart hastighet',
+  'cut.edit.hint':
+    'Del ved avspillingsmarkøren, velg segmenter, deretter Gjør stum eller Flett',
   'cut.scissors': 'Del ved avspillingsmarkøren',
   'cut.scissors.hint': 'Del alle segmenter ved avspillingsmarkøren',
   'cut.scissors.aria': 'Del ved avspillingsmarkøren',
@@ -435,6 +441,17 @@ export const no: Record<MessageKey, string> = {
   'tracks.ref.hint': 'Referansespor (1–2–3–4-markører)',
   'tracks.ref.aria': 'Referanse',
   'tracks.ref.badge': 'ref.',
+  'tracks.contentSync': 'sync',
+  'tracks.contentSync.aria': 'Synkroniser {name} mot et annet spor',
+  'tracks.contentSync.hint':
+    'Finjuster med innholdskorrelasjon: trykk Sync, deretter sporet å følge',
+  'tracks.contentSync.pickHint': 'Velg sporet å justere mot',
+  'tracks.contentSync.pickTarget.aria': 'Juster {from} mot {name}',
+  'tracks.contentSync.pickCancel': 'Avbryt',
+  'tracks.contentSync.weak':
+    'Sync: for lite felles innhold — beholder foreløpig offset',
+  'tracks.contentSync.failed': 'Kunne ikke synkronisere dette sporet',
+  'tracks.span.aria': 'Plassering av {name} på mix-tidslinjen',
   'tracks.autoAlign': 'Beregn justering på nytt',
   'tracks.autoAlign.named': 'Beregn justering for {name} på nytt',
   'tracks.offset.hint': 'Forskyv dette sporet ved avspilling',
@@ -551,7 +568,7 @@ export const no: Record<MessageKey, string> = {
 
   'help.record.title': 'Opptak',
   'help.record.body1':
-    'Ta opp for å starte, Neste spor for å legge til et opptak (andre spor spiller i monitoring), Stopp for å avslutte, og forkast-ikonet for å kaste gjeldende opptak.',
+    'Ta opp for å starte, Neste spor for å legge til et opptak (andre spor spiller i monitoring), Stopp for å avslutte, og forkast-ikonet for å kaste gjeldende opptak. Under avspilling (eller pause midt i) starter Ta opp en punch-in: det nye sporet begynner ved gjeldende posisjon. For opptak fra starten: Stopp (tilbake til 0), deretter Ta opp. På et punch-in-spor finjusterer Sync justeringen ved å velge et annet spor å korrelere mot.',
   'help.record.body2':
     'Prosjektnavnet endres øverst (tittel){f2}. Gi nytt navn til spor ved å klikke på dem. Navnene brukes også i eksportert MP3.',
   'help.record.f2': ' — snarvei F2',

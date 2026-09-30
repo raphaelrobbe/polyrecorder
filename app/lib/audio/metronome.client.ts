@@ -110,12 +110,15 @@ export function scheduleMetronomeClicks(
     startAtMs?: number
     durationMs: number
     volume?: number
+    /** Playback speed (1 = normal). Spreads clicks in wall-clock time. */
+    playbackRate?: number
   },
 ): OscillatorNode[] {
   const bpm = clampMetronomeBpm(options.bpm)
   const interval = metronomeBeatIntervalSec(bpm)
   const startAtS = Math.max(0, (options.startAtMs ?? 0) / 1000)
   const durationS = Math.max(0, options.durationMs / 1000)
+  const rate = Math.max(0.05, options.playbackRate ?? 1)
   if (durationS <= 0) return []
 
   const volume = options.volume ?? 0.7
@@ -128,7 +131,7 @@ export function scheduleMetronomeClicks(
     if (beatS < startAtS - 0.001) continue
     if (beatS >= endS) break
 
-    const when = options.timelineStart + (beatS - startAtS)
+    const when = options.timelineStart + (beatS - startAtS) / rate
     if (when < ctx.currentTime - 0.05) continue
 
     const osc = ctx.createOscillator()

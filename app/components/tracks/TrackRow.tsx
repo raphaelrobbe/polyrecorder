@@ -13,6 +13,8 @@ import { TRACK_VOLUME_MAX } from '../../lib/audio/mix.client'
 import { OFFSET_WARN_MS } from '../../lib/audio/runtime.client'
 import {
   applyManualTrackOffset,
+  beginContentSyncPick,
+  completeContentSyncAgainst,
   consumeMetronomeBpmFocusRequest,
   createOrUpdateMetronome,
   deleteTrack,
@@ -29,11 +31,13 @@ import {
   flushVolumeCloudPersist,
   toggleCutSegmentSelected,
   toggleTrackHighlight,
+  trackOffersContentSync,
 } from '../../lib/sessionActions.client'
 import {
   clampMetronomeBpm,
   DEFAULT_METRONOME_BPM,
 } from '../../lib/audio/metronome.client'
+import { audibleMixRange } from '../../lib/audio/segments.client'
 import { uploadTrackToCloud } from '../../lib/cloudUpload.client'
 import { useLocale } from '../../hooks/useLocale'
 import { t } from '../../lib/i18n'
@@ -93,6 +97,7 @@ export function TrackRow({
   const showCalageWarnings = useSessionStore((s) => s.showCalageWarnings)
   const autoAlignEnabled = useSessionStore((s) => s.autoAlignEnabled)
   const metronomeBpm = useSessionStore((s) => s.metronomeBpm)
+  const contentSyncPickFromId = useSessionStore((s) => s.contentSyncPickFromId)
   // Re-render on playhead ticks so per-track clocks stay live in calage mode.
   useSessionStore((s) => s.mixClockText)
 
@@ -107,8 +112,11 @@ export function TrackRow({
   const clock = formatCentis(getTrackPositionMs(track.id))
   const volume = trackVolumes[track.id] ?? getTrackVolume(track.id)
   const cutEditing = cutMode && cutPhase === 'edit'
-  const hideDelete = calageMode || mixMode || cutEditing
-  const showDragHandle = !calageMode && !mixMode && !cutEditing
+  const contentSyncPickActive = contentSyncPickFromId != null
+  const hideDelete =
+    calageMode || mixMode || cutEditing || contentSyncPickActive
+  const showDragHandle =
+    !calageMode && !mixMode && !cutEditing && !contentSyncPickActive
   const uploaderHandle = formatPseudoHandle(track.uploadedByPseudo)
   const uploaderIsMe =
     track.cloudOwnedByMe === true ||
@@ -325,6 +333,27 @@ export function TrackRow({
     ? t('tracks.delete.referenceLocked')
     : t('common.delete')
 
+  const offersContentSync = trackOffersContentSync(track)
+  const isContentSyncSource = contentSyncPickFromId === track.id
+  const isContentSyncTarget =
+    contentSyncPickActive &&
+    contentSyncPickFromId !== track.id &&
+    !track.isMetronome
+  const contentSyncFromName =
+    contentSyncPickFromId != null
+      ? (tracks.find((t) => t.id === contentSyncPickFromId)?.name ?? '')
+      : ''
+  const trackBrandVar = `var(--brand-${(index % 8) + 1})`
+  const mixDur = Math.max(1, getMixDurationMs(tracks))
+  const spanRange = !track.isMetronome ? audibleMixRange(track) : null
+  const spanLeftPct = spanRange ? (spanRange.startMs / mixDur) * 100 : 0
+  const spanWidthPct = spanRange
+    ? Math.max(
+        0.8,
+        ((spanRange.endMs - spanRange.startMs) / mixDur) * 100,
+      )
+    : 0
+
   const [nameDraft, setNameDraft] = useState(track.name)
   const [bpmDraft, setBpmDraft] = useState(
     String(metronomeBpm ?? DEFAULT_METRONOME_BPM),
@@ -370,20 +399,64 @@ export function TrackRow({
           ? 'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]'
           : 'grid-cols-[1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.4rem_minmax(0,1fr)]',
         calageMode &&
+          !contentSyncPickActive &&
           'grid-cols-[1.55rem_minmax(0,1fr)_2.6rem_7.1rem] grid-rows-[auto_auto] gap-y-[0.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_2.3rem_6rem]',
         isDragging && 'opacity-45 touch-none',
         dragOver === 'before' &&
           'before:pointer-events-none before:absolute before:left-0 before:right-0 before:-top-[0.2rem] before:h-0.5 before:rounded-sm before:bg-ink before:content-[""]',
         dragOver === 'after' &&
           'after:pointer-events-none after:absolute after:bottom-[-0.2rem] after:left-0 after:right-0 after:h-0.5 after:rounded-sm after:bg-ink after:content-[""]',
+        isContentSyncSource && 'opacity-100',
+        contentSyncPickActive &&
+          !isContentSyncTarget &&
+          !isContentSyncSource &&
+          'pointer-events-none',
+        isContentSyncTarget && 'z-[1] cursor-pointer',
         className,
       )}
       data-track-id={track.id}
+      data-content-sync-target={isContentSyncTarget ? track.id : undefined}
+      style={
+        isContentSyncTarget
+          ? { ['--sync-track-tint' as string]: trackBrandVar }
+          : undefined
+      }
+      role={isContentSyncTarget ? 'button' : undefined}
+      tabIndex={isContentSyncTarget ? 0 : undefined}
+      aria-label={
+        isContentSyncTarget
+          ? t('tracks.contentSync.pickTarget.aria', {
+              from: contentSyncFromName,
+              name: track.name,
+            })
+          : undefined
+      }
+      onClick={
+        isContentSyncTarget
+          ? () => {
+              void completeContentSyncAgainst(track.id)
+            }
+          : undefined
+      }
+      onKeyDown={
+        isContentSyncTarget
+          ? (event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                void completeContentSyncAgainst(track.id)
+              }
+            }
+          : undefined
+      }
     >
       <span
         aria-hidden="true"
         className="pointer-events-none absolute bottom-[0.15rem] left-0 top-[0.15rem] w-[0.18rem] rounded-full"
-        style={{ background: `var(--brand-${(index % 8) + 1})` }}
+        style={{
+          background: isContentSyncSource
+            ? 'color-mix(in srgb, var(--ink) 28%, transparent)'
+            : trackBrandVar,
+        }}
       />
       {showDragHandle ? (
         <TrackDragHandle
@@ -397,6 +470,7 @@ export function TrackRow({
           'row-start-1 flex flex-col items-center gap-[0.3rem]',
           showDragHandle ? 'col-start-2' : 'col-start-1',
           (mixMode || cutEditing) && 'self-start pt-[0.2rem]',
+          contentSyncPickActive && 'pointer-events-none',
         )}
       >
         <TrackMute
@@ -432,12 +506,32 @@ export function TrackRow({
       </div>
       <div
         className={cn(
-          'row-start-1 flex w-full min-w-0 items-center gap-[0.35rem] rounded-[14px] border border-transparent bg-ink/4 box-border py-[0.28rem] pr-[0.4rem] pl-[0.5rem]',
+          'row-start-1 flex w-full min-w-0 items-center gap-[0.35rem] rounded-[14px] border box-border py-[0.28rem] pr-[0.4rem] pl-[0.5rem]',
           showDragHandle ? 'col-start-3' : 'col-start-2',
           'max-sm:gap-[0.2rem] max-sm:rounded-[12px] max-sm:py-[0.22rem] max-sm:pr-[0.28rem] max-sm:pl-[0.32rem]',
-          (calageMode || mixMode || cutEditing || showUploader) && 'items-start',
-          !isEnabled && !cutMode && 'opacity-55',
+          (calageMode || mixMode || cutEditing || showUploader) &&
+            !contentSyncPickActive &&
+            'items-start',
+          !isEnabled && !cutMode && !contentSyncPickActive && 'opacity-55',
+          isContentSyncSource && 'border-ink/18 bg-ink/8 text-ink-soft',
+          contentSyncPickActive &&
+            !isContentSyncSource &&
+            !isContentSyncTarget &&
+            'border-ink/12 bg-ink/5 text-ink-soft',
+          !contentSyncPickActive &&
+            !isContentSyncSource &&
+            !isContentSyncTarget &&
+            'border-transparent bg-ink/4',
+          isContentSyncTarget &&
+            'track-sync-chrome border-[1.5px] transition-[background-color,border-color] duration-160',
         )}
+        style={
+          isContentSyncTarget
+            ? {
+                borderColor: `color-mix(in srgb, ${trackBrandVar} 48%, transparent)`,
+              }
+            : undefined
+        }
       >
         <div
           className={cn(
@@ -497,51 +591,81 @@ export function TrackRow({
                   )}
                 </div>
               ) : (
-                <TrackNameInput
-                  isDefault={isDefaultTrackName(nameDraft)}
-                  data-rename-track={track.id}
-                  value={nameDraft}
-                  aria-label={t('tracks.name.aria')}
-                  maxLength={40}
-                  readOnly={cutEditing}
-                  className={cn(
-                    showUploader && !calageMode && 'py-0',
-                    cutEditing && 'pointer-events-none hover:bg-transparent',
-                  )}
-                  onChange={(event) => {
-                    setNameDraft(event.target.value)
-                  }}
-                  onKeyDown={(event) => {
-                    if (event.key === 'Enter') {
-                      event.preventDefault()
-                      event.currentTarget.blur()
-                    }
-                  }}
-                  onFocus={(event) => {
-                    if (cutEditing) {
-                      event.currentTarget.blur()
-                      return
-                    }
-                    if (!isDefaultTrackName(event.currentTarget.value)) return
-                    event.currentTarget.select()
-                    event.currentTarget.addEventListener(
-                      'mouseup',
-                      (mouseupEvent) => {
-                        mouseupEvent.preventDefault()
-                        event.currentTarget.select()
-                      },
-                      { once: true },
-                    )
-                  }}
-                  onBlur={() => {
-                    if (cutEditing) return
-                    const next =
-                      nameDraft.trim().slice(0, 40) ||
-                      defaultTrackName(index + 1)
-                    setNameDraft(next)
-                    renameTrack(track.id, next)
-                  }}
-                />
+                <div className="flex min-w-0 items-center gap-[0.35rem]">
+                  <TrackNameInput
+                    isDefault={isDefaultTrackName(nameDraft)}
+                    data-rename-track={track.id}
+                    value={nameDraft}
+                    aria-label={t('tracks.name.aria')}
+                    maxLength={40}
+                    readOnly={cutEditing || contentSyncPickActive}
+                    className={cn(
+                      'min-w-0 flex-auto',
+                      showUploader && !calageMode && 'py-0',
+                      (cutEditing || contentSyncPickActive) &&
+                        'pointer-events-none hover:bg-transparent',
+                      isContentSyncSource && 'text-ink-soft',
+                    )}
+                    onChange={(event) => {
+                      setNameDraft(event.target.value)
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault()
+                        event.currentTarget.blur()
+                      }
+                    }}
+                    onFocus={(event) => {
+                      if (cutEditing || contentSyncPickActive) {
+                        event.currentTarget.blur()
+                        return
+                      }
+                      if (!isDefaultTrackName(event.currentTarget.value)) return
+                      event.currentTarget.select()
+                      event.currentTarget.addEventListener(
+                        'mouseup',
+                        (mouseupEvent) => {
+                          mouseupEvent.preventDefault()
+                          event.currentTarget.select()
+                        },
+                        { once: true },
+                      )
+                    }}
+                    onBlur={() => {
+                      if (cutEditing) return
+                      const next =
+                        nameDraft.trim().slice(0, 40) ||
+                        defaultTrackName(index + 1)
+                      setNameDraft(next)
+                      renameTrack(track.id, next)
+                    }}
+                  />
+                  {offersContentSync &&
+                  !cutEditing &&
+                  (!contentSyncPickActive || isContentSyncSource) ? (
+                    <Button
+                      type="button"
+                      variant="trim"
+                      data-content-sync={track.id}
+                      className={cn(
+                        'shrink-0 px-[0.32rem] py-[0.12rem] text-[0.62rem] font-semibold tracking-[0.01em] normal-case',
+                        isContentSyncSource &&
+                          'border-ink/25 bg-ink/10 text-ink-soft hover:enabled:bg-ink/14',
+                      )}
+                      aria-pressed={isContentSyncSource}
+                      aria-label={t('tracks.contentSync.aria', {
+                        name: track.name,
+                      })}
+                      title={t('tracks.contentSync.hint')}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        beginContentSyncPick(track.id)
+                      }}
+                    >
+                      {t('tracks.contentSync')}
+                    </Button>
+                  ) : null}
+                </div>
               )}
               {!calageMode && showUploader ? (
                 <span
@@ -552,6 +676,21 @@ export function TrackRow({
                 >
                   {uploaderLabel}
                 </span>
+              ) : null}
+              {spanRange ? (
+                <div
+                  className="relative mt-[0.12rem] h-[0.42rem] w-full min-w-0 rounded-sm bg-ink/8"
+                  role="img"
+                  aria-label={t('tracks.span.aria', { name: track.name })}
+                >
+                  <span
+                    className="absolute top-0 bottom-0 rounded-sm bg-ink/28"
+                    style={{
+                      left: `${spanLeftPct}%`,
+                      width: `${spanWidthPct}%`,
+                    }}
+                  />
+                </div>
               ) : null}
             </div>
             {calageMode &&
@@ -663,7 +802,10 @@ export function TrackRow({
             <CutMuteBars track={track} />
           ) : null}
         </div>
-        {!mixMode && !cutEditing && (showCloudSave || cloudUploading) ? (
+        {!mixMode &&
+        !cutEditing &&
+        !contentSyncPickActive &&
+        (showCloudSave || cloudUploading) ? (
           <Button
             variant="utility"
             className="ml-[0.15rem] shrink-0 max-sm:ml-[0.08rem]"
@@ -680,7 +822,7 @@ export function TrackRow({
             }}
           />
         ) : null}
-        {chipRail ? (
+        {chipRail && !contentSyncPickActive ? (
           <div className="ml-[0.12rem] flex shrink-0 items-center gap-[0.2rem] self-center max-sm:ml-[0.06rem]">
             {simpleDupChipColumn ? (
               <div className={chipSlotClass}>{dupChipButton}</div>
@@ -712,7 +854,7 @@ export function TrackRow({
           />
         ) : null}
       </div>
-      {calageMode ? (
+      {calageMode && !contentSyncPickActive ? (
         <>
           {isReference ? (
             <span

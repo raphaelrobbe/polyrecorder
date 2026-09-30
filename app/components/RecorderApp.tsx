@@ -19,6 +19,7 @@ import { librarySessionPath } from '../lib/libraryPaths'
 import {
   claimGuestDraftAfterSignIn,
   flushGuestDraftSave,
+  hydrateGuestDraftIfNeeded,
   initLatencyProbe,
   hydrateActiveSongIfNeeded,
   isGuestClaimInFlight,
@@ -66,6 +67,9 @@ export function RecorderApp({ children }: RecorderAppProps) {
     void initLatencyProbe()
     void refreshDeviceSnapshot()
     syncLatencyDisplay()
+    if (!user) {
+      void hydrateGuestDraftIfNeeded()
+    }
 
     const onBeforeUnload = () => {
       flushGuestDraftSave()

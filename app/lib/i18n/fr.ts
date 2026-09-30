@@ -320,6 +320,7 @@ export const fr = {
   'track.metronome': 'Métronome {bpm} BPM',
   'track.metronome.label': 'Métronome',
   'mix.restart': 'Revenir au début',
+  'mix.stop': 'Stop',
   'mix.play': 'Lecture',
   'mix.pause': 'Pause',
   'mix.download': 'Télécharger le mix (MP3)',
@@ -353,8 +354,12 @@ export const fr = {
   'cut.select.hint': 'Sélectionnez une ou plusieurs pistes',
   'cut.select.confirm': 'Confirmer',
   'cut.cancel': 'Annuler',
+  'cut.reset': 'Réinitialiser',
+  'cut.rate.aria': 'Vitesse de lecture',
+  'cut.rate.half': 'Lecture à demi-vitesse',
+  'cut.rate.quarter': 'Lecture au quart de vitesse',
   'cut.edit.hint':
-    'Sélectionnez des morceaux, puis Rendre muet ou Fusionner',
+    'Scindez au curseur, sélectionnez des morceaux, puis Rendre muet ou Fusionner',
   'cut.scissors': 'Scinder au curseur de lecture',
   'cut.scissors.hint': 'Scinder tous les segments au curseur de lecture',
   'cut.scissors.aria': 'Scinder au curseur de lecture',
@@ -436,6 +441,18 @@ export const fr = {
   'tracks.ref.hint': 'Piste de référence (marquages 1–2–3–4)',
   'tracks.ref.aria': 'Référence',
   'tracks.ref.badge': 'réf.',
+  'tracks.contentSync': 'sync',
+  'tracks.contentSync.aria': 'Synchroniser {name} sur une autre piste',
+  'tracks.contentSync.hint':
+    'Affiner le calage par corrélation du contenu : clique Sync puis la piste à suivre',
+  'tracks.contentSync.pickHint':
+    'Choisis la piste sur laquelle caler',
+  'tracks.contentSync.pickTarget.aria': 'Caler {from} sur {name}',
+  'tracks.contentSync.pickCancel': 'Annuler',
+  'tracks.contentSync.weak':
+    'Sync : pas assez de contenu commun — offset provisoire conservé',
+  'tracks.contentSync.failed': 'Impossible de synchroniser cette piste',
+  'tracks.span.aria': 'Emplacement de {name} sur la timeline du mix',
   'tracks.autoAlign': 'Recalculer le calage',
   'tracks.autoAlign.named': 'Recalculer le calage de {name}',
   'tracks.offset.hint': 'Décaler cette piste à la lecture',
@@ -552,7 +569,7 @@ export const fr = {
 
   'help.record.title': 'Enregistrement',
   'help.record.body1':
-    'Enregistre pour démarrer, Piste suivante pour enchaîner une prise (les autres pistes jouent en monitoring), Stop pour terminer, et l’icône d’annulation pour jeter la prise en cours.',
+    'Enregistre pour démarrer, Piste suivante pour enchaîner une prise (les autres pistes jouent en monitoring), Stop pour terminer, et l’icône d’annulation pour jeter la prise en cours. En cours de lecture (ou en pause au milieu), Enregistrer lance un punch-in : la nouvelle piste démarre à la position courante. Pour une prise depuis le début, utilise Stop (retour à 0) puis Enregistrer. Sur une piste punch-in, Sync affine le calage en choisissant une autre piste à corréler.',
   'help.record.body2':
     'Le nom du projet se modifie en haut (titre){f2}. Le nom de chaque piste se modifie en cliquant dessus. Ces noms servent aussi au fichier MP3 exporté.',
   'help.record.f2': ' — raccourci F2',

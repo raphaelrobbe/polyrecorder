@@ -189,6 +189,16 @@ export async function purgeExpiredDrafts(
 }
 
 /**
+ * Load this tab’s draft only (no cross-tab fallback).
+ * Used for F5 / guest boot so an emptied deck stays empty.
+ */
+export async function loadTabGuestDraft(): Promise<GuestDraft | null> {
+  const tabId = readTabDraftId()
+  if (!tabId) return null
+  return loadGuestDraft(tabId)
+}
+
+/**
  * Pick draft for post-login restore: this tab’s draft if it has tracks,
  * otherwise the most recently updated non-empty draft.
  */
@@ -221,10 +231,6 @@ export async function saveGuestDraft(
   input: GuestDraftSaveInput,
 ): Promise<SaveGuestDraftResult> {
   const id = getOrCreateTabDraftId()
-  if (input.tracks.length === 0) {
-    await deleteGuestDraft(id)
-    return { ok: true }
-  }
 
   const draft: GuestDraft = {
     id,

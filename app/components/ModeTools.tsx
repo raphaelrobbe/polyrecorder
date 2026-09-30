@@ -112,7 +112,9 @@ export function DeckModes({ className }: DeckModesProps) {
         {MODE_OPTIONS.map((option) => {
           const selected = active === option.id
           const selectedTone =
-            option.id === 'mix'
+            option.id === 'simple'
+              ? 'bg-mode-simple text-on-mode-simple shadow-[0_4px_12px_color-mix(in_srgb,var(--mode-simple)_28%,transparent)]'
+              : option.id === 'mix'
               ? 'bg-mode-mix text-on-mode-mix shadow-[0_4px_12px_color-mix(in_srgb,var(--mode-mix)_28%,transparent)]'
               : option.id === 'align'
                 ? 'bg-mode-align text-on-mode-align shadow-[0_4px_12px_color-mix(in_srgb,var(--mode-align)_28%,transparent)]'

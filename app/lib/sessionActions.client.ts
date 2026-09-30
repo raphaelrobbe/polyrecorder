@@ -82,6 +82,7 @@ import {
   TRACK_VOLUME_MAX,
   trimAudioBufferFrom,
 } from './audio/mix.client'
+import { connectPlaybackBus } from './audio/pitchPreserve.client'
 import {
   audibleMixRange,
   bufferRangeFromMix,
@@ -111,6 +112,7 @@ import {
 } from './audio/metronome.client'
 import {
   deleteGuestDraft,
+  loadTabGuestDraft,
   pickGuestDraftToRestore,
   readTabDraftId,
   saveGuestDraft,
@@ -127,6 +129,10 @@ let trackPlayheads = new Map<number, TrackPlayhead>()
 let playWaiters: Array<() => void> = []
 let preferMimeType = ''
 let pendingTakeOffsetMs = 0
+/** When true, the take being finalized was a mid-mix punch-in. */
+let pendingTakePunchIn = false
+/** Mix position above this → punch-in / show content Sync. */
+const PUNCH_IN_POSITION_MS = 50
 let mixEpochPerf: number | null = null
 let mixTimelineStartCtx: number | null = null
 let guestDraftSaveTimer: ReturnType<typeof setTimeout> | null = null
@@ -310,6 +316,19 @@ function applyGuestDraftToStore(draft: GuestDraft): void {
     return
   }
   if (tracks.length > 0) void evaluateReferenceBeat()
+}
+
+/**
+ * Guest boot / F5: restore this tab’s IndexedDB draft into an empty deck.
+ * Only this tab’s draft — never another tab’s (emptied deck must stay empty).
+ * (Sign-in restore stays in claimGuestDraftAfterSignIn.)
+ */
+export async function hydrateGuestDraftIfNeeded(): Promise<void> {
+  if (isCloudSignedIn()) return
+  if (get().tracks.length > 0) return
+  const draft = await loadTabGuestDraft()
+  if (!draft || draft.tracks.length === 0) return
+  applyGuestDraftToStore(draft)
 }
 
 /**
@@ -764,9 +783,10 @@ export function setCutMode(on: boolean) {
       mixMode: false,
       calageMode: false,
       calageTipOpen: false,
-      cutPhase: 'idle',
+      cutPhase: 'edit',
       cutSelectedTrackIds,
       cutWorkSegments,
+      cutPlaybackRate: 1,
       mixClipWarning: false,
       error: null,
       notice: null,
@@ -780,6 +800,7 @@ export function setCutMode(on: boolean) {
     cutPhase: 'idle',
     cutSelectedTrackIds: [],
     cutWorkSegments: {},
+    cutPlaybackRate: 1,
   })
 }
 
@@ -833,13 +854,52 @@ function buildInitialCutWorkState(): {
 function resetCutWorkState(): void {
   const { cutWorkSegments, cutSelectedTrackIds } = buildInitialCutWorkState()
   patch({
-    cutPhase: 'idle',
+    cutPhase: 'edit',
     cutSelectedTrackIds,
     cutWorkSegments,
   })
 }
 
-/** Cancel découpage edits and return to idle (normal track chrome). */
+/** Clear segment selection but keep scissors cuts. */
+function clearCutSegmentSelection(): void {
+  const prev = get().cutWorkSegments
+  const next: Record<number, import('../common/types').CutWorkSegment[]> = {}
+  for (const [key, segments] of Object.entries(prev)) {
+    next[Number(key)] = segments.map((seg) => ({ ...seg, selected: false }))
+  }
+  patch({ cutWorkSegments: next })
+}
+
+/** Toggle découpage preview speed (0.5 / 0.25); same value again returns to 1×. */
+export function setCutPlaybackRate(rate: 0.5 | 0.25 | 1) {
+  if (!get().cutMode) return
+  const current = get().cutPlaybackRate
+  const next = rate === current ? 1 : rate
+
+  const audioContext = getAudioContext()
+  const hasSources =
+    getPlaybackSources().length > 0 || get().playingTrackIds.length > 0
+  const activelyPlaying = hasSources && !get().mixPaused
+  let positionMs = get().mixSeekMs
+  if (audioContext && mixTimelineStartCtx !== null) {
+    positionMs = getMixPositionMs()
+  }
+
+  patch({ cutPlaybackRate: next })
+
+  if (activelyPlaying) {
+    void seekMixTo(positionMs)
+    return
+  }
+
+  if (hasSources && audioContext && mixTimelineStartCtx !== null) {
+    mixTimelineStartCtx =
+      audioContext.currentTime - positionMs / (1000 * Math.max(0.05, next))
+  }
+  tickClockDisplays()
+}
+
+/** Reset découpage cuts to one segment per track (initial cut state). */
 export function cancelCutSelection() {
   if (!get().cutMode) return
   resetCutWorkState()
@@ -952,7 +1012,7 @@ export function applyCutMute() {
     persistCloudTrackMuteRanges(trackId)
   }
   scheduleGuestDraftSave()
-  resetCutWorkState()
+  clearCutSegmentSelection()
 }
 
 /** Remove one mute window (buffer-local ms, as shown on the hatched bar). */
@@ -1016,7 +1076,7 @@ export async function mergeSelectedCutSegments(): Promise<boolean> {
         ? t('cut.merge.trackName', { names: nameParts.join(' + ') })
         : t('cut.merge.trackNameFallback')
 
-    await appendTrackFromBlob(blob, {
+    const mergedTrack = await appendTrackFromBlob(blob, {
       durationMs,
       offsetMs,
       name,
@@ -1026,7 +1086,42 @@ export async function mergeSelectedCutSegments(): Promise<boolean> {
     for (const id of sourceTrackIds) {
       setTrackEnabled(id, false)
     }
-    resetCutWorkState()
+
+    const range = audibleMixRange(mergedTrack)
+    const withMerged: Record<
+      number,
+      import('../common/types').CutWorkSegment[]
+    > = { ...get().cutWorkSegments }
+    if (range.endMs > range.startMs) {
+      withMerged[mergedTrack.id] = [
+        {
+          id: newSegmentId(),
+          startMs: range.startMs,
+          endMs: range.endMs,
+          selected: false,
+        },
+      ]
+    }
+    const cleared: Record<
+      number,
+      import('../common/types').CutWorkSegment[]
+    > = {}
+    for (const [key, segments] of Object.entries(withMerged)) {
+      cleared[Number(key)] = segments.map((seg) => ({
+        ...seg,
+        selected: false,
+      }))
+    }
+    patch({
+      cutPhase: 'edit',
+      cutWorkSegments: cleared,
+      cutSelectedTrackIds: [
+        ...new Set([
+          ...get().cutSelectedTrackIds,
+          mergedTrack.id,
+        ]),
+      ],
+    })
     return true
   } catch (error) {
     setError(
@@ -1639,7 +1734,11 @@ export function stopPlayheadClock() {
 export function getMixPositionMs(): number {
   const audioContext = getAudioContext()
   if (!audioContext || mixTimelineStartCtx === null) return get().mixSeekMs
-  return Math.max(0, (audioContext.currentTime - mixTimelineStartCtx) * 1000)
+  const rate = Math.max(0.05, get().cutPlaybackRate || 1)
+  return Math.max(
+    0,
+    (audioContext.currentTime - mixTimelineStartCtx) * 1000 * rate,
+  )
 }
 
 export function getTrackPositionMs(trackId: number): number {
@@ -1718,6 +1817,18 @@ export function stopPlayback(options?: { resetSeek?: boolean }) {
   patch({ mixClockText: formatCentis(seek) })
 }
 
+/** Stop mix playback and reset the playhead to the start (no auto-play). */
+export function stopMixToStart() {
+  if (get().state === 'recording') return
+  stopPlayback({ resetSeek: true })
+  patch({
+    mixSeekMs: 0,
+    mixClockText: formatCentis(0),
+    mixSeekRatio: 0,
+    contentSyncPickFromId: null,
+  })
+}
+
 export function reorderTrack(fromId: number, beforeId: number | null) {
   const tracks = get().tracks.slice()
   const from = tracks.findIndex((track) => track.id === fromId)
@@ -1761,6 +1872,79 @@ export function applyManualTrackOffset(trackId: number, offsetMs: number) {
   persistCloudTrackOffset(trackId)
   scheduleGuestDraftSave()
   scheduleMixPeakRefresh()
+}
+
+/** Tracks that can show / use content Sync (punch-in or delayed start). */
+export function trackOffersContentSync(track: Track): boolean {
+  if (track.isMetronome) return false
+  if (track.punchIn) return true
+  return track.offsetMs > PUNCH_IN_POSITION_MS
+}
+
+export function beginContentSyncPick(trackId: number) {
+  const track = get().tracks.find((t) => t.id === trackId)
+  if (!track || !trackOffersContentSync(track)) return
+  const current = get().contentSyncPickFromId
+  if (current === trackId) {
+    patch({ contentSyncPickFromId: null })
+    return
+  }
+  patch({ contentSyncPickFromId: trackId })
+}
+
+export function cancelContentSyncPick() {
+  if (get().contentSyncPickFromId == null) return
+  patch({ contentSyncPickFromId: null })
+}
+
+/**
+ * Align a punch-in take against another track via onset NCC (±500 ms).
+ * Call when the user picks the target while contentSyncPickFromId is set.
+ */
+export async function completeContentSyncAgainst(
+  againstTrackId: number,
+): Promise<void> {
+  const fromId = get().contentSyncPickFromId
+  if (fromId == null) return
+  if (againstTrackId === fromId) return
+
+  const from = get().tracks.find((t) => t.id === fromId)
+  const against = get().tracks.find((t) => t.id === againstTrackId)
+  if (!from || !against || against.isMetronome) {
+    cancelContentSyncPick()
+    return
+  }
+
+  patch({ contentSyncPickFromId: null })
+  setError(null)
+
+  try {
+    const [{ refineOffsetByOverlap }, bufFrom, bufAgainst] = await Promise.all([
+      import('./audio/overlapAlign.client'),
+      decodeTrack(from),
+      decodeTrack(against),
+    ])
+    const refined = refineOffsetByOverlap(
+      bufAgainst,
+      bufFrom,
+      from.offsetMs,
+    )
+    if (!refined) {
+      showNotice({
+        id: `content-sync-weak-${fromId}`,
+        message: t('tracks.contentSync.weak'),
+        tone: 'align',
+      })
+      return
+    }
+    applyManualTrackOffset(fromId, Math.round(refined.offsetMs))
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : t('tracks.contentSync.failed'),
+    )
+  }
 }
 
 export async function evaluateReferenceBeat(): Promise<void> {
@@ -2150,16 +2334,19 @@ export async function playTracks(
     })),
   )
 
-  const gain = ctx.createGain()
-  gain.gain.value = clampMasterVolume(get().masterVolume)
-  gain.connect(ctx.destination)
-  setPlaybackGain(gain)
-
   const timelineStart = ctx.currentTime + MIX_LOOKAHEAD_S
-  mixEpochPerf = performance.now() + MIX_LOOKAHEAD_S * 1000 - startAtMs
-  mixTimelineStartCtx = timelineStart - startAtMs / 1000
+  const playbackRate =
+    get().cutMode ? Math.max(0.05, get().cutPlaybackRate || 1) : 1
+  mixEpochPerf =
+    performance.now() + MIX_LOOKAHEAD_S * 1000 - startAtMs / playbackRate
+  mixTimelineStartCtx = timelineStart - startAtMs / (1000 * playbackRate)
   setMixPausedBoth(false)
   trackPlayheads.clear()
+
+  const gain = ctx.createGain()
+  gain.gain.value = clampMasterVolume(get().masterVolume)
+  setPlaybackGain(gain)
+  await connectPlaybackBus(ctx, gain, ctx.destination, playbackRate)
 
   const bufferSources: AudioBufferSourceNode[] = []
   const allSources: AudioScheduledSourceNode[] = []
@@ -2176,6 +2363,7 @@ export async function playTracks(
       asMix || applyOffsets ? startAtMs : 0,
       {
         volume: liveTrackGainValue(track.id),
+        playbackRate,
         onTrackGain: (id, trackGain) => {
           trackGains.set(id, trackGain)
         },
@@ -2205,6 +2393,7 @@ export async function playTracks(
       timelineStart,
       startAtMs,
       durationMs: metroPlayMs,
+      playbackRate,
     })
     allSources.push(...clicks)
     playing.add(metroTrack.id)
@@ -2241,7 +2430,7 @@ export async function playTracks(
         playWaiters.push(resolveAsDone)
         window.setTimeout(() => {
           resolveAsDone()
-        }, startDelayMs + metroPlayMs)
+        }, startDelayMs + metroPlayMs / playbackRate)
         return
       }
       finish(() => {
@@ -2341,6 +2530,7 @@ export async function beginRecording(options?: {
   setActiveRecording(recording)
   recording.recorder.start()
   pendingTakeOffsetMs = options?.offsetMs ?? 0
+  pendingTakePunchIn = false
 
   await startMeter(stream, (level) => patch({ meterLevel: level }))
   startTimer(options?.timerFromPerf ?? performance.now())
@@ -2381,6 +2571,7 @@ export async function beginOverdubRecording(monitor: Track[]): Promise<void> {
     setActiveRecording(recording)
     recording.recorder.start()
     pendingTakeOffsetMs = 0
+    pendingTakePunchIn = false
     mixEpochPerf = null
     await startMeter(stream, (level) => patch({ meterLevel: level }))
     startTimer()
@@ -2503,6 +2694,7 @@ export async function beginOverdubRecording(monitor: Track[]): Promise<void> {
           const recordPerf = performance.now()
           pendingTakeOffsetMs =
             mixEpochPerf !== null ? recordPerf - mixEpochPerf : 0
+          pendingTakePunchIn = false
           resolve()
         } catch (error) {
           setPendingRecording(null)
@@ -2526,7 +2718,9 @@ export async function finalizeCurrentTake(): Promise<Track> {
   const durationMs = stopTimer()
   setActiveRecording(null)
   const offsetMs = pendingTakeOffsetMs
+  const punchIn = pendingTakePunchIn
   pendingTakeOffsetMs = 0
+  pendingTakePunchIn = false
 
   const blob = await stopRecorderToBlob(active)
   stopMeterNodes()
@@ -2540,7 +2734,7 @@ export async function finalizeCurrentTake(): Promise<Track> {
     throw new Error(t('error.noAudioData'))
   }
 
-  return appendTrackFromBlob(blob, { durationMs, offsetMs })
+  return appendTrackFromBlob(blob, { durationMs, offsetMs, punchIn })
 }
 
 /** Shared path: mic take or imported file → session track + cloud hook. */
@@ -2551,6 +2745,7 @@ async function appendTrackFromBlob(
     offsetMs?: number
     name?: string
     fromCutMerge?: boolean
+    punchIn?: boolean
   },
 ): Promise<Track> {
   const trackCounter = get().trackCounter + 1
@@ -2566,6 +2761,7 @@ async function appendTrackFromBlob(
     offsetMs: options.offsetMs ?? 0,
     cloudStatus: 'local',
     ...(options.fromCutMerge ? { fromCutMerge: true } : {}),
+    ...(options.punchIn ? { punchIn: true } : {}),
   }
 
   const becameReference = get().referenceTrackId == null
@@ -2588,7 +2784,10 @@ async function appendTrackFromBlob(
   if (becameReference || track.id === referenceTrackId) {
     await evaluateReferenceBeat()
   }
-  await maybeAutoAlignAfterTake(track.id)
+  // Punch-ins have no 3–4 count-in — skip beat auto-align.
+  if (!options.punchIn) {
+    await maybeAutoAlignAfterTake(track.id)
+  }
   void import('./cloudUpload.client').then((mod) =>
     mod.maybeAutoUploadTrack(track.id),
   )
@@ -2879,6 +3078,7 @@ export async function abortCurrentTake(): Promise<void> {
   patch({ meterLevel: 0 })
   stopTimer()
   pendingTakeOffsetMs = 0
+  pendingTakePunchIn = false
   patch({ mixSeekMs: 0, mixClockText: formatCentis(0) })
 
   const recording = getActiveRecording()
@@ -2915,10 +3115,77 @@ export async function discard() {
   }
 }
 
+/** Mid-mix punch-in: keep/resume monitoring and arm the mic at the current playhead. */
+export async function beginPunchInRecording(): Promise<void> {
+  setError(null)
+  discardPendingRecording()
+  const { stream, inputOverrideNote } = await ensureMic()
+  patch({ inputOverrideNote })
+  const ctx = await ensureAudioContext()
+  await applyAudioSink('monitor')
+
+  const { mixPaused, playingTrackIds, mixSeekMs, tracks } = get()
+  const hasPlayback =
+    getPlaybackSources().length > 0 || playingTrackIds.length > 0
+  const activelyPlaying = hasPlayback && !mixPaused
+
+  if (!activelyPlaying) {
+    const startAtMs = Math.max(0, getMixPositionMs() || mixSeekMs)
+    if (tracks.length === 0) {
+      await beginRecording({ offsetMs: 0 })
+      return
+    }
+    // Fire monitoring from the paused/idle playhead, then arm the mic.
+    void playTracks(tracks, {
+      awaitEnd: true,
+      asMix: true,
+      applyOffsets: true,
+      startAtMs,
+    }).catch((error) => {
+      setError(
+        error instanceof Error ? error.message : t('error.playbackFailed'),
+      )
+    })
+    await new Promise<void>((resolve) => {
+      window.setTimeout(resolve, Math.round(MIX_LOOKAHEAD_S * 1000) + 30)
+    })
+  }
+
+  const recording = createRecording(stream)
+  const latencySec = getMonitorLatencySec(ctx)
+  syncLatencyDisplay()
+
+  setActiveRecording(recording)
+  recording.recorder.start()
+  const posAtStart = getMixPositionMs()
+  pendingTakeOffsetMs = Math.max(0, posAtStart - latencySec * 1000)
+  pendingTakePunchIn = true
+
+  await startMeter(stream, (level) => patch({ meterLevel: level }))
+  startTimer(performance.now())
+  setTransportState('recording')
+}
+
+function shouldPunchInFromMixPosition(): boolean {
+  const { playingTrackIds, mixSeekMs, tracks } = get()
+  if (tracks.length === 0) return false
+  const hasPlayback =
+    getPlaybackSources().length > 0 || playingTrackIds.length > 0
+  const positionMs = hasPlayback ? getMixPositionMs() : mixSeekMs
+  if (positionMs <= PUNCH_IN_POSITION_MS) return false
+  // Active play or paused / seeked mid-mix.
+  return hasPlayback || mixSeekMs > PUNCH_IN_POSITION_MS
+}
+
 export async function startSession() {
   try {
+    if (shouldPunchInFromMixPosition()) {
+      await beginPunchInRecording()
+      return
+    }
     stopPlayback()
     pendingTakeOffsetMs = 0
+    pendingTakePunchIn = false
     if (get().tracks.length > 0) {
       await beginOverdubRecording(get().tracks.slice())
     } else {
@@ -2972,6 +3239,7 @@ export async function stopSession() {
       } else {
         setActiveRecording(null)
         pendingTakeOffsetMs = 0
+        pendingTakePunchIn = false
         stopTimer()
         try {
           await stopRecorderToBlob(active)
@@ -3031,11 +3299,29 @@ export async function stopSession() {
 }
 
 export async function seekMixTo(ms: number) {
-  const { tracks, state, mixPaused, playingTrackIds } = get()
+  const { tracks, state, mixPaused, playingTrackIds, cutMode } = get()
   if (tracks.length === 0 || state === 'recording') return
 
   const duration = getMixDurationMs(tracks)
   const target = Math.max(0, Math.min(duration, ms))
+
+  // In découpage, scrubbing only moves the playhead unless mix playback
+  // is actively running (paused or idle must not restart audio).
+  const activelyPlaying =
+    !mixPaused &&
+    (getPlaybackSources().length > 0 || playingTrackIds.length > 0)
+  if (cutMode && !activelyPlaying) {
+    // Realign a paused/frozen timeline so clock ticks keep the scrubbed spot
+    // (otherwise tickClockDisplays would snap back via getMixPositionMs).
+    const audioContext = getAudioContext()
+    const rate = Math.max(0.05, get().cutPlaybackRate || 1)
+    if (audioContext && mixTimelineStartCtx !== null) {
+      mixTimelineStartCtx = audioContext.currentTime - target / (1000 * rate)
+    }
+    patch({ mixSeekMs: target, mixClockText: formatCentis(target) })
+    return
+  }
+
   patch({ mixSeekMs: target })
   tickClockDisplays()
 
@@ -3171,6 +3457,9 @@ export function deleteTrack(trackId: number) {
   if (get().playingTrackIds.length > 0 || get().mixListenActive) {
     stopPlayback({ resetSeek: false })
   }
+  if (get().contentSyncPickFromId === trackId) {
+    cancelContentSyncPick()
+  }
   URL.revokeObjectURL(track.url)
   clearBufferCache(trackId)
   trackGains.delete(trackId)
@@ -3219,7 +3508,11 @@ export function deleteTrack(trackId: number) {
   refreshSkewWarning()
   if (get().referenceTrackId != null) void evaluateReferenceBeat()
   if (clearedMetro) persistMetronomeBpm()
-  scheduleGuestDraftSave()
+  if (tracks.length === 0) {
+    flushGuestDraftSave()
+  } else {
+    scheduleGuestDraftSave()
+  }
 
   // Shared / collab: never delete someone else's take in the database.
   const cloudTrackId = track.cloudTrackId
@@ -3293,7 +3586,7 @@ export function deleteAllTracks() {
   clearRefPeaks()
   updateSessionTimerDisplay()
   refreshSkewWarning()
-  scheduleGuestDraftSave()
+  flushGuestDraftSave()
   persistMetronomeBpm()
 
   for (const cloudTrackId of cloudTrackIds) {

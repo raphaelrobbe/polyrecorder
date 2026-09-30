@@ -10,6 +10,10 @@ import {
 } from '../../common/devices'
 import { prefersHeadphonesHint } from '../deviceHint'
 import { t } from '../i18n'
+import {
+  disconnectPitchPreserveNode,
+  resetPitchPreserveRegistration,
+} from './pitchPreserve.client'
 
 export {
   DEFAULT_MONITOR_LATENCY_S,
@@ -479,11 +483,13 @@ export function stopPlaybackSources() {
     }
     playbackGain = null
   }
+  disconnectPitchPreserveNode()
 }
 
 export async function closeAudioContext() {
   stopMeterNodes()
   stopPlaybackSources()
+  resetPitchPreserveRegistration()
   if (audioContext && audioContext.state !== 'closed') {
     await audioContext.close()
   }

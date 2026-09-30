@@ -322,6 +322,7 @@ export const en: Record<MessageKey, string> = {
   'track.metronome.label': 'Metronome',
 
   'mix.restart': 'Back to start',
+  'mix.stop': 'Stop',
   'mix.play': 'Play',
   'mix.pause': 'Pause',
   'mix.download': 'Download mix (MP3)',
@@ -353,7 +354,11 @@ export const en: Record<MessageKey, string> = {
   'cut.select.hint': 'Select one or more tracks',
   'cut.select.confirm': 'Confirm',
   'cut.cancel': 'Cancel',
-  'cut.edit.hint': 'Select segments, then Mute or Merge',
+  'cut.reset': 'Reset',
+  'cut.rate.aria': 'Playback speed',
+  'cut.rate.half': 'Half-speed playback',
+  'cut.rate.quarter': 'Quarter-speed playback',
+  'cut.edit.hint': 'Split at the playhead, select segments, then Mute or Merge',
   'cut.scissors': 'Split at playhead',
   'cut.scissors.hint': 'Split all segments at the playhead',
   'cut.scissors.aria': 'Split at playhead',
@@ -433,6 +438,17 @@ export const en: Record<MessageKey, string> = {
   'tracks.ref.hint': 'Reference track (1–2–3–4 markers)',
   'tracks.ref.aria': 'Reference',
   'tracks.ref.badge': 'ref.',
+  'tracks.contentSync': 'sync',
+  'tracks.contentSync.aria': 'Sync {name} to another track',
+  'tracks.contentSync.hint':
+    'Refine align by content correlation: click Sync then the track to follow',
+  'tracks.contentSync.pickHint': 'Choose the track to align against',
+  'tracks.contentSync.pickTarget.aria': 'Align {from} to {name}',
+  'tracks.contentSync.pickCancel': 'Cancel',
+  'tracks.contentSync.weak':
+    'Sync: not enough shared content — keeping provisional offset',
+  'tracks.contentSync.failed': 'Could not sync this track',
+  'tracks.span.aria': 'Placement of {name} on the mix timeline',
   'tracks.autoAlign': 'Recalculate align',
   'tracks.autoAlign.named': 'Recalculate align for {name}',
   'tracks.offset.hint': 'Offset this track on playback',
@@ -549,7 +565,7 @@ export const en: Record<MessageKey, string> = {
 
   'help.record.title': 'Recording',
   'help.record.body1':
-    'Record to start, Next track to chain a take (other tracks play for monitoring), Stop to finish, and the discard icon to drop the current take.',
+    'Record to start, Next track to chain a take (other tracks play for monitoring), Stop to finish, and the discard icon to drop the current take. While playing (or paused mid-mix), Record starts a punch-in: the new track begins at the current position. For a take from the start, press Stop (back to 0) then Record. On a punch-in track, Sync refines align by picking another track to correlate against.',
   'help.record.body2':
     'Change the project name at the top (title){f2}. Rename each track by clicking it. Those names also feed the exported MP3.',
   'help.record.f2': ' — F2 shortcut',

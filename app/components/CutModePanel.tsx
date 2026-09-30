@@ -18,11 +18,10 @@ type CutModePanelProps = {
   className?: string
 }
 
-/** Toolbar for découpage: scissors, mute, merge. */
+/** Toolbar for découpage: scissors, mute, merge, reset. */
 export function CutModePanel({ className }: CutModePanelProps) {
   useLocale()
   const cutMode = useSessionStore((s) => s.cutMode)
-  const cutPhase = useSessionStore((s) => s.cutPhase)
   const cutWorkSegments = useSessionStore((s) => s.cutWorkSegments)
   const [merging, setMerging] = useState(false)
 
@@ -47,8 +46,7 @@ export function CutModePanel({ className }: CutModePanelProps) {
   const hasSplit = Object.values(cutWorkSegments).some(
     (segs) => segs.length > 1,
   )
-  const showMuteMerge = hasSplit && selectedSegCount > 0
-  const cutEditing = cutPhase === 'edit'
+  const muteDisabled = selectedSegCount === 0
 
   const onMerge = async () => {
     if (mergeDisabled) return
@@ -68,7 +66,7 @@ export function CutModePanel({ className }: CutModePanelProps) {
       )}
     >
       <p className="m-0 text-[0.84rem] font-semibold text-ink-soft">
-        {cutEditing ? t('cut.edit.hint') : t('cut.idle.hint')}
+        {t('cut.edit.hint')}
       </p>
       <div className="flex flex-col items-start gap-[0.55rem]">
         <div className="flex flex-wrap items-center gap-[0.45rem]">
@@ -84,41 +82,39 @@ export function CutModePanel({ className }: CutModePanelProps) {
           >
             {t('cut.scissors')}
           </Button>
-          {cutEditing ? (
-            <Button
-              type="button"
-              variant="utility"
-              title={t('cut.cancel')}
-              onClick={() => cancelCutSelection()}
-            >
-              {t('cut.cancel')}
-            </Button>
-          ) : null}
+          <Button
+            type="button"
+            variant="utility"
+            disabled={!hasSplit}
+            title={t('cut.reset')}
+            onClick={() => cancelCutSelection()}
+          >
+            {t('cut.reset')}
+          </Button>
         </div>
-        {showMuteMerge ? (
-          <div className="flex flex-wrap items-center gap-[0.45rem]">
-            <Button
-              type="button"
-              variant="trim"
-              className="px-[0.95rem] py-[0.55rem] text-[0.88rem]"
-              title={t('cut.mute.hint')}
-              onClick={() => applyCutMute()}
-            >
-              {t('cut.mute')}
-            </Button>
-            <Button
-              type="button"
-              variant="trim"
-              className="px-[0.95rem] py-[0.55rem] text-[0.88rem]"
-              disabled={mergeDisabled}
-              title={mergeTitle}
-              aria-busy={merging}
-              onClick={() => void onMerge()}
-            >
-              {merging ? t('cut.merge.busy') : t('cut.merge')}
-            </Button>
-          </div>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-[0.45rem]">
+          <Button
+            type="button"
+            variant="trim"
+            className="px-[0.95rem] py-[0.55rem] text-[0.88rem]"
+            disabled={muteDisabled}
+            title={t('cut.mute.hint')}
+            onClick={() => applyCutMute()}
+          >
+            {t('cut.mute')}
+          </Button>
+          <Button
+            type="button"
+            variant="trim"
+            className="px-[0.95rem] py-[0.55rem] text-[0.88rem]"
+            disabled={mergeDisabled}
+            title={mergeTitle}
+            aria-busy={merging}
+            onClick={() => void onMerge()}
+          >
+            {merging ? t('cut.merge.busy') : t('cut.merge')}
+          </Button>
+        </div>
       </div>
     </div>
   )

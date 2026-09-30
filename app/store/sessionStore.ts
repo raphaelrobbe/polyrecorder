@@ -44,6 +44,8 @@ export type SessionStoreState = {
   cutSelectedTrackIds: number[]
   /** Per-track work segments in mix-timeline ms. */
   cutWorkSegments: Record<number, CutWorkSegment[]>
+  /** Découpage preview speed (1 | 0.5 | 0.25). */
+  cutPlaybackRate: number
   mixListenActive: boolean
   mixPaused: boolean
   mixSeekMs: number
@@ -51,6 +53,11 @@ export type SessionStoreState = {
   mixExporting: boolean
   mixClockText: string
   mixSeekRatio: number
+  /**
+   * Punch-in content sync: when set, click another track to align
+   * this punch-in take against it. Null = idle.
+   */
+  contentSyncPickFromId: number | null
   meterVisible: boolean
   timerVisible: boolean
   calageTipOpen: boolean
@@ -222,6 +229,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   cutPhase: 'idle',
   cutSelectedTrackIds: [],
   cutWorkSegments: {},
+  cutPlaybackRate: 1,
   mixListenActive: false,
   mixPaused: false,
   mixSeekMs: 0,
@@ -229,6 +237,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   mixExporting: false,
   mixClockText: '00:00.000',
   mixSeekRatio: 0,
+  contentSyncPickFromId: null,
   meterVisible: false,
   timerVisible: false,
   calageTipOpen: false,

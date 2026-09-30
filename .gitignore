@@ -33,6 +33,8 @@ generated/prisma
 
 /app/generated/prisma
 
+/tests/
+
 # Local agent skills / IDE tooling (not part of the app)
 .agents/
 .claude/

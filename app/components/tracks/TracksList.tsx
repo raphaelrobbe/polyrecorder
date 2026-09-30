@@ -1,7 +1,8 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { formatCentis, getMixDurationMs } from '../../lib/format'
 import {
   alignableTracks,
+  cancelContentSyncPick,
   deleteAllTracks,
   dismissMixClipWarning,
   realignAllTracks,
@@ -27,7 +28,7 @@ import { TrackRow } from './TrackRow'
 
 const TOUCH_REORDER_THRESHOLD_PX = 8
 const TOUCH_REORDER_EXCLUDE =
-  'input, textarea, select, button:not([data-drag-track]), [data-track-mute], [data-rename-track], [data-ms-nudge], [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-align-all], [data-toggle-track], [data-highlight-track], [data-volume-ribbon], [data-volume-percent], [data-cut-select-track], [data-cut-segment]'
+  'input, textarea, select, button:not([data-drag-track]), [data-track-mute], [data-rename-track], [data-ms-nudge], [data-offset-track], [data-delete-track], [data-delete-all-tracks], [data-nudge-track], [data-auto-align-track], [data-align-all], [data-toggle-track], [data-highlight-track], [data-volume-ribbon], [data-volume-percent], [data-cut-select-track], [data-cut-segment], [data-content-sync], [data-content-sync-pick], [data-content-sync-target]'
 
 type DragOverState = { trackId: number; edge: 'before' | 'after' } | null
 
@@ -49,6 +50,7 @@ export function TracksList({ className }: TracksListProps) {
   const enabledTrackIds = useSessionStore((s) => s.enabledTrackIds)
   const mixClockText = useSessionStore((s) => s.mixClockText)
   const mixSeekMs = useSessionStore((s) => s.mixSeekMs)
+  const contentSyncPickFromId = useSessionStore((s) => s.contentSyncPickFromId)
   const setSeekDragActive = useSessionStore((s) => s.setSeekDragActive)
   const patch = useSessionStore((s) => s.patch)
 
@@ -64,6 +66,18 @@ export function TracksList({ className }: TracksListProps) {
 
   const [dragTrackId, setDragTrackId] = useState<number | null>(null)
   const [dragOver, setDragOver] = useState<DragOverState>(null)
+
+  useEffect(() => {
+    if (contentSyncPickFromId == null) return
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        cancelContentSyncPick()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [contentSyncPickFromId])
 
   const alignable = alignableTracks()
   const selectedCount = enabledTrackIds.length
@@ -368,6 +382,28 @@ export function TracksList({ className }: TracksListProps) {
             aria-hidden="true"
           />
         </div>
+        {contentSyncPickFromId != null ? (
+          <div
+            className={cn(
+              'mb-[0.35rem] flex items-center gap-[0.65rem] rounded-[14px] border-[1.5px] border-mode-simple-border bg-mode-simple-bg',
+              'px-[0.75rem] py-[0.55rem] text-[0.8rem] font-semibold leading-[1.3] text-mode-simple animate-rise',
+            )}
+            role="status"
+            data-content-sync-banner
+          >
+            <span className="min-w-0 flex-auto">
+              {t('tracks.contentSync.pickHint')}
+            </span>
+            <Button
+              type="button"
+              variant="trim"
+              className="shrink-0 border-mode-simple-border bg-transparent px-[0.55rem] py-[0.22rem] text-[0.72rem] text-mode-simple hover:enabled:bg-mode-simple-hover"
+              onClick={() => cancelContentSyncPick()}
+            >
+              {t('tracks.contentSync.pickCancel')}
+            </Button>
+          </div>
+        ) : null}
         <ul
           className={cn(
             'm-0 flex list-none flex-col gap-[0.3rem] p-0',
