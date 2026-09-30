@@ -16,6 +16,7 @@ export const RESERVED_PSEUDOS = [
   'legal',
   'og',
   'parametres',
+  'processing-register',
   'privacy',
   'repertoire',
   'session',

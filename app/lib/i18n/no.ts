@@ -13,6 +13,8 @@ export const no: Record<MessageKey, string> = {
     'Juridisk informasjon for polyrecorder: utgiver, hosting og åndsverk.',
   'seo.privacy.description':
     'Personvernerklæring for polyrecorder: data vi samler inn, formål og dine rettigheter.',
+  'seo.register.description':
+    'Behandlingsprotokoll for polyrecorder (GDPR art. 30): konto, skybibliotek, kontakt og logger.',
   'seo.terms.description':
     'Vilkår for bruk av polyrecorder: konto, innhold og ansvar.',
   'seo.contact.description':
@@ -50,6 +52,7 @@ export const no: Record<MessageKey, string> = {
   'nav.accountSettings': 'Kontoinnstillinger',
   'nav.legal': 'Juridisk',
   'nav.privacy': 'Personvern',
+  'nav.processingRegister': 'Behandlingsprotokoll',
   'nav.terms': 'Vilkår',
   'nav.contact': 'Kontakt',
   'nav.sitemap': 'Nettstedskart',
@@ -128,6 +131,117 @@ export const no: Record<MessageKey, string> = {
     'Grensesnittpreferanser (språk, tema, opptaksvalg, aktiv sang) lagres i nettleserens localStorage, ikke i informasjonskapsler.',
   'privacy.legalLink': 'Se også',
   'privacy.termsLink': 'og',
+  'privacy.gdpr.title': 'GDPR-samsvar',
+  'privacy.gdpr.body':
+    'I tråd med GDPR beskriver en behandlingsprotokoll formål, datakategorier, mottakere, lagringstid og sikkerhetstiltak. Se',
+
+  'register.title': 'Protokoll over behandlingsaktiviteter',
+  'register.close': 'Lukk behandlingsprotokollen',
+  'register.intro':
+    'Dette dokumentet er protokollen over behandlingsaktiviteter som føres av behandlingsansvarlig for polyrecorder (GDPR artikkel 30). Den gir oversikt over personopplysningsbehandling knyttet til tjenesten.',
+  'register.dates':
+    'Protokoll opprettet {created}. Sist oppdatert {updated}.',
+  'register.controller.title': 'Behandlingsansvarlig',
+  'register.controller.body':
+    '{name} ({site}), {address}.',
+  'register.controller.contact':
+    'Kontakt for rettighetsforespørsler og personvernspørsmål: {email}.',
+  'register.controller.dpo':
+    'Ingen personvernombud (DPO) er utpekt.',
+  'register.summary.title': 'Oversikt over behandlinger',
+  'register.summary.col.ref': 'Nr. / ref.',
+  'register.summary.col.name': 'Behandlingsnavn',
+  'register.summary.col.purpose': 'Formål',
+  'register.summary.col.sensitive': 'Særlige kategorier',
+  'register.sensitive.no': 'Nei',
+  'register.fiche.created': 'Opprettet',
+  'register.fiche.updated': 'Sist oppdatert',
+  'register.fiche.purpose': 'Hovedformål',
+  'register.fiche.data': 'Personopplysninger',
+  'register.fiche.retention': 'Lagringstid',
+  'register.fiche.subjects': 'Registrerte',
+  'register.fiche.recipients': 'Mottakere',
+  'register.fiche.security': 'Sikkerhetstiltak',
+  'register.fiche.transfers': 'Overføringer utenfor EU',
+  'register.fiche.sensitive': 'Særlige kategorier',
+  'register.privacyLink': 'Mer om dine rettigheter i',
+  'register.legalLink': 'og',
+
+  'register.account.ref': '1',
+  'register.account.name': 'Konto og autentisering',
+  'register.account.purpose':
+    'Opprette og autentisere brukerkontoer',
+  'register.account.subPurposes':
+    'Underformål: sende magiske lenker for innlogging / e-postbekreftelse; tillate tilpasning av visningsnavn (pseudo); sikre tilgang til skybiblioteket.',
+  'register.account.data':
+    'E-postadresse, pseudo, autentiseringstokener / økter (httpOnly-sesjonskapsel), kontorelaterte datoer.',
+  'register.account.retention':
+    'Så lenge kontoen eksisterer; sletting av konto sletter tilknyttede data. Magiske lenker utløper raskt (engang, kortvarige).',
+  'register.account.subjects':
+    'Brukere som har opprettet polyrecorder-konto.',
+  'register.account.recipients':
+    'Behandlingsansvarlig; hostingleverandør og transaksjons-e-post (Scaleway, Frankrike / Nederland). Pseudo kan være synlig offentlig hvis brukeren aktiverer deling.',
+  'register.account.security':
+    'Autentisering med magisk lenke, httpOnly-sesjonskapsel, applikasjonsmessig tilgangskontroll, HTTPS, sikkerhetskopier hos vert.',
+  'register.account.transfers':
+    'Ingen overføring utenfor EU for denne behandlingen (Scaleway-hosting og e-post i EØS).',
+
+  'register.cloud.ref': '2',
+  'register.cloud.name': 'Skybibliotek',
+  'register.cloud.purpose':
+    'Hoste og organisere brukerens opptak',
+  'register.cloud.subPurposes':
+    'Underformål: lagre grupper, repertoarer, sanger, metadata og lydfiler; gjenåpne økter; muliggjøre offentlig deling når brukeren aktiverer det.',
+  'register.cloud.data':
+    'Biblioteksmetadata (navn, struktur, volum, forskyvninger osv.), opplastede lydfiler, tekniske objekt-ID-er, kobling til eierkonto, innstillinger for offentlig deling.',
+  'register.cloud.retention':
+    'Så lenge konto eller innhold eksisterer; slettes når brukeren sletter konto eller innhold.',
+  'register.cloud.subjects':
+    'Innloggede brukere av skybiblioteket; besøkende av innhold som er eksplisitt delt offentlig.',
+  'register.cloud.recipients':
+    'Kontoeier; personer gitt tilgang via offentlig deling (hvis aktivert); objektlagring / databaseleverandør (Scaleway, Frankrike / Nederland).',
+  'register.cloud.security':
+    'Kontotilknyttet tilgangskontroll, forhåndssignerte opplastings-URL-er, HTTPS, applikasjonsisolering, sikkerhetskopier hos vert.',
+  'register.cloud.transfers':
+    'Ingen overføring utenfor EU for lagring (Frankrike / Nederland).',
+
+  'register.contact.ref': '3',
+  'register.contact.name': 'Kontaktskjema',
+  'register.contact.purpose':
+    'Behandle henvendelser via kontaktskjemaet',
+  'register.contact.subPurposes':
+    'Underformål: begrense spam (anti-robot-sjekk); levere meldingen til utgiveren og svare på e-post.',
+  'register.contact.data':
+    'Oppgitt e-post, meldingsinnhold, anti-robot-token (Cloudflare Turnstile), minimale tekniske metadata for innsendingen.',
+  'register.contact.retention':
+    'Så lenge det trengs for å behandle henvendelsen og påfølgende korrespondanse; ingen markedsføringsarkiv.',
+  'register.contact.subjects':
+    'Alle som bruker kontaktskjemaet (med eller uten konto).',
+  'register.contact.recipients':
+    'Behandlingsansvarlig; Scaleway (e-postutsending); Cloudflare (Turnstile-verifisering).',
+  'register.contact.security':
+    'HTTPS, hastighetsbegrensning, Turnstile-captcha, begrenset tilgang til kontaktinnboksen.',
+  'register.contact.transfers':
+    'Cloudflare (Turnstile) kan innebære behandling utenfor EU under databehandlerens kontraktsmessige garantier (SCC / DPA). E-postutsending forblir hos Scaleway (EØS).',
+
+  'register.logs.ref': '4',
+  'register.logs.name': 'Tekniske logger og sikkerhet',
+  'register.logs.purpose':
+    'Sikre drift, diagnostikk og sikkerhet for tjenesten',
+  'register.logs.subPurposes':
+    'Underformål: analysere serverfeil; forebygge misbruk (f.eks. begrensning på kontaktskjema); opprettholde tilgjengelighet.',
+  'register.logs.data':
+    'Feillogger og minimale tekniske spor (tidsstempel, feiltype, eventuelt IP eller tekniske ID-er avhengig av komponent).',
+  'register.logs.retention':
+    'Begrenset til diagnostikk- og sikkerhetsbehov (kort, deretter sletting eller rotasjon).',
+  'register.logs.subjects':
+    'Brukere og besøkende hvis tekniske aktivitet genererer logger.',
+  'register.logs.recipients':
+    'Behandlingsansvarlig; vert (Scaleway) som del av infrastrukturdrift.',
+  'register.logs.security':
+    'Begrenset infrastrukturtilgang, HTTPS, driftsmessige beste praksiser.',
+  'register.logs.transfers':
+    'Ingen overføring utenfor EU planlagt for logger hostet hos Scaleway (EØS).',
 
   'terms.title': 'Bruksvilkår',
   'terms.close': 'Lukk bruksvilkårene',

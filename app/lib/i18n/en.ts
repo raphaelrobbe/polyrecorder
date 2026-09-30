@@ -13,6 +13,8 @@ export const en: Record<MessageKey, string> = {
     'polyrecorder legal notice: publisher, hosting, and intellectual property.',
   'seo.privacy.description':
     'polyrecorder privacy policy: data we collect, why, and your rights.',
+  'seo.register.description':
+    'polyrecorder processing-activities register (GDPR Art. 30): account, cloud library, contact, and logs.',
   'seo.terms.description':
     'polyrecorder terms of use: account, content, and responsibilities.',
   'seo.contact.description':
@@ -49,6 +51,7 @@ export const en: Record<MessageKey, string> = {
   'nav.accountSettings': 'Account settings',
   'nav.legal': 'Legal notice',
   'nav.privacy': 'Privacy',
+  'nav.processingRegister': 'Processing register',
   'nav.terms': 'Terms',
   'nav.contact': 'Contact',
   'nav.sitemap': 'Sitemap',
@@ -127,6 +130,117 @@ export const en: Record<MessageKey, string> = {
     'Interface preferences (language, theme, recording options, active song) are stored in the browser’s localStorage, not in cookies.',
   'privacy.legalLink': 'See also the',
   'privacy.termsLink': 'and the',
+  'privacy.gdpr.title': 'GDPR compliance',
+  'privacy.gdpr.body':
+    'Under the GDPR, a record of processing activities describes purposes, data categories, recipients, retention, and security measures. See the',
+
+  'register.title': 'Record of processing activities',
+  'register.close': 'Close the processing register',
+  'register.intro':
+    'This document is the record of processing activities kept by the controller for polyrecorder (GDPR Article 30). It gives an overview of personal-data processing related to the service.',
+  'register.dates':
+    'Record created on {created}. Last updated on {updated}.',
+  'register.controller.title': 'Controller',
+  'register.controller.body':
+    '{name} ({site}), {address}.',
+  'register.controller.contact':
+    'Contact for data-subject requests and privacy questions: {email}.',
+  'register.controller.dpo':
+    'No Data Protection Officer (DPO) has been appointed.',
+  'register.summary.title': 'Processing overview',
+  'register.summary.col.ref': 'No. / ref.',
+  'register.summary.col.name': 'Processing name',
+  'register.summary.col.purpose': 'Purpose',
+  'register.summary.col.sensitive': 'Sensitive data',
+  'register.sensitive.no': 'No',
+  'register.fiche.created': 'Created',
+  'register.fiche.updated': 'Last updated',
+  'register.fiche.purpose': 'Main purpose',
+  'register.fiche.data': 'Personal data',
+  'register.fiche.retention': 'Retention',
+  'register.fiche.subjects': 'Data subjects',
+  'register.fiche.recipients': 'Recipients',
+  'register.fiche.security': 'Security measures',
+  'register.fiche.transfers': 'Transfers outside the EU',
+  'register.fiche.sensitive': 'Sensitive data',
+  'register.privacyLink': 'For more on your rights, see the',
+  'register.legalLink': 'and the',
+
+  'register.account.ref': '1',
+  'register.account.name': 'Account and authentication',
+  'register.account.purpose':
+    'Create and authenticate user accounts',
+  'register.account.subPurposes':
+    'Sub-purposes: send magic links for sign-in / email confirmation; allow display-name (pseudo) customization; secure access to the cloud library.',
+  'register.account.data':
+    'Email address, display name (pseudo), authentication tokens / sessions (httpOnly session cookie), account-related dates.',
+  'register.account.retention':
+    'For as long as the account exists; deleting the account erases associated data. Magic links expire quickly (one-time, short-lived).',
+  'register.account.subjects':
+    'Users who create a polyrecorder account.',
+  'register.account.recipients':
+    'Controller; hosting and transactional-email processor (Scaleway, France / Netherlands). The pseudo may be publicly visible if the user enables content sharing.',
+  'register.account.security':
+    'Magic-link authentication, httpOnly session cookie, application access controls, HTTPS, host-side backups.',
+  'register.account.transfers':
+    'No transfer outside the EU for this processing (Scaleway hosting and mail within the EEA).',
+
+  'register.cloud.ref': '2',
+  'register.cloud.name': 'Cloud library',
+  'register.cloud.purpose':
+    'Host and organise the user’s recordings',
+  'register.cloud.subPurposes':
+    'Sub-purposes: store groups, repertoires, songs, metadata and audio files; reopen sessions; enable public sharing when the user turns it on.',
+  'register.cloud.data':
+    'Library metadata (names, structure, volumes, offsets, etc.), uploaded audio files, technical object identifiers, link to the owner account, public-sharing settings.',
+  'register.cloud.retention':
+    'For as long as the account or content exists; erased when the user deletes the account or the content.',
+  'register.cloud.subjects':
+    'Signed-in users of the cloud library; visitors of content explicitly shared publicly.',
+  'register.cloud.recipients':
+    'Account owner; people allowed via public sharing (if enabled); object-storage / database processor (Scaleway, France / Netherlands).',
+  'register.cloud.security':
+    'Account-bound access control, pre-signed upload URLs, HTTPS, application isolation, host-side backups.',
+  'register.cloud.transfers':
+    'No transfer outside the EU for storage (France / Netherlands).',
+
+  'register.contact.ref': '3',
+  'register.contact.name': 'Contact form',
+  'register.contact.purpose':
+    'Handle requests sent through the contact form',
+  'register.contact.subPurposes':
+    'Sub-purposes: limit spam (anti-bot check); deliver the message to the publisher and reply by email.',
+  'register.contact.data':
+    'Provided email, message body, anti-bot verification token (Cloudflare Turnstile), minimal technical metadata of the submission.',
+  'register.contact.retention':
+    'As long as needed to handle the request and ensuing correspondence; no marketing archive.',
+  'register.contact.subjects':
+    'Anyone using the contact form (with or without an account).',
+  'register.contact.recipients':
+    'Controller; Scaleway (email delivery); Cloudflare (Turnstile verification).',
+  'register.contact.security':
+    'HTTPS, rate limiting, Turnstile captcha, restricted access to the contact inbox.',
+  'register.contact.transfers':
+    'Cloudflare (Turnstile) may involve processing outside the EU under the processor’s contractual safeguards (SCCs / DPA). Email delivery remains with Scaleway (EEA).',
+
+  'register.logs.ref': '4',
+  'register.logs.name': 'Technical and security logs',
+  'register.logs.purpose':
+    'Operate, diagnose, and secure the service',
+  'register.logs.subPurposes':
+    'Sub-purposes: analyse server errors; prevent abuse (e.g. contact-form rate limits); maintain availability.',
+  'register.logs.data':
+    'Error logs and minimal technical traces (timestamp, error type, possibly IP or technical IDs depending on the component).',
+  'register.logs.retention':
+    'Limited to diagnostic and security needs (short retention, then purge or rotation).',
+  'register.logs.subjects':
+    'Users and visitors whose technical activity generates logs.',
+  'register.logs.recipients':
+    'Controller; host (Scaleway) as part of infrastructure operations.',
+  'register.logs.security':
+    'Restricted infrastructure access, HTTPS, operational best practices.',
+  'register.logs.transfers':
+    'No transfer outside the EU intended for logs hosted with Scaleway (EEA).',
 
   'terms.title': 'Terms of use',
   'terms.close': 'Close terms of use',

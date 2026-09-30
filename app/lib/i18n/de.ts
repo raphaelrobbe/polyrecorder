@@ -13,6 +13,8 @@ export const de: Record<MessageKey, string> = {
     'Impressum von polyrecorder: Herausgeber, Hosting und geistiges Eigentum.',
   'seo.privacy.description':
     'Datenschutzerklärung von polyrecorder: erhobene Daten, Zwecke und deine Rechte.',
+  'seo.register.description':
+    'Verzeichnis von Verarbeitungstätigkeiten von polyrecorder (DSGVO Art. 30): Konto, Cloud-Bibliothek, Kontakt und Protokolle.',
   'seo.terms.description':
     'Nutzungsbedingungen von polyrecorder: Konto, Inhalte und Verantwortlichkeiten.',
   'seo.contact.description':
@@ -50,6 +52,7 @@ export const de: Record<MessageKey, string> = {
   'nav.accountSettings': 'Kontoeinstellungen',
   'nav.legal': 'Impressum',
   'nav.privacy': 'Datenschutz',
+  'nav.processingRegister': 'Verarbeitungsverzeichnis',
   'nav.terms': 'AGB',
   'nav.contact': 'Kontakt',
   'nav.sitemap': 'Sitemap',
@@ -128,6 +131,117 @@ export const de: Record<MessageKey, string> = {
     'Oberflächeneinstellungen (Sprache, Theme, Aufnahmeoptionen, aktives Lied) werden im localStorage des Browsers gespeichert, nicht in Cookies.',
   'privacy.legalLink': 'Siehe auch das',
   'privacy.termsLink': 'und die',
+  'privacy.gdpr.title': 'DSGVO-Konformität',
+  'privacy.gdpr.body':
+    'Gemäß DSGVO beschreibt ein Verzeichnis von Verarbeitungstätigkeiten Zwecke, Datenkategorien, Empfänger, Speicherdauern und Sicherheitsmaßnahmen. Siehe das',
+
+  'register.title': 'Verzeichnis von Verarbeitungstätigkeiten',
+  'register.close': 'Verarbeitungsverzeichnis schließen',
+  'register.intro':
+    'Dieses Dokument ist das Verzeichnis von Verarbeitungstätigkeiten des Verantwortlichen für polyrecorder (Art. 30 DSGVO). Es gibt einen Überblick über die mit dem Dienst verbundenen Verarbeitungen personenbezogener Daten.',
+  'register.dates':
+    'Verzeichnis erstellt am {created}. Zuletzt aktualisiert am {updated}.',
+  'register.controller.title': 'Verantwortlicher',
+  'register.controller.body':
+    '{name} ({site}), {address}.',
+  'register.controller.contact':
+    'Kontakt für Betroffenenrechte und Datenschutzfragen: {email}.',
+  'register.controller.dpo':
+    'Es wurde kein Datenschutzbeauftragter (DSB) bestellt.',
+  'register.summary.title': 'Übersicht der Verarbeitungen',
+  'register.summary.col.ref': 'Nr. / Ref.',
+  'register.summary.col.name': 'Name der Verarbeitung',
+  'register.summary.col.purpose': 'Zweck',
+  'register.summary.col.sensitive': 'Sensible Daten',
+  'register.sensitive.no': 'Nein',
+  'register.fiche.created': 'Erstellt',
+  'register.fiche.updated': 'Zuletzt aktualisiert',
+  'register.fiche.purpose': 'Hauptzweck',
+  'register.fiche.data': 'Betroffene Daten',
+  'register.fiche.retention': 'Speicherdauer',
+  'register.fiche.subjects': 'Betroffene Personen',
+  'register.fiche.recipients': 'Empfänger',
+  'register.fiche.security': 'Sicherheitsmaßnahmen',
+  'register.fiche.transfers': 'Übermittlungen außerhalb der EU',
+  'register.fiche.sensitive': 'Sensible Daten',
+  'register.privacyLink': 'Mehr zu deinen Rechten in der',
+  'register.legalLink': 'und im',
+
+  'register.account.ref': '1',
+  'register.account.name': 'Konto und Authentifizierung',
+  'register.account.purpose':
+    'Benutzerkonten anlegen und authentifizieren',
+  'register.account.subPurposes':
+    'Unterzwecke: Magic Links zur Anmeldung / E-Mail-Bestätigung senden; Anzeigenamen (Pseudo) anpassen; Zugang zur Cloud-Bibliothek absichern.',
+  'register.account.data':
+    'E-Mail-Adresse, Pseudo, Authentifizierungs-Token / Sitzungen (httpOnly-Sitzungscookie), kontobezogene Daten.',
+  'register.account.retention':
+    'Solange das Konto besteht; Löschung des Kontos löscht zugehörige Daten. Magic Links verfallen schnell (einmalig, kurzlebig).',
+  'register.account.subjects':
+    'Nutzer mit polyrecorder-Konto.',
+  'register.account.recipients':
+    'Verantwortlicher; Hosting- und Transaktionsmail-Auftragsverarbeiter (Scaleway, Frankreich / Niederlande). Das Pseudo kann öffentlich sichtbar sein, wenn Teilen aktiviert ist.',
+  'register.account.security':
+    'Magic-Link-Authentifizierung, httpOnly-Sitzungscookie, anwendungsseitige Zugriffskontrolle, HTTPS, Backups beim Hoster.',
+  'register.account.transfers':
+    'Keine Übermittlung außerhalb der EU für diese Verarbeitung (Scaleway-Hosting und -Mail im EWR).',
+
+  'register.cloud.ref': '2',
+  'register.cloud.name': 'Cloud-Bibliothek',
+  'register.cloud.purpose':
+    'Aufnahmen des Nutzers hosten und organisieren',
+  'register.cloud.subPurposes':
+    'Unterzwecke: Gruppen, Repertoires, Songs, Metadaten und Audiodateien speichern; Sessions wieder öffnen; öffentliches Teilen ermöglichen, wenn der Nutzer es aktiviert.',
+  'register.cloud.data':
+    'Bibliotheksmetadaten (Namen, Struktur, Lautstärken, Offsets usw.), hochgeladene Audiodateien, technische Objekt-IDs, Bezug zum Eigentümerkonto, Einstellungen fürs öffentliche Teilen.',
+  'register.cloud.retention':
+    'Solange Konto oder Inhalte bestehen; Löschung mit Konto- oder Inhaltslöschung durch den Nutzer.',
+  'register.cloud.subjects':
+    'Angemeldete Nutzer der Cloud-Bibliothek; Besucher ausdrücklich öffentlich geteilter Inhalte.',
+  'register.cloud.recipients':
+    'Kontoinhaber; über öffentliches Teilen berechtigte Personen (falls aktiviert); Object-Storage-/Datenbank-Auftragsverarbeiter (Scaleway, Frankreich / Niederlande).',
+  'register.cloud.security':
+    'Kontobezogene Zugriffskontrolle, vorab signierte Upload-URLs, HTTPS, Anwendungsisolation, Backups beim Hoster.',
+  'register.cloud.transfers':
+    'Keine Übermittlung außerhalb der EU für die Speicherung (Frankreich / Niederlande).',
+
+  'register.contact.ref': '3',
+  'register.contact.name': 'Kontaktformular',
+  'register.contact.purpose':
+    'Anfragen über das Kontaktformular bearbeiten',
+  'register.contact.subPurposes':
+    'Unterzwecke: Spam begrenzen (Anti-Bot-Prüfung); Nachricht an den Herausgeber zustellen und per E-Mail antworten.',
+  'register.contact.data':
+    'Angegebene E-Mail, Nachrichteninhalt, Anti-Bot-Token (Cloudflare Turnstile), minimale technische Metadaten der Übermittlung.',
+  'register.contact.retention':
+    'So lange wie zur Bearbeitung der Anfrage und des Schriftverkehrs nötig; kein Marketing-Archiv.',
+  'register.contact.subjects':
+    'Jede Person, die das Kontaktformular nutzt (mit oder ohne Konto).',
+  'register.contact.recipients':
+    'Verantwortlicher; Scaleway (E-Mail-Versand); Cloudflare (Turnstile-Prüfung).',
+  'register.contact.security':
+    'HTTPS, Ratenbegrenzung, Turnstile-Captcha, eingeschränkter Zugang zum Kontaktpostfach.',
+  'register.contact.transfers':
+    'Cloudflare (Turnstile) kann eine Verarbeitung außerhalb der EU unter vertraglichen Garantien des Auftragsverarbeiters (SCC / DPA) beinhalten. Der E-Mail-Versand bleibt bei Scaleway (EWR).',
+
+  'register.logs.ref': '4',
+  'register.logs.name': 'Technische und Sicherheitsprotokolle',
+  'register.logs.purpose':
+    'Betrieb, Diagnose und Sicherheit des Dienstes gewährleisten',
+  'register.logs.subPurposes':
+    'Unterzwecke: Serverfehler analysieren; Missbrauch verhindern (z. B. Ratenlimits am Kontaktformular); Verfügbarkeit sichern.',
+  'register.logs.data':
+    'Fehlerprotokolle und minimale technische Spuren (Zeitstempel, Fehlertyp, ggf. IP oder technische IDs je nach Komponente).',
+  'register.logs.retention':
+    'Begrenzt auf Diagnose- und Sicherheitsbedarf (kurz, dann Löschung oder Rotation).',
+  'register.logs.subjects':
+    'Nutzer und Besucher, deren technische Aktivität Protokolle erzeugt.',
+  'register.logs.recipients':
+    'Verantwortlicher; Hoster (Scaleway) im Rahmen des Infrastrukturbetriebs.',
+  'register.logs.security':
+    'Eingeschränkter Infrastrukturzugang, HTTPS, betriebliche Best Practices.',
+  'register.logs.transfers':
+    'Keine Übermittlung außerhalb der EU für bei Scaleway gehostete Protokolle (EWR) vorgesehen.',
 
   'terms.title': 'Nutzungsbedingungen',
   'terms.close': 'Nutzungsbedingungen schließen',

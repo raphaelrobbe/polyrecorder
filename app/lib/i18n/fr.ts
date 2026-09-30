@@ -11,6 +11,8 @@ export const fr = {
     'Mentions légales de polyrecorder : éditeur, hébergement et propriété intellectuelle.',
   'seo.privacy.description':
     'Politique de confidentialité de polyrecorder : données collectées, finalités et tes droits.',
+  'seo.register.description':
+    'Registre des activités de traitement de polyrecorder (RGPD art. 30) : compte, bibliothèque cloud, contact et journaux.',
   'seo.terms.description':
     'Conditions générales d’utilisation de polyrecorder : compte, contenus et responsabilités.',
   'seo.contact.description':
@@ -48,6 +50,7 @@ export const fr = {
   'nav.accountSettings': 'Paramètres du compte',
   'nav.legal': 'Mentions légales',
   'nav.privacy': 'Confidentialité',
+  'nav.processingRegister': 'Registre des traitements',
   'nav.terms': 'CGU',
   'nav.contact': 'Contact',
   'nav.sitemap': 'Plan du site',
@@ -126,6 +129,118 @@ export const fr = {
     'Les préférences d’interface (langue, thème, options d’enregistrement, chanson active) sont stockées dans le localStorage du navigateur, pas dans des cookies.',
   'privacy.legalLink': 'Voir aussi les',
   'privacy.termsLink': 'et les',
+  'privacy.gdpr.title':
+    'Conformité au Règlement Général de Protection des données',
+  'privacy.gdpr.body':
+    'Conformément au RGPD, un registre des activités de traitement décrit les finalités, catégories de données, destinataires, durées de conservation et mesures de sécurité. Consulte le',
+
+  'register.title': 'Registre des activités de traitement',
+  'register.close': 'Fermer le registre des traitements',
+  'register.intro':
+    'Ce document constitue le registre des activités de traitement tenu par le responsable du traitement pour polyrecorder (article 30 du RGPD). Il offre une vue d’ensemble des traitements de données personnelles liés au service.',
+  'register.dates':
+    'Fiche créée le {created}. Dernière mise à jour le {updated}.',
+  'register.controller.title': 'Responsable du traitement',
+  'register.controller.body':
+    '{name} ({site}), {address}.',
+  'register.controller.contact':
+    'Contact pour l’exercice des droits et toute question relative aux données : {email}.',
+  'register.controller.dpo':
+    'Aucun délégué à la protection des données (DPO) n’a été désigné.',
+  'register.summary.title': 'Synthèse des traitements',
+  'register.summary.col.ref': 'N° / réf.',
+  'register.summary.col.name': 'Nom du traitement',
+  'register.summary.col.purpose': 'Finalité',
+  'register.summary.col.sensitive': 'Données sensibles',
+  'register.sensitive.no': 'Non',
+  'register.fiche.created': 'Date de création',
+  'register.fiche.updated': 'Dernière mise à jour',
+  'register.fiche.purpose': 'Finalité principale',
+  'register.fiche.data': 'Données concernées',
+  'register.fiche.retention': 'Durée de conservation',
+  'register.fiche.subjects': 'Personnes concernées',
+  'register.fiche.recipients': 'Destinataires',
+  'register.fiche.security': 'Mesures de sécurité',
+  'register.fiche.transfers': 'Transferts hors UE',
+  'register.fiche.sensitive': 'Données sensibles',
+  'register.privacyLink': 'Pour plus de détails sur tes droits, voir la',
+  'register.legalLink': 'et les',
+
+  'register.account.ref': '1',
+  'register.account.name': 'Compte et authentification',
+  'register.account.purpose':
+    'Créer et authentifier le compte utilisateur',
+  'register.account.subPurposes':
+    'Sous-finalités : envoyer les liens magiques de connexion / confirmation d’e-mail ; permettre la personnalisation du pseudo ; sécuriser l’accès à la bibliothèque cloud.',
+  'register.account.data':
+    'Adresse e-mail, pseudo, jetons / sessions d’authentification (cookie de session httpOnly), dates associées au compte.',
+  'register.account.retention':
+    'Tant que le compte existe ; suppression du compte entraîne l’effacement des données associées. Les liens magiques expirent rapidement (usage unique, durée courte).',
+  'register.account.subjects':
+    'Utilisateurs ayant créé un compte polyrecorder.',
+  'register.account.recipients':
+    'Responsable du traitement ; sous-traitant d’hébergement et d’envoi d’e-mails (Scaleway, France / Pays-Bas). Le pseudo peut être visible publiquement si l’utilisateur active le partage de contenus.',
+  'register.account.security':
+    'Authentification par lien magique, cookie de session httpOnly, cloisonnement des accès applicatifs, HTTPS, sauvegardes côté hébergeur.',
+  'register.account.transfers':
+    'Aucun transfert hors UE pour ce traitement (hébergement et messagerie transactionnelle Scaleway dans l’EEE).',
+
+  'register.cloud.ref': '2',
+  'register.cloud.name': 'Bibliothèque cloud',
+  'register.cloud.purpose':
+    'Héberger et organiser les enregistrements de l’utilisateur',
+  'register.cloud.subPurposes':
+    'Sous-finalités : stocker groupes, répertoires, chansons, métadonnées et fichiers audio ; permettre la réouverture des sessions ; permettre le partage public lorsque l’utilisateur l’active.',
+  'register.cloud.data':
+    'Métadonnées de bibliothèque (noms, structure, volumes, offsets, etc.), fichiers audio téléversés, identifiants techniques des objets, lien éventuel au compte propriétaire, paramètres de partage public.',
+  'register.cloud.retention':
+    'Tant que le compte ou les contenus existent ; effacement avec la suppression du compte ou des contenus par l’utilisateur.',
+  'register.cloud.subjects':
+    'Utilisateurs connectés utilisant la bibliothèque cloud ; visiteurs des contenus explicitement partagés en public.',
+  'register.cloud.recipients':
+    'Propriétaire du compte ; personnes autorisées via le partage public (si activé) ; sous-traitant de stockage objet / base (Scaleway, France / Pays-Bas).',
+  'register.cloud.security':
+    'Contrôle d’accès lié au compte, URLs présignées pour le téléversement, HTTPS, cloisonnement applicatif, sauvegardes côté hébergeur.',
+  'register.cloud.transfers':
+    'Aucun transfert hors UE pour le stockage (France / Pays-Bas).',
+
+  'register.contact.ref': '3',
+  'register.contact.name': 'Formulaire de contact',
+  'register.contact.purpose':
+    'Répondre aux demandes adressées via le formulaire de contact',
+  'register.contact.subPurposes':
+    'Sous-finalités : limiter le spam (vérification anti-robot) ; transmettre le message à l’éditeur et répondre par e-mail.',
+  'register.contact.data':
+    'Adresse e-mail indiquée, contenu du message, jeton de vérification anti-robot (Cloudflare Turnstile), métadonnées techniques minimales liées à l’envoi.',
+  'register.contact.retention':
+    'Le temps nécessaire au traitement de la demande et aux échanges qui en découlent ; pas d’archivage marketing.',
+  'register.contact.subjects':
+    'Toute personne utilisant le formulaire de contact (compte ou non).',
+  'register.contact.recipients':
+    'Responsable du traitement ; Scaleway (envoi d’e-mail) ; Cloudflare (vérification Turnstile).',
+  'register.contact.security':
+    'HTTPS, limitation de débit, captcha Turnstile, accès restreint à la boîte de réception de contact.',
+  'register.contact.transfers':
+    'Cloudflare (Turnstile) peut impliquer un traitement hors UE ; garanties contractuelles du sous-traitant (clauses types / addendum). L’envoi d’e-mail reste chez Scaleway (EEE).',
+
+  'register.logs.ref': '4',
+  'register.logs.name': 'Journaux techniques et sécurité',
+  'register.logs.purpose':
+    'Assurer le fonctionnement, le diagnostic et la sécurité du service',
+  'register.logs.subPurposes':
+    'Sous-finalités : analyser les erreurs serveur ; prévenir les abus (ex. limitation du formulaire de contact) ; maintenir la disponibilité.',
+  'register.logs.data':
+    'Journaux d’erreur et traces techniques minimales (horodatage, type d’erreur, éventuellement adresse IP ou identifiants techniques selon le composant).',
+  'register.logs.retention':
+    'Durée limitée au besoin de diagnostic et de sécurité (courte, puis purge ou rotation).',
+  'register.logs.subjects':
+    'Utilisateurs et visiteurs dont l’activité technique génère des journaux.',
+  'register.logs.recipients':
+    'Responsable du traitement ; hébergeur (Scaleway) dans le cadre de l’exploitation de l’infrastructure.',
+  'register.logs.security':
+    'Accès restreint à l’infrastructure, HTTPS, bonnes pratiques d’exploitation.',
+  'register.logs.transfers':
+    'Aucun transfert hors UE prévu pour les journaux hébergés chez Scaleway (EEE).',
 
   'terms.title': 'Conditions générales d’utilisation',
   'terms.close': 'Fermer les CGU',

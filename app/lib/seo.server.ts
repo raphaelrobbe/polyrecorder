@@ -18,6 +18,8 @@ const STATIC_PATHS: Array<{
   { path: '/aide', changefreq: 'monthly', priority: 0.7 },
   { path: '/legal', changefreq: 'yearly', priority: 0.3 },
   { path: '/privacy', changefreq: 'yearly', priority: 0.3 },
+  // processing-register voluntarily removed from sitemap
+  // { path: '/processing-register', changefreq: 'yearly', priority: 0.3 },
   { path: '/terms', changefreq: 'yearly', priority: 0.3 },
   { path: '/contact', changefreq: 'yearly', priority: 0.3 },
   { path: '/sitemap', changefreq: 'monthly', priority: 0.2 },

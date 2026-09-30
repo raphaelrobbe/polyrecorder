@@ -39,6 +39,7 @@ function isOverlayPath(pathname: string): boolean {
     pathname === '/connexion' ||
     pathname === '/legal' ||
     pathname === '/privacy' ||
+    pathname === '/processing-register' ||
     pathname === '/terms' ||
     pathname === '/contact' ||
     pathname === '/sitemap' ||
@@ -53,6 +54,7 @@ function isOverlayPath(pathname: string): boolean {
     pathname.endsWith('/connexion') ||
     pathname.endsWith('/legal') ||
     pathname.endsWith('/privacy') ||
+    pathname.endsWith('/processing-register') ||
     pathname.endsWith('/terms') ||
     pathname.endsWith('/contact') ||
     pathname.endsWith('/sitemap')

@@ -68,6 +68,19 @@ export function PrivacyPanel({ className }: PrivacyPanelProps) {
         <HelpText>{t('privacy.cookies.localStorage')}</HelpText>
       </HelpSection>
 
+      <HelpSection title={t('privacy.gdpr.title')}>
+        <HelpText>
+          {t('privacy.gdpr.body')}{' '}
+          <Link
+            to="/processing-register"
+            className="text-ink underline decoration-ink/30 underline-offset-2 hover:decoration-ink"
+          >
+            {t('nav.processingRegister')}
+          </Link>
+          .
+        </HelpText>
+      </HelpSection>
+
       <HelpText>
         {t('privacy.legalLink')}{' '}
         <Link
