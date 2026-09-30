@@ -64,6 +64,11 @@ export type SessionStoreState = {
    * this punch-in take against it. Null = idle.
    */
   contentSyncPickFromId: number | null
+  /**
+   * Until this epoch ms, Sync is offered in simple mode after a punch-in take.
+   * 0 = not offered (calage still shows Sync when relevant).
+   */
+  contentSyncSimpleOfferUntil: number
   /** Calage: pick a new reference track (click REF. then a target). */
   referencePickActive: boolean
   meterVisible: boolean
@@ -260,6 +265,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   mixClockText: '00:00.000',
   mixSeekRatio: 0,
   contentSyncPickFromId: null,
+  contentSyncSimpleOfferUntil: 0,
   referencePickActive: false,
   meterVisible: false,
   timerVisible: false,

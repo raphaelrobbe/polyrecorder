@@ -1,7 +1,5 @@
 import {
   downloadSelectedMix,
-  getMixPositionMs,
-  seekMixTo,
   setCutPlaybackRate,
   stopMixToStart,
   toggleMixPlayPause,
@@ -14,8 +12,6 @@ import { withShortcut } from '../lib/withShortcut'
 import { useSessionStore } from '../store/sessionStore'
 import { Button } from './Button'
 import { IconDownload, IconPause, IconPlay, IconStop } from './icons'
-
-const SEEK_STEP_MS = 10_000
 
 type MixTransportProps = {
   className?: string
@@ -47,16 +43,11 @@ export function MixTransport({ className }: MixTransportProps) {
     !cutMerging &&
     tracks.some((track) => enabled.has(track.id) && track.blob.size > 0)
   const playing = !isPausedOrIdle
-  const scrubDisabled = cutMerging
-
-  const nudgeSeek = (deltaMs: number) => {
-    void seekMixTo(getMixPositionMs() + deltaMs)
-  }
 
   return (
     <div
       className={cn(
-        'col-start-2 m-0 flex min-w-0 flex-col items-center gap-[0.35rem]',
+        'col-start-2 m-0 flex min-w-0 flex-col items-center gap-[0.3rem]',
         className,
       )}
     >
@@ -100,76 +91,48 @@ export function MixTransport({ className }: MixTransportProps) {
           onClick={() => void downloadSelectedMix()}
         />
       </div>
-      <div
-        className="flex items-center gap-[0.55rem] max-sm:gap-[0.4rem]"
-        role="group"
-        aria-label={t('mix.scrub.aria')}
-      >
-        <Button
-          type="button"
-          variant="utility"
-          className="px-[0.4rem] py-[0.22rem] text-[0.68rem] font-semibold tabular-nums tracking-[0.02em] text-ink/45 hover:text-ink-soft"
-          disabled={scrubDisabled}
-          title={t('mix.seek.back10.hint')}
-          aria-label={t('mix.seek.back10.aria')}
-          onClick={() => nudgeSeek(-SEEK_STEP_MS)}
+      {cutMode ? (
+        <div
+          className="flex items-center gap-[0.22rem]"
+          role="group"
+          aria-label={t('cut.rate.aria')}
         >
-          {t('mix.seek.back10')}
-        </Button>
-        {cutMode ? (
-          <div
-            className="flex items-center gap-[0.22rem]"
-            role="group"
-            aria-label={t('cut.rate.aria')}
+          <Button
+            type="button"
+            variant="trim"
+            className={cn(
+              'min-w-[2.35rem] border-ink/14 px-[0.35rem] py-[0.2rem] text-[0.68rem] font-semibold tabular-nums text-ink/55',
+              'hover:enabled:border-ink/22 hover:enabled:bg-ink/5 hover:enabled:text-ink-soft',
+              cutPlaybackRate === 0.25 &&
+                'border-mode-cut bg-mode-cut text-on-mode-cut hover:enabled:border-mode-cut hover:enabled:bg-mode-cut hover:enabled:text-on-mode-cut',
+            )}
+            disabled={cutMerging}
+            aria-pressed={cutPlaybackRate === 0.25}
+            title={t('cut.rate.quarter')}
+            aria-label={t('cut.rate.quarter')}
+            onClick={() => setCutPlaybackRate(0.25)}
           >
-            <Button
-              type="button"
-              variant="trim"
-              className={cn(
-                'min-w-[2.35rem] border-ink/14 px-[0.35rem] py-[0.2rem] text-[0.68rem] font-semibold tabular-nums text-ink/55',
-                'hover:enabled:border-ink/22 hover:enabled:bg-ink/5 hover:enabled:text-ink-soft',
-                cutPlaybackRate === 0.25 &&
-                  'border-mode-cut bg-mode-cut text-on-mode-cut hover:enabled:border-mode-cut hover:enabled:bg-mode-cut hover:enabled:text-on-mode-cut',
-              )}
-              disabled={scrubDisabled}
-              aria-pressed={cutPlaybackRate === 0.25}
-              title={t('cut.rate.quarter')}
-              aria-label={t('cut.rate.quarter')}
-              onClick={() => setCutPlaybackRate(0.25)}
-            >
-              ×0.25
-            </Button>
-            <Button
-              type="button"
-              variant="trim"
-              className={cn(
-                'min-w-[2.35rem] border-ink/14 px-[0.35rem] py-[0.2rem] text-[0.68rem] font-semibold tabular-nums text-ink/55',
-                'hover:enabled:border-ink/22 hover:enabled:bg-ink/5 hover:enabled:text-ink-soft',
-                cutPlaybackRate === 0.5 &&
-                  'border-mode-cut bg-mode-cut text-on-mode-cut hover:enabled:border-mode-cut hover:enabled:bg-mode-cut hover:enabled:text-on-mode-cut',
-              )}
-              disabled={scrubDisabled}
-              aria-pressed={cutPlaybackRate === 0.5}
-              title={t('cut.rate.half')}
-              aria-label={t('cut.rate.half')}
-              onClick={() => setCutPlaybackRate(0.5)}
-            >
-              ×0.5
-            </Button>
-          </div>
-        ) : null}
-        <Button
-          type="button"
-          variant="utility"
-          className="px-[0.4rem] py-[0.22rem] text-[0.68rem] font-semibold tabular-nums tracking-[0.02em] text-ink/45 hover:text-ink-soft"
-          disabled={scrubDisabled}
-          title={t('mix.seek.forward10.hint')}
-          aria-label={t('mix.seek.forward10.aria')}
-          onClick={() => nudgeSeek(SEEK_STEP_MS)}
-        >
-          {t('mix.seek.forward10')}
-        </Button>
-      </div>
+            ×0.25
+          </Button>
+          <Button
+            type="button"
+            variant="trim"
+            className={cn(
+              'min-w-[2.35rem] border-ink/14 px-[0.35rem] py-[0.2rem] text-[0.68rem] font-semibold tabular-nums text-ink/55',
+              'hover:enabled:border-ink/22 hover:enabled:bg-ink/5 hover:enabled:text-ink-soft',
+              cutPlaybackRate === 0.5 &&
+                'border-mode-cut bg-mode-cut text-on-mode-cut hover:enabled:border-mode-cut hover:enabled:bg-mode-cut hover:enabled:text-on-mode-cut',
+            )}
+            disabled={cutMerging}
+            aria-pressed={cutPlaybackRate === 0.5}
+            title={t('cut.rate.half')}
+            aria-label={t('cut.rate.half')}
+            onClick={() => setCutPlaybackRate(0.5)}
+          >
+            ×0.5
+          </Button>
+        </div>
+      ) : null}
     </div>
   )
 }

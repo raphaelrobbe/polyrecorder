@@ -6,6 +6,7 @@ import {
   cancelReferencePick,
   deleteAllTracks,
   dismissMixClipWarning,
+  getMixPositionMs,
   realignAllTracks,
   reorderTrack,
   seekMixTo,
@@ -51,6 +52,7 @@ export function TracksList({ className }: TracksListProps) {
   const enabledTrackIds = useSessionStore((s) => s.enabledTrackIds)
   const mixClockText = useSessionStore((s) => s.mixClockText)
   const mixSeekMs = useSessionStore((s) => s.mixSeekMs)
+  const cutMerging = useSessionStore((s) => s.cutMerging)
   const contentSyncPickFromId = useSessionStore((s) => s.contentSyncPickFromId)
   const referencePickActive = useSessionStore((s) => s.referencePickActive)
   const setSeekDragActive = useSessionStore((s) => s.setSeekDragActive)
@@ -93,6 +95,9 @@ export function TracksList({ className }: TracksListProps) {
   const compactTrackChrome = calageMode || mixMode || cutEditing
 
   const duration = getMixDurationMs(tracks)
+  const seekStepSeconds =
+    duration < 10_000 ? 0 : duration <= 30_000 ? 5 : 10
+  const seekStepMs = seekStepSeconds * 1000
   const seekPosition = mixSeekMs
   const clamped = duration > 0 ? Math.min(seekPosition, duration) : 0
   const ratio = duration > 0 ? clamped / duration : 0
@@ -194,46 +199,80 @@ export function TracksList({ className }: TracksListProps) {
           {mixClockText}
         </p>
         <div
-          className="relative mb-[0.85rem] h-[0.55rem] cursor-pointer touch-none rounded-full bg-ink/10 after:pointer-events-none after:absolute after:top-1/2 after:left-[var(--seek-thumb,0%)] after:h-[0.7rem] after:w-[0.7rem] after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-full after:border-2 after:border-paper after:bg-ink after:opacity-0 after:shadow-[0_1px_3px_color-mix(in_srgb,var(--ink)_20%,transparent)] after:content-[''] hover:after:opacity-100 focus-visible:after:opacity-100"
-          data-mix-seek
-          role="slider"
-          tabIndex={0}
+          className="mb-[0.85rem] flex items-center gap-[0.35rem] max-sm:gap-[0.25rem]"
+          role="group"
           aria-label={t('mix.seekAria')}
-          aria-valuemin={0}
-          aria-valuenow={Math.round(clamped)}
-          aria-valuemax={Math.round(duration)}
-          ref={seekRef}
-          style={{ ['--seek-thumb' as string]: pct }}
-          onPointerDown={(event) => {
-            if (state === 'recording') return
-            event.preventDefault()
-            setSeekDragActive(true)
-            const next = seekRatioFromPointer(event.clientX) * duration
-            previewSeek(next)
-            event.currentTarget.setPointerCapture(event.pointerId)
-          }}
-          onPointerMove={(event) => {
-            if (!useSessionStore.getState().seekDragActive) return
-            const next = seekRatioFromPointer(event.clientX) * duration
-            previewSeek(next)
-          }}
-          onPointerUp={(event) => {
-            if (!useSessionStore.getState().seekDragActive) return
-            setSeekDragActive(false)
-            try {
-              event.currentTarget.releasePointerCapture(event.pointerId)
-            } catch {
-              // ignore
-            }
-            void seekMixTo(useSessionStore.getState().mixSeekMs)
-          }}
-          onPointerCancel={() => setSeekDragActive(false)}
         >
+          {seekStepSeconds > 0 ? (
+            <Button
+              type="button"
+              variant="utility"
+              className="shrink-0 px-[0.3rem] py-[0.18rem] text-[0.66rem] font-semibold tabular-nums tracking-[0.02em] text-ink/45 hover:text-ink-soft"
+              disabled={state === 'recording' || cutMerging}
+              title={t('mix.seek.back.hint', { seconds: seekStepSeconds })}
+              aria-label={t('mix.seek.back.aria', { seconds: seekStepSeconds })}
+              onClick={() => void seekMixTo(getMixPositionMs() - seekStepMs)}
+            >
+              {t('mix.seek.back', { seconds: seekStepSeconds })}
+            </Button>
+          ) : null}
           <div
-            className="pointer-events-none absolute inset-y-0 left-0 w-0 rounded-[inherit] bg-ink"
-            data-mix-seek-fill
-            style={{ width: pct }}
-          />
+            className="relative min-w-0 flex-1 h-[0.55rem] cursor-pointer touch-none rounded-full bg-ink/10 after:pointer-events-none after:absolute after:top-1/2 after:left-[var(--seek-thumb,0%)] after:h-[0.7rem] after:w-[0.7rem] after:-translate-x-1/2 after:-translate-y-1/2 after:rounded-full after:border-2 after:border-paper after:bg-ink after:opacity-0 after:shadow-[0_1px_3px_color-mix(in_srgb,var(--ink)_20%,transparent)] after:content-[''] hover:after:opacity-100 focus-visible:after:opacity-100"
+            data-mix-seek
+            role="slider"
+            tabIndex={0}
+            aria-label={t('mix.seekAria')}
+            aria-valuemin={0}
+            aria-valuenow={Math.round(clamped)}
+            aria-valuemax={Math.round(duration)}
+            ref={seekRef}
+            style={{ ['--seek-thumb' as string]: pct }}
+            onPointerDown={(event) => {
+              if (state === 'recording') return
+              event.preventDefault()
+              setSeekDragActive(true)
+              const next = seekRatioFromPointer(event.clientX) * duration
+              previewSeek(next)
+              event.currentTarget.setPointerCapture(event.pointerId)
+            }}
+            onPointerMove={(event) => {
+              if (!useSessionStore.getState().seekDragActive) return
+              const next = seekRatioFromPointer(event.clientX) * duration
+              previewSeek(next)
+            }}
+            onPointerUp={(event) => {
+              if (!useSessionStore.getState().seekDragActive) return
+              setSeekDragActive(false)
+              try {
+                event.currentTarget.releasePointerCapture(event.pointerId)
+              } catch {
+                // ignore
+              }
+              void seekMixTo(useSessionStore.getState().mixSeekMs)
+            }}
+            onPointerCancel={() => setSeekDragActive(false)}
+          >
+            <div
+              className="pointer-events-none absolute inset-y-0 left-0 w-0 rounded-[inherit] bg-ink"
+              data-mix-seek-fill
+              style={{ width: pct }}
+            />
+          </div>
+          {seekStepSeconds > 0 ? (
+            <Button
+              type="button"
+              variant="utility"
+              className="shrink-0 px-[0.3rem] py-[0.18rem] text-[0.66rem] font-semibold tabular-nums tracking-[0.02em] text-ink/45 hover:text-ink-soft"
+              disabled={state === 'recording' || cutMerging}
+              title={t('mix.seek.forward.hint', { seconds: seekStepSeconds })}
+              aria-label={t('mix.seek.forward.aria', {
+                seconds: seekStepSeconds,
+              })}
+              onClick={() => void seekMixTo(getMixPositionMs() + seekStepMs)}
+            >
+              {t('mix.seek.forward', { seconds: seekStepSeconds })}
+            </Button>
+          ) : null}
         </div>
         {calageMode && alignable.length > 0 ? (
           <p

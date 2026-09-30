@@ -105,6 +105,9 @@ export function TrackRow({
   const autoAlignEnabled = useSessionStore((s) => s.autoAlignEnabled)
   const metronomeBpm = useSessionStore((s) => s.metronomeBpm)
   const contentSyncPickFromId = useSessionStore((s) => s.contentSyncPickFromId)
+  const contentSyncSimpleOfferUntil = useSessionStore(
+    (s) => s.contentSyncSimpleOfferUntil,
+  )
   const referencePickActive = useSessionStore((s) => s.referencePickActive)
   const mixSeekMs = useSessionStore((s) => s.mixSeekMs)
   const setSeekDragActive = useSessionStore((s) => s.setSeekDragActive)
@@ -125,7 +128,7 @@ export function TrackRow({
   const cutEditing = cutMode && cutPhase === 'edit'
   const contentSyncPickActive = contentSyncPickFromId != null
   const pickActive = contentSyncPickActive || referencePickActive
-  const hideDelete = calageMode || mixMode || cutEditing || pickActive
+  const hideDelete = calageMode || mixMode || pickActive
   const showDragHandle =
     !calageMode && !mixMode && !cutEditing && !pickActive
   const uploaderHandle = formatPseudoHandle(track.uploadedByPseudo)
@@ -338,8 +341,13 @@ export function TrackRow({
       track.cloudStatus === 'error' ||
       track.cloudStatus == null)
   const cloudUploading = track.cloudStatus === 'uploading'
-  const showDelete = !hideDelete
-  const deleteDisabled = isReference && autoAlignEnabled && !track.isMetronome
+  const showDelete = !hideDelete && !cutEditing
+  const showCutTitleDelete = cutEditing
+  const deleteDisabled =
+    isReference &&
+    autoAlignEnabled &&
+    !track.isMetronome &&
+    tracks.filter((t) => !t.isMetronome).length > 1
   const deleteTitle = deleteDisabled
     ? t('tracks.delete.referenceLocked')
     : t('common.delete')
@@ -354,6 +362,17 @@ export function TrackRow({
   const isReferencePickTarget = referencePickActive && !isReference
   const isPickSource = isContentSyncSource || isReferencePickSource
   const isPickTarget = isContentSyncTarget || isReferencePickTarget
+  const simpleContentSyncOffer =
+    contentSyncSimpleOfferUntil > 0 &&
+    contentSyncSimpleOfferUntil > Date.now()
+  const showContentSyncButton =
+    offersContentSync &&
+    !cutEditing &&
+    (!pickActive || isContentSyncSource) &&
+    (calageMode ||
+      mixMode ||
+      simpleContentSyncOffer ||
+      isContentSyncSource)
   const showOffsetCol = calageMode && !pickActive
   const showRefAlignCol = showOffsetCol && autoAlignEnabled
   const contentSyncFromName =
@@ -378,6 +397,15 @@ export function TrackRow({
   const mergeProgressPct = Math.round(
     Math.max(0, Math.min(1, cutMergeProgress)) * 100,
   )
+  const deleteBusy = cutMerging || isMergePending
+  const onDeleteTrack = () => {
+    if (deleteDisabled || deleteBusy) return
+    const ok = window.confirm(
+      t('tracks.delete.confirm', { name: track.name }),
+    )
+    if (!ok) return
+    deleteTrack(track.id)
+  }
 
   const [nameDraft, setNameDraft] = useState(track.name)
   const [bpmDraft, setBpmDraft] = useState(
@@ -554,7 +582,7 @@ export function TrackRow({
           'row-start-1 flex w-full min-w-0 items-center gap-[0.35rem] rounded-[14px] border box-border py-[0.28rem] pr-[0.4rem] pl-[0.5rem]',
           showDragHandle ? 'col-start-3' : 'col-start-2',
           'max-sm:gap-[0.2rem] max-sm:rounded-[12px] max-sm:py-[0.22rem] max-sm:pr-[0.28rem] max-sm:pl-[0.32rem]',
-          (calageMode || mixMode || cutEditing || showUploader) &&
+          (calageMode || mixMode || cutEditing || showUploader || Boolean(spanRange)) &&
             !pickActive &&
             'items-start',
           !isEnabled && !cutMode && !pickActive && 'opacity-55',
@@ -581,7 +609,12 @@ export function TrackRow({
         <div
           className={cn(
             'flex min-w-0 flex-auto items-center gap-[0.4rem]',
-            (calageMode || mixMode || cutEditing || showUploader) &&
+            (calageMode ||
+              mixMode ||
+              cutEditing ||
+              showUploader ||
+              Boolean(spanRange) ||
+              isMergePending) &&
               'flex-col items-stretch gap-[0.15rem]',
           )}
         >
@@ -589,7 +622,13 @@ export function TrackRow({
             className={cn(
               'flex min-w-0 items-center gap-[0.4rem]',
               calageMode && 'w-full flex-col items-stretch gap-[0.12rem]',
-              (mixMode || cutEditing || showUploader) && !calageMode && 'w-full',
+              (mixMode ||
+                cutEditing ||
+                showUploader ||
+                Boolean(spanRange) ||
+                isMergePending) &&
+                !calageMode &&
+                'w-full',
             )}
           >
             <div
@@ -599,7 +638,7 @@ export function TrackRow({
               )}
             >
               {track.isMetronome ? (
-                <div className="inline-flex min-w-0 items-baseline gap-[0.35rem] py-[0.1rem]">
+                <div className="inline-flex min-w-0 w-full items-baseline gap-[0.35rem] py-[0.1rem]">
                   <span className="shrink-0 text-[0.82rem] font-bold text-ink">
                     {t('track.metronome.label')}
                   </span>
@@ -634,9 +673,21 @@ export function TrackRow({
                       onBlur={applyMetronomeBpm}
                     />
                   )}
+                  {showCutTitleDelete ? (
+                    <Button
+                      variant="trash"
+                      className="ml-auto h-[1.3rem] w-[1.3rem] shrink-0 rounded-md border-ink/16 text-ink/45 [&_svg]:size-[0.68rem] max-sm:h-[1.2rem] max-sm:w-[1.2rem] max-sm:[&_svg]:size-[0.62rem]"
+                      icon={<IconTrash />}
+                      disabled={deleteDisabled || deleteBusy}
+                      aria-label={t('tracks.delete', { name: track.name })}
+                      title={deleteTitle}
+                      data-delete-track={track.id}
+                      onClick={onDeleteTrack}
+                    />
+                  ) : null}
                 </div>
               ) : (
-                <div className="flex min-w-0 items-center gap-[0.35rem]">
+                <div className="flex min-w-0 w-full items-center gap-[0.35rem]">
                   <TrackNameInput
                     isDefault={isDefaultTrackName(nameDraft)}
                     data-rename-track={track.id}
@@ -685,9 +736,7 @@ export function TrackRow({
                       renameTrack(track.id, next)
                     }}
                   />
-                  {offersContentSync &&
-                  !cutEditing &&
-                  (!pickActive || isContentSyncSource) ? (
+                  {showContentSyncButton ? (
                     <Button
                       type="button"
                       variant="trim"
@@ -709,6 +758,18 @@ export function TrackRow({
                     >
                       {t('tracks.contentSync')}
                     </Button>
+                  ) : null}
+                  {showCutTitleDelete ? (
+                    <Button
+                      variant="trash"
+                      className="h-[1.3rem] w-[1.3rem] shrink-0 rounded-md border-ink/16 text-ink/45 [&_svg]:size-[0.68rem] max-sm:h-[1.2rem] max-sm:w-[1.2rem] max-sm:[&_svg]:size-[0.62rem]"
+                      icon={<IconTrash />}
+                      disabled={deleteDisabled || deleteBusy}
+                      aria-label={t('tracks.delete', { name: track.name })}
+                      title={deleteTitle}
+                      data-delete-track={track.id}
+                      onClick={onDeleteTrack}
+                    />
                   ) : null}
                 </div>
               )}
@@ -964,7 +1025,7 @@ export function TrackRow({
           />
         ) : null}
         {chipRail && !pickActive ? (
-          <div className="ml-[0.12rem] flex shrink-0 items-center gap-[0.2rem] self-center max-sm:ml-[0.06rem]">
+          <div className="ml-[0.12rem] flex shrink-0 items-center gap-[0.2rem] self-start max-sm:ml-[0.06rem]">
             {simpleDupChipColumn ? (
               <div className={chipSlotClass}>{dupChipButton}</div>
             ) : null}
@@ -979,19 +1040,13 @@ export function TrackRow({
         {showDelete ? (
           <Button
             variant="trash"
-            className="ml-[0.15rem] h-[1.65rem] w-[1.65rem] shrink-0 rounded-lg border-ink/18 text-ink/55 [&_svg]:size-[0.82rem] max-sm:ml-[0.08rem] max-sm:h-[1.45rem] max-sm:w-[1.45rem] max-sm:[&_svg]:size-[0.72rem]"
+            className="ml-[0.15rem] h-[1.65rem] w-[1.65rem] shrink-0 self-start rounded-lg border-ink/18 text-ink/55 [&_svg]:size-[0.82rem] max-sm:ml-[0.08rem] max-sm:h-[1.45rem] max-sm:w-[1.45rem] max-sm:[&_svg]:size-[0.72rem]"
             icon={<IconTrash />}
-            disabled={deleteDisabled}
+            disabled={deleteDisabled || deleteBusy}
             aria-label={t('tracks.delete', { name: track.name })}
             title={deleteTitle}
-            onClick={() => {
-              if (deleteDisabled) return
-              const ok = window.confirm(
-                t('tracks.delete.confirm', { name: track.name }),
-              )
-              if (!ok) return
-              deleteTrack(track.id)
-            }}
+            data-delete-track={track.id}
+            onClick={onDeleteTrack}
           />
         ) : null}
       </div>

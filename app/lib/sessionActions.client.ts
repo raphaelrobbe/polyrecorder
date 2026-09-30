@@ -138,6 +138,9 @@ let pendingTakePunchIn = false
 let pendingTakeRestartMs = 0
 /** Mix position above this → punch-in / show content Sync. */
 const PUNCH_IN_POSITION_MS = 50
+/** How long Sync stays visible in simple mode after a punch-in take. */
+const CONTENT_SYNC_SIMPLE_OFFER_MS = 10_000
+let contentSyncSimpleOfferTimer: ReturnType<typeof setTimeout> | null = null
 let mixEpochPerf: number | null = null
 let mixTimelineStartCtx: number | null = null
 let guestDraftSaveTimer: ReturnType<typeof setTimeout> | null = null
@@ -685,7 +688,7 @@ export function updateSessionTimerDisplay() {
   }
   patch({ recordingTimerVisible: true })
   if (state === 'recording' || timerId !== null) return
-  patch({ timerText: formatTime(getMaxTrackDurationMs(tracks)) })
+  patch({ timerText: formatTime(getMixDurationMs(tracks)) })
 }
 
 function applyReferencePeaksLabel(reference: Track, peaks: number[]) {
@@ -894,7 +897,6 @@ export function setCutPlaybackRate(rate: 0.5 | 0.25 | 1) {
   const audioContext = getAudioContext()
   const hasSources =
     getPlaybackSources().length > 0 || get().playingTrackIds.length > 0
-  const activelyPlaying = hasSources && !get().mixPaused
   let positionMs = get().mixSeekMs
   if (audioContext && mixTimelineStartCtx !== null) {
     positionMs = getMixPositionMs()
@@ -902,15 +904,36 @@ export function setCutPlaybackRate(rate: 0.5 | 0.25 | 1) {
 
   patch({ cutPlaybackRate: next })
 
-  if (activelyPlaying) {
-    void seekMixTo(positionMs)
+  // Rebuild the graph whenever sources exist (playing or paused): buffer
+  // rates / SoundTouch must match the new tempo. seekMixTo alone skips
+  // restart while paused in cut mode.
+  if (hasSources) {
+    const wasPaused = Boolean(get().mixPaused)
+    void (async () => {
+      try {
+        await playTracks(get().tracks, {
+          awaitEnd: true,
+          asMix: true,
+          applyOffsets: true,
+          startAtMs: positionMs,
+        })
+        if (wasPaused) {
+          const ctx = getAudioContext()
+          if (ctx) {
+            await ctx.suspend()
+            setMixPausedBoth(true)
+            tickClockDisplays()
+          }
+        }
+      } catch (error) {
+        setError(
+          error instanceof Error ? error.message : t('error.playbackFailed'),
+        )
+      }
+    })()
     return
   }
 
-  if (hasSources && audioContext && mixTimelineStartCtx !== null) {
-    mixTimelineStartCtx =
-      audioContext.currentTime - positionMs / (1000 * Math.max(0.05, next))
-  }
   tickClockDisplays()
 }
 
@@ -2095,6 +2118,30 @@ export function trackOffersContentSync(track: Track): boolean {
   return track.offsetMs > PUNCH_IN_POSITION_MS
 }
 
+function armSimpleContentSyncOffer() {
+  if (contentSyncSimpleOfferTimer) {
+    clearTimeout(contentSyncSimpleOfferTimer)
+    contentSyncSimpleOfferTimer = null
+  }
+  const until = Date.now() + CONTENT_SYNC_SIMPLE_OFFER_MS
+  patch({ contentSyncSimpleOfferUntil: until })
+  contentSyncSimpleOfferTimer = setTimeout(() => {
+    contentSyncSimpleOfferTimer = null
+    if (get().contentSyncSimpleOfferUntil !== until) return
+    patch({ contentSyncSimpleOfferUntil: 0 })
+  }, CONTENT_SYNC_SIMPLE_OFFER_MS)
+}
+
+function clearSimpleContentSyncOffer() {
+  if (contentSyncSimpleOfferTimer) {
+    clearTimeout(contentSyncSimpleOfferTimer)
+    contentSyncSimpleOfferTimer = null
+  }
+  if (get().contentSyncSimpleOfferUntil !== 0) {
+    patch({ contentSyncSimpleOfferUntil: 0 })
+  }
+}
+
 export function beginContentSyncPick(trackId: number) {
   const track = get().tracks.find((t) => t.id === trackId)
   if (!track || !trackOffersContentSync(track)) return
@@ -2590,19 +2637,22 @@ export async function playTracks(
     })),
   )
 
-  const timelineStart = ctx.currentTime + MIX_LOOKAHEAD_S
   const playbackRate =
     get().cutMode ? Math.max(0.05, get().cutPlaybackRate || 1) : 1
+
+  const gain = ctx.createGain()
+  gain.gain.value = clampMasterVolume(get().masterVolume)
+  setPlaybackGain(gain)
+  // Await worklet load BEFORE choosing timelineStart — otherwise a slow
+  // SoundTouch register pushes schedule times into the past and play is silent.
+  await connectPlaybackBus(ctx, gain, ctx.destination, playbackRate)
+
+  const timelineStart = ctx.currentTime + MIX_LOOKAHEAD_S
   mixEpochPerf =
     performance.now() + MIX_LOOKAHEAD_S * 1000 - startAtMs / playbackRate
   mixTimelineStartCtx = timelineStart - startAtMs / (1000 * playbackRate)
   setMixPausedBoth(false)
   trackPlayheads.clear()
-
-  const gain = ctx.createGain()
-  gain.gain.value = clampMasterVolume(get().masterVolume)
-  setPlaybackGain(gain)
-  await connectPlaybackBus(ctx, gain, ctx.destination, playbackRate)
 
   const bufferSources: AudioBufferSourceNode[] = []
   const allSources: AudioScheduledSourceNode[] = []
@@ -2994,7 +3044,15 @@ export async function finalizeCurrentTake(): Promise<Track> {
     throw new Error(t('error.noAudioData'))
   }
 
-  return appendTrackFromBlob(blob, { durationMs, offsetMs, punchIn })
+  const track = await appendTrackFromBlob(blob, {
+    durationMs,
+    offsetMs,
+    punchIn,
+  })
+  if (punchIn || offsetMs > PUNCH_IN_POSITION_MS) {
+    armSimpleContentSyncOffer()
+  }
+  return track
 }
 
 /** Shared path: mic take or imported file → session track + cloud hook. */
@@ -3834,6 +3892,7 @@ export function deleteAllTracks() {
   trackGains.clear()
   trackPlayheads.clear()
   clearTrackPeakCache()
+  clearSimpleContentSyncOffer()
   patch({
     tracks: [],
     enabledTrackIds: [],
@@ -3857,6 +3916,7 @@ export function deleteAllTracks() {
     cutWorkSegments: {},
     mixSeekMs: 0,
     mixClockText: '00:00.000',
+    contentSyncPickFromId: null,
     guestSignInPrompt: false,
   })
   clearRefPeaks()
