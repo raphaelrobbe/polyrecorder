@@ -504,7 +504,7 @@ export const fr = {
   'cut.merge.progress': 'Fusion en cours…',
   'cut.merge.disabledEmpty': 'Sélectionnez au moins un morceau',
   'cut.merge.disabledOverlap':
-    'Impossible : les morceaux sélectionnés se chevauchent sur la timeline',
+    'Impossible : les morceaux sélectionnés se chevauchent sur la ligne de temps',
   'cut.merge.trackName': 'Fusion · {names}',
   'cut.merge.trackNameFallback': 'Fusion',
   'cut.track.select': 'Inclure cette piste dans le découpage',
@@ -622,11 +622,11 @@ export const fr = {
     'Battue 1-2-3-4 non détectée sur « {name} » ({count}/4 attaques).',
   'warn.beat.error': "Impossible d'analyser la battue de « {name} ».",
 
-  'howto.title': "Mode d'emploi du calage automatique par battue",
+  'howto.title': "Mode d'emploi",
   'howto.metro.off': 'Sans métronome',
   'howto.metro.on': 'Avec métronome',
   'howto.metro.add':
-    'Ajoute d’abord le métronome avec le bouton « Métronome » sous le deck (à côté de Piano). Il devient la piste de référence (1-2-3-4 synthétique) : sur chaque voix, tu marques seulement les 3ème et 4ème battements à haute voix.',
+    'Ajoute d’abord le métronome avec le bouton « Métronome » sous l’enregistreur (à côté de Piano). Il devient la piste de référence (1-2-3-4 synthétique) : sur chaque voix, tu marques seulement les 3ème et 4ème battements à haute voix.',
   'howto.step1': 'cliquer sur le micro arc-en-ciel pour enregistrer',
   'howto.step2':
     'à haute voix et de manière régulière, dire 1-2-3-4 (ou quoi que ce soit d’audible en 4 temps) puis chanter la première voix',
@@ -642,15 +642,11 @@ export const fr = {
   'howto.step6':
     'cliquer sur le bouton Stop arc-en-ciel à la fin de la dernière voix',
   'howto.tips':
-    'Conseils : enregistrez-vous dans un environnement silencieux, si possible avec un casque ou une oreillette, surtout sur mobile\u00a0!',
+    'Conseil : enregistrez-vous dans un environnement silencieux, si possible avec un casque ou une oreillette, surtout sur mobile\u00a0!',
   'howto.whyNeeded': 'Pourquoi est-ce nécessaire',
   'howto.whyNeeded.about': 'Pourquoi le calage automatique par battue est nécessaire',
   'howto.latency':
-    'Les navigateurs et le matériel audio introduisent une latence (casque, micro, buffer). Sans repères communs, les prises se décalent. Les quatre marquages de la piste de référence et les «\u00a03-4\u00a0» des pistes suivantes permettent à polyrecorder de mesurer et corriger ce décalage automatiquement. Des sons nets, espacés et réguliers donnent un meilleur calage ; une battue irrégulière ou peu audible peut fausser la synchronisation.',
-  'howto.latency.manual':
-    'Si le calage automatique est désactivé, vous pouvez tout à fait caler manuellement en cliquant sur le bouton «\u00a0Calage\u00a0».',
-  'howto.autoAlign':
-    'Ce mode avec battue 1-2-3-4 est adapté à un enregistrement de polyphonie. Si vous importez des fichiers audio (MP3, etc.) ou n’utilisez pas de marquages, vous pouvez désactiver le calage automatique dans les paramètres.',
+    'Les navigateurs et le matériel audio introduisent une latence (casque, micro, buffer). Sans repères communs, les prises se décalent. Les quatre marquages de la piste de référence et les «\u00a03-4\u00a0» des pistes suivantes permettent à polyrecorder de mesurer et corriger ce décalage automatiquement.',
 
   'help.title': 'Aide',
   'help.close': "Fermer l'aide",
@@ -660,105 +656,159 @@ export const fr = {
   'help.toc.aria': 'Sommaire de l’aide',
   'help.toc.start': 'Démarrage',
   'help.toc.guest': 'Invité et compte',
-  'help.toc.modes': 'Modes',
   'help.toc.metronome': 'Métronome',
   'help.toc.piano': 'Piano',
-  'help.toc.record': 'Enregistrement',
-  'help.toc.sync': 'Synchronisation',
-  'help.toc.mix': 'Mix et export',
-  'help.toc.import': 'Import',
+  'help.toc.record': 'Commandes générales',
+  'help.toc.sync': 'Mode Calage',
+  'help.toc.cut': 'Mode Découpage',
+  'help.toc.mix': 'Mode Mixage',
   'help.toc.library': 'Bibliothèque',
   'help.toc.share': 'Partage',
   'help.toc.account': 'Compte',
-  'help.toc.devices': 'Appareils',
+  'help.toc.devices': 'Réglages',
   'help.toc.shortcuts': 'Raccourcis',
   'help.toc.faq': 'FAQ',
 
   'help.start.title': 'Démarrage rapide',
   'help.start.body1':
-    'Tu peux enregistrer tout de suite en invité, sans compte. Un casque est fortement recommandé pour éviter que le micro reprenne les haut-parleurs.',
+    'Tu peux commencer tout de suite, sans créer de compte. Mets un casque : sinon le micro risque de réenregistrer le son des enceintes.',
   'help.start.body2':
-    'Pour caler plusieurs voix : 1-2-3-4 sur la première piste, puis 3-4 sur les suivantes. Le détail est dans la section Synchronisation ci-dessous.',
+    'Pour superposer plusieurs voix bien en rythme : sur la 1ʳᵉ piste, dis clairement « 1-2-3-4 » avant de chanter ; sur les suivantes, dis seulement « 3-4 ». Voir Synchronisation plus bas.',
   'help.start.howtoLink': 'Voir le mode d’emploi du calage',
 
   'help.guest.title': 'Invité et connexion',
   'help.guest.body1':
-    'En invité, tes prises restent sur cet appareil (brouillon local). Après un enregistrement, une invite te propose de te connecter pour ne pas les perdre et pouvoir les partager.',
+    'Sans compte, tes enregistrements ne sont pas sauvegardés. Après une prise, on te propose de te connecter pour les garder et les partager.',
   'help.guest.body2':
-    'La connexion se fait par un lien magique envoyé par email (pas de mot de passe). Ouvre le lien dans le même navigateur : le brouillon est rechargé, puis les pistes sont sauvegardées sur ton compte comme si tu venais de finir d’enregistrer.',
+    'Tu te connectes avec un lien reçu par email (pas de mot de passe). Ouvre-le dans le même navigateur : tes prises locales sont reprises, puis enregistrées sur ton compte.',
   'help.guest.body3':
-    'Si tu changes d’appareil ou de navigateur avant de te connecter, le brouillon local n’est plus disponible.',
-
-  'help.modes.title': 'Modes Simple, Mixage, Calage et Découpage',
-  'help.modes.body1':
-    'Le sélecteur à droite, entre les decks, propose quatre modes. Simple : enregistrer et écouter. Mixage : volumes par piste, volume maître, mise en avant et export MP3. Calage : décalages manuels, calage auto et avertissements. Découpage : scinder au curseur de lecture, muter des morceaux (sans réécrire le fichier) ou les fusionner en une nouvelle piste (trous = silence). À gauche de cette ligne, le bouton Piano ouvre un clavier d’aide au ton.',
-  'help.modes.body2':
-    'En Découpage, le mute est local pour tout le monde et ne se sauvegarde en cloud que si tu es propriétaire de la piste. La fusion crée une piste à ton nom (upload cloud si tu es propriétaire ou collaborateur). La préférence de calage automatique se règle aussi sur le deck (et dans les préférences) : elle s’applique à la session en cours.',
+    'Si tu changes d’appareil ou de navigateur avant de te connecter, tu ne retrouveras pas ces prises.',
 
   'help.metronome.title': 'Métronome',
   'help.metronome.body1':
-    'Tu peux ajouter une piste métronome (lien « Ajouter un métronome » sous le deck). Elle devient la référence de calage : les prises se synchronisent via 3-4 contre son 1-2-3-4 synthétique. Le tempo (BPM) se règle sur la piste et est mémorisé avec la session (cloud ou brouillon invité).',
-  'help.metronome.body2':
-    'Ce n’est pas un fichier audio uploadé : seuls le BPM et la piste virtuelle restent en session. Tu peux l’écouter en monitoring pendant une prise ; en mode Calage, son timer et sa durée sont masqués.',
+    'Sous l’enregistreur, tu peux ajouter un métronome. Il sert de repère de rythme : sur chaque voix, dis « 3-4 » en même temps que le 3ème et le 4ème temps pour te caler dessus. Privilégie le casque pour enregistrer avec métronome (recommandé aussi sans métronome !).',
 
   'help.piano.title': 'Piano',
   'help.piano.body1':
-    'Le bouton Piano (à gauche des modes Simple / Mixage / Calage / Découpage) affiche un clavier de deux octaves. Appuie sur les touches pour entendre les notes et te donner le ton avant d’enregistrer ou même pendant l’enregistrement.',
-  'help.piano.body2':
-    'Idéal avec un casque : tu entends la note, mais elle n’est pas audible dans l’enregistrement — le son reste dans le navigateur et n’est pas capté par le micro.',
+    'Le bouton Piano sous l’enregistreur ouvre un petit clavier pour te donner le ton. Le casque permettra de pouvoir jouer une note discrètement même pendant que tu enregistres !',
 
-  'help.record.title': 'Enregistrement',
-  'help.record.body1':
-    'Enregistre pour démarrer, Piste suivante pour enchaîner une prise (les autres pistes jouent en monitoring), Stop pour terminer, et l’icône d’annulation pour jeter la prise en cours. En cours de lecture (ou en pause au milieu), Enregistrer lance un punch-in : la nouvelle piste démarre à la position courante. Pour une prise depuis le début, utilise Stop (retour à 0) puis Enregistrer. Sur une piste punch-in, Sync affine le calage en choisissant une autre piste à corréler.',
+  'help.record.title': 'Commandes générales',
+  'help.record.action.import':
+    'importe un fichier audio (glisser-déposer sur l’enregistreur fonctionne aussi). Formats courants : MP3, WAV, OGG, M4A, etc.',
+  'help.record.action.record':
+    'démarre une prise (à l’endroit du curseur).',
+  'help.record.action.next':
+    'enregistre la piste en cours et en commence une nouvelle pendant que tu réentends les précédentes.',
+  'help.record.action.stopCapture':
+    'termine l’enregistrement et enregistre la piste (sauf si elle dure moins d’une seconde).',
+  'help.record.action.discard':
+    'annule la prise en cours et recommence illico.',
+  'help.record.action.stopPlay':
+    'arrête la lecture et remet au début.',
+  'help.record.action.export':
+    'exporte un fichier MP3 conforme à ce que tu entends quand tu écoutes ta session active. Le nom de la chanson, de la session (en mode connecté) et des pistes (si elles ne sont pas toutes sélectionnées) se retrouvent dans le nom du fichier téléchargé.',
+  'help.record.mode.simple': 'enregistrer et écouter',
+  'help.record.mode.mix': 'régler les volumes',
+  'help.record.mode.align': 'synchroniser les pistes',
+  'help.record.mode.cut':
+    'couper le son d’un passage ou assembler des morceaux',
+  'help.record.tool.piano': 'affiche un petit clavier pour te donner le ton',
+  'help.record.tool.metronome': 'ajoute une piste métronome',
   'help.record.body2':
-    'Le nom du projet se modifie en haut (titre){f2}. Le nom de chaque piste se modifie en cliquant dessus. Ces noms servent aussi au fichier MP3 exporté.',
+    'Le titre du projet se change en haut{f2}. Le nom d’une piste se change en cliquant dessus. Ces noms apparaissent aussi sur le fichier MP3 téléchargé.',
   'help.record.f2': ' — raccourci F2',
 
   'help.sync.title': 'Synchronisation',
-  'help.sync.body1':
-    'Pour caler les pistes entre elles, la première (référence) doit commencer par quatre marquages nets et réguliers (1-2-3-4, ou tout signal audible en 4 temps). Les pistes suivantes ne reprennent que les 3ème et 4ème temps, puis la voix. polyrecorder s’en sert pour mesurer et corriger automatiquement le décalage dû à la latence audio. Une piste métronome peut aussi servir de référence : dans ce cas, marque seulement 3-4 sur tes prises.',
-  'help.sync.body2':
-    'Des bruits parasites peuvent empêcher la reconnaissance du 1-2-3-4. Dans ce cas, mieux vaut recommencer l’enregistrement de zéro pour repartir sur une bonne piste de référence : sinon tout devra être calé à la main. Idem pour le 3-4 des pistes suivantes : un marquage peu clair ou noyé dans le bruit fausse le calage auto de cette prise.',
-  'help.sync.body3':
-    'En mode Calage, le badge « réf. » désigne la piste de référence. Clique dessus pour en choisir une autre (même sélection visuelle que Sync) : utile si la première prise est mauvaise, ou pour basculer vers le métronome. Tu peux aussi ajuster les offsets à la main (± ms) ou relancer le calage auto sur une piste.',
-  'help.sync.body4':
-    'Punch-in : pendant la lecture (ou en pause mid-mix), Enregistrer crée une piste qui démarre à la position courante. Le bouton sync sur cette piste affine ensuite le calage en corrélant le contenu avec une autre piste que tu choisis. Stop sur le transport remet le curseur à 0 pour une prise classique depuis le début.',
+  'help.sync.autoAlign.title': 'Calage automatique par battue',
+  'help.sync.autoAlign.body1':
+    'Ce mode permet de corriger les problèmes de synchronisation entre pistes à l’enregistrement.',
+  'help.sync.autoAlign.body2':
+    'Si tu utilises ce mode (activé par défaut), la première piste (référence) doit commencer par quatre marquages nets et réguliers (dire « 1-2-3-4 », ou tout son net en 4 temps).',
+  'help.sync.autoAlign.body3':
+    'Sur les suivantes, dis seulement « 3-4 » (ou des sons nets) puis chante.',
+  'help.sync.autoAlign.body4':
+    'polyrecorder s’en sert pour mesurer et corriger automatiquement le décalage dû à la latence audio. Avec un métronome comme référence, marque seulement « 3-4 » sur tes prises.',
+  'help.sync.autoAlign.rerun.before': 'Les boutons',
+  'help.sync.autoAlign.rerun.after':
+    ', qui n’apparaissent que si le calage automatique est activé, permettent de caler automatiquement après coup, si la case n’avait pas été cochée dès le départ.',
+  'help.sync.noise.body':
+    'Si le « 1-2-3-4 » de la piste de référence est noyé dans le bruit, l’app ne le reconnaîtra pas bien et te l’indiquera : recommence-la plutôt. Pareil pour le « 3-4 » des pistes suivantes : s’il n’est pas clair, le calage automatique des pistes correspondantes peut rater.',
+  'help.sync.ref.body':
+    '« réf. » indique la piste de référence. Clique dessus pour en choisir une autre.',
+  'help.sync.punch.title': 'Enregistrement à la volée',
+  'help.sync.punch.body1.before':
+    'Pendant la lecture (ou en pause au milieu),',
+  'help.sync.punch.body1.after':
+    'démarre une nouvelle piste à cet endroit. Un bouton « Sync » apparaît quelques instants en mode Simple (persistant en mode Calage). Il permet de la synchroniser à une autre piste (à sélectionner après clic sur le bouton « Sync »).',
+  'help.sync.punch.body2':
+    'Cette fonctionnalité a été pensée pour continuer une prise interrompue. Il faut reprendre l’enregistrement un peu avant la fin de la prise interrompue, refaire une partie réussie au début, puis continuer. La partie similaire permettra la synchronisation. Après synchronisation, une fusion des deux pistes pourra être faite en mode « Découpage ». Il suffira d’accoler le début de la première prise et la fin de la suivante.',
+  'help.sync.punch.seeCut': 'Voir la rubrique Découpage',
+
+  'help.cut.title': 'Découpage',
+  'help.cut.body1':
+    'Ce mode sert à scinder des pistes, rendre muets des passages, ou assembler des morceaux en une nouvelle piste.',
+  'help.cut.split.title': 'Scinder',
+  'help.cut.split.body1.before':
+    'Place le curseur de lecture à l’endroit voulu, puis utilise',
+  'help.cut.split.body1.after':
+    '. Les pistes se découpent en morceaux : clique sur un morceau pour le sélectionner (tu peux en choisir plusieurs).',
+  'help.cut.split.body2':
+    'Réinitialiser annule les découpes en cours et repart des pistes entières.',
+  'help.cut.mute.title': 'Rendre muet',
+  'help.cut.mute.body1':
+    'Rendre muet coupe le son des morceaux sélectionnés sans réécrire le fichier audio. Une bande marque la zone rendue silencieuse ; tu peux la retirer ensuite en cliquant dessus.',
+  'help.cut.merge.title': 'Fusionner',
+  'help.cut.merge.body1':
+    'Fusionner assemble les morceaux sélectionnés en une nouvelle piste. Les trous entre morceaux deviennent du silence. Impossible si les morceaux se chevauchent sur la ligne de temps.',
+  'help.cut.tips.body1':
+    'Tu peux ralentir la lecture (×0.25 ou ×0.5) pour placer le curseur plus précisément.',
+  'help.cut.tips.body2':
+    'Couper le son d’un passage ne se sauvegarde en ligne que si tu es propriétaire de la piste. La fusion crée une nouvelle piste à ton nom.',
 
   'help.mix.title': 'Mix et export',
-  'help.mix.body1':
-    'En mode Mixage, ajuste le volume de chaque piste et le volume maître, coupe le son (mute), mets en avant une piste, et télécharge un MP3 du mix (pistes sélectionnées uniquement).',
-  'help.mix.body2':
-    'Même si chaque piste est saine, les superposer peut saturer le mix : polyrecorder surveille le bus. En Préférences, tu peux baisser le master auto pour éviter la saturation, et/ou le monter auto vers ~0,85. Un « ! » en bout de piste signale une saturation dès l’enregistrement — réenregistre alors en baissant le volume d’entrée du micro.',
+  'help.mix.body1.before':
+    'Le mode Mixage permet de régler le volume de chaque piste et le volume général et de mettre en avant des pistes grâce aux boutons',
+  'help.mix.body1.mid':
+    ', et de télécharger un MP3 (uniquement les pistes cochées). Comme dans les autres modes, des boutons',
+  'help.mix.body1.after': 'permettent de rendre des pistes silencieuses.',
+  'help.mix.body2.before':
+    'Même si le volume de chaque piste est correct, leur superposition peut être trop forte. Une option, active par défaut et désactivable dans les',
+  'help.mix.body2.after':
+    ', permet de baisser automatiquement le volume général en cas de saturation.',
   'help.mix.body3':
-    'Tu peux aussi lancer la lecture / pause depuis la barre de transport sous le deck. Stop arrête et remet au début ; utile avant un nouvel enregistrement depuis t0.',
-
-  'help.import.title': 'Import audio',
-  'help.import.body1':
-    'Importe un fichier audio (bouton d’import ou glisser-déposer sur le deck). Formats courants : MP3, WAV, OGG, M4A, etc.',
-  'help.import.body2':
-    'Une piste importée sans battue 1-2-3-4 / 3-4 ne se calera pas automatiquement : désactive le calage auto ou ajuste l’offset en mode Calage.',
+    'Une autre option permet au contraire d’augmenter automatiquement le volume général s’il est faible.',
+  'help.mix.body4':
+    'Un « ! » sur une piste veut dire qu’elle a saturé à l’enregistrement : recommence en baissant le niveau du micro ou en t’en éloignant.',
 
   'help.library.title': 'Bibliothèque cloud',
   'help.library.body1':
-    'Connecté, tes sessions vivent dans Ma bibliothèque : groupes → répertoires → chansons → sessions. Le fil d’Ariane au-dessus du titre indique où tu te trouves.',
+    'Une fois connecté, tes projets sont dans Ma bibliothèque, rangés ainsi : groupes → répertoires → chansons → sessions. Le fil d’Ariane, présent aussi dans l’enregistreur, indique où tu te trouves.',
   'help.library.body2':
-    'La première sauvegarde depuis l’accueil crée en général une chanson dans Personnel / Général. Chaque nouvelle série d’enregistrements en invité suivie d’une connexion crée une nouvelle chanson (rien n’écrase la précédente).',
+    'La première sauvegarde crée une chanson dans Personnel / Général.',
+  'help.library.body3.before': 'Supprimer des éléments',
+  'help.library.body3.mid': ', en ajouter',
+  'help.library.body3.after':
+    ', en renommer (clic sur le nom), en partager se fait depuis la bibliothèque. Attention, la suppression d’un élément entraîne la suppression de tous les éléments qu’il contient (leur nombre est indiqué).',
 
   'help.share.title': 'Partage et collaboration',
   'help.share.body1':
-    'Sur une chanson, tu peux la rendre publique et copier le lien de session. Active la collaboration pour laisser d’autres comptes connectés ajouter leurs pistes.',
+    'Depuis la bibliothèque ou l’enregistreur, tu peux rendre une chanson publique. Active la collaboration (depuis la bibliothèque seulement) pour que d’autres personnes connectées y ajoutent leurs pistes.',
   'help.share.body2':
-    'En consultation (lecture seule), un invité peut enregistrer en local ; sans collab, rien n’est envoyé au cloud. Avec collab, après connexion les nouvelles prises montent sur la session.',
+    'Le bouton de partage te permettra de copier le lien ou, sur mobile, de partager directement via tes réseaux préférés.',
+  'help.share.body3':
+    'En consultation (chanson publique mais sans collaboration), il est possible d’enregistrer d’autres pistes, mais seulement pour soi, elles ne seront pas sauvegardées dans le projet public.',
 
   'help.account.title': 'Compte',
   'help.account.body1':
-    'Connexion par email ou pseudo (lien magique). Tu peux changer email et pseudo dans Paramètres du compte, et y voir ton temps d’enregistrement total ainsi que le nombre de groupes, répertoires, chansons et sessions.',
+    'Tu te connectes avec ton email ou ton pseudo (lien par email). Dans Paramètres du compte, tu peux modifier email et pseudo, et voir ton temps d’enregistrement total ainsi que le nombre de groupes, répertoires, chansons et sessions.',
   'help.account.body2':
     'La suppression du compte efface définitivement les données associées. Détails dans la confidentialité et les CGU.',
 
-  'help.devices.title': 'Appareils et réglages',
+  'help.devices.title': 'Réglages',
   'help.devices.body1':
-    'Dans Préférences : micro et sorties (selon le navigateur), thème clair/sombre, langue, avance de lecture (sauter le décompte à la lecture ou à l’export), calage auto, avertissements, et sauvegarde cloud automatique.',
+    'Dans Préférences, tu trouveras toutes les options détaillées plus haut.',
+  'help.devices.body2':
+    'Selon ton matériel (ordinateur, navigateur), tu pourras configurer entrée et sortie audio (micro et haut-parleur).',
 
   'help.shortcuts.title': 'Raccourcis clavier',
   'help.shortcuts.recording': 'Enregistrement',

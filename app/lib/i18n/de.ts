@@ -621,11 +621,11 @@ export const de: Record<MessageKey, string> = {
     '1-2-3-4-Auftakt auf „{name}“ nicht erkannt ({count}/4 Treffer).',
   'warn.beat.error': 'Auftakt von „{name}“ konnte nicht analysiert werden.',
 
-  'howto.title': 'Anleitung zur Auto-Ausrichtung per Auftakt',
+  'howto.title': 'Anleitung',
   'howto.metro.off': 'Ohne Metronom',
   'howto.metro.on': 'Mit Metronom',
   'howto.metro.add':
-    'Füge zuerst das Metronom über den Knopf „Metronom“ unter dem Deck hinzu (neben Piano). Es wird die Referenzspur (synthetisches 1-2-3-4): bei jeder Stimme markierst du nur die 3. und 4. Zählzeit laut.',
+    'Füge zuerst das Metronom über den Knopf „Metronom“ unter dem Rekorder hinzu (neben Piano). Es wird die Referenzspur (synthetisches 1-2-3-4): bei jeder Stimme markierst du nur die 3. und 4. Zählzeit laut.',
   'howto.step1': 'auf das Regenbogen-Mikrofon tippen, um aufzunehmen',
   'howto.step2':
     'laut und gleichmäßig 1-2-3-4 sagen (oder ein anderes klares 4er-Signal), dann die erste Stimme singen',
@@ -641,15 +641,11 @@ export const de: Record<MessageKey, string> = {
   'howto.step6':
     'am Ende der letzten Stimme auf den Regenbogen-Knopf „Stopp“ tippen',
   'howto.tips':
-    'Tipps: nimm in ruhiger Umgebung auf, möglichst mit Kopfhörer oder Ohrhörer—besonders am Handy!',
+    'Tipp: nimm in ruhiger Umgebung auf, möglichst mit Kopfhörer oder Ohrhörer—besonders am Handy!',
   'howto.whyNeeded': 'Warum ist das nötig',
   'howto.whyNeeded.about': 'Warum die Auto-Ausrichtung per Auftakt nötig ist',
   'howto.latency':
-    'Browser und Audiogeräte erzeugen Latenz (Kopfhörer, Mikrofon, Buffer). Ohne gemeinsame Markierungen verrutschen die Takes. Die vier Markierungen der Referenzspur und die „3-4“ der folgenden Spuren lassen polyrecorder diese Verschiebung messen und automatisch korrigieren. Klare, gleichmäßige, gut getrennte Laute richten besser aus; ein unregelmäßiger oder leiser Auftakt kann die Sync stören.',
-  'howto.latency.manual':
-    'Wenn die Auto-Ausrichtung deaktiviert ist, kannst du trotzdem manuell ausrichten, indem du auf den Knopf „Ausrichten“ klickst.',
-  'howto.autoAlign':
-    'Dieser Ablauf mit 1-2-3-4-Auftakt eignet sich für Polyphonie-Aufnahmen. Wenn du Audiodateien (MP3 usw.) importierst oder keine Markierungen nutzt, kannst du die Auto-Ausrichtung in den Einstellungen deaktivieren.',
+    'Browser und Audiogeräte erzeugen Latenz (Kopfhörer, Mikrofon, Buffer). Ohne gemeinsame Markierungen verrutschen die Takes. Die vier Markierungen der Referenzspur und die „3-4“ der folgenden Spuren lassen polyrecorder diese Verschiebung messen und automatisch korrigieren.',
 
   'help.title': 'Hilfe',
   'help.close': 'Hilfe schließen',
@@ -659,105 +655,159 @@ export const de: Record<MessageKey, string> = {
   'help.toc.aria': 'Inhaltsverzeichnis der Hilfe',
   'help.toc.start': 'Einstieg',
   'help.toc.guest': 'Gast & Konto',
-  'help.toc.modes': 'Modi',
   'help.toc.metronome': 'Metronom',
   'help.toc.piano': 'Klavier',
-  'help.toc.record': 'Aufnahme',
-  'help.toc.sync': 'Synchronisation',
-  'help.toc.mix': 'Mix & Export',
-  'help.toc.import': 'Import',
+  'help.toc.record': 'Allgemeine Befehle',
+  'help.toc.sync': 'Modus Ausrichtung',
+  'help.toc.cut': 'Modus Schneiden',
+  'help.toc.mix': 'Modus Mix',
   'help.toc.library': 'Bibliothek',
   'help.toc.share': 'Teilen',
   'help.toc.account': 'Konto',
-  'help.toc.devices': 'Geräte',
+  'help.toc.devices': 'Einstellungen',
   'help.toc.shortcuts': 'Tastenkürzel',
   'help.toc.faq': 'FAQ',
 
   'help.start.title': 'Schnellstart',
   'help.start.body1':
-    'Du kannst sofort als Gast aufnehmen — ohne Konto. Kopfhörer sind stark empfohlen, damit das Mikrofon nicht die Lautsprecher aufnimmt.',
+    'Du kannst sofort loslegen, ohne ein Konto anzulegen. Setz Kopfhörer auf: sonst nimmt das Mikrofon leicht die Lautsprecher wieder auf.',
   'help.start.body2':
-    'Mehrere Stimmen ausrichten: 1-2-3-4 auf der ersten Spur, dann 3-4 auf den folgenden. Details stehen unten unter Synchronisation.',
+    'Mehrere Stimmen im Takt übereinanderlegen: auf der 1. Spur klar „1-2-3-4“ sagen, bevor du singst; auf den folgenden nur „3-4“. Siehe Synchronisation weiter unten.',
   'help.start.howtoLink': 'Zur Ausrichtungs-Anleitung',
 
   'help.guest.title': 'Gastmodus & Anmeldung',
   'help.guest.body1':
-    'Als Gast bleiben deine Takes auf diesem Gerät (lokaler Entwurf). Nach dem Stopp lädt dich ein Hinweis ein, dich anzumelden, damit nichts verloren geht und du teilen kannst.',
+    'Ohne Konto werden deine Aufnahmen nicht gespeichert. Nach einem Take bieten wir die Anmeldung an, damit du sie behalten und teilen kannst.',
   'help.guest.body2':
-    'Die Anmeldung läuft über einen Magic Link per E-Mail (kein Passwort). Öffne den Link im selben Browser: der Entwurf wird geladen, dann werden die Spuren auf dein Konto gespeichert — wie nach einer gerade beendeten Aufnahme.',
+    'Du meldest dich mit einem Link per E-Mail an (kein Passwort). Öffne ihn im selben Browser: deine lokalen Takes werden übernommen und dann auf dein Konto gespeichert.',
   'help.guest.body3':
-    'Wechselst du Gerät oder Browser vor der Anmeldung, ist der lokale Entwurf nicht mehr verfügbar.',
-
-  'help.modes.title': 'Modi Simple, Mix, Ausrichtung und Schneiden',
-  'help.modes.body1':
-    'Rechts zwischen den Decks gibt es vier Modi. Simple: aufnehmen und hören. Mix: Spur- und Mastervolumen, Hervorhebung, MP3-Export. Ausrichtung: manuelle Offsets, Auto-Ausrichtung und Warnungen. Schneiden: am Abspielcursor teilen, Bereiche stummschalten ohne die Datei umzuschreiben, oder gewählte Segmente zu einer neuen Spur zusammenführen (Lücken = Stille). Links in derselben Zeile öffnet die Taste Klavier eine Hilfs-Klaviatur zum Anstimmen.',
-  'help.modes.body2':
-    'Im Schnittmodus ist Stummschaltung für alle lokal und wird nur in die Cloud geschrieben, wenn du die Spur besitzt. Zusammenführen erzeugt eine Spur unter deinem Konto (Cloud-Upload als Owner oder Mitwirkender). Die Auto-Ausrichtung lässt sich auch am Deck (und in den Präferenzen) einstellen: sie gilt für die aktuelle Session.',
+    'Wechselst du Gerät oder Browser vor der Anmeldung, findest du diese Takes nicht wieder.',
 
   'help.metronome.title': 'Metronom',
   'help.metronome.body1':
-    'Du kannst eine Metronomspur hinzufügen (Link „Metronom hinzufügen“ unter dem Deck). Sie wird zur Ausrichtungs-Referenz: Takes synchronisieren sich über 3-4 gegen das synthetische 1-2-3-4. Das Tempo (BPM) stellst du auf der Spur ein; es wird mit der Session gespeichert (Cloud oder Gast-Entwurf).',
-  'help.metronome.body2':
-    'Es ist keine hochgeladene Audiodatei — nur BPM und virtuelle Spur bleiben in der Session. Du hörst es beim Monitoring eines Takes; im Ausrichtungsmodus sind Timer und Dauer dieser Spur ausgeblendet.',
+    'Unter dem Rekorder kannst du ein Metronom hinzufügen. Es dient als Rhythmus-Referenz: auf jeder Stimme sagst du „3-4“ zusammen mit dem 3. und 4. Schlag, um dich darauf auszurichten. Am besten mit Kopfhörern aufnehmen (auch ohne Metronom empfohlen!).',
 
   'help.piano.title': 'Klavier',
   'help.piano.body1':
-    'Die Taste Klavier (links von Simple / Mix / Ausrichtung / Schneiden) zeigt eine Klaviatur über zwei Oktaven. Tippe die Tasten, um Töne zu hören und dich vor der Aufnahme oder sogar während der Aufnahme einzustimmen.',
-  'help.piano.body2':
-    'Ideal mit Kopfhörern: du hörst den Ton, aber er ist nicht auf der Aufnahme hörbar — der Klang bleibt im Browser und wird nicht vom Mikrofon erfasst.',
+    'Die Taste Klavier unter dem Rekorder öffnet eine kleine Klaviatur zum Anstimmen. Mit Kopfhörern kannst du leise eine Note spielen, auch während der Aufnahme!',
 
-  'help.record.title': 'Aufnahme',
-  'help.record.body1':
-    'Aufnehmen startet, Nächste Spur reiht einen Take ein (andere Spuren laufen im Monitoring), Stopp beendet, und das Verwerfen-Symbol löscht den laufenden Take. Während der Wiedergabe (oder Pause mittendrin) startet Aufnehmen einen Punch-in: die neue Spur beginnt an der aktuellen Position. Für einen Take vom Anfang: Stop (zurück auf 0), dann Aufnehmen. Auf einer Punch-in-Spur verfeinert Sync die Ausrichtung, indem du eine andere Spur zum Korrelieren wählst.',
+  'help.record.title': 'Allgemeine Befehle',
+  'help.record.action.import':
+    'importiert eine Audiodatei (Drag-and-drop auf den Rekorder geht auch). Übliche Formate: MP3, WAV, OGG, M4A usw.',
+  'help.record.action.record':
+    'startet einen Take (an der Cursorposition).',
+  'help.record.action.next':
+    'speichert die aktuelle Spur und startet eine neue, während du die vorherigen hörst.',
+  'help.record.action.stopCapture':
+    'beendet die Aufnahme und speichert die Spur (außer sie dauert weniger als eine Sekunde).',
+  'help.record.action.discard':
+    'verwirft den laufenden Take und startet sofort neu.',
+  'help.record.action.stopPlay':
+    'stoppt die Wiedergabe und springt zum Anfang.',
+  'help.record.action.export':
+    'exportiert eine MP3, die dem entspricht, was du hörst, wenn du die aktive Session abspielst. Songname, Sessionname (angemeldet) und Spurnamen (wenn nicht alle ausgewählt sind) stehen im Dateinamen.',
+  'help.record.mode.simple': 'aufnehmen und hören',
+  'help.record.mode.mix': 'Lautstärken regeln',
+  'help.record.mode.align': 'Spuren synchronisieren',
+  'help.record.mode.cut':
+    'einen Abschnitt stummschalten oder Segmente zusammenfügen',
+  'help.record.tool.piano': 'zeigt eine kleine Klaviatur zum Anstimmen',
+  'help.record.tool.metronome': 'fügt eine Metronomspur hinzu',
   'help.record.body2':
-    'Den Projektnamen änderst du oben (Titel){f2}. Spurnamen per Klick in der Liste. Diese Namen fließen auch in die exportierte MP3.',
+    'Den Projekttitel änderst du oben{f2}. Einen Spurnamen per Klick. Diese Namen erscheinen auch in der heruntergeladenen MP3.',
   'help.record.f2': ' — Tastenkürzel F2',
 
   'help.sync.title': 'Synchronisation',
-  'help.sync.body1':
-    'Zum Ausrichten der Spuren sollte die erste (Referenz) mit vier klaren, gleichmäßigen Markierungen beginnen (1-2-3-4 oder ein anderes hörbares 4er-Signal). Folgende Spuren wiederholen nur die 3. und 4. Zählzeit, dann die Stimme. polyrecorder misst damit den Latenzversatz und korrigiert ihn automatisch. Eine Metronomspur kann auch als Referenz dienen: dann markierst du auf den Takes nur 3-4.',
-  'help.sync.body2':
-    'Störgeräusche können die Erkennung von 1-2-3-4 verhindern. Dann besser von vorn aufnehmen, um eine solide Referenzspur zu haben—sonst muss alles manuell ausgerichtet werden. Dasselbe gilt für die 3-4 späterer Spuren: eine schwache oder verrauschte Markierung bricht die Auto-Ausrichtung dieses Takes.',
-  'help.sync.body3':
-    'Im Ausrichtungsmodus kennzeichnet das Badge „Ref.“ die Referenzspur. Tippe darauf, um eine andere zu wählen (gleiche visuelle Auswahl wie Sync)—nützlich bei schlechtem ersten Take oder zum Wechsel aufs Metronom. Offsets kannst du auch manuell (± ms) nachziehen oder die Auto-Ausrichtung einer Spur neu starten.',
-  'help.sync.body4':
-    'Punch-in: Während der Wiedergabe (oder Pause mittendrin) erzeugt Aufnehmen eine Spur ab der aktuellen Position. Sync auf dieser Spur verfeinert die Ausrichtung per Inhaltskorrelation mit einer Spur, die du wählst. Stop am Transport setzt den Playhead auf 0 für einen klassischen Take vom Anfang.',
+  'help.sync.autoAlign.title': 'Auto-Ausrichtung per Auftakt',
+  'help.sync.autoAlign.body1':
+    'Dieser Modus korrigiert Sync-Probleme zwischen Spuren bei der Aufnahme.',
+  'help.sync.autoAlign.body2':
+    'Wenn du diesen Modus nutzt (standardmäßig an), muss die erste Spur (Referenz) mit vier klaren, gleichmäßigen Markierungen beginnen (sag „1-2-3-4“, oder einen anderen klaren 4er-Schlag).',
+  'help.sync.autoAlign.body3':
+    'Auf den folgenden sag nur „3-4“ (oder klare Laute), dann sing.',
+  'help.sync.autoAlign.body4':
+    'polyrecorder misst damit den Versatz durch Audiolatenz und korrigiert ihn automatisch. Mit einem Metronom als Referenz markierst du auf den Takes nur „3-4“.',
+  'help.sync.autoAlign.rerun.before': 'Die',
+  'help.sync.autoAlign.rerun.after':
+    '-Knöpfe, die nur erscheinen, wenn die Auto-Ausrichtung aktiv ist, lassen dich nachträglich automatisch ausrichten, falls die Option nicht von Anfang an an war.',
+  'help.sync.noise.body':
+    'Wenn das „1-2-3-4“ der Referenzspur im Rauschen untergeht, erkennt die App es schlecht und weist dich darauf hin: nimm die Spur besser neu auf. Dasselbe gilt für das „3-4“ späterer Spuren: ist es unklar, kann die Auto-Ausrichtung dieser Spuren scheitern.',
+  'help.sync.ref.body':
+    '„Ref.“ kennzeichnet die Referenzspur. Tippe darauf, um eine andere zu wählen.',
+  'help.sync.punch.title': 'Aufnahme aus dem Stand',
+  'help.sync.punch.body1.before':
+    'Während der Wiedergabe (oder Pause mittendrin),',
+  'help.sync.punch.body1.after':
+    'startet eine neue Spur an dieser Position. Ein „Sync“-Button erscheint kurz im Simple-Modus (bleibt im Ausrichtungsmodus). Damit synchronisierst du die Spur mit einer anderen (nach Klick auf „Sync“ auswählen).',
+  'help.sync.punch.body2':
+    'Gedacht für unterbrochene Takes: nimm etwas vor dem Ende der unterbrochenen Aufnahme erneut auf, wiederhole einen gelungenen Anfang, dann weiter. Der ähnliche Abschnitt ermöglicht die Sync. Danach kannst du die beiden Spuren im Modus „Schneiden“ zusammenführen: Anfang der ersten und Ende der nächsten aneinander setzen.',
+  'help.sync.punch.seeCut': 'Zur Rubrik Schneiden',
+
+  'help.cut.title': 'Schneiden',
+  'help.cut.body1':
+    'In diesem Modus teilst du Spuren, schaltest Abschnitte stumm oder fügst Segmente zu einer neuen Spur zusammen.',
+  'help.cut.split.title': 'Teilen',
+  'help.cut.split.body1.before':
+    'Setze den Abspielcursor an die gewünschte Stelle und nutze',
+  'help.cut.split.body1.after':
+    '. Die Spuren werden in Segmente geteilt: tippe ein Segment an, um es auszuwählen (mehrere möglich).',
+  'help.cut.split.body2':
+    'Zurücksetzen verwirft die aktuellen Schnitte und stellt ganze Spuren wieder her.',
+  'help.cut.mute.title': 'Stummschalten',
+  'help.cut.mute.body1':
+    'Stummschalten schaltet die gewählten Segmente stumm, ohne die Audiodatei umzuschreiben. Ein Balken markiert den Bereich; du kannst ihn später entfernen.',
+  'help.cut.merge.title': 'Zusammenführen',
+  'help.cut.merge.body1':
+    'Zusammenführen baut die gewählten Segmente zu einer neuen Spur. Lücken werden zu Stille. Nicht möglich, wenn Segmente auf der Timeline überlappen.',
+  'help.cut.tips.body1':
+    'Du kannst die Wiedergabe verlangsamen (×0.25 oder ×0.5), um den Cursor genauer zu setzen.',
+  'help.cut.tips.body2':
+    'Stummschalten eines Abschnitts wird nur online gespeichert, wenn du die Spur besitzt. Zusammenführen erzeugt eine neue Spur unter deinem Namen.',
 
   'help.mix.title': 'Mix & Export',
-  'help.mix.body1':
-    'Im Mix-Modus regelst du Spur- und Mastervolumen, stummschalten, eine Spur hervorheben und ein MP3 des Mixes herunterladen (nur ausgewählte Spuren).',
-  'help.mix.body2':
-    'Auch wenn jede Spur sauber ist, kann das Stapeln den Mix übersteuern: polyrecorder überwacht den Bus. In den Einstellungen kannst du den Master automatisch senken (Anti-Übersteuerung) und/oder auf ~0,85 anheben. Ein „!“ am Spurende bedeutet Übersteuerung bei der Aufnahme — neu aufnehmen und den Mikrofonpegel prüfen.',
+  'help.mix.body1.before':
+    'Im Mix-Modus regelst du Spur- und Gesamtlautstärke und hebst Spuren mit den',
+  'help.mix.body1.mid':
+    '-Tasten hervor, und lädst ein MP3 herunter (nur ausgewählte Spuren). Wie in den anderen Modi lassen',
+  'help.mix.body1.after': '-Tasten Spuren stumm schalten.',
+  'help.mix.body2.before':
+    'Auch wenn die Lautstärke jeder Spur stimmt, kann ihre Überlagerung zu laut werden. Eine Option, standardmäßig an und in den',
+  'help.mix.body2.after':
+    ' abschaltbar, senkt automatisch die Gesamtlautstärke bei Übersteuerung.',
   'help.mix.body3':
-    'Play / Pause geht auch über die Transportleiste unter dem Deck. Stop beendet und springt zum Anfang—praktisch vor einem neuen Take ab t0.',
-
-  'help.import.title': 'Audio-Import',
-  'help.import.body1':
-    'Importiere eine Audiodatei (Import-Button oder Drag-and-drop aufs Deck). Übliche Formate: MP3, WAV, OGG, M4A usw.',
-  'help.import.body2':
-    'Eine importierte Spur ohne 1-2-3-4 / 3-4 wird nicht automatisch ausgerichtet: Auto-Ausrichtung aus oder Offset im Ausrichtungsmodus anpassen.',
+    'Eine andere Option kann die Gesamtlautstärke automatisch anheben, wenn sie zu niedrig ist.',
+  'help.mix.body4':
+    'Ein „!“ auf einer Spur bedeutet Übersteuerung bei der Aufnahme: nimm neu auf mit niedrigerem Mikrofonpegel oder größerem Abstand.',
 
   'help.library.title': 'Cloud-Bibliothek',
   'help.library.body1':
-    'Angemeldet liegen Sessions in Meine Bibliothek: Gruppen → Repertoires → Lieder → Sessions. Die Brotkrumenleiste über dem Titel zeigt den Ort.',
+    'Einmal angemeldet liegen deine Projekte in Meine Bibliothek, so geordnet: Gruppen → Repertoires → Lieder → Sessions. Die Brotkrumenleiste, auch im Rekorder sichtbar, zeigt, wo du bist.',
   'help.library.body2':
-    'Die erste Speicherung von der Startseite legt meist ein Lied unter Personal / Allgemein an. Jede neue Gäste-Serie mit anschließender Anmeldung erzeugt ein neues Lied (nichts überschreibt das vorherige).',
+    'Die erste Speicherung legt ein Lied unter Personal / Allgemein an.',
+  'help.library.body3.before': 'Elemente löschen',
+  'help.library.body3.mid': ', hinzufügen',
+  'help.library.body3.after':
+    ', umbenennen (Klick auf den Namen) oder teilen geht über die Bibliothek. Achtung: das Löschen eines Elements löscht auch alles darin (die Anzahl wird angezeigt).',
 
   'help.share.title': 'Teilen & Kollaboration',
   'help.share.body1':
-    'Ein Lied kannst du öffentlich machen und den Session-Link kopieren. Kollaboration erlaubt anderen angemeldeten Konten, Spuren hinzuzufügen.',
+    'Über die Bibliothek oder den Rekorder kannst du ein Lied öffentlich machen. Kollaboration aktivierst du nur in der Bibliothek, damit andere angemeldete Personen Spuren hinzufügen können.',
   'help.share.body2':
-    'In der reinen Ansicht kann ein Gast lokal aufnehmen; ohne Kollaboration geht nichts in die Cloud. Mit Kollaboration laden neue Takes nach der Anmeldung in die Session.',
+    'Über den Teilen-Knopf kopierst du den Link oder teilst auf dem Handy direkt über deine üblichen Apps.',
+  'help.share.body3':
+    'In der Ansicht (öffentliches Lied ohne Kollaboration) kannst du weitere Spuren aufnehmen, aber nur für dich—sie werden nicht im öffentlichen Projekt gespeichert.',
 
   'help.account.title': 'Konto',
   'help.account.body1':
-    'Anmeldung per E-Mail oder Anzeigename (Magic Link). In den Kontoeinstellungen änderst du E-Mail und Pseudo und siehst Aufnahmezeit sowie Anzahlen von Gruppen, Repertoires, Liedern und Sessions.',
+    'Du meldest dich mit E-Mail oder Pseudo an (Link per E-Mail). In den Kontoeinstellungen kannst du E-Mail und Pseudo ändern und deine gesamte Aufnahmezeit sowie die Anzahl von Gruppen, Repertoires, Liedern und Sessions sehen.',
   'help.account.body2':
-    'Kontolöschung entfernt zugehörige Daten endgültig. Details in Datenschutz und AGB.',
+    'Die Kontolöschung entfernt zugehörige Daten endgültig. Details in Datenschutz und AGB.',
 
-  'help.devices.title': 'Geräte & Einstellungen',
+  'help.devices.title': 'Einstellungen',
   'help.devices.body1':
-    'Unter Präferenzen: Mikrofon und Ausgänge (browserabhängig), hell/dunkel, Sprache, Auftakt überspringen (Wiedergabe oder Export), Auto-Ausrichtung, Warnungen und automatische Cloud-Speicherung.',
+    'Unter Präferenzen findest du alle oben beschriebenen Optionen.',
+  'help.devices.body2':
+    'Je nach Gerät (Computer, Browser) kannst du Audio-Eingang und -Ausgang (Mikrofon und Lautsprecher) einstellen.',
 
   'help.shortcuts.title': 'Tastenkürzel',
   'help.shortcuts.recording': 'Aufnahme',

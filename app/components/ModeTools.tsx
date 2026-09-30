@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import {
   createOrUpdateMetronome,
   setDeckMode,
@@ -57,6 +58,90 @@ const MODE_OPTIONS: ModeOption[] = [
   },
 ]
 
+function modeSelectedTone(id: DeckWorkMode): string {
+  switch (id) {
+    case 'simple':
+      return 'border-mode-simple bg-transparent text-mode-simple'
+    case 'mix':
+      return 'border-mode-mix bg-transparent text-mode-mix'
+    case 'align':
+      return 'border-mode-align bg-transparent text-mode-align'
+    case 'cut':
+      return 'border-mode-cut bg-transparent text-mode-cut'
+    default:
+      return 'border-ink bg-transparent text-ink'
+  }
+}
+
+const modePillClassName =
+  'inline-flex items-center justify-center gap-[0.3rem] rounded-full border-[2.5px] px-[0.72rem] py-[0.42rem] font-[inherit] text-[0.82rem] font-bold tracking-[0.01em]'
+
+const modePillSmClassName =
+  'inline-flex items-center justify-center gap-[0.2rem] rounded-full border-[2px] px-[0.5rem] py-[0.2rem] font-[inherit] text-[0.72rem] font-bold tracking-[0.01em] [&_svg]:size-[0.8rem]'
+
+/** Shared leading width so mode / tool captions line up in help. */
+export const helpNavPillLeadingClassName = 'w-[8.5rem] justify-start'
+
+/** Non-interactive tool chip (Piano, Métronome) matching small mode pills. */
+export function HelpToolPill({
+  children,
+  className,
+}: {
+  children: ReactNode
+  className?: string
+}) {
+  return (
+    <span
+      className={cn(
+        modePillSmClassName,
+        'border-ink bg-transparent text-ink',
+        className,
+      )}
+    >
+      {children}
+    </span>
+  )
+}
+
+/** Non-interactive selected-mode chip (help titles, etc.). */
+export function DeckModePill({
+  mode,
+  size = 'md',
+  className,
+}: {
+  mode: DeckWorkMode
+  size?: 'md' | 'sm'
+  className?: string
+}) {
+  useLocale()
+  const option = MODE_OPTIONS.find((entry) => entry.id === mode)
+  if (!option) return null
+  return (
+    <span
+      className={cn(
+        size === 'sm' ? modePillSmClassName : modePillClassName,
+        modeSelectedTone(mode),
+        className,
+      )}
+    >
+      {option.icon === 'mix' ? (
+        <IconFaders className={size === 'sm' ? undefined : 'size-[0.95rem]'} />
+      ) : null}
+      {option.icon === 'align' ? (
+        <IconAutoAlign
+          className={size === 'sm' ? undefined : 'size-[0.95rem]'}
+        />
+      ) : null}
+      {option.icon === 'cut' ? (
+        <IconScissors
+          className={size === 'sm' ? undefined : 'size-[0.95rem]'}
+        />
+      ) : null}
+      {t(option.labelKey)}
+    </span>
+  )
+}
+
 const toolBtnClass = (active: boolean) =>
   cn(
     'inline-flex items-center justify-center rounded-full px-[0.78rem] py-[0.42rem]',
@@ -114,16 +199,6 @@ export function DeckModes({ className }: DeckModesProps) {
       >
         {MODE_OPTIONS.map((option) => {
           const selected = active === option.id
-          const selectedTone =
-            option.id === 'simple'
-              ? 'bg-mode-simple text-on-mode-simple shadow-[0_4px_12px_color-mix(in_srgb,var(--mode-simple)_28%,transparent)]'
-              : option.id === 'mix'
-              ? 'bg-mode-mix text-on-mode-mix shadow-[0_4px_12px_color-mix(in_srgb,var(--mode-mix)_28%,transparent)]'
-              : option.id === 'align'
-                ? 'bg-mode-align text-on-mode-align shadow-[0_4px_12px_color-mix(in_srgb,var(--mode-align)_28%,transparent)]'
-                : option.id === 'cut'
-                  ? 'bg-mode-cut text-on-mode-cut shadow-[0_4px_12px_color-mix(in_srgb,var(--mode-cut)_28%,transparent)]'
-                  : 'bg-ink text-on-ink shadow-[0_4px_12px_color-mix(in_srgb,var(--ink)_22%,transparent)]'
           return (
             <button
               key={option.id}
@@ -133,23 +208,14 @@ export function DeckModes({ className }: DeckModesProps) {
               disabled={cutMerging}
               title={t(option.hintKey)}
               onClick={() => setDeckMode(option.id)}
-              style={
-                option.icon === 'mix'
-                  ? {
-                      ['--fader-knob-fill' as string]: selected
-                        ? 'var(--on-mode-mix)'
-                        : 'var(--surface)',
-                    }
-                  : undefined
-              }
               className={cn(
-                'inline-flex items-center justify-center gap-[0.3rem] rounded-full px-[0.72rem] py-[0.42rem]',
-                'font-[inherit] text-[0.82rem] font-bold tracking-[0.01em] transition-[background,color,box-shadow,transform] duration-160',
+                modePillClassName,
+                'transition-[background,color,border-color,transform] duration-160',
                 'cursor-pointer active:scale-[0.98] disabled:cursor-default disabled:active:scale-100',
                 'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
                 selected
-                  ? selectedTone
-                  : 'bg-transparent text-ink-soft hover:text-ink',
+                  ? modeSelectedTone(option.id)
+                  : 'border-transparent bg-transparent text-ink-soft hover:text-ink',
               )}
             >
               {option.icon === 'mix' ? (

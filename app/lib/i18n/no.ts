@@ -619,11 +619,11 @@ export const no: Record<MessageKey, string> = {
     '1-2-3-4-opptakt ikke funnet på «{name}» ({count}/4 treff).',
   'warn.beat.error': 'Kunne ikke analysere opptakten på «{name}».',
 
-  'howto.title': 'Bruksanvisning for autojustering med opptakt',
+  'howto.title': 'Bruksanvisning',
   'howto.metro.off': 'Uten metronom',
   'howto.metro.on': 'Med metronom',
   'howto.metro.add':
-    'Legg først til metronomen med knappen «Metronom» under decket (ved siden av Piano). Den blir referansesporet (syntetisk 1-2-3-4): på hver stemme markerer du bare 3. og 4. taktslag høyt.',
+    'Legg først til metronomen med knappen «Metronom» under opptakeren (ved siden av Piano). Den blir referansesporet (syntetisk 1-2-3-4): på hver stemme markerer du bare 3. og 4. taktslag høyt.',
   'howto.step1': 'trykk på regnbue-mikrofonen for å ta opp',
   'howto.step2':
     'si 1-2-3-4 høyt og jevnt (eller et annet tydelig 4-taktsignal), og syng deretter første stemme',
@@ -643,11 +643,7 @@ export const no: Record<MessageKey, string> = {
   'howto.whyNeeded': 'Hvorfor er dette nødvendig',
   'howto.whyNeeded.about': 'Hvorfor autojustering med opptakt er nødvendig',
   'howto.latency':
-    'Nettlesere og lydutstyr gir latens (hodetelefoner, mikrofon, buffer). Uten felles markører sklir opptakene. De fire markørene på referansesporet og «3-4» på senere spor lar polyrecorder måle og rette denne forskyvningen automatisk. Tydelige, jevne, godt adskilte lyder justerer bedre; en uregelmessig eller svak opptakt kan ødelegge synken.',
-  'howto.latency.manual':
-    'Hvis autojustering er slått av, kan du fortsatt justere manuelt ved å klikke på knappen «Justering».',
-  'howto.autoAlign':
-    'Denne arbeidsflyten med 1-2-3-4-opptakt passer til polyfoniopptak. Hvis du importerer lydfiler (MP3 m.m.) eller ikke bruker markører, kan du slå av autojustering i innstillingene.',
+    'Nettlesere og lydutstyr gir latens (hodetelefoner, mikrofon, buffer). Uten felles markører sklir opptakene. De fire markørene på referansesporet og «3-4» på senere spor lar polyrecorder måle og rette denne forskyvningen automatisk.',
 
   'help.title': 'Hjelp',
   'help.close': 'Lukk hjelp',
@@ -657,105 +653,156 @@ export const no: Record<MessageKey, string> = {
   'help.toc.aria': 'Innholdsfortegnelse for hjelp',
   'help.toc.start': 'Kom i gang',
   'help.toc.guest': 'Gjest og konto',
-  'help.toc.modes': 'Moduser',
   'help.toc.metronome': 'Metronom',
   'help.toc.piano': 'Piano',
-  'help.toc.record': 'Opptak',
-  'help.toc.sync': 'Synkronisering',
-  'help.toc.mix': 'Mix og eksport',
-  'help.toc.import': 'Import',
+  'help.toc.record': 'Generelle kommandoer',
+  'help.toc.sync': 'Modus Justering',
+  'help.toc.cut': 'Modus Klipp',
+  'help.toc.mix': 'Modus Mix',
   'help.toc.library': 'Bibliotek',
   'help.toc.share': 'Deling',
   'help.toc.account': 'Konto',
-  'help.toc.devices': 'Enheter',
+  'help.toc.devices': 'Innstillinger',
   'help.toc.shortcuts': 'Hurtigtaster',
   'help.toc.faq': 'FAQ',
 
   'help.start.title': 'Kom i gang',
   'help.start.body1':
-    'Du kan ta opp med en gang som gjest — uten konto. Hodetelefoner anbefales sterkt, så mikrofonen ikke plukker opp høyttalerne.',
+    'Du kan starte med en gang, uten å opprette konto. Bruk hodetelefoner: ellers kan mikrofonen ta opp lyden fra høyttalerne på nytt.',
   'help.start.body2':
-    'For å justere flere stemmer: 1-2-3-4 på første spor, deretter 3-4 på de neste. Detaljer finner du under Synkronisering nedenfor.',
+    'For å legge flere stemmer oppå hverandre i takt: på 1. spor, si tydelig «1-2-3-4» før du synger; på de neste, si bare «3-4». Se Synkronisering lenger ned.',
   'help.start.howtoLink': 'Se veiledning for justering',
 
   'help.guest.title': 'Gjestemodus og innlogging',
   'help.guest.body1':
-    'Som gjest blir opptakene på denne enheten (lokalt utkast). Etter stopp får du en invitasjon til å logge inn, så du ikke mister dem og kan dele.',
+    'Uten konto lagres ikke opptakene dine. Etter et opptak får du tilbud om å logge inn for å beholde og dele dem.',
   'help.guest.body2':
-    'Innlogging skjer med magisk lenke på e-post (ingen passord). Åpne lenken i samme nettleser: utkastet lastes inn, deretter lagres sporene på kontoen din som etter et nettopp ferdig opptak.',
+    'Du logger inn med en lenke på e-post (ingen passord). Åpne den i samme nettleser: lokale opptak hentes inn og lagres deretter på kontoen din.',
   'help.guest.body3':
-    'Bytter du enhet eller nettleser før innlogging, er det lokale utkastet ikke lenger tilgjengelig.',
-
-  'help.modes.title': 'Modusene Simple, Mix, Justering og Klipp',
-  'help.modes.body1':
-    'Velgeren til høyre mellom dekkene har fire modi. Simple: ta opp og lytt. Mix: volum per spor og master, fremheving, MP3-eksport. Justering: manuelle forskyvninger, autojustering og advarsler. Klipp: del ved avspillingsmarkøren, demp segmenter uten å skrive om filen, eller flett valgte segmenter til et nytt spor (hull = stillhet). Til venstre i samme rad åpner Piano-knappen et hjelpetastatur for tonehøyde.',
-  'help.modes.body2':
-    'I klippemodus er demping lokal for alle og lagres bare i skyen hvis du eier sporet. Fletting lager et spor under kontoen din (skyopplasting hvis du er eier eller samarbeidspartner). Autojustering kan også settes på dekket (og i preferanser): den gjelder gjeldende økt.',
+    'Bytter du enhet eller nettleser før innlogging, finner du ikke disse opptakene igjen.',
 
   'help.metronome.title': 'Metronom',
   'help.metronome.body1':
-    'Du kan legge til et metronomspor (lenken «Legg til metronom» under dekket). Det blir referanse for justering: opptak synkroniseres via 3-4 mot det syntetiske 1-2-3-4. Tempo (BPM) settes på sporet og lagres med økten (sky eller gjesteutkast).',
-  'help.metronome.body2':
-    'Det er ikke en opplastet lydfil — bare BPM og det virtuelle sporet blir i økten. Du hører det under monitoring av et opptak; i Justering er timer og varighet for dette sporet skjult.',
+    'Under opptakeren kan du legge til en metronom. Den er en rytmereferanse: på hver stemme sier du «3-4» samtidig med 3. og 4. slag for å låse deg på den. Bruk hodetelefoner når du tar opp med metronom (anbefalt også uten!).',
 
   'help.piano.title': 'Piano',
   'help.piano.body1':
-    'Piano-knappen (til venstre for Simple / Mix / Justering / Klipp) viser et tastatur over to oktaver. Trykk på tangentene for å høre toner og finne tonen før du tar opp, eller til og med under opptaket.',
-  'help.piano.body2':
-    'Ideelt med hodetelefoner: du hører tonen, men den er ikke hørbar på opptaket — lyden blir i nettleseren og plukkes ikke opp av mikrofonen.',
+    'Piano-knappen under opptakeren åpner et lite tastatur som gir deg tonen. Med hodetelefoner kan du spille en tone diskret også mens du tar opp!',
 
-  'help.record.title': 'Opptak',
-  'help.record.body1':
-    'Ta opp for å starte, Neste spor for å legge til et opptak (andre spor spiller i monitoring), Stopp for å avslutte, og forkast-ikonet for å kaste gjeldende opptak. Under avspilling (eller pause midt i) starter Ta opp en punch-in: det nye sporet begynner ved gjeldende posisjon. For opptak fra starten: Stopp (tilbake til 0), deretter Ta opp. På et punch-in-spor finjusterer Sync justeringen ved å velge et annet spor å korrelere mot.',
+  'help.record.title': 'Generelle kommandoer',
+  'help.record.action.import':
+    'importerer en lydfil (dra-og-slipp på opptakeren fungerer også). Vanlige formater: MP3, WAV, OGG, M4A m.m.',
+  'help.record.action.record': 'starter et opptak (ved markøren).',
+  'help.record.action.next':
+    'lagrer gjeldende spor og starter et nytt mens du hører de forrige.',
+  'help.record.action.stopCapture':
+    'avslutter opptaket og lagrer sporet (med mindre det varer under ett sekund).',
+  'help.record.action.discard':
+    'avbryter gjeldende opptak og starter på nytt med en gang.',
+  'help.record.action.stopPlay':
+    'stopper avspillingen og går tilbake til starten.',
+  'help.record.action.export':
+    'eksporterer en MP3 som matcher det du hører når du spiller av den aktive økten. Sangnavn, øktnavn (innlogget) og spornavn (hvis ikke alle er valgt) havner i filnavnet.',
+  'help.record.mode.simple': 'ta opp og lytt',
+  'help.record.mode.mix': 'justere volumene',
+  'help.record.mode.align': 'synkronisere sporene',
+  'help.record.mode.cut': 'dempe et parti eller sette sammen segmenter',
+  'help.record.tool.piano': 'viser et lite tastatur som gir deg tonen',
+  'help.record.tool.metronome': 'legger til et metronomspor',
   'help.record.body2':
-    'Prosjektnavnet endres øverst (tittel){f2}. Gi nytt navn til spor ved å klikke på dem. Navnene brukes også i eksportert MP3.',
+    'Prosjekttittelen endres øverst{f2}. Gi nytt navn til et spor ved å klikke på det. Navnene vises også på den nedlastede MP3-filen.',
   'help.record.f2': ' — snarvei F2',
 
   'help.sync.title': 'Synkronisering',
-  'help.sync.body1':
-    'For å justere sporene bør det første (referanse) starte med fire tydelige, jevne markører (1-2-3-4, eller et annet hørbart 4-taktsignal). Senere spor tar bare 3. og 4. taktslag på nytt, deretter stemmen. polyrecorder bruker dem til å måle og rette latensforskyvning automatisk. Et metronomspor kan også være referanse: da markerer du bare 3-4 på opptakene.',
-  'help.sync.body2':
-    'Bakgrunnsstøy kan hindre gjenkjenning av 1-2-3-4. Start da opptaket på nytt for et solid referansespor—ellers må alt justeres for hånd. Det samme gjelder 3-4 på senere spor: en svak eller støyete markør ødelegger autojustering for det opptaket.',
-  'help.sync.body3':
-    'I Justering viser merket «ref.» referansesporet. Klikk det for å velge et annet (samme visuelle valg som Sync)—nyttig hvis første opptak er dårlig, eller for å bytte til metronomen. Du kan også justere offset manuelt (± ms) eller kjøre autojustering på nytt for et spor.',
-  'help.sync.body4':
-    'Punch-in: under avspilling (eller pause midt i) lager Ta opp et spor som starter ved gjeldende posisjon. Sync på det sporet finjusterer deretter justeringen ved å korrelere innhold mot et spor du velger. Stopp på transporten setter markøren til 0 for et klassisk opptak fra starten.',
+  'help.sync.autoAlign.title': 'Autojustering med opptakt',
+  'help.sync.autoAlign.body1':
+    'Denne modusen retter synkroniseringsproblemer mellom spor under opptak.',
+  'help.sync.autoAlign.body2':
+    'Hvis du bruker denne modusen (på som standard), må første spor (referanse) starte med fire tydelige, jevne markører (si «1-2-3-4», eller en annen klar 4-taktslyd).',
+  'help.sync.autoAlign.body3':
+    'På de neste sier du bare «3-4» (eller klare lyder), deretter synger du.',
+  'help.sync.autoAlign.body4':
+    'polyrecorder bruker dem til å måle og automatisk rette forskyvningen fra lydlatens. Med metronom som referanse markerer du bare «3-4» på opptakene.',
+  'help.sync.autoAlign.rerun.before': 'Knappene',
+  'help.sync.autoAlign.rerun.after':
+    ', som bare vises når autojustering er på, lar deg autojustere i etterkant hvis valget ikke var huket av fra starten.',
+  'help.sync.noise.body':
+    'Hvis «1-2-3-4» på referansesporet drukner i støy, kjenner ikke appen det godt igjen og sier ifra: ta heller det sporet på nytt. Det samme gjelder «3-4» på senere spor: er det uklart, kan autojusteringen av de sporene feile.',
+  'help.sync.ref.body':
+    '«ref.» viser referansesporet. Klikk det for å velge et annet.',
+  'help.sync.punch.title': 'Opptak underveis',
+  'help.sync.punch.body1.before': 'Under avspilling (eller pause midt i),',
+  'help.sync.punch.body1.after':
+    'starter et nytt spor der. En «Sync»-knapp vises kort i Simple-modus (den blir værende i Justering). Den lar deg synkronisere sporet mot et annet (velg etter klikk på «Sync»).',
+  'help.sync.punch.body2':
+    'Funksjonen er tenkt for å fortsette et avbrutt opptak. Start opptaket litt før slutten av det avbrutte, gjør om en vellykket bit først, fortsett så. Den like biten gjør synkronisering mulig. Etter sync kan du flette de to sporene i «Klipp»: sett starten av første og slutten av neste inntil hverandre.',
+  'help.sync.punch.seeCut': 'Se rubrikken Klipp',
+
+  'help.cut.title': 'Klipp',
+  'help.cut.body1':
+    'Denne modusen lar deg dele spor, dempe partier eller sette sammen segmenter til et nytt spor.',
+  'help.cut.split.title': 'Del',
+  'help.cut.split.body1.before':
+    'Sett avspillingsmarkøren der du vil, og bruk',
+  'help.cut.split.body1.after':
+    '. Sporene deles i segmenter: klikk et segment for å velge det (du kan velge flere).',
+  'help.cut.split.body2':
+    'Tilbakestill avbryter gjeldende delinger og går tilbake til hele spor.',
+  'help.cut.mute.title': 'Demp',
+  'help.cut.mute.body1':
+    'Demp gjør valgte segmenter stumme uten å skrive om lydfilen. En stripe markerer området; du kan fjerne den senere.',
+  'help.cut.merge.title': 'Flett',
+  'help.cut.merge.body1':
+    'Flett setter sammen valgte segmenter til et nytt spor. Hull mellom segmenter blir stillhet. Umulig hvis segmentene overlapper på tidslinjen.',
+  'help.cut.tips.body1':
+    'Du kan sakke avspillingen (×0.25 eller ×0.5) for å plassere markøren mer nøyaktig.',
+  'help.cut.tips.body2':
+    'Å dempe et parti lagres bare på nett hvis du eier sporet. Fletting lager et nytt spor under navnet ditt.',
 
   'help.mix.title': 'Mix og eksport',
-  'help.mix.body1':
-    'I Mix-modus justerer du volum per spor og master, demper, fremhever et spor og laster ned en MP3 av mixen (bare valgte spor).',
-  'help.mix.body2':
-    'Selv om hvert spor er rent, kan stabling klippe mixen: polyrecorder overvåker bussen. Under Innstillinger kan du senke master auto for å unngå klipping, og/eller heve den auto mot ~0,85. Et «!» bakerst på sporet betyr klipping under opptak — ta opp på nytt med lavere mikrofonnivå.',
+  'help.mix.body1.before':
+    'Mix-modus lar deg justere volumet på hvert spor og totalvolumet, fremheve spor med',
+  'help.mix.body1.mid':
+    '-knappene, og laste ned en MP3 (bare valgte spor). Som i andre modi lar',
+  'help.mix.body1.after': '-knappene deg dempe spor.',
+  'help.mix.body2.before':
+    'Selv om volumet på hvert spor er riktig, kan stablingen bli for kraftig. Et alternativ, på som standard og som kan slås av under',
+  'help.mix.body2.after':
+    ', senker automatisk totalvolumet ved klipping.',
   'help.mix.body3':
-    'Du kan også spille / pause fra transportlinjen under dekket. Stopp avslutter og går tilbake til start—nyttig før et nytt opptak fra t0.',
-
-  'help.import.title': 'Lydimport',
-  'help.import.body1':
-    'Importer en lydfil (importknapp eller dra-og-slipp på dekket). Vanlige formater: MP3, WAV, OGG, M4A m.m.',
-  'help.import.body2':
-    'Et importert spor uten 1-2-3-4 / 3-4 justeres ikke automatisk: slå av autojustering eller juster forskyvning i Justering-modus.',
+    'Et annet alternativ kan i stedet øke totalvolumet automatisk hvis det er lavt.',
+  'help.mix.body4':
+    'Et «!» på et spor betyr at det klippet under opptak: ta opp på nytt med lavere mikronivå eller ved å gå lenger unna.',
 
   'help.library.title': 'Skybibliotek',
   'help.library.body1':
-    'Innlogget ligger økter i Mitt bibliotek: grupper → repertoarer → sanger → økter. Brødsmulestien over tittelen viser hvor du er.',
+    'Når du er innlogget, ligger prosjektene i Mitt bibliotek, ordnet slik: grupper → repertoarer → sanger → økter. Brødsmulestien, også synlig i opptakeren, viser hvor du er.',
   'help.library.body2':
-    'Første lagring fra startsiden lager vanligvis en sang under Personlig / Generelt. Hver ny gjesteserie fulgt av innlogging lager en ny sang (ingenting overskriver den forrige).',
+    'Første lagring lager en sang under Personlig / Generelt.',
+  'help.library.body3.before': 'Slett elementer',
+  'help.library.body3.mid': ', legg til',
+  'help.library.body3.after':
+    ', gi nytt navn (klikk på navnet) eller del fra biblioteket. Merk: sletting av et element sletter også alt det inneholder (antallet vises).',
 
   'help.share.title': 'Deling og samarbeid',
   'help.share.body1':
-    'På en sang kan du gjøre den offentlig og kopiere øktlenken. Slå på samarbeid så andre innloggede kontoer kan legge til spor.',
+    'Fra biblioteket eller opptakeren kan du gjøre en sang offentlig. Slå på samarbeid (bare fra biblioteket) så andre innloggede kan legge til spor.',
   'help.share.body2':
-    'I skrivebeskyttet visning kan en gjest likevel ta opp lokalt; uten samarbeid går ingenting til skyen. Med samarbeid lastes nye opptak opp etter innlogging.',
+    'Del-knappen lar deg kopiere lenken eller, på mobil, dele direkte via appene dine.',
+  'help.share.body3':
+    'I visning (offentlig sang uten samarbeid) kan du ta opp flere spor, men bare for deg selv—de lagres ikke i det offentlige prosjektet.',
 
   'help.account.title': 'Konto',
   'help.account.body1':
-    'Logg inn med e-post eller visningsnavn (magisk lenke). I kontoinnstillinger endrer du e-post og pseudo, og ser total opptakstid samt antall grupper, repertoarer, sanger og økter.',
+    'Du logger inn med e-post eller pseudo (lenke på e-post). I kontoinnstillinger kan du endre e-post og pseudo, og se total opptakstid samt antall grupper, repertoarer, sanger og økter.',
   'help.account.body2':
-    'Sletting av kontoen sletter tilhørende data for godt. Se personvern og vilkår for detaljer.',
+    'Sletting av kontoen sletter tilhørende data for godt. Detaljer i personvern og vilkår.',
 
-  'help.devices.title': 'Enheter og innstillinger',
+  'help.devices.title': 'Innstillinger',
   'help.devices.body1':
-    'Under Preferanser: mikrofon og utganger (avhengig av nettleser), lys/mørk tema, språk, hopp over opptakt (avspilling eller eksport), autojustering, advarsler og automatisk skylagring.',
+    'Under Preferanser finner du alle alternativene beskrevet ovenfor.',
+  'help.devices.body2':
+    'Avhengig av utstyret ditt (datamaskin, nettleser) kan du sette opp lydinngang og -utgang (mikrofon og høyttaler).',
 
   'help.shortcuts.title': 'Hurtigtaster',
   'help.shortcuts.recording': 'Opptak',

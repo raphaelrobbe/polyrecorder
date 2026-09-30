@@ -615,11 +615,11 @@ export const en: Record<MessageKey, string> = {
     '1-2-3-4 count-in not detected on “{name}” ({count}/4 hits).',
   'warn.beat.error': 'Could not analyze the count-in on “{name}”.',
 
-  'howto.title': 'How to use auto-align with count-in',
+  'howto.title': 'How to',
   'howto.metro.off': 'Without metronome',
   'howto.metro.on': 'With metronome',
   'howto.metro.add':
-    'First add the metronome with the “Metronome” button under the deck (next to Piano). It becomes the reference track (synthetic 1-2-3-4): on every voice, you only mark beats 3 and 4 out loud.',
+    'First add the metronome with the “Metronome” button under the recorder (next to Piano). It becomes the reference track (synthetic 1-2-3-4): on every voice, you only mark beats 3 and 4 out loud.',
   'howto.step1': 'tap the rainbow microphone to record',
   'howto.step2':
     'out loud and steadily, say 1-2-3-4 (or any clear 4-beat cue), then sing the first voice',
@@ -635,15 +635,11 @@ export const en: Record<MessageKey, string> = {
   'howto.step6':
     'tap the rainbow “Stop” button at the end of the last voice',
   'howto.tips':
-    'Tips: record in a quiet place, ideally with headphones or an earbud—especially on mobile!',
+    'Tip: record in a quiet place, ideally with headphones or an earbud—especially on mobile!',
   'howto.whyNeeded': 'Why is this needed',
   'howto.whyNeeded.about': 'Why auto-align with count-in is needed',
   'howto.latency':
-    'Browsers and audio hardware introduce latency (headphones, mic, buffer). Without shared cues, takes drift. The four markers on the reference track and the “3-4” on later tracks let polyrecorder measure and correct that drift automatically. Clear, spaced, steady sounds align better; an irregular or quiet count-in can throw sync off.',
-  'howto.latency.manual':
-    'If auto-align is turned off, you can still align manually by clicking the “Align” button.',
-  'howto.autoAlign':
-    'This 1-2-3-4 count-in workflow suits polyphonic recording. If you import audio files (MP3, etc.) or skip markers, you can turn off auto-align in Settings.',
+    'Browsers and audio hardware introduce latency (headphones, mic, buffer). Without shared cues, takes drift. The four markers on the reference track and the “3-4” on later tracks let polyrecorder measure and correct that drift automatically.',
 
   'help.title': 'Help',
   'help.close': 'Close help',
@@ -653,105 +649,155 @@ export const en: Record<MessageKey, string> = {
   'help.toc.aria': 'Help table of contents',
   'help.toc.start': 'Getting started',
   'help.toc.guest': 'Guest & account',
-  'help.toc.modes': 'Modes',
   'help.toc.metronome': 'Metronome',
   'help.toc.piano': 'Piano',
-  'help.toc.record': 'Recording',
-  'help.toc.sync': 'Synchronization',
-  'help.toc.mix': 'Mix & export',
-  'help.toc.import': 'Import',
+  'help.toc.record': 'General controls',
+  'help.toc.sync': 'Mode Align',
+  'help.toc.cut': 'Mode Cut',
+  'help.toc.mix': 'Mode Mix',
   'help.toc.library': 'Library',
   'help.toc.share': 'Sharing',
   'help.toc.account': 'Account',
-  'help.toc.devices': 'Devices',
+  'help.toc.devices': 'Settings',
   'help.toc.shortcuts': 'Shortcuts',
   'help.toc.faq': 'FAQ',
 
   'help.start.title': 'Getting started',
   'help.start.body1':
-    'You can record right away as a guest—no account needed. Headphones are strongly recommended so the mic doesn’t pick up the speakers.',
+    'You can get started right away, without creating an account. Put on headphones: otherwise the mic may re-record the speakers.',
   'help.start.body2':
-    'To align several voices: 1-2-3-4 on the first track, then 3-4 on the next ones. Details are in the Synchronization section below.',
+    'To layer several voices in time: on the 1st track, say a clear “1-2-3-4” before you sing; on the next ones, say only “3-4”. See Synchronization below.',
   'help.start.howtoLink': 'See the alignment how-to',
 
   'help.guest.title': 'Guest mode & sign-in',
   'help.guest.body1':
-    'As a guest, your takes stay on this device (local draft). After you stop recording, a prompt offers sign-in so you don’t lose them and can share them.',
+    'Without an account, your recordings are not saved. After a take, we offer sign-in so you can keep and share them.',
   'help.guest.body2':
-    'Sign-in uses a magic link by email (no password). Open the link in the same browser: the draft is restored, then tracks are saved to your account as if you had just finished recording.',
+    'You sign in with a link sent by email (no password). Open it in the same browser: your local takes are restored, then saved to your account.',
   'help.guest.body3':
-    'If you switch device or browser before signing in, the local draft is no longer available.',
-
-  'help.modes.title': 'Simple, Mix, Align, and Cut modes',
-  'help.modes.body1':
-    'The control on the right, between the decks, has four modes. Simple: record and listen. Mix: per-track and master volumes, highlight, MP3 export. Align: manual offsets, auto-align, and warnings. Cut: split at the playhead, mute ranges without rewriting the file, or merge selected segments into a new track (gaps = silence). To the left of that row, the Piano button opens a pitch helper keyboard.',
-  'help.modes.body2':
-    'In Cut mode, mute is local for everyone and only persists to the cloud if you own the track. Merge creates a track under your account (cloud upload if you are owner or collaborator). Auto-align preference can also be set on the deck (and in Preferences): it applies to the current session.',
+    'If you switch device or browser before signing in, you won’t find those takes again.',
 
   'help.metronome.title': 'Metronome',
   'help.metronome.body1':
-    'You can add a metronome track (the “Add a metronome” link under the deck). It becomes the alignment reference: takes sync via 3-4 against its synthetic 1-2-3-4. Set the tempo (BPM) on the track; it is saved with the session (cloud or guest draft).',
-  'help.metronome.body2':
-    'It is not an uploaded audio file—only the BPM and virtual track stay in the session. You can hear it while monitoring a take; in Align mode its timer and duration are hidden.',
+    'Under the recorder, you can add a metronome. It is a rhythm cue: on each voice, say “3-4” on the 3rd and 4th beats to lock onto it. Prefer headphones when recording with the metronome (recommended without it too!).',
 
   'help.piano.title': 'Piano',
   'help.piano.body1':
-    'The Piano button (left of Simple / Mix / Align / Cut) shows a two-octave keyboard. Tap the keys to hear notes and get your pitch before recording, or even during recording.',
-  'help.piano.body2':
-    'Ideal with headphones: you hear the note, but it is not audible on the recording—the sound stays in the browser and is not picked up by the mic.',
+    'The Piano button under the recorder opens a small keyboard to give you the pitch. Headphones let you play a note quietly even while you record!',
 
-  'help.record.title': 'Recording',
-  'help.record.body1':
-    'Record to start, Next track to chain a take (other tracks play for monitoring), Stop to finish, and the discard icon to drop the current take. While playing (or paused mid-mix), Record starts a punch-in: the new track begins at the current position. For a take from the start, press Stop (back to 0) then Record. On a punch-in track, Sync refines align by picking another track to correlate against.',
+  'help.record.title': 'General controls',
+  'help.record.action.import':
+    'imports an audio file (drag-and-drop onto the recorder works too). Common formats: MP3, WAV, OGG, M4A, and more.',
+  'help.record.action.record': 'starts a take (at the playhead).',
+  'help.record.action.next':
+    'saves the current track and starts a new one while you hear the previous ones.',
+  'help.record.action.stopCapture':
+    'ends recording and saves the track (unless it is shorter than one second).',
+  'help.record.action.discard':
+    'cancels the current take and starts over right away.',
+  'help.record.action.stopPlay': 'stops playback and returns to the start.',
+  'help.record.action.export':
+    'exports an MP3 that matches what you hear when you listen to the active session. The song name, session name (when signed in), and track names (if not all are selected) appear in the downloaded file name.',
+  'help.record.mode.simple': 'record and listen',
+  'help.record.mode.mix': 'set the volumes',
+  'help.record.mode.align': 'sync the tracks',
+  'help.record.mode.cut': 'mute a passage or assemble segments',
+  'help.record.tool.piano': 'shows a small keyboard to give you the pitch',
+  'help.record.tool.metronome': 'adds a metronome track',
   'help.record.body2':
-    'Change the project name at the top (title){f2}. Rename each track by clicking it. Those names also feed the exported MP3.',
+    'Change the project title at the top{f2}. Rename a track by clicking it. Those names also appear on the downloaded MP3.',
   'help.record.f2': ' — F2 shortcut',
 
   'help.sync.title': 'Synchronization',
-  'help.sync.body1':
-    'To align tracks, the first (reference) should start with four clear, steady markers (1-2-3-4, or any audible 4-beat cue). Later tracks only redo beats 3 and 4, then the voice. polyrecorder uses them to measure and correct latency-related drift automatically. A metronome track can also be the reference: in that case, mark only 3-4 on your takes.',
-  'help.sync.body2':
-    'Background noise can block 1-2-3-4 detection. In that case, start the recording over so you get a solid reference track—otherwise everything must be aligned by hand. Same for later tracks’ 3-4: a weak or noisy marker breaks auto-align for that take.',
-  'help.sync.body3':
-    'In Align mode, the “ref.” badge marks the reference track. Click it to choose another (same visual pick as Sync)—useful if the first take is bad, or to switch to the metronome. You can also nudge offsets by hand (± ms) or re-run auto-align on a track.',
-  'help.sync.body4':
-    'Punch-in: while playing (or paused mid-mix), Record creates a track that starts at the current position. The sync button on that track then refines align by correlating content with another track you pick. Stop on the transport resets the playhead to 0 for a classic take from the start.',
+  'help.sync.autoAlign.title': 'Auto-align with count-in',
+  'help.sync.autoAlign.body1':
+    'This mode corrects sync issues between tracks at recording time.',
+  'help.sync.autoAlign.body2':
+    'If you use this mode (on by default), the first track (reference) must start with four clear, steady markers (say “1-2-3-4”, or any clean 4-beat sound).',
+  'help.sync.autoAlign.body3':
+    'On later tracks, say only “3-4” (or clean sounds), then sing.',
+  'help.sync.autoAlign.body4':
+    'polyrecorder uses them to measure and automatically correct the offset from audio latency. With a metronome as reference, mark only “3-4” on your takes.',
+  'help.sync.autoAlign.rerun.before': 'The',
+  'help.sync.autoAlign.rerun.after':
+    'buttons, which only appear when auto-align is on, let you auto-align after the fact if the option was not checked from the start.',
+  'help.sync.noise.body':
+    'If the reference track’s “1-2-3-4” is buried in noise, the app won’t recognize it well and will tell you: restart that track instead. Same for later tracks’ “3-4”: if it isn’t clear, auto-align for those tracks may fail.',
+  'help.sync.ref.body':
+    '“ref.” marks the reference track. Click it to choose another.',
+  'help.sync.punch.title': 'Punch-in recording',
+  'help.sync.punch.body1.before': 'While playing (or paused mid-mix),',
+  'help.sync.punch.body1.after':
+    'starts a new track at that position. A “Sync” button appears briefly in Simple mode (it stays in Align mode). It lets you sync the take to another track (pick one after clicking “Sync”).',
+  'help.sync.punch.body2':
+    'This is meant for continuing an interrupted take. Resume recording a little before the end of the interrupted take, redo a successful stretch at the start, then continue. The matching stretch enables sync. After syncing, you can merge the two tracks in Cut mode: keep the start of the first take and the end of the next.',
+  'help.sync.punch.seeCut': 'See the Cut section',
+
+  'help.cut.title': 'Cut',
+  'help.cut.body1':
+    'This mode lets you split tracks, mute passages, or assemble segments into a new track.',
+  'help.cut.split.title': 'Split',
+  'help.cut.split.body1.before':
+    'Place the playhead where you want, then use',
+  'help.cut.split.body1.after':
+    '. Tracks split into segments: click a segment to select it (you can select several).',
+  'help.cut.split.body2':
+    'Reset cancels the current splits and goes back to whole tracks.',
+  'help.cut.mute.title': 'Mute',
+  'help.cut.mute.body1':
+    'Mute silences the selected segments without rewriting the audio file. A bar marks the muted range; you can remove it later.',
+  'help.cut.merge.title': 'Merge',
+  'help.cut.merge.body1':
+    'Merge assembles the selected segments into a new track. Gaps between segments become silence. Not possible if segments overlap on the timeline.',
+  'help.cut.tips.body1':
+    'You can slow playback (×0.25 or ×0.5) to place the playhead more precisely.',
+  'help.cut.tips.body2':
+    'Muting a passage only saves online if you own the track. Merge creates a new track under your name.',
 
   'help.mix.title': 'Mix & export',
-  'help.mix.body1':
-    'In Mix mode, adjust each track and the master volume, mute, highlight a track, and download an MP3 of the mix (selected tracks only).',
-  'help.mix.body2':
-    'Even when each track is clean, stacking them can clip the mix: polyrecorder watches the bus. In Preferences you can auto-lower the master to prevent clipping, and/or auto-raise it toward ~0.85. A “!” at the end of a track means it clipped while recording — re-record with a lower mic input level.',
+  'help.mix.body1.before':
+    'Mix mode lets you set each track’s volume and the master volume, highlight tracks with the',
+  'help.mix.body1.mid':
+    'buttons, and download an MP3 (selected tracks only). As in other modes,',
+  'help.mix.body1.after': 'buttons let you silence tracks.',
+  'help.mix.body2.before':
+    'Even when each track’s volume is fine, stacking them can be too loud. An option, on by default and turnable off in',
+  'help.mix.body2.after':
+    ', automatically lowers the master volume when the mix clips.',
   'help.mix.body3':
-    'You can also play / pause from the transport bar under the deck. Stop ends playback and returns to the start—handy before a new take from t0.',
-
-  'help.import.title': 'Audio import',
-  'help.import.body1':
-    'Import an audio file (import button or drag-and-drop onto the deck). Common formats: MP3, WAV, OGG, M4A, and more.',
-  'help.import.body2':
-    'An imported track without 1-2-3-4 / 3-4 markers won’t auto-align: turn off auto-align or adjust the offset in Align mode.',
+    'Another option can instead raise the master volume automatically when it is low.',
+  'help.mix.body4':
+    'A “!” on a track means it clipped while recording: try again with a lower mic level or by moving farther away.',
 
   'help.library.title': 'Cloud library',
   'help.library.body1':
-    'When signed in, sessions live in My library: groups → repertoires → songs → sessions. The breadcrumb above the title shows where you are.',
+    'Once signed in, your projects are in My library, arranged as: groups → repertoires → songs → sessions. The breadcrumb, also shown in the recorder, tells you where you are.',
   'help.library.body2':
-    'The first save from home usually creates a song under Personal / General. Each new guest recording series followed by sign-in creates a new song (nothing overwrites the previous one).',
+    'The first save creates a song under Personal / General.',
+  'help.library.body3.before': 'Delete items',
+  'help.library.body3.mid': ', add some',
+  'help.library.body3.after':
+    ', rename them (click the name), or share them from the library. Careful: deleting an item also deletes everything it contains (their count is shown).',
 
   'help.share.title': 'Sharing & collaboration',
   'help.share.body1':
-    'On a song, you can make it public and copy the session link. Turn on collaboration so other signed-in accounts can add tracks.',
+    'From the library or the recorder, you can make a song public. Turn on collaboration (from the library only) so other signed-in people can add their tracks.',
   'help.share.body2':
-    'In read-only consultation, a guest can still record locally; without collab, nothing goes to the cloud. With collab, after sign-in new takes upload to the session.',
+    'The share button lets you copy the link or, on mobile, share directly via your usual apps.',
+  'help.share.body3':
+    'In consultation (public song but no collaboration), you can still record other tracks for yourself only—they will not be saved into the public project.',
 
   'help.account.title': 'Account',
   'help.account.body1':
-    'Sign in with email or display name (magic link). In Account settings you can change email and pseudo, and see total recording time plus group, repertoire, song, and session counts.',
+    'You sign in with your email or display name (link by email). In Account settings you can change email and display name, and see your total recording time plus the number of groups, repertoires, songs, and sessions.',
   'help.account.body2':
-    'Deleting the account permanently erases associated data. See the privacy policy and terms for details.',
+    'Deleting the account permanently erases the associated data. Details in the privacy policy and terms.',
 
-  'help.devices.title': 'Devices & settings',
+  'help.devices.title': 'Settings',
   'help.devices.body1':
-    'In Preferences: mic and outputs (browser-dependent), light/dark theme, language, count-in skip (playback or download), auto-align, warnings, and automatic cloud save.',
+    'In Preferences you will find all the options detailed above.',
+  'help.devices.body2':
+    'Depending on your hardware (computer, browser), you can configure audio input and output (mic and speakers).',
 
   'help.shortcuts.title': 'Keyboard shortcuts',
   'help.shortcuts.recording': 'Recording',
