@@ -1054,6 +1054,7 @@ export const no: Record<MessageKey, string> = {
     '«4» er for nær slutten: ingenting å eksportere etter opptakten.',
   'error.exportFailed': 'MP3-eksport mislyktes.',
   'error.emptyTrack': 'Tomt spor, ingenting å spille.',
+  'error.tracksStillLoading': 'Spor lastes fortsatt…',
   'error.recordFailed': 'Opptak mislyktes.',
   'error.recordStart': 'Kunne ikke starte opptak.',
   'error.noActiveRecording': 'Ingen opptak pågår.',

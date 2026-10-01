@@ -1048,6 +1048,7 @@ export const en: Record<MessageKey, string> = {
     'The “4” is too close to the end: nothing left to export after the count-in.',
   'error.exportFailed': 'MP3 export failed.',
   'error.emptyTrack': 'Empty track, nothing to play.',
+  'error.tracksStillLoading': 'Tracks are still loading…',
   'error.recordFailed': 'Recording failed.',
   'error.recordStart': 'Could not start recording.',
   'error.noActiveRecording': 'No recording in progress.',

@@ -202,7 +202,7 @@ export function NewSessionMenu({ className }: NewSessionMenuProps) {
     setOpen(false)
     resetCascade()
     navigate(librarySessionPath(songPartId))
-    const ok = await loadCloudSongIntoSession(songPartId)
+    const ok = await loadCloudSongIntoSession(songPartId, { force: true })
     if (!ok) setError(t('library.error'))
   }
 

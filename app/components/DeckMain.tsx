@@ -198,7 +198,7 @@ export function DeckMain({ className }: DeckMainProps) {
   const goToSibling = (songPartId: string) => {
     setSessionNavBusy(true)
     navigate(librarySessionPath(songPartId))
-    void loadCloudSongIntoSession(songPartId).finally(() => {
+    void loadCloudSongIntoSession(songPartId, { force: true }).finally(() => {
       setSessionNavBusy(false)
     })
   }

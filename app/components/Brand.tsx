@@ -123,6 +123,12 @@ export function Brand({ className, variant = 'default' }: BrandProps) {
 
   const goHome = () => {
     clearLocalDeckSession()
+    // Client-side Remix navigation needs the network; offline, reload `/`
+    // so the service worker can serve the cached shell.
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      window.location.assign('/')
+      return
+    }
     navigate('/')
   }
 

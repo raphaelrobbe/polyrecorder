@@ -226,7 +226,9 @@ html.dark {
   }
 
   body {
-    min-height: 100vh;
+    /* svh = visible UI chrome; avoids classic mobile 100vh overflow in PWA. */
+    min-height: 100svh;
+    min-height: 100dvh;
     font-family: var(--font-sans);
     font-synthesis: none;
     text-rendering: optimizeLegibility;
@@ -255,15 +257,22 @@ html.dark {
   }
 
   #root {
-    min-height: 100vh;
-    display: grid;
-    place-items: center;
+    box-sizing: border-box;
+    display: flex;
+    min-height: 100svh;
+    min-height: 100dvh;
+    flex-direction: column;
+    align-items: center;
     padding: 2rem 1.25rem 3rem;
+    padding-top: max(2rem, env(safe-area-inset-top, 0px));
+    padding-bottom: max(3rem, env(safe-area-inset-bottom, 0px));
   }
 
   @media (max-width: 640px) {
     #root {
-      padding: 1rem 0.65rem 1.5rem;
+      padding: 0.75rem 0.65rem 0.85rem;
+      padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
+      padding-bottom: max(0.85rem, env(safe-area-inset-bottom, 0px));
     }
   }
 

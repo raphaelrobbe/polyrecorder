@@ -2615,6 +2615,9 @@ export async function playTracks(
     (asMix || tracksToPlay.some((track) => track.isMetronome))
 
   if (playable.length === 0 && !wantMetro) {
+    if (sourceTracks.some((track) => track.downloadPending)) {
+      return Promise.reject(new Error(t('error.tracksStillLoading')))
+    }
     return Promise.reject(new Error(t('error.emptyTrack')))
   }
 
@@ -4085,9 +4088,23 @@ function patchTrackDownloadProgress(
 
 export async function loadCloudSongIntoSession(
   songPartId: string,
-  options?: { quiet?: boolean },
+  options?: { quiet?: boolean; force?: boolean },
 ): Promise<boolean> {
   if (get().state === 'recording') return false
+
+  // After a local take uploads, we navigate to /session/:id while the deck
+  // already holds the audio. Don't wipe it into empty download stubs.
+  const current = get()
+  if (
+    !options?.force &&
+    current.deckSongPartId === songPartId &&
+    current.tracks.some(
+      (t) => !t.isMetronome && t.blob.size > 0 && !t.downloadPending,
+    )
+  ) {
+    return true
+  }
+
   const generation = ++cloudOpenGeneration
   const { fetchAndHydrateSong, fetchRemoteTrackBlob, writeActiveSongPartId } =
     await import('./cloudUpload.client')
@@ -4253,14 +4270,61 @@ export async function loadCloudSongIntoSession(
 }
 
 /**
- * After a library mutation on a song (public / collab / …), refetch the open
- * deck session so metadata stays in sync without dual-writing local state.
+ * After a library mutation on a song (public / collab / …), refresh deck
+ * metadata without re-downloading audio (avoids wiping local blobs).
  */
 export async function refreshOpenDeckForSong(songId: string): Promise<void> {
   const { deckSongId, deckSongPartId, state } = get()
   if (!songId || deckSongId !== songId || !deckSongPartId) return
   if (state === 'recording') return
-  await loadCloudSongIntoSession(deckSongPartId, { quiet: true })
+  const { fetchAndHydrateSong, writeActiveSongPartId } = await import(
+    './cloudUpload.client'
+  )
+  const opened = await fetchAndHydrateSong(deckSongPartId, { quiet: true })
+  if (!opened || get().deckSongPartId !== deckSongPartId) return
+
+  const readOnly = !opened.isOwner
+  const canCloudContribute = opened.canCollaborate
+  if (opened.isOwner || canCloudContribute) {
+    writeActiveSongPartId(opened.part.id)
+  }
+
+  const deckLibraryPath =
+    opened.song.ownerPseudo && opened.song.groupId
+      ? {
+          ownerPseudo: opened.song.ownerPseudo,
+          groupId: opened.song.groupId,
+          groupName: opened.song.groupName,
+          repertoireId: opened.song.repertoireId,
+          repertoireName: opened.song.repertoireName,
+          songId: opened.song.id,
+          songName: opened.song.name,
+        }
+      : get().deckLibraryPath
+
+  patch({
+    masterVolume: opened.part.masterVolume,
+    autoAlignEnabled: opened.part.autoAlignEnabled,
+    showCalageWarnings: opened.part.showCalageWarnings,
+    skipCountInPlayback: opened.part.skipCountInPlayback,
+    skipCountInDownload: opened.part.skipCountInDownload,
+    metronomeBpm: opened.part.metronomeBpm,
+    sessionTitle: opened.part.name ?? '',
+    activeSongPartId:
+      opened.isOwner || canCloudContribute ? opened.part.id : null,
+    deckSongPartId: opened.part.id,
+    deckSongPartSiblings: opened.siblings,
+    deckSongId: opened.song.id,
+    readOnlySession: readOnly,
+    canCloudContribute,
+    songAllowsCollaboration: Boolean(opened.song.allowsCollaboration),
+    deckLibraryPath,
+    songWorkName: opened.song.name,
+    songIsPublic: Boolean(opened.song.isPublic),
+    sharedOwnerLabel: readOnly
+      ? formatPseudoHandle(opened.song.ownerPseudo)
+      : null,
+  })
 }
 
 /** Home path for the current deck: `/session/:id` when a cloud session is loaded. */
@@ -4305,6 +4369,56 @@ export async function hydrateActiveSongIfNeeded(): Promise<void> {
       error: null,
     })
   }
+}
+
+/**
+ * When the browser comes back online: clear offline open errors, upload any
+ * local takes (signed-in + auto-cloud), and reload a session that has no
+ * playable audio yet (failed open / failed downloads).
+ */
+let resumeOnlineInFlight: Promise<boolean> | null = null
+
+export async function resumeAfterNetworkOnline(
+  options?: { songPartId?: string | null },
+): Promise<boolean> {
+  if (resumeOnlineInFlight) return resumeOnlineInFlight
+  resumeOnlineInFlight = resumeAfterNetworkOnlineImpl(options).finally(() => {
+    resumeOnlineInFlight = null
+  })
+  return resumeOnlineInFlight
+}
+
+async function resumeAfterNetworkOnlineImpl(
+  options?: { songPartId?: string | null },
+): Promise<boolean> {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return false
+  }
+  if (get().state === 'recording') return false
+
+  const offlineOpen = t('cloud.error.openOffline')
+  if (get().error === offlineOpen) setError(null)
+
+  const cloud = await import('./cloudUpload.client')
+  if (cloud.isCloudSignedIn()) {
+    await cloud.ensurePendingDeckLibraryPath()
+    if (get().autoCloudSave) {
+      await cloud.uploadAllLocalTracks()
+    }
+  }
+
+  const partId = options?.songPartId ?? get().deckSongPartId
+  if (!partId) return true
+
+  const hasPlayable = get().tracks.some(
+    (track) =>
+      !track.isMetronome && track.blob.size > 0 && !track.downloadPending,
+  )
+  // Failed open / empty stubs only — never wipe local audio that already plays.
+  if (!hasPlayable) {
+    return loadCloudSongIntoSession(partId, { force: true, quiet: true })
+  }
+  return true
 }
 
 

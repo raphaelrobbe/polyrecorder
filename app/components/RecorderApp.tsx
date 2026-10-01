@@ -28,6 +28,7 @@ import {
   isGuestClaimInFlight,
   refreshDeviceSnapshot,
   resetDeckOnSignOut,
+  resumeAfterNetworkOnline,
   stopPlayback,
   syncLatencyDisplay,
 } from '../lib/sessionActions.client'
@@ -90,6 +91,14 @@ export function RecorderApp({ children }: RecorderAppProps) {
     }
     window.addEventListener('beforeunload', onBeforeUnload)
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [])
+
+  useEffect(() => {
+    const onOnline = () => {
+      void resumeAfterNetworkOnline()
+    }
+    window.addEventListener('online', onOnline)
+    return () => window.removeEventListener('online', onOnline)
   }, [])
 
   useEffect(() => {

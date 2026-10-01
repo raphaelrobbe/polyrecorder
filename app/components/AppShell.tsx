@@ -42,8 +42,8 @@ export function AppShell({
   return (
     <div
       className={cn(
-        'flex min-h-[calc(100dvh-5rem)] w-[min(440px,100%)] flex-col max-sm:min-h-[calc(100dvh-2.5rem)]',
-        wide && 'w-[min(560px,100%)]',
+        'flex min-h-0 w-full flex-1 flex-col',
+        wide ? 'max-w-[560px]' : 'max-w-[440px]',
         className,
       )}
     >
@@ -65,7 +65,7 @@ export function AppShell({
       </div>
       <main
         className={cn(
-          'flex w-full flex-1 flex-col gap-7 animate-rise',
+          'flex w-full min-h-0 flex-1 flex-col gap-7 animate-rise',
           compact ? 'justify-start gap-5' : 'justify-center',
           brandVariant === 'hero' && 'gap-8',
         )}
@@ -82,7 +82,7 @@ export function AppShell({
           {() => <PwaInstallBanner hidden={recording} />}
         </ClientOnly>
       </main>
-      <LegalFooter />
+      <LegalFooter className="mt-auto shrink-0 pt-5 max-sm:pt-3" />
     </div>
   )
 }

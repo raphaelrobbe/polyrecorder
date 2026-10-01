@@ -19,7 +19,7 @@ export function LegalFooter({ className }: LegalFooterProps) {
     <nav
       aria-label={t('nav.legal')}
       className={cn(
-        'mt-8 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[0.78rem] text-ink-soft',
+        'mt-0 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[0.78rem] text-ink-soft',
         className,
       )}
     >

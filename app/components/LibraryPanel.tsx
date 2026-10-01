@@ -1530,7 +1530,7 @@ export function LibraryPanel({ className }: LibraryPanelProps) {
     setBusyPartId(songPartId)
     setError(null)
     try {
-      const ok = await loadCloudSongIntoSession(songPartId)
+      const ok = await loadCloudSongIntoSession(songPartId, { force: true })
       if (ok) navigate(librarySessionPath(songPartId))
     } finally {
       setBusyPartId(null)

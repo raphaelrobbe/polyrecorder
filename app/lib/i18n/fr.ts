@@ -1066,6 +1066,7 @@ export const fr = {
     'Le « 4 » est trop près de la fin : rien à exporter après le décompte.',
   'error.exportFailed': 'Export MP3 impossible.',
   'error.emptyTrack': 'Piste vide, rien à lire.',
+  'error.tracksStillLoading': 'Pistes encore en cours de chargement…',
   'error.recordFailed': "L'enregistrement a échoué.",
   'error.recordStart': "Impossible de démarrer l'enregistrement.",
   'error.noActiveRecording': 'Aucun enregistrement en cours.',

@@ -1062,6 +1062,7 @@ export const de: Record<MessageKey, string> = {
     'Die „4“ liegt zu nah am Ende: nach dem Auftakt bleibt nichts zum Export.',
   'error.exportFailed': 'MP3-Export fehlgeschlagen.',
   'error.emptyTrack': 'Leere Spur, nichts abzuspielen.',
+  'error.tracksStillLoading': 'Spuren werden noch geladen…',
   'error.recordFailed': 'Aufnahme fehlgeschlagen.',
   'error.recordStart': 'Aufnahme konnte nicht gestartet werden.',
   'error.noActiveRecording': 'Keine laufende Aufnahme.',

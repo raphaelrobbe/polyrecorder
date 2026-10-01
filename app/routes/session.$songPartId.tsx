@@ -15,6 +15,7 @@ import { brandLogoUrl, pageMeta } from '~/lib/seo'
 import {
   clearLocalDeckSession,
   loadCloudSongIntoSession,
+  resumeAfterNetworkOnline,
 } from '~/lib/sessionActions.client'
 import { getSongShareMeta } from '~/service/cloud.server'
 import { getAppUrl } from '~/service/env.server'
@@ -123,6 +124,23 @@ function SessionViewClient({ songPartId }: { songPartId: string }) {
     }
   }, [deckSongPartId, songPartId, status])
 
+  // Back online after a failed open (or empty deck): reload this session.
+  useEffect(() => {
+    const onOnline = () => {
+      setStatus((prev) => (prev === 'error' ? 'loading' : prev))
+      void resumeAfterNetworkOnline({ songPartId }).then((ok) => {
+        if (!ok) {
+          setStatus((prev) => (prev === 'loading' ? 'error' : prev))
+          return
+        }
+        setStatus('ready')
+        setError(null)
+      })
+    }
+    window.addEventListener('online', onOnline)
+    return () => window.removeEventListener('online', onOnline)
+  }, [songPartId, setError])
+
   if (status === 'loading') {
     return (
       <Deck>
@@ -141,6 +159,7 @@ function SessionViewClient({ songPartId }: { songPartId: string }) {
           </p>
           <Link
             to="/"
+            reloadDocument
             className="text-[0.9rem] font-semibold text-ink underline decoration-ink/30 underline-offset-2 hover:decoration-ink"
             onClick={() => {
               clearLocalDeckSession()
