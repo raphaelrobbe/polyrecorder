@@ -2124,20 +2124,65 @@ async function withMixTransportPreserved(
 }
 
 export function applyManualTrackOffset(trackId: number, offsetMs: number) {
+  const invite = get().contentSyncInvite
+  if (
+    invite &&
+    trackId === invite.fromTrackId &&
+    invite.step !== 'merging' &&
+    invite.step !== 'listenMerge' &&
+    invite.step !== 'acceptMerge'
+  ) {
+    void applyContentSyncFocusOffset(trackId, offsetMs)
+    return
+  }
   void withMixTransportPreserved(() => {
-    const tracks = get().tracks.map((track) =>
-      track.id === trackId ? { ...track, offsetMs } : track,
-    )
-    const trackAlignDetails = { ...get().trackAlignDetails }
-    delete trackAlignDetails[trackId]
-    const alignAttentionByTrackId = { ...get().alignAttentionByTrackId }
-    delete alignAttentionByTrackId[trackId]
-    patch({ tracks, trackAlignDetails, alignAttentionByTrackId })
-    refreshSkewWarning()
-    persistCloudTrackOffset(trackId)
-    scheduleGuestDraftSave()
-    scheduleMixPeakRefresh()
+    commitTrackOffsetMs(trackId, offsetMs)
   })
+}
+
+function commitTrackOffsetMs(trackId: number, offsetMs: number) {
+  const tracks = get().tracks.map((track) =>
+    track.id === trackId ? { ...track, offsetMs } : track,
+  )
+  const trackAlignDetails = { ...get().trackAlignDetails }
+  delete trackAlignDetails[trackId]
+  const alignAttentionByTrackId = { ...get().alignAttentionByTrackId }
+  delete alignAttentionByTrackId[trackId]
+  patch({ tracks, trackAlignDetails, alignAttentionByTrackId })
+  refreshSkewWarning()
+  persistCloudTrackOffset(trackId)
+  scheduleGuestDraftSave()
+  scheduleMixPeakRefresh()
+}
+
+/**
+ * During the post-Sync invite flow: nudge the focus take, jump playback to
+ * its start, and show “Satisfait du calage ?” immediately.
+ */
+async function applyContentSyncFocusOffset(
+  trackId: number,
+  offsetMs: number,
+): Promise<void> {
+  const invite = get().contentSyncInvite
+  if (!invite || invite.fromTrackId !== trackId) return
+
+  clearContentSyncInviteTimer()
+  commitTrackOffsetMs(trackId, offsetMs)
+  setCalageMode(true)
+  patchContentSyncInvite({
+    step: 'satisfied',
+    afterManualAdjust: true,
+  })
+
+  const from = get().tracks.find((track) => track.id === trackId)
+  if (!from) return
+  const startMs = audibleMixRange(from).startMs
+  try {
+    setError(null)
+    await seekMixTo(startMs)
+  } catch {
+    // seekMixTo already sets error
+  }
 }
 
 /** Tracks that can show / use content Sync (punch-in or delayed start). */
@@ -2318,6 +2363,7 @@ function beginContentSyncInvite(options: {
       cutPointMs: null,
       mergedTrackId: null,
       keepName: options.keepName,
+      afterManualAdjust: false,
     },
   })
 }
@@ -2368,7 +2414,37 @@ export async function contentSyncInviteListenSync(): Promise<void> {
   contentSyncInviteTimer = setTimeout(() => {
     contentSyncInviteTimer = null
     if (get().contentSyncInvite?.step !== 'listenSync') return
-    patchContentSyncInvite({ step: 'satisfied' })
+    patchContentSyncInvite({ step: 'satisfied', afterManualAdjust: false })
+  }, 1000)
+}
+
+/**
+ * After rejecting auto-Sync: stay in (or enter) Calage, nudge by hand, then
+ * listen again — merge invite still follows if satisfied.
+ */
+export async function contentSyncInviteListenAdjust(): Promise<void> {
+  const invite = get().contentSyncInvite
+  if (!invite || invite.step !== 'adjustListen') return
+
+  const from = get().tracks.find((t) => t.id === invite.fromTrackId)
+  if (!from) {
+    dismissContentSyncInvite()
+    return
+  }
+
+  const startMs = audibleMixRange(from).startMs
+  clearContentSyncInviteTimer()
+  try {
+    setError(null)
+    void seekMixTo(startMs)
+  } catch {
+    // seekMixTo already sets error
+  }
+
+  contentSyncInviteTimer = setTimeout(() => {
+    contentSyncInviteTimer = null
+    if (get().contentSyncInvite?.step !== 'adjustListen') return
+    patchContentSyncInvite({ step: 'satisfied', afterManualAdjust: true })
   }, 2000)
 }
 
@@ -2382,17 +2458,13 @@ export function contentSyncInviteSatisfied(yes: boolean) {
     return
   }
 
-  // Reject sync → restore previous offset, offer calage.
-  applyManualTrackOffset(invite.fromTrackId, invite.previousOffsetMs)
-  patchContentSyncInvite({ step: 'goCalage' })
-}
-
-export function contentSyncInviteGoCalage() {
-  const invite = get().contentSyncInvite
-  if (!invite || invite.step !== 'goCalage') return
-  clearContentSyncInviteTimer()
-  patch({ contentSyncInvite: null })
+  // Keep the current offset as a base for ± ms nudges; open Calage and
+  // continue the invite flow (listen → merge) instead of sending to Découpage.
   setCalageMode(true)
+  patchContentSyncInvite({
+    step: 'adjustListen',
+    afterManualAdjust: true,
+  })
 }
 
 export function contentSyncInviteMergeAsk(yes: boolean) {

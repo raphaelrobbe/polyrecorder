@@ -56,6 +56,7 @@ export function TracksList({ className }: TracksListProps) {
   const mixSeekMs = useSessionStore((s) => s.mixSeekMs)
   const cutMerging = useSessionStore((s) => s.cutMerging)
   const contentSyncPickFromId = useSessionStore((s) => s.contentSyncPickFromId)
+  const contentSyncInvite = useSessionStore((s) => s.contentSyncInvite)
   const referencePickActive = useSessionStore((s) => s.referencePickActive)
   const setSeekDragActive = useSessionStore((s) => s.setSeekDragActive)
   const patch = useSessionStore((s) => s.patch)
@@ -92,6 +93,11 @@ export function TracksList({ className }: TracksListProps) {
   const masterMuteIndeterminate =
     selectedCount > 0 && selectedCount < tracks.length
   const hasDeletableTracks = tracks.length > 0
+  const inviteActive = contentSyncInvite != null
+  const showCalageOffsetChrome =
+    (calageMode || inviteActive) && alignable.length > 0
+  const showCalageAlignChrome =
+    showCalageOffsetChrome && autoAlignEnabled && !inviteActive
   const cutEditing = cutMode && cutPhase === 'edit'
   const modeLocksReorder = calageMode || mixMode || cutEditing
   const compactTrackChrome = calageMode || mixMode || cutEditing
@@ -317,19 +323,19 @@ export function TracksList({ className }: TracksListProps) {
           </div>
         ) : null}
         {cutMode ? <CutModePanel /> : null}
-        {calageMode && alignable.length > 0 ? (
+        {showCalageOffsetChrome ? (
           <div
             className={cn(
               'mb-[0.08rem] grid items-end gap-x-[0.1rem] pl-[0.35rem]',
-              autoAlignEnabled
+              showCalageAlignChrome
                 ? 'grid-cols-[1.55rem_minmax(0,1fr)_2.6rem_7.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_2.3rem_6rem]'
-                : 'grid-cols-[1.55rem_minmax(0,1fr)_7.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_6rem]',
+                : 'grid-cols-[1.55rem_minmax(0,1fr)_7.1rem] gap-x-[0.45rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_6rem] max-sm:gap-x-[0.35rem]',
             )}
             aria-hidden="true"
           >
             <span className="col-start-1" />
             <span className="col-start-2" />
-            {autoAlignEnabled ? (
+            {showCalageAlignChrome ? (
               <span
                 className="col-start-3 text-center text-[0.58rem] font-extrabold uppercase tracking-[0.06em] text-ink-soft select-none"
                 title={t('tracks.alignAll.hint')}
@@ -340,7 +346,7 @@ export function TracksList({ className }: TracksListProps) {
             <span
               className={cn(
                 'text-center text-[0.58rem] font-extrabold uppercase tracking-[0.06em] text-ink-soft select-none',
-                autoAlignEnabled ? 'col-start-4' : 'col-start-3',
+                showCalageAlignChrome ? 'col-start-4' : 'col-start-3',
               )}
               title={t('tracks.offset.hint')}
             >
@@ -354,14 +360,11 @@ export function TracksList({ className }: TracksListProps) {
             compactTrackChrome
               ? 'grid-cols-[1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.4rem_minmax(0,1fr)]'
               : 'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]',
-            calageMode &&
-              alignable.length > 0 &&
-              autoAlignEnabled &&
+            showCalageAlignChrome &&
               'mb-[0.2rem] grid-cols-[1.55rem_minmax(0,1fr)_2.6rem_7.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_2.3rem_6rem]',
-            calageMode &&
-              alignable.length > 0 &&
-              !autoAlignEnabled &&
-              'mb-[0.2rem] grid-cols-[1.55rem_minmax(0,1fr)_7.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_6rem]',
+            showCalageOffsetChrome &&
+              !showCalageAlignChrome &&
+              'mb-[0.2rem] grid-cols-[1.55rem_minmax(0,1fr)_7.1rem] gap-x-[0.45rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_6rem] max-sm:gap-x-[0.35rem]',
           )}
         >
           {compactTrackChrome ? null : (
@@ -407,7 +410,7 @@ export function TracksList({ className }: TracksListProps) {
               }}
             />
           </div>
-          {calageMode && autoAlignEnabled && alignable.length > 0 ? (
+          {showCalageAlignChrome ? (
             <Button
               variant="nudge"
               className="col-start-3 justify-self-center [&_svg]:size-[1.28rem]"
@@ -435,12 +438,10 @@ export function TracksList({ className }: TracksListProps) {
           <span
             className={cn(
               'w-full shrink-0 justify-self-center',
-              calageMode && autoAlignEnabled
-                ? 'col-start-4'
-                : 'col-start-3',
+              showCalageAlignChrome ? 'col-start-4' : 'col-start-3',
             )}
             data-align-nudge-spacer
-            hidden={!calageMode || alignable.length === 0}
+            hidden={!showCalageOffsetChrome}
             aria-hidden="true"
           />
         </div>

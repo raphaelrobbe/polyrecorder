@@ -6,8 +6,8 @@ import type { ContentSyncInvite } from '../store/sessionStore'
 import { useSessionStore } from '../store/sessionStore'
 import {
   contentSyncInviteAcceptMerge,
-  contentSyncInviteGoCalage,
   contentSyncInviteGoCut,
+  contentSyncInviteListenAdjust,
   contentSyncInviteListenMerge,
   contentSyncInviteListenSync,
   contentSyncInviteMergeAsk,
@@ -43,9 +43,21 @@ function actionsForStep(invite: ContentSyncInvite): {
           },
         ],
       }
+    case 'adjustListen':
+      return {
+        message: t('tracks.contentSync.invite.adjustListen'),
+        actions: [
+          {
+            label: t('common.listen'),
+            onClick: () => void contentSyncInviteListenAdjust(),
+          },
+        ],
+      }
     case 'satisfied':
       return {
-        message: t('tracks.contentSync.invite.satisfied'),
+        message: invite.afterManualAdjust
+          ? t('tracks.contentSync.invite.satisfiedManual')
+          : t('tracks.contentSync.invite.satisfied'),
         actions: [
           {
             label: t('common.yes'),
@@ -54,16 +66,6 @@ function actionsForStep(invite: ContentSyncInvite): {
           {
             label: t('common.no'),
             onClick: () => contentSyncInviteSatisfied(false),
-          },
-        ],
-      }
-    case 'goCalage':
-      return {
-        message: t('tracks.contentSync.invite.goCalage'),
-        actions: [
-          {
-            label: t('tracks.contentSync.invite.goCalage.action'),
-            onClick: () => contentSyncInviteGoCalage(),
           },
         ],
       }

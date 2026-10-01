@@ -31,11 +31,21 @@ export function NudgeControls({
       title={title}
       data-ms-nudge
     >
-      <Button variant="nudge" aria-label={minusAriaLabel} onClick={onMinus}>
+      <Button
+        variant="nudge"
+        className="h-[1.35rem] w-[1.35rem] rounded-md text-[0.8rem] max-sm:h-[1.2rem] max-sm:w-[1.2rem] max-sm:rounded-md max-sm:text-[0.72rem]"
+        aria-label={minusAriaLabel}
+        onClick={onMinus}
+      >
         −
       </Button>
       {valueSlot}
-      <Button variant="nudge" aria-label={plusAriaLabel} onClick={onPlus}>
+      <Button
+        variant="nudge"
+        className="h-[1.35rem] w-[1.35rem] rounded-md text-[0.8rem] max-sm:h-[1.2rem] max-sm:w-[1.2rem] max-sm:rounded-md max-sm:text-[0.72rem]"
+        aria-label={plusAriaLabel}
+        onClick={onPlus}
+      >
         +
       </Button>
     </div>

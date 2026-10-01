@@ -595,9 +595,9 @@ export const fr = {
   'tracks.contentSync.invite.listenSync':
     'Sync terminée. Écouter le résultat ?',
   'tracks.contentSync.invite.satisfied': 'Satisfait de la sync ?',
-  'tracks.contentSync.invite.goCalage':
-    'Tu peux affiner le calage manuellement en mode Calage.',
-  'tracks.contentSync.invite.goCalage.action': 'Mode Calage',
+  'tracks.contentSync.invite.satisfiedManual': 'Satisfait du calage ?',
+  'tracks.contentSync.invite.adjustListen':
+    'Ajuste le décalage (± ms) puis écoute.',
   'tracks.contentSync.invite.mergeAsk':
     'Fusionner les deux pistes sur un silence ?',
   'tracks.contentSync.invite.goCut':
@@ -765,7 +765,7 @@ export const fr = {
   'help.sync.punch.body1.after':
     'démarre une nouvelle piste à cet endroit. Un bouton « Sync » apparaît quelques instants en mode Simple (persistant en mode Calage). Il permet de la synchroniser à une autre piste (à sélectionner après clic sur le bouton « Sync »).',
   'help.sync.punch.bodyInvite':
-    'Après une Sync réussie, des invites proposent d’écouter le résultat, de confirmer le calage, puis éventuellement de fusionner les deux pistes sur un silence (avec écoute du raccord). Si tu refuses la Sync, tu peux passer en mode Calage pour ajuster à la main ; si tu refuses la fusion automatique, le mode Découpage reste disponible pour le faire toi-même.',
+    'Après une Sync réussie, des invites proposent d’écouter le résultat et de confirmer le calage. Si ce n’est pas bon, tu peux ajuster le décalage (± ms) en mode Calage, réécouter, puis fusionner les deux pistes sur un silence (avec écoute du raccord) — sans passer forcément par le Découpage. Si tu refuses la fusion automatique, le mode Découpage reste disponible pour le faire toi-même.',
   'help.sync.punch.body2':
     'Cette fonctionnalité a été pensée pour continuer une prise interrompue. Il faut reprendre l’enregistrement un peu avant la fin de la prise interrompue, refaire une partie réussie au début, puis continuer. La partie similaire permettra la synchronisation. Après synchronisation, une fusion des deux pistes pourra être faite en mode « Découpage ». Il suffira d’accoler le début de la première prise et la fin de la suivante.',
   'help.sync.punch.seeCut': 'Voir la rubrique Découpage',

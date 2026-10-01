@@ -594,9 +594,9 @@ export const de: Record<MessageKey, string> = {
   'tracks.contentSync.invite.listenSync':
     'Sync fertig. Ergebnis anhören?',
   'tracks.contentSync.invite.satisfied': 'Mit der Sync zufrieden?',
-  'tracks.contentSync.invite.goCalage':
-    'Du kannst die Ausrichtung manuell im Modus Ausrichten feinjustieren.',
-  'tracks.contentSync.invite.goCalage.action': 'Ausrichten',
+  'tracks.contentSync.invite.satisfiedManual': 'Mit der Ausrichtung zufrieden?',
+  'tracks.contentSync.invite.adjustListen':
+    'Offset mit ± ms feinjustieren, dann anhören.',
   'tracks.contentSync.invite.mergeAsk':
     'Beide Spuren an einer Stille zusammenfügen?',
   'tracks.contentSync.invite.goCut':
@@ -765,7 +765,7 @@ export const de: Record<MessageKey, string> = {
   'help.sync.punch.body1.after':
     'startet eine neue Spur an dieser Position. Ein „Sync“-Button erscheint kurz im Simple-Modus (bleibt im Ausrichtungsmodus). Damit synchronisierst du die Spur mit einer anderen (nach Klick auf „Sync“ auswählen).',
   'help.sync.punch.bodyInvite':
-    'Nach erfolgreicher Sync schlagen Einladungen vor, das Ergebnis anzuhören, die Ausrichtung zu bestätigen und optional beide Spuren an einer Stille zusammenzufügen (mit Anhören der Naht). Lehnst du die Sync ab, kannst du im Modus Ausrichten manuell nachziehen; ohne Auto-Fusion bleibt der Modus Schneiden für die manuelle Zusammenführung.',
+    'Nach erfolgreicher Sync schlagen Einladungen vor, das Ergebnis anzuhören und die Ausrichtung zu bestätigen. Passt sie nicht, justierst du den Offset (± ms) im Modus Ausrichten, hörst erneut und kannst beide Spuren an einer Stille zusammenfügen (mit Anhören der Naht) — ohne zwingend Schneiden. Ohne Auto-Fusion bleibt der Modus Schneiden für die manuelle Zusammenführung.',
   'help.sync.punch.body2':
     'Gedacht für unterbrochene Takes: nimm etwas vor dem Ende der unterbrochenen Aufnahme erneut auf, wiederhole einen gelungenen Anfang, dann weiter. Der ähnliche Abschnitt ermöglicht die Sync. Danach kannst du die beiden Spuren im Modus „Schneiden“ zusammenführen: Anfang der ersten und Ende der nächsten aneinander setzen.',
   'help.sync.punch.seeCut': 'Zur Rubrik Schneiden',

@@ -27,7 +27,7 @@ export type SessionNotice = {
 export type ContentSyncInviteStep =
   | 'listenSync'
   | 'satisfied'
-  | 'goCalage'
+  | 'adjustListen'
   | 'mergeAsk'
   | 'goCut'
   | 'listenMerge'
@@ -48,6 +48,8 @@ export type ContentSyncInvite = {
   mergedTrackId: number | null
   /** Display name of the first (against) track — used when accepting merge. */
   keepName: string
+  /** True when the latest listen was after a manual offset tweak. */
+  afterManualAdjust: boolean
 }
 
 export type SessionStoreState = {

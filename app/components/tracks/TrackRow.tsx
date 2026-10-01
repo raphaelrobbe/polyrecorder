@@ -108,6 +108,7 @@ export function TrackRow({
   const contentSyncSimpleOfferUntil = useSessionStore(
     (s) => s.contentSyncSimpleOfferUntil,
   )
+  const contentSyncInvite = useSessionStore((s) => s.contentSyncInvite)
   const referencePickActive = useSessionStore((s) => s.referencePickActive)
   const mixSeekMs = useSessionStore((s) => s.mixSeekMs)
   const setSeekDragActive = useSessionStore((s) => s.setSeekDragActive)
@@ -128,7 +129,7 @@ export function TrackRow({
   const cutEditing = cutMode && cutPhase === 'edit'
   const contentSyncPickActive = contentSyncPickFromId != null
   const pickActive = contentSyncPickActive || referencePickActive
-  const hideDelete = calageMode || mixMode || pickActive
+  const showTitleDelete = !pickActive
   const showDragHandle =
     !calageMode && !mixMode && !cutEditing && !pickActive
   const uploaderHandle = formatPseudoHandle(track.uploadedByPseudo)
@@ -198,7 +199,7 @@ export function TrackRow({
     (isSimpleMode || mixMode) &&
     !track.isMetronome &&
     Boolean(trackClipById[track.id])
-  /** Reserve chip columns so "!" line up across tracks (and stay next to trash). */
+  /** Reserve chip columns so "!" line up across tracks. */
   const simpleDupChipColumn =
     isSimpleMode &&
     tracks.some((t) => {
@@ -338,8 +339,6 @@ export function TrackRow({
       track.cloudStatus === 'error' ||
       track.cloudStatus == null)
   const cloudUploading = track.cloudStatus === 'uploading'
-  const showDelete = !hideDelete && !cutEditing
-  const showCutTitleDelete = cutEditing
   const deleteDisabled =
     isReference &&
     autoAlignEnabled &&
@@ -368,8 +367,23 @@ export function TrackRow({
     (!pickActive || isContentSyncSource) &&
     (calageMode ||
       (isSimpleMode && (simpleContentSyncOffer || isContentSyncSource)))
-  const showOffsetCol = calageMode && !pickActive
-  const showRefAlignCol = showOffsetCol && autoAlignEnabled
+  const inviteActive = contentSyncInvite != null
+  const isSyncFocusTrack =
+    inviteActive && contentSyncInvite!.fromTrackId === track.id
+  const inviteOffsetLocked =
+    inviteActive &&
+    (contentSyncInvite!.step === 'merging' ||
+      contentSyncInvite!.step === 'listenMerge' ||
+      contentSyncInvite!.step === 'acceptMerge')
+  // Whole Sync invite: keep offset column layout, but only the focus take
+  // shows ± / ms (other tracks’ nudges are hidden).
+  const showOffsetCol = (calageMode || inviteActive) && !pickActive
+  const showOffsetEditor =
+    showOffsetCol &&
+    (!inviteActive || isSyncFocusTrack) &&
+    !inviteOffsetLocked
+  const showRefAlignCol =
+    showOffsetCol && autoAlignEnabled && !inviteActive
   const contentSyncFromName =
     contentSyncPickFromId != null
       ? (tracks.find((t) => t.id === contentSyncPickFromId)?.name ?? '')
@@ -469,7 +483,7 @@ export function TrackRow({
           'grid-cols-[1.55rem_minmax(0,1fr)_2.6rem_7.1rem] grid-rows-[auto_auto] gap-y-[0.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_2.3rem_6rem]',
         showOffsetCol &&
           !showRefAlignCol &&
-          'grid-cols-[1.55rem_minmax(0,1fr)_7.1rem] grid-rows-[auto_auto] gap-y-[0.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_6rem]',
+          'grid-cols-[1.55rem_minmax(0,1fr)_7.1rem] grid-rows-[auto_auto] gap-x-[0.45rem] gap-y-[0.1rem] max-sm:grid-cols-[1.4rem_minmax(0,1fr)_6rem] max-sm:gap-x-[0.35rem]',
         isDragging && 'opacity-45 touch-none',
         dragOver === 'before' &&
           'before:pointer-events-none before:absolute before:left-0 before:right-0 before:-top-[0.2rem] before:h-0.5 before:rounded-sm before:bg-ink before:content-[""]',
@@ -682,7 +696,7 @@ export function TrackRow({
                       onBlur={applyMetronomeBpm}
                     />
                   )}
-                  {showCutTitleDelete ? (
+                  {showTitleDelete ? (
                     <Button
                       variant="trash"
                       className="ml-auto h-[1.3rem] w-[1.3rem] shrink-0 rounded-md border-ink/16 text-ink/45 [&_svg]:size-[0.68rem] max-sm:h-[1.2rem] max-sm:w-[1.2rem] max-sm:[&_svg]:size-[0.62rem]"
@@ -768,7 +782,7 @@ export function TrackRow({
                       {t('tracks.contentSync')}
                     </Button>
                   ) : null}
-                  {showCutTitleDelete ? (
+                  {showTitleDelete ? (
                     <Button
                       variant="trash"
                       className="h-[1.3rem] w-[1.3rem] shrink-0 rounded-md border-ink/16 text-ink/45 [&_svg]:size-[0.68rem] max-sm:h-[1.2rem] max-sm:w-[1.2rem] max-sm:[&_svg]:size-[0.62rem]"
@@ -1066,18 +1080,6 @@ export function TrackRow({
             ) : null}
           </div>
         ) : null}
-        {showDelete ? (
-          <Button
-            variant="trash"
-            className="ml-[0.15rem] h-[1.65rem] w-[1.65rem] shrink-0 self-start rounded-lg border-ink/18 text-ink/55 [&_svg]:size-[0.82rem] max-sm:ml-[0.08rem] max-sm:h-[1.45rem] max-sm:w-[1.45rem] max-sm:[&_svg]:size-[0.72rem]"
-            icon={<IconTrash />}
-            disabled={deleteDisabled || deleteBusy}
-            aria-label={t('tracks.delete', { name: track.name })}
-            title={deleteTitle}
-            data-delete-track={track.id}
-            onClick={onDeleteTrack}
-          />
-        ) : null}
       </div>
       {showOffsetCol ? (
         <>
@@ -1127,24 +1129,34 @@ export function TrackRow({
               />
             )
           ) : null}
-          <MsOffsetEditor
-            className={cn(
-              'row-start-1 justify-self-center',
-              showRefAlignCol ? 'col-start-4' : 'col-start-3',
-            )}
-            title={t('tracks.offset.hint')}
-            value={Math.round(track.offsetMs)}
-            onChange={(next) => applyManualTrackOffset(track.id, next)}
-            minusAriaLabel={t('tracks.offset.minus', { name: track.name })}
-            plusAriaLabel={t('tracks.offset.plus', { name: track.name })}
-            inputAriaLabel={t('tracks.offset.input', { name: track.name })}
-            inputProps={{ 'data-offset-track': track.id }}
-          />
+          {showOffsetEditor ? (
+            <MsOffsetEditor
+              className={cn(
+                'row-start-1 justify-self-center',
+                showRefAlignCol ? 'col-start-4' : 'col-start-3',
+              )}
+              title={t('tracks.offset.hint')}
+              value={Math.round(track.offsetMs)}
+              onChange={(next) => applyManualTrackOffset(track.id, next)}
+              minusAriaLabel={t('tracks.offset.minus', { name: track.name })}
+              plusAriaLabel={t('tracks.offset.plus', { name: track.name })}
+              inputAriaLabel={t('tracks.offset.input', { name: track.name })}
+              inputProps={{ 'data-offset-track': track.id }}
+            />
+          ) : showOffsetCol ? (
+            <span
+              className={cn(
+                'row-start-1 justify-self-center',
+                showRefAlignCol ? 'col-start-4' : 'col-start-3',
+              )}
+              aria-hidden="true"
+            />
+          ) : null}
           <small
             className={cn(
               'row-start-2 block max-w-[8.5rem] min-h-[1.55em] justify-self-center text-center text-[0.62rem] font-semibold leading-[1.25] tabular-nums text-ink-soft',
               showRefAlignCol ? 'col-start-4' : 'col-start-3',
-              !alignDetailText && 'invisible',
+              (!alignDetailText || !showOffsetEditor) && 'invisible',
             )}
           >
             {alignDetailText || '\u00a0'}

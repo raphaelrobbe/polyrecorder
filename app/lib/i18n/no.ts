@@ -593,9 +593,9 @@ export const no: Record<MessageKey, string> = {
   'tracks.contentSync.invite.listenSync':
     'Sync ferdig. Lytte til resultatet?',
   'tracks.contentSync.invite.satisfied': 'Fornøyd med synken?',
-  'tracks.contentSync.invite.goCalage':
-    'Du kan finjustere manuelt i Justering-modus.',
-  'tracks.contentSync.invite.goCalage.action': 'Justering',
+  'tracks.contentSync.invite.satisfiedManual': 'Fornøyd med justeringen?',
+  'tracks.contentSync.invite.adjustListen':
+    'Juster forskyvningen (± ms), lytt deretter.',
   'tracks.contentSync.invite.mergeAsk':
     'Flette de to sporene ved en stillhet?',
   'tracks.contentSync.invite.goCut':
@@ -759,7 +759,7 @@ export const no: Record<MessageKey, string> = {
   'help.sync.punch.body1.after':
     'starter et nytt spor der. En «Sync»-knapp vises kort i Simple-modus (den blir værende i Justering). Den lar deg synkronisere sporet mot et annet (velg etter klikk på «Sync»).',
   'help.sync.punch.bodyInvite':
-    'Etter vellykket Sync foreslår invitasjoner å lytte til resultatet, bekrefte justeringen, og eventuelt flette de to sporene ved en stillhet (med lytting på skjøten). Avviser du synken, kan du gå til Justering for manuell finjustering; uten autofletting står Klipp-modus klar til å gjøre det selv.',
+    'Etter vellykket Sync foreslår invitasjoner å lytte og bekrefte justeringen. Hvis den ikke passer, justerer du forskyvningen (± ms) i Justering, lytter igjen, og kan flette de to sporene ved en stillhet (med lytting på skjøten) — uten å måtte gå via Klipp. Uten autofletting står Klipp-modus klar til å gjøre det selv.',
   'help.sync.punch.body2':
     'Funksjonen er tenkt for å fortsette et avbrutt opptak. Start opptaket litt før slutten av det avbrutte, gjør om en vellykket bit først, fortsett så. Den like biten gjør synkronisering mulig. Etter sync kan du flette de to sporene i «Klipp»: sett starten av første og slutten av neste inntil hverandre.',
   'help.sync.punch.seeCut': 'Se rubrikken Klipp',
