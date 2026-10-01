@@ -11,6 +11,7 @@ import {
   contentSyncInviteListenMerge,
   contentSyncInviteListenSync,
   contentSyncInviteMergeAsk,
+  contentSyncInviteRelisten,
   contentSyncInviteSatisfied,
   dismissContentSyncInvite,
 } from '../lib/sessionActions.client'
@@ -66,6 +67,10 @@ function actionsForStep(invite: ContentSyncInvite): {
           {
             label: t('common.no'),
             onClick: () => contentSyncInviteSatisfied(false),
+          },
+          {
+            label: t('tracks.contentSync.invite.relisten'),
+            onClick: () => void contentSyncInviteRelisten(),
           },
         ],
       }

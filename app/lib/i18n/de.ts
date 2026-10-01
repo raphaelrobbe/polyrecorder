@@ -547,9 +547,11 @@ export const de: Record<MessageKey, string> = {
   'tracks.deleteAll.confirm':
     '{count} Spuren löschen? Sie gehen unwiderruflich verloren.',
   'tracks.alignAll.hint':
-    'Auto-Ausrichtung für alle Spuren neu berechnen (außer Spur 1)',
+    'Auto-Ausrichtung neu berechnen (außer Spur 1 und Versätze > 10 s)',
   'tracks.alignAll.aria':
     'Auto-Ausrichtung für alle Spuren neu berechnen',
+  'tracks.alignAll.excluded.hint':
+    'Keine passende Spur: Versätze über 10 s (späte Einsätze) sind von der Auto-Ausrichtung ausgenommen.',
   'tracks.alignCol': 'Auto',
   'tracks.offsetCol': 'Manuell',
   'tracks.align.legend':
@@ -593,8 +595,10 @@ export const de: Record<MessageKey, string> = {
   'tracks.contentSync.failed': 'Spur konnte nicht synchronisiert werden',
   'tracks.contentSync.invite.listenSync':
     'Sync fertig. Ergebnis anhören?',
-  'tracks.contentSync.invite.satisfied': 'Mit der Sync zufrieden?',
+  'tracks.contentSync.invite.satisfied':
+    'Sync fertig. Mit der Sync zufrieden?',
   'tracks.contentSync.invite.satisfiedManual': 'Mit der Ausrichtung zufrieden?',
+  'tracks.contentSync.invite.relisten': 'Nochmal anhören',
   'tracks.contentSync.invite.adjustListen':
     'Offset mit ± ms feinjustieren, dann anhören.',
   'tracks.contentSync.invite.mergeAsk':
@@ -619,6 +623,11 @@ export const de: Record<MessageKey, string> = {
     'Klicken oder ziehen, um die Wiedergabemarkierung zu setzen',
   'tracks.autoAlign': 'Ausrichtung neu berechnen',
   'tracks.autoAlign.named': 'Ausrichtung für {name} neu berechnen',
+  'tracks.autoAlign.excluded.hint':
+    'Auto-Ausrichtung deaktiviert: Versatz über 10 s (später Einsatz). Manuell anpassen.',
+  'tracks.autoAlign.undo.invite':
+    'Auto-Ausrichtung angewendet. Du kannst sie noch rückgängig machen.',
+  'tracks.autoAlign.undo': 'Rückgängig',
   'tracks.offset.hint': 'Diese Spur bei der Wiedergabe verschieben',
   'tracks.offset.minus': '{name} um 5 ms früher',
   'tracks.offset.plus': '{name} um 5 ms später',

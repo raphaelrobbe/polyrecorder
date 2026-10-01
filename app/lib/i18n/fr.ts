@@ -548,8 +548,10 @@ export const fr = {
   'tracks.deleteAll.confirm':
     'Supprimer les {count} pistes ? Elles seront définitivement perdues.',
   'tracks.alignAll.hint':
-    'Recalculer le calage auto de toutes les pistes (sauf piste 1)',
+    'Recalculer le calage auto (sauf piste 1 et décalages > 10 s)',
   'tracks.alignAll.aria': 'Recalculer le calage auto de toutes les pistes',
+  'tracks.alignAll.excluded.hint':
+    'Aucune piste éligible : les décalages de plus de 10 s (prises tardives) sont exclus du calage auto.',
   'tracks.alignCol': 'Auto',
   'tracks.offsetCol': 'Manuel',
   'tracks.align.legend':
@@ -594,8 +596,10 @@ export const fr = {
   'tracks.contentSync.failed': 'Impossible de synchroniser cette piste',
   'tracks.contentSync.invite.listenSync':
     'Sync terminée. Écouter le résultat ?',
-  'tracks.contentSync.invite.satisfied': 'Satisfait de la sync ?',
+  'tracks.contentSync.invite.satisfied':
+    'Sync terminée. Satisfait de la sync ?',
   'tracks.contentSync.invite.satisfiedManual': 'Satisfait du calage ?',
+  'tracks.contentSync.invite.relisten': 'Réécouter',
   'tracks.contentSync.invite.adjustListen':
     'Ajuste le décalage (± ms) puis écoute.',
   'tracks.contentSync.invite.mergeAsk':
@@ -619,6 +623,11 @@ export const fr = {
     'Cliquer ou glisser pour placer le curseur de lecture',
   'tracks.autoAlign': 'Recalculer le calage',
   'tracks.autoAlign.named': 'Recalculer le calage de {name}',
+  'tracks.autoAlign.excluded.hint':
+    'Calage auto désactivé : décalage supérieur à 10 s (prise tardive). Ajuste à la main.',
+  'tracks.autoAlign.undo.invite':
+    'Calage auto appliqué. Tu peux encore l’annuler.',
+  'tracks.autoAlign.undo': 'Annuler',
   'tracks.offset.hint': 'Décaler cette piste à la lecture',
   'tracks.offset.minus': 'Avancer {name} de 5 ms',
   'tracks.offset.plus': 'Retarder {name} de 5 ms',

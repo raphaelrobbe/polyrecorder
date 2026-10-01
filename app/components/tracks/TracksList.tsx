@@ -3,6 +3,7 @@ import { useNavigate } from '@remix-run/react'
 import { formatCentis, getMixDurationMs } from '../../lib/format'
 import {
   alignableTracks,
+  autoAlignableTracks,
   cancelContentSyncPick,
   cancelReferencePick,
   deleteAllTracks,
@@ -88,19 +89,30 @@ export function TracksList({ className }: TracksListProps) {
   }, [contentSyncPickFromId, referencePickActive])
 
   const alignable = alignableTracks()
+  const autoAlignable = autoAlignableTracks()
   const selectedCount = enabledTrackIds.length
   const allSelected = tracks.length > 0 && selectedCount === tracks.length
   const masterMuteIndeterminate =
     selectedCount > 0 && selectedCount < tracks.length
   const hasDeletableTracks = tracks.length > 0
   const inviteActive = contentSyncInvite != null
+  const inviteShowsManualOffset =
+    inviteActive &&
+    (contentSyncInvite!.afterManualAdjust ||
+      contentSyncInvite!.step === 'adjustListen')
   const showCalageOffsetChrome =
-    (calageMode || inviteActive) && alignable.length > 0
+    ((calageMode && !inviteActive) || inviteShowsManualOffset) &&
+    alignable.length > 0
   const showCalageAlignChrome =
     showCalageOffsetChrome && autoAlignEnabled && !inviteActive
+  const alignAllExcluded =
+    showCalageAlignChrome &&
+    alignable.length > 0 &&
+    autoAlignable.length === 0
   const cutEditing = cutMode && cutPhase === 'edit'
-  const modeLocksReorder = calageMode || mixMode || cutEditing
-  const compactTrackChrome = calageMode || mixMode || cutEditing
+  const modeLocksReorder = calageMode || mixMode || cutEditing || inviteActive
+  const compactTrackChrome =
+    calageMode || mixMode || cutEditing || inviteActive
 
   const duration = getMixDurationMs(tracks)
   const seekStepSeconds =
@@ -415,9 +427,17 @@ export function TracksList({ className }: TracksListProps) {
               variant="nudge"
               className="col-start-3 justify-self-center [&_svg]:size-[1.28rem]"
               icon={<IconAutoAlign />}
-              disabled={alignable.length === 0}
-              title={t('tracks.alignAll.hint')}
-              aria-label={t('tracks.alignAll.aria')}
+              disabled={alignable.length === 0 || alignAllExcluded}
+              title={
+                alignAllExcluded
+                  ? t('tracks.alignAll.excluded.hint')
+                  : t('tracks.alignAll.hint')
+              }
+              aria-label={
+                alignAllExcluded
+                  ? t('tracks.alignAll.excluded.hint')
+                  : t('tracks.alignAll.aria')
+              }
               data-align-all
               data-align-header
               onClick={() => {

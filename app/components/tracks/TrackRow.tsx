@@ -10,7 +10,10 @@ import {
   isDefaultTrackName,
 } from '../../lib/format'
 import { TRACK_VOLUME_MAX } from '../../lib/audio/mix.client'
-import { isOffsetSkewWarning } from '../../lib/audio/runtime.client'
+import {
+  isAutoAlignOffsetExcluded,
+  isOffsetSkewWarning,
+} from '../../lib/audio/runtime.client'
 import {
   applyManualTrackOffset,
   beginContentSyncPick,
@@ -131,7 +134,7 @@ export function TrackRow({
   const pickActive = contentSyncPickActive || referencePickActive
   const showTitleDelete = !pickActive
   const showDragHandle =
-    !calageMode && !mixMode && !cutEditing && !pickActive
+    !calageMode && !mixMode && !cutEditing && !pickActive && !contentSyncInvite
   const uploaderHandle = formatPseudoHandle(track.uploadedByPseudo)
   const uploaderIsMe =
     track.cloudOwnedByMe === true ||
@@ -375,9 +378,15 @@ export function TrackRow({
     (contentSyncInvite!.step === 'merging' ||
       contentSyncInvite!.step === 'listenMerge' ||
       contentSyncInvite!.step === 'acceptMerge')
-  // Whole Sync invite: keep offset column layout, but only the focus take
-  // shows ± / ms (other tracks’ nudges are hidden).
-  const showOffsetCol = (calageMode || inviteActive) && !pickActive
+  // Manual ± only in Calage, and during Sync invite only after the user
+  // rejected auto-Sync (“Non” → adjustListen / afterManualAdjust).
+  const inviteShowsManualOffset =
+    inviteActive &&
+    (contentSyncInvite!.afterManualAdjust ||
+      contentSyncInvite!.step === 'adjustListen')
+  const showOffsetCol =
+    !pickActive &&
+    (inviteActive ? inviteShowsManualOffset : calageMode)
   const showOffsetEditor =
     showOffsetCol &&
     (!inviteActive || isSyncFocusTrack) &&
@@ -1110,8 +1119,17 @@ export function TrackRow({
                 variant="nudge"
                 className="col-start-3 row-start-1 justify-self-center [&_svg]:size-[1.28rem]"
                 icon={<IconAutoAlign />}
-                title={t('tracks.autoAlign')}
-                aria-label={t('tracks.autoAlign.named', { name: track.name })}
+                disabled={isAutoAlignOffsetExcluded(track.offsetMs)}
+                title={
+                  isAutoAlignOffsetExcluded(track.offsetMs)
+                    ? t('tracks.autoAlign.excluded.hint')
+                    : t('tracks.autoAlign')
+                }
+                aria-label={
+                  isAutoAlignOffsetExcluded(track.offsetMs)
+                    ? t('tracks.autoAlign.excluded.hint')
+                    : t('tracks.autoAlign.named', { name: track.name })
+                }
                 data-auto-align-track={track.id}
                 onClick={() => {
                   void (async () => {

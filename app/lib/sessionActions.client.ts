@@ -1,4 +1,10 @@
-import type { ActiveRecording, AppState, Track, TrackPlayhead } from '../common/types'
+import type {
+  ActiveRecording,
+  AppState,
+  Track,
+  TrackAlignDetail,
+  TrackPlayhead,
+} from '../common/types'
 import { formatPseudoHandle } from '../common/user'
 import {
   defaultSessionTitle,
@@ -52,6 +58,7 @@ import {
   getTimerId,
   MAX_RECORDING_MS,
   MIX_LOOKAHEAD_S,
+  isAutoAlignOffsetExcluded,
   isOffsetSkewWarning,
   pickMimeType,
   prefersHeadphonesHint,
@@ -483,6 +490,13 @@ export function alignableTracks(): Track[] {
   )
 }
 
+/** Alignable takes that count-in auto-align is allowed to move (|offset| ≤ 10 s). */
+export function autoAlignableTracks(): Track[] {
+  return alignableTracks().filter(
+    (track) => !isAutoAlignOffsetExcluded(track.offsetMs),
+  )
+}
+
 export function getReferenceTrack(): Track | null {
   const { tracks, referenceTrackId } = get()
   if (referenceTrackId == null) return tracks[0] ?? null
@@ -670,6 +684,9 @@ export function showNotice(notice: SessionNotice) {
 export function dismissNotice() {
   const notice = get().notice
   if (!notice) return
+  if (notice.action === 'undoAutoAlign') {
+    clearAutoAlignUndoSnapshot()
+  }
   // × only hides the banner; the "!" chip stays so the user can reopen.
   patch({ notice: null, noticeSuppressedId: notice.id })
 }
@@ -2166,7 +2183,6 @@ async function applyContentSyncFocusOffset(
   const invite = get().contentSyncInvite
   if (!invite || invite.fromTrackId !== trackId) return
 
-  clearContentSyncInviteTimer()
   commitTrackOffsetMs(trackId, offsetMs)
   setCalageMode(true)
   patchContentSyncInvite({
@@ -2313,7 +2329,12 @@ export async function completeContentSyncAgainst(
       })
       return
     }
-    applyManualTrackOffset(fromId, Math.round(refined.offsetMs))
+    // Commit offset without transport-preserve resume — that would race the
+    // invite’s immediate listen-from-punch-in seek and skew playback hard.
+    const hasSources =
+      getPlaybackSources().length > 0 || get().playingTrackIds.length > 0
+    if (hasSources) stopPlayback({ resetSeek: false })
+    commitTrackOffsetMs(fromId, Math.round(refined.offsetMs))
     beginContentSyncInvite({
       fromTrackId: fromId,
       againstTrackId,
@@ -2326,15 +2347,6 @@ export async function completeContentSyncAgainst(
         ? error.message
         : t('tracks.contentSync.failed'),
     )
-  }
-}
-
-let contentSyncInviteTimer: ReturnType<typeof setTimeout> | null = null
-
-function clearContentSyncInviteTimer() {
-  if (contentSyncInviteTimer) {
-    clearTimeout(contentSyncInviteTimer)
-    contentSyncInviteTimer = null
   }
 }
 
@@ -2352,11 +2364,11 @@ function beginContentSyncInvite(options: {
   previousOffsetMs: number
   keepName: string
 }) {
-  clearContentSyncInviteTimer()
   dismissNotice()
+  // Stay in the current mode (often simple): manual ± only after “Non”.
   patch({
     contentSyncInvite: {
-      step: 'listenSync',
+      step: 'satisfied',
       fromTrackId: options.fromTrackId,
       againstTrackId: options.againstTrackId,
       previousOffsetMs: options.previousOffsetMs,
@@ -2366,11 +2378,30 @@ function beginContentSyncInvite(options: {
       afterManualAdjust: false,
     },
   })
+  void seekContentSyncInviteFocus()
+}
+
+async function seekContentSyncInviteFocus(): Promise<boolean> {
+  const invite = get().contentSyncInvite
+  if (!invite) return false
+  const from = get().tracks.find((t) => t.id === invite.fromTrackId)
+  if (!from) {
+    dismissContentSyncInvite()
+    return false
+  }
+  const startMs = audibleMixRange(from).startMs
+  try {
+    setError(null)
+    await seekMixTo(startMs)
+    return true
+  } catch {
+    // seekMixTo already sets error
+    return false
+  }
 }
 
 /** Close the post-Sync invite; optionally discard an unaccepted merge. */
 export function dismissContentSyncInvite() {
-  clearContentSyncInviteTimer()
   const invite = get().contentSyncInvite
   if (!invite) return
 
@@ -2394,28 +2425,15 @@ export function dismissContentSyncInvite() {
 
 export async function contentSyncInviteListenSync(): Promise<void> {
   const invite = get().contentSyncInvite
-  if (!invite || invite.step !== 'listenSync') return
+  if (!invite) return
+  if (invite.step !== 'listenSync' && invite.step !== 'satisfied') return
+  if (invite.step === 'satisfied' && invite.afterManualAdjust) return
 
-  const from = get().tracks.find((t) => t.id === invite.fromTrackId)
-  if (!from) {
-    dismissContentSyncInvite()
-    return
-  }
-
-  const startMs = audibleMixRange(from).startMs
-  clearContentSyncInviteTimer()
-  try {
-    setError(null)
-    void seekMixTo(startMs)
-  } catch {
-    // seekMixTo already sets error
-  }
-
-  contentSyncInviteTimer = setTimeout(() => {
-    contentSyncInviteTimer = null
-    if (get().contentSyncInvite?.step !== 'listenSync') return
+  const ok = await seekContentSyncInviteFocus()
+  if (!ok) return
+  if (invite.step === 'listenSync') {
     patchContentSyncInvite({ step: 'satisfied', afterManualAdjust: false })
-  }, 1000)
+  }
 }
 
 /**
@@ -2424,34 +2442,31 @@ export async function contentSyncInviteListenSync(): Promise<void> {
  */
 export async function contentSyncInviteListenAdjust(): Promise<void> {
   const invite = get().contentSyncInvite
-  if (!invite || invite.step !== 'adjustListen') return
+  if (!invite) return
+  if (invite.step !== 'adjustListen' && invite.step !== 'satisfied') return
+  if (invite.step === 'satisfied' && !invite.afterManualAdjust) return
 
-  const from = get().tracks.find((t) => t.id === invite.fromTrackId)
-  if (!from) {
-    dismissContentSyncInvite()
-    return
-  }
-
-  const startMs = audibleMixRange(from).startMs
-  clearContentSyncInviteTimer()
-  try {
-    setError(null)
-    void seekMixTo(startMs)
-  } catch {
-    // seekMixTo already sets error
-  }
-
-  contentSyncInviteTimer = setTimeout(() => {
-    contentSyncInviteTimer = null
-    if (get().contentSyncInvite?.step !== 'adjustListen') return
+  const ok = await seekContentSyncInviteFocus()
+  if (!ok) return
+  if (invite.step === 'adjustListen') {
     patchContentSyncInvite({ step: 'satisfied', afterManualAdjust: true })
-  }, 2000)
+  }
+}
+
+/** Replay the sync focus take from its start (Satisfait… → Réécouter). */
+export async function contentSyncInviteRelisten(): Promise<void> {
+  const invite = get().contentSyncInvite
+  if (!invite || invite.step !== 'satisfied') return
+  if (invite.afterManualAdjust) {
+    await contentSyncInviteListenAdjust()
+  } else {
+    await contentSyncInviteListenSync()
+  }
 }
 
 export function contentSyncInviteSatisfied(yes: boolean) {
   const invite = get().contentSyncInvite
   if (!invite || invite.step !== 'satisfied') return
-  clearContentSyncInviteTimer()
 
   if (yes) {
     patchContentSyncInvite({ step: 'mergeAsk' })
@@ -2470,7 +2485,6 @@ export function contentSyncInviteSatisfied(yes: boolean) {
 export function contentSyncInviteMergeAsk(yes: boolean) {
   const invite = get().contentSyncInvite
   if (!invite || invite.step !== 'mergeAsk') return
-  clearContentSyncInviteTimer()
 
   if (!yes) {
     patchContentSyncInvite({ step: 'goCut' })
@@ -2483,7 +2497,6 @@ export function contentSyncInviteMergeAsk(yes: boolean) {
 export function contentSyncInviteGoCut() {
   const invite = get().contentSyncInvite
   if (!invite || invite.step !== 'goCut') return
-  clearContentSyncInviteTimer()
   patch({ contentSyncInvite: null })
   setCutMode(true)
 }
@@ -2595,7 +2608,6 @@ export async function contentSyncInviteListenMerge(): Promise<void> {
   if (invite.cutPointMs == null || invite.mergedTrackId == null) return
 
   const startMs = Math.max(0, invite.cutPointMs - 2000)
-  clearContentSyncInviteTimer()
   try {
     setError(null)
     void seekMixTo(startMs)
@@ -2603,17 +2615,12 @@ export async function contentSyncInviteListenMerge(): Promise<void> {
     // seekMixTo already sets error
   }
 
-  contentSyncInviteTimer = setTimeout(() => {
-    contentSyncInviteTimer = null
-    if (get().contentSyncInvite?.step !== 'listenMerge') return
-    patchContentSyncInvite({ step: 'acceptMerge' })
-  }, 4000)
+  patchContentSyncInvite({ step: 'acceptMerge' })
 }
 
 export function contentSyncInviteAcceptMerge(yes: boolean) {
   const invite = get().contentSyncInvite
   if (!invite || invite.step !== 'acceptMerge') return
-  clearContentSyncInviteTimer()
 
   const { mergedTrackId, againstTrackId, fromTrackId, keepName } = invite
   if (mergedTrackId == null) {
@@ -2769,6 +2776,8 @@ export async function autoAlignTracksFromCounts(
     if (track.id === reference.id) continue
     if (track.isMetronome) continue
     if (!targetSet.has(track.id)) continue
+    // Punch-in / late starts: count-in peaks are not meaningful here.
+    if (isAutoAlignOffsetExcluded(track.offsetMs)) continue
 
     const buffer = await decodeTrack(track)
     const peaks = findVolumePeaks(buffer, 8)
@@ -2859,13 +2868,98 @@ async function maybeAutoAlignAfterTake(newTrackId: number): Promise<void> {
   }
 }
 
+type AutoAlignUndoSnapshot = {
+  offsets: Record<number, number>
+  details: Record<number, TrackAlignDetail | undefined>
+}
+
+let autoAlignUndoSnapshot: AutoAlignUndoSnapshot | null = null
+
+function clearAutoAlignUndoSnapshot() {
+  autoAlignUndoSnapshot = null
+}
+
+function captureAutoAlignUndoSnapshot(trackIds: ReadonlyArray<number>) {
+  const { tracks, trackAlignDetails } = get()
+  const offsets: Record<number, number> = {}
+  const details: Record<number, TrackAlignDetail | undefined> = {}
+  for (const id of trackIds) {
+    const track = tracks.find((row) => row.id === id)
+    if (!track) continue
+    offsets[id] = track.offsetMs
+    details[id] = trackAlignDetails[id]
+  }
+  autoAlignUndoSnapshot = { offsets, details }
+}
+
+function offerAutoAlignUndo() {
+  const snapshot = autoAlignUndoSnapshot
+  if (!snapshot || Object.keys(snapshot.offsets).length === 0) {
+    clearAutoAlignUndoSnapshot()
+    return
+  }
+  const { tracks } = get()
+  const changed = tracks.some(
+    (track) =>
+      track.id in snapshot.offsets &&
+      Math.round(track.offsetMs) !== Math.round(snapshot.offsets[track.id]!),
+  )
+  if (!changed) {
+    clearAutoAlignUndoSnapshot()
+    return
+  }
+  showNotice({
+    id: `auto-align-undo-${Date.now()}`,
+    message: t('tracks.autoAlign.undo.invite'),
+    tone: 'align',
+    action: 'undoAutoAlign',
+  })
+}
+
+/** Restore offsets from the last manual auto-align invite (Annuler). */
+export function undoLastAutoAlign(): void {
+  const snapshot = autoAlignUndoSnapshot
+  if (!snapshot) return
+  clearAutoAlignUndoSnapshot()
+
+  const ids = Object.keys(snapshot.offsets).map(Number)
+  void withMixTransportPreserved(() => {
+    const trackAlignDetails = { ...get().trackAlignDetails }
+    const tracks = get().tracks.map((track) => {
+      if (!(track.id in snapshot.offsets)) return track
+      const prevDetail = snapshot.details[track.id]
+      if (prevDetail === undefined) {
+        delete trackAlignDetails[track.id]
+      } else {
+        trackAlignDetails[track.id] = prevDetail
+      }
+      return { ...track, offsetMs: snapshot.offsets[track.id]! }
+    })
+    patch({ tracks, trackAlignDetails })
+    refreshSkewWarning()
+    persistCloudTrackOffsets(ids)
+    scheduleGuestDraftSave()
+    scheduleMixPeakRefresh()
+  })
+
+  const notice = get().notice
+  if (notice?.action === 'undoAutoAlign') {
+    patch({ notice: null, noticeSuppressedId: null })
+  }
+}
+
 /** Manual action: recalculate auto-align for one non-reference track. */
 export async function realignTrack(trackId: number): Promise<void> {
   if (!get().autoAlignEnabled) return
+  const track = get().tracks.find((row) => row.id === trackId)
+  if (!track || isAutoAlignOffsetExcluded(track.offsetMs)) return
   setError(null)
+  captureAutoAlignUndoSnapshot([trackId])
   try {
     await withMixTransportPreserved(() => autoAlignTracksFromCounts([trackId]))
+    offerAutoAlignUndo()
   } catch (error) {
+    clearAutoAlignUndoSnapshot()
     const message =
       error instanceof Error ? error.message : t('error.autoAlignFailed')
     noteAlignAttention(alignErrorTrackId(error, trackId) ?? trackId, message)
@@ -2873,15 +2967,18 @@ export async function realignTrack(trackId: number): Promise<void> {
   }
 }
 
-/** Manual action: recalculate auto-align for every non-reference track. */
+/** Manual action: recalculate auto-align for every eligible non-reference track. */
 export async function realignAllTracks(): Promise<void> {
   if (!get().autoAlignEnabled) return
+  const ids = autoAlignableTracks().map((track) => track.id)
+  if (ids.length === 0) return
   setError(null)
+  captureAutoAlignUndoSnapshot(ids)
   try {
-    await withMixTransportPreserved(() =>
-      autoAlignTracksFromCounts(alignableTracks().map((track) => track.id)),
-    )
+    await withMixTransportPreserved(() => autoAlignTracksFromCounts(ids))
+    offerAutoAlignUndo()
   } catch (error) {
+    clearAutoAlignUndoSnapshot()
     const message =
       error instanceof Error ? error.message : t('error.autoAlignFailed')
     const trackId = alignErrorTrackId(error, null)
@@ -4281,7 +4378,6 @@ export function deleteTrack(trackId: number) {
       invite.againstTrackId === trackId ||
       invite.mergedTrackId === trackId)
   ) {
-    clearContentSyncInviteTimer()
     patch({ contentSyncInvite: null })
   }
   if (get().referencePickActive) {

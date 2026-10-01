@@ -20,7 +20,7 @@ export type SessionNotice = {
   id: string
   message: string
   tone: NoticeTone
-  action?: 'disableAutoAlign'
+  action?: 'disableAutoAlign' | 'undoAutoAlign'
 }
 
 /** Post–content-Sync guided invite (listen → satisfy → merge…). */

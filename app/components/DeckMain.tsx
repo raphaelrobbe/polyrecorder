@@ -17,6 +17,7 @@ import {
   setAutoMasterPreventClipPref,
   setError,
   setSessionAlignPref,
+  undoLastAutoAlign,
 } from '../lib/sessionActions.client'
 import {
   writeAutoMasterBoost,
@@ -539,15 +540,21 @@ export function DeckMain({ className }: DeckMainProps) {
           actionLabel={
             notice.action === 'disableAutoAlign'
               ? t('warn.disableAutoAlign')
-              : undefined
+              : notice.action === 'undoAutoAlign'
+                ? t('tracks.autoAlign.undo')
+                : undefined
           }
           onAction={
             notice.action === 'disableAutoAlign'
               ? () => setSessionAlignPref('autoAlignEnabled', false)
-              : undefined
+              : notice.action === 'undoAutoAlign'
+                ? () => undoLastAutoAlign()
+                : undefined
           }
           title={
-            notice.tone === 'align' ? t('warn.skew.tooltip') : undefined
+            notice.tone === 'align' && notice.action !== 'undoAutoAlign'
+              ? t('warn.skew.tooltip')
+              : undefined
           }
         >
           {notice.message}

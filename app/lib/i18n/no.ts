@@ -547,8 +547,10 @@ export const no: Record<MessageKey, string> = {
   'tracks.deleteAll.confirm':
     'Slette {count} spor? De går tapt for godt.',
   'tracks.alignAll.hint':
-    'Beregn autojustering på nytt for alle spor (unntatt spor 1)',
+    'Beregn autojustering på nytt (unntatt spor 1 og forskyvninger > 10 s)',
   'tracks.alignAll.aria': 'Beregn autojustering på nytt for alle spor',
+  'tracks.alignAll.excluded.hint':
+    'Ingen aktuelle spor: forskyvninger over 10 s (sene starter) er unntatt fra autojustering.',
   'tracks.alignCol': 'Auto',
   'tracks.offsetCol': 'Manuell',
   'tracks.align.legend':
@@ -592,8 +594,10 @@ export const no: Record<MessageKey, string> = {
   'tracks.contentSync.failed': 'Kunne ikke synkronisere dette sporet',
   'tracks.contentSync.invite.listenSync':
     'Sync ferdig. Lytte til resultatet?',
-  'tracks.contentSync.invite.satisfied': 'Fornøyd med synken?',
+  'tracks.contentSync.invite.satisfied':
+    'Sync ferdig. Fornøyd med synken?',
   'tracks.contentSync.invite.satisfiedManual': 'Fornøyd med justeringen?',
+  'tracks.contentSync.invite.relisten': 'Lytt igjen',
   'tracks.contentSync.invite.adjustListen':
     'Juster forskyvningen (± ms), lytt deretter.',
   'tracks.contentSync.invite.mergeAsk':
@@ -616,6 +620,11 @@ export const no: Record<MessageKey, string> = {
   'tracks.span.seekHint': 'Klikk eller dra for å sette avspillingsmarkøren',
   'tracks.autoAlign': 'Beregn justering på nytt',
   'tracks.autoAlign.named': 'Beregn justering for {name} på nytt',
+  'tracks.autoAlign.excluded.hint':
+    'Autojustering deaktivert: forskyvning over 10 s (sen start). Juster manuelt.',
+  'tracks.autoAlign.undo.invite':
+    'Autojustering brukt. Du kan fortsatt angre.',
+  'tracks.autoAlign.undo': 'Angre',
   'tracks.offset.hint': 'Forskyv dette sporet ved avspilling',
   'tracks.offset.minus': 'Flytt {name} 5 ms tidligere',
   'tracks.offset.plus': 'Flytt {name} 5 ms senere',

@@ -34,11 +34,21 @@ export const OFFSET_WARN_MS = 300
  * auto-align skew — skip the “high auto-align” warning.
  */
 export const OFFSET_PUNCH_IN_MS = 4000
+/**
+ * Takes already parked further than this on the mix timeline are treated as
+ * punch-ins / continuations — count-in auto-align must not touch them.
+ */
+export const AUTO_ALIGN_MAX_OFFSET_MS = 10_000
 
 /** True when |offset| is large enough to warn, but not a punch-in. */
 export function isOffsetSkewWarning(offsetMs: number): boolean {
   const abs = Math.abs(offsetMs)
   return abs > OFFSET_WARN_MS && abs <= OFFSET_PUNCH_IN_MS
+}
+
+/** True when count-in auto-align must skip this take (offset past 10 s). */
+export function isAutoAlignOffsetExcluded(offsetMs: number): boolean {
+  return Math.abs(offsetMs) > AUTO_ALIGN_MAX_OFFSET_MS
 }
 export const MAX_RECORDING_MS = 5 * 60 * 1000
 

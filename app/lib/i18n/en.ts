@@ -544,8 +544,10 @@ export const en: Record<MessageKey, string> = {
   'tracks.deleteAll.confirm':
     'Delete {count} tracks? They will be permanently lost.',
   'tracks.alignAll.hint':
-    'Recalculate auto-align for all tracks (except track 1)',
+    'Recalculate auto-align (except track 1 and offsets over 10 s)',
   'tracks.alignAll.aria': 'Recalculate auto-align for all tracks',
+  'tracks.alignAll.excluded.hint':
+    'No eligible tracks: offsets over 10 s (late starts) are excluded from auto-align.',
   'tracks.alignCol': 'Auto',
   'tracks.offsetCol': 'Manual',
   'tracks.align.legend':
@@ -589,8 +591,9 @@ export const en: Record<MessageKey, string> = {
   'tracks.contentSync.failed': 'Could not sync this track',
   'tracks.contentSync.invite.listenSync':
     'Sync done. Listen to the result?',
-  'tracks.contentSync.invite.satisfied': 'Happy with the sync?',
+  'tracks.contentSync.invite.satisfied': 'Sync done. Happy with the sync?',
   'tracks.contentSync.invite.satisfiedManual': 'Happy with the alignment?',
+  'tracks.contentSync.invite.relisten': 'Listen again',
   'tracks.contentSync.invite.adjustListen':
     'Nudge the offset (± ms), then listen.',
   'tracks.contentSync.invite.mergeAsk':
@@ -612,6 +615,11 @@ export const en: Record<MessageKey, string> = {
   'tracks.span.seekHint': 'Click or drag to set the playhead',
   'tracks.autoAlign': 'Recalculate align',
   'tracks.autoAlign.named': 'Recalculate align for {name}',
+  'tracks.autoAlign.excluded.hint':
+    'Auto-align disabled: offset over 10 s (late start). Adjust by hand.',
+  'tracks.autoAlign.undo.invite':
+    'Auto-align applied. You can still undo it.',
+  'tracks.autoAlign.undo': 'Undo',
   'tracks.offset.hint': 'Offset this track on playback',
   'tracks.offset.minus': 'Nudge {name} earlier by 5 ms',
   'tracks.offset.plus': 'Nudge {name} later by 5 ms',
