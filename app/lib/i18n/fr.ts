@@ -36,6 +36,9 @@ export const fr = {
   'common.close': 'Fermer',
   'common.delete': 'Supprimer',
   'common.validate': 'Valider',
+  'common.yes': 'Oui',
+  'common.no': 'Non',
+  'common.listen': 'Écouter',
 
   'error.title': 'Oups',
   'error.lead':
@@ -589,6 +592,25 @@ export const fr = {
   'tracks.contentSync.weak':
     'Sync : pas assez de contenu commun — offset provisoire conservé',
   'tracks.contentSync.failed': 'Impossible de synchroniser cette piste',
+  'tracks.contentSync.invite.listenSync':
+    'Sync terminée. Écouter le résultat ?',
+  'tracks.contentSync.invite.satisfied': 'Satisfait de la sync ?',
+  'tracks.contentSync.invite.goCalage':
+    'Tu peux affiner le calage manuellement en mode Calage.',
+  'tracks.contentSync.invite.goCalage.action': 'Mode Calage',
+  'tracks.contentSync.invite.mergeAsk':
+    'Fusionner les deux pistes sur un silence ?',
+  'tracks.contentSync.invite.goCut':
+    'Tu peux fusionner toi-même en mode Découpage.',
+  'tracks.contentSync.invite.goCut.action': 'Mode Découpage',
+  'tracks.contentSync.invite.merging': 'Fusion en cours…',
+  'tracks.contentSync.invite.listenMerge':
+    'Fusion prête. Écouter le raccord ?',
+  'tracks.contentSync.invite.acceptMerge':
+    'Garder la fusion et supprimer les pistes sources ?',
+  'tracks.contentSync.invite.mergeNoSilence':
+    'Pas de silence net dans le chevauchement — fusionne en mode Découpage.',
+  'tracks.contentSync.invite.mergeFailed': 'La fusion automatique a échoué',
   'tracks.span.aria': 'Emplacement de {name} sur la timeline du mix',
   'tracks.span.seekAria':
     'Placer le curseur de lecture sur la timeline (piste {name})',

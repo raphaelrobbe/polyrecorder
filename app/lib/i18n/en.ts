@@ -38,6 +38,9 @@ export const en: Record<MessageKey, string> = {
   'common.close': 'Close',
   'common.delete': 'Delete',
   'common.validate': 'Confirm',
+  'common.yes': 'Yes',
+  'common.no': 'No',
+  'common.listen': 'Listen',
 
   'error.title': 'Oops',
   'error.lead': 'Something went wrong. You can go back to the recorder and try again.',
@@ -584,6 +587,25 @@ export const en: Record<MessageKey, string> = {
   'tracks.contentSync.weak':
     'Sync: not enough shared content — keeping provisional offset',
   'tracks.contentSync.failed': 'Could not sync this track',
+  'tracks.contentSync.invite.listenSync':
+    'Sync done. Listen to the result?',
+  'tracks.contentSync.invite.satisfied': 'Happy with the sync?',
+  'tracks.contentSync.invite.goCalage':
+    'You can fine-tune alignment manually in Align mode.',
+  'tracks.contentSync.invite.goCalage.action': 'Align mode',
+  'tracks.contentSync.invite.mergeAsk':
+    'Merge the two tracks on a silence?',
+  'tracks.contentSync.invite.goCut':
+    'You can merge them yourself in Cut mode.',
+  'tracks.contentSync.invite.goCut.action': 'Cut mode',
+  'tracks.contentSync.invite.merging': 'Merging…',
+  'tracks.contentSync.invite.listenMerge':
+    'Merge ready. Listen to the join?',
+  'tracks.contentSync.invite.acceptMerge':
+    'Keep the merge and delete the source tracks?',
+  'tracks.contentSync.invite.mergeNoSilence':
+    'No clear silence in the overlap — merge in Cut mode.',
+  'tracks.contentSync.invite.mergeFailed': 'Automatic merge failed',
   'tracks.span.aria': 'Placement of {name} on the mix timeline',
   'tracks.span.seekAria': 'Set the playhead on the timeline (track {name})',
   'tracks.span.seekHint': 'Click or drag to set the playhead',

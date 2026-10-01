@@ -38,6 +38,9 @@ export const no: Record<MessageKey, string> = {
   'common.close': 'Lukk',
   'common.delete': 'Slett',
   'common.validate': 'Bekreft',
+  'common.yes': 'Ja',
+  'common.no': 'Nei',
+  'common.listen': 'Lytt',
 
   'error.title': 'Oi',
   'error.lead':
@@ -587,6 +590,25 @@ export const no: Record<MessageKey, string> = {
   'tracks.contentSync.weak':
     'Sync: for lite felles innhold — beholder foreløpig offset',
   'tracks.contentSync.failed': 'Kunne ikke synkronisere dette sporet',
+  'tracks.contentSync.invite.listenSync':
+    'Sync ferdig. Lytte til resultatet?',
+  'tracks.contentSync.invite.satisfied': 'Fornøyd med synken?',
+  'tracks.contentSync.invite.goCalage':
+    'Du kan finjustere manuelt i Justering-modus.',
+  'tracks.contentSync.invite.goCalage.action': 'Justering',
+  'tracks.contentSync.invite.mergeAsk':
+    'Flette de to sporene ved en stillhet?',
+  'tracks.contentSync.invite.goCut':
+    'Du kan flette selv i Klipp-modus.',
+  'tracks.contentSync.invite.goCut.action': 'Klipp',
+  'tracks.contentSync.invite.merging': 'Fletter…',
+  'tracks.contentSync.invite.listenMerge':
+    'Fletting klar. Lytte til skjøten?',
+  'tracks.contentSync.invite.acceptMerge':
+    'Beholde flettingen og slette kildesporene?',
+  'tracks.contentSync.invite.mergeNoSilence':
+    'Ingen tydelig stillhet i overlappingen — flett i Klipp-modus.',
+  'tracks.contentSync.invite.mergeFailed': 'Automatisk fletting mislyktes',
   'tracks.span.aria': 'Plassering av {name} på mix-tidslinjen',
   'tracks.span.seekAria':
     'Sett avspillingsmarkøren på tidslinjen (spor {name})',

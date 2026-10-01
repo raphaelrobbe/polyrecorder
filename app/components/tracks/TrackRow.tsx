@@ -10,7 +10,7 @@ import {
   isDefaultTrackName,
 } from '../../lib/format'
 import { TRACK_VOLUME_MAX } from '../../lib/audio/mix.client'
-import { OFFSET_WARN_MS } from '../../lib/audio/runtime.client'
+import { isOffsetSkewWarning } from '../../lib/audio/runtime.client'
 import {
   applyManualTrackOffset,
   beginContentSyncPick,
@@ -149,8 +149,7 @@ export function TrackRow({
       ))
   const skewFingerprint = tracks
     .filter(
-      (t) =>
-        t.id !== referenceTrackId && Math.abs(t.offsetMs) > OFFSET_WARN_MS,
+      (t) => t.id !== referenceTrackId && isOffsetSkewWarning(t.offsetMs),
     )
     .map((t) => `${t.id}:${Math.round(t.offsetMs)}`)
     .join('|')
@@ -178,7 +177,7 @@ export function TrackRow({
     skewActive &&
     !isReference &&
     (isSimpleMode || calageMode) &&
-    Math.abs(track.offsetMs) > OFFSET_WARN_MS
+    isOffsetSkewWarning(track.offsetMs)
   const showAttentionChip =
     showSkewAttention || showAlignAttention || showBeatAttention
   const attentionTitle = showBeatAttention
@@ -219,8 +218,7 @@ export function TrackRow({
       (skewActive &&
         tracks.some(
           (t) =>
-            t.id !== referenceTrackId &&
-            Math.abs(t.offsetMs) > OFFSET_WARN_MS,
+            t.id !== referenceTrackId && isOffsetSkewWarning(t.offsetMs),
         )))
   const mixChipColumn =
     mixMode &&
@@ -234,8 +232,7 @@ export function TrackRow({
       (skewActive &&
         tracks.some(
           (t) =>
-            t.id !== referenceTrackId &&
-            Math.abs(t.offsetMs) > OFFSET_WARN_MS,
+            t.id !== referenceTrackId && isOffsetSkewWarning(t.offsetMs),
         )))
   const chipRail =
     simpleDupChipColumn ||
@@ -370,9 +367,7 @@ export function TrackRow({
     !cutEditing &&
     (!pickActive || isContentSyncSource) &&
     (calageMode ||
-      mixMode ||
-      simpleContentSyncOffer ||
-      isContentSyncSource)
+      (isSimpleMode && (simpleContentSyncOffer || isContentSyncSource)))
   const showOffsetCol = calageMode && !pickActive
   const showRefAlignCol = showOffsetCol && autoAlignEnabled
   const contentSyncFromName =

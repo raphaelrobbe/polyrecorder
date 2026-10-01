@@ -29,6 +29,17 @@ export const SINK_PLAYBACK_KEY = 'polyrecorder.sinkPlayback'
 export const INPUT_MONITOR_KEY = 'polyrecorder.inputMonitor'
 
 export const OFFSET_WARN_MS = 300
+/**
+ * Mix offsets above this are punch-in starts (take begins mid-song), not
+ * auto-align skew — skip the “high auto-align” warning.
+ */
+export const OFFSET_PUNCH_IN_MS = 4000
+
+/** True when |offset| is large enough to warn, but not a punch-in. */
+export function isOffsetSkewWarning(offsetMs: number): boolean {
+  const abs = Math.abs(offsetMs)
+  return abs > OFFSET_WARN_MS && abs <= OFFSET_PUNCH_IN_MS
+}
 export const MAX_RECORDING_MS = 5 * 60 * 1000
 
 function loadLatencyTrimMs(): number {

@@ -52,7 +52,7 @@ import {
   getTimerId,
   MAX_RECORDING_MS,
   MIX_LOOKAHEAD_S,
-  OFFSET_WARN_MS,
+  isOffsetSkewWarning,
   pickMimeType,
   prefersHeadphonesHint,
   refreshAudioDevices,
@@ -308,6 +308,7 @@ function applyGuestDraftToStore(draft: GuestDraft): void {
     error: null,
     notice: null,
     noticeSuppressedId: null,
+    contentSyncInvite: null,
     referenceBeatDismissedKey: '',
   })
   clearRefPeaks()
@@ -615,8 +616,7 @@ export function refreshSkewWarning() {
     .map((track, index) => ({ track, index }))
     .filter(
       ({ track }) =>
-        track.id !== referenceTrackId &&
-        Math.abs(track.offsetMs) > OFFSET_WARN_MS,
+        track.id !== referenceTrackId && isOffsetSkewWarning(track.offsetMs),
     )
 
   if (skewed.length === 0) {
@@ -770,6 +770,7 @@ export function setMixMode(on: boolean) {
       cutWorkSegments: {},
       calageTipOpen: false,
       referencePickActive: false,
+      contentSyncPickFromId: null,
       error: null,
       notice: null,
       noticeSuppressedId: null,
@@ -799,6 +800,7 @@ export function setCutMode(on: boolean) {
       calageMode: false,
       calageTipOpen: false,
       referencePickActive: false,
+      contentSyncPickFromId: null,
       cutPhase: 'edit',
       cutSelectedTrackIds,
       cutWorkSegments,
@@ -1145,21 +1147,20 @@ async function finalizePendingMergeTrack(
   return next
 }
 
-export async function mergeSelectedCutSegments(): Promise<boolean> {
-  if (!get().cutMode || get().cutPhase !== 'edit' || get().cutMerging) {
-    return false
-  }
-  if (cutMergeBlockedReason() !== 'none') return false
-
-  const selected = selectedCutWorkSegments()
-  const pieces = selected
-    .map((seg) => {
-      const track = get().tracks.find((t) => t.id === seg.trackId)
-      if (!track) return null
-      return { track, startMs: seg.startMs, endMs: seg.endMs }
-    })
-    .filter((p): p is NonNullable<typeof p> => p != null)
-  if (pieces.length === 0) return false
+/**
+ * Offline-merge mix-timeline pieces into a new fromCutMerge track.
+ * Used by découpage Fusionner and by the post-Sync silence merge invite.
+ */
+export async function mergeTimelinePieces(
+  pieces: Array<{ track: Track; startMs: number; endMs: number }>,
+  options?: {
+    name?: string
+    /** When true (découpage), refresh cut work segments around the result. */
+    updateCutWork?: boolean
+  },
+): Promise<Track | null> {
+  if (get().cutMerging) return null
+  if (pieces.length === 0) return null
 
   const sourceTrackIds = [...new Set(pieces.map((p) => p.track.id))]
   const offsetMs = Math.min(...pieces.map((p) => p.startMs))
@@ -1169,9 +1170,10 @@ export async function mergeSelectedCutSegments(): Promise<boolean> {
     .map((id) => get().tracks.find((t) => t.id === id)?.name)
     .filter((n): n is string => Boolean(n))
   const name =
-    nameParts.length > 0
+    options?.name ??
+    (nameParts.length > 0
       ? t('cut.merge.trackName', { names: nameParts.join(' + ') })
-      : t('cut.merge.trackNameFallback')
+      : t('cut.merge.trackNameFallback'))
 
   setError(null)
   const pending = beginPendingMergeTrack({ name, durationMs, offsetMs })
@@ -1180,30 +1182,32 @@ export async function mergeSelectedCutSegments(): Promise<boolean> {
     setTrackEnabled(id, false)
   }
 
-  const pendingSeg: import('../common/types').CutWorkSegment = {
-    id: newSegmentId(),
-    startMs: offsetMs,
-    endMs: offsetMs + durationMs,
-    selected: false,
-  }
-  const cleared: Record<
-    number,
-    import('../common/types').CutWorkSegment[]
-  > = {}
-  for (const [key, segments] of Object.entries(get().cutWorkSegments)) {
-    cleared[Number(key)] = segments.map((seg) => ({
-      ...seg,
+  if (options?.updateCutWork) {
+    const pendingSeg: import('../common/types').CutWorkSegment = {
+      id: newSegmentId(),
+      startMs: offsetMs,
+      endMs: offsetMs + durationMs,
       selected: false,
-    }))
+    }
+    const cleared: Record<
+      number,
+      import('../common/types').CutWorkSegment[]
+    > = {}
+    for (const [key, segments] of Object.entries(get().cutWorkSegments)) {
+      cleared[Number(key)] = segments.map((seg) => ({
+        ...seg,
+        selected: false,
+      }))
+    }
+    cleared[pending.id] = [pendingSeg]
+    patch({
+      cutPhase: 'edit',
+      cutWorkSegments: cleared,
+      cutSelectedTrackIds: [
+        ...new Set([...get().cutSelectedTrackIds, pending.id]),
+      ],
+    })
   }
-  cleared[pending.id] = [pendingSeg]
-  patch({
-    cutPhase: 'edit',
-    cutWorkSegments: cleared,
-    cutSelectedTrackIds: [
-      ...new Set([...get().cutSelectedTrackIds, pending.id]),
-    ],
-  })
 
   try {
     const {
@@ -1230,23 +1234,25 @@ export async function mergeSelectedCutSegments(): Promise<boolean> {
     if (!mergedTrack) throw new Error(t('error.exportFailed'))
     onProgress({ phase: 'save', ratio: 1 })
 
-    const range = audibleMixRange(mergedTrack)
-    if (range.endMs > range.startMs) {
-      patch({
-        cutWorkSegments: {
-          ...get().cutWorkSegments,
-          [mergedTrack.id]: [
-            {
-              id: newSegmentId(),
-              startMs: range.startMs,
-              endMs: range.endMs,
-              selected: false,
-            },
-          ],
-        },
-      })
+    if (options?.updateCutWork) {
+      const range = audibleMixRange(mergedTrack)
+      if (range.endMs > range.startMs) {
+        patch({
+          cutWorkSegments: {
+            ...get().cutWorkSegments,
+            [mergedTrack.id]: [
+              {
+                id: newSegmentId(),
+                startMs: range.startMs,
+                endMs: range.endMs,
+                selected: false,
+              },
+            ],
+          },
+        })
+      }
     }
-    return true
+    return mergedTrack
   } catch (error) {
     for (const id of sourceTrackIds) {
       setTrackEnabled(id, true)
@@ -1260,7 +1266,7 @@ export async function mergeSelectedCutSegments(): Promise<boolean> {
     setError(
       error instanceof Error ? error.message : t('error.exportFailed'),
     )
-    return false
+    return null
   } finally {
     if (get().cutMergeTrackId === pending.id || get().cutMerging) {
       patch({
@@ -1270,6 +1276,26 @@ export async function mergeSelectedCutSegments(): Promise<boolean> {
       })
     }
   }
+}
+
+export async function mergeSelectedCutSegments(): Promise<boolean> {
+  if (!get().cutMode || get().cutPhase !== 'edit' || get().cutMerging) {
+    return false
+  }
+  if (cutMergeBlockedReason() !== 'none') return false
+
+  const selected = selectedCutWorkSegments()
+  const pieces = selected
+    .map((seg) => {
+      const track = get().tracks.find((t) => t.id === seg.trackId)
+      if (!track) return null
+      return { track, startMs: seg.startMs, endMs: seg.endMs }
+    })
+    .filter((p): p is NonNullable<typeof p> => p != null)
+  if (pieces.length === 0) return false
+
+  const merged = await mergeTimelinePieces(pieces, { updateCutWork: true })
+  return merged != null
 }
 
 const HIGHLIGHT_DIM_VOLUME = 0.3
@@ -1866,10 +1892,13 @@ function startTimer(fromPerf = performance.now()) {
   const id = window.setInterval(() => {
     const elapsed = performance.now() - getStartedAt()
     const tracks = get().tracks
+    // Only warn when overdubbing past existing takes. A metronome alone
+    // yields max=0, which must not trigger on the first content take.
+    const otherTakesMs = getMaxTrackDurationMs(tracks)
     const forgottenStopHint =
       get().state === 'recording' &&
-      tracks.length > 0 &&
-      elapsed > getMaxTrackDurationMs(tracks) + 10_000
+      otherTakesMs > 0 &&
+      elapsed > otherTakesMs + 10_000
     patch({ timerText: formatTime(elapsed), forgottenStopHint })
     if (
       elapsed >= MAX_RECORDING_MS &&
@@ -2218,6 +2247,7 @@ export async function completeContentSyncAgainst(
 
   patch({ contentSyncPickFromId: null })
   setError(null)
+  const previousOffsetMs = from.offsetMs
 
   try {
     const [{ refineOffsetByOverlap }, bufFrom, bufAgainst] = await Promise.all([
@@ -2239,6 +2269,12 @@ export async function completeContentSyncAgainst(
       return
     }
     applyManualTrackOffset(fromId, Math.round(refined.offsetMs))
+    beginContentSyncInvite({
+      fromTrackId: fromId,
+      againstTrackId,
+      previousOffsetMs,
+      keepName: against.name,
+    })
   } catch (error) {
     setError(
       error instanceof Error
@@ -2246,6 +2282,293 @@ export async function completeContentSyncAgainst(
         : t('tracks.contentSync.failed'),
     )
   }
+}
+
+let contentSyncInviteTimer: ReturnType<typeof setTimeout> | null = null
+
+function clearContentSyncInviteTimer() {
+  if (contentSyncInviteTimer) {
+    clearTimeout(contentSyncInviteTimer)
+    contentSyncInviteTimer = null
+  }
+}
+
+function patchContentSyncInvite(
+  partial: Partial<import('../store/sessionStore').ContentSyncInvite>,
+) {
+  const current = get().contentSyncInvite
+  if (!current) return
+  patch({ contentSyncInvite: { ...current, ...partial } })
+}
+
+function beginContentSyncInvite(options: {
+  fromTrackId: number
+  againstTrackId: number
+  previousOffsetMs: number
+  keepName: string
+}) {
+  clearContentSyncInviteTimer()
+  dismissNotice()
+  patch({
+    contentSyncInvite: {
+      step: 'listenSync',
+      fromTrackId: options.fromTrackId,
+      againstTrackId: options.againstTrackId,
+      previousOffsetMs: options.previousOffsetMs,
+      cutPointMs: null,
+      mergedTrackId: null,
+      keepName: options.keepName,
+    },
+  })
+}
+
+/** Close the post-Sync invite; optionally discard an unaccepted merge. */
+export function dismissContentSyncInvite() {
+  clearContentSyncInviteTimer()
+  const invite = get().contentSyncInvite
+  if (!invite) return
+
+  const { mergedTrackId, againstTrackId, fromTrackId, step } = invite
+  patch({ contentSyncInvite: null })
+
+  if (
+    mergedTrackId != null &&
+    (step === 'listenMerge' ||
+      step === 'acceptMerge' ||
+      step === 'merging')
+  ) {
+    // Unaccepted merge → drop it and restore sources.
+    if (get().tracks.some((t) => t.id === mergedTrackId)) {
+      deleteTrack(mergedTrackId)
+    }
+    setTrackEnabled(againstTrackId, true)
+    setTrackEnabled(fromTrackId, true)
+  }
+}
+
+export async function contentSyncInviteListenSync(): Promise<void> {
+  const invite = get().contentSyncInvite
+  if (!invite || invite.step !== 'listenSync') return
+
+  const from = get().tracks.find((t) => t.id === invite.fromTrackId)
+  if (!from) {
+    dismissContentSyncInvite()
+    return
+  }
+
+  const startMs = audibleMixRange(from).startMs
+  clearContentSyncInviteTimer()
+  try {
+    setError(null)
+    void seekMixTo(startMs)
+  } catch {
+    // seekMixTo already sets error
+  }
+
+  contentSyncInviteTimer = setTimeout(() => {
+    contentSyncInviteTimer = null
+    if (get().contentSyncInvite?.step !== 'listenSync') return
+    patchContentSyncInvite({ step: 'satisfied' })
+  }, 2000)
+}
+
+export function contentSyncInviteSatisfied(yes: boolean) {
+  const invite = get().contentSyncInvite
+  if (!invite || invite.step !== 'satisfied') return
+  clearContentSyncInviteTimer()
+
+  if (yes) {
+    patchContentSyncInvite({ step: 'mergeAsk' })
+    return
+  }
+
+  // Reject sync → restore previous offset, offer calage.
+  applyManualTrackOffset(invite.fromTrackId, invite.previousOffsetMs)
+  patchContentSyncInvite({ step: 'goCalage' })
+}
+
+export function contentSyncInviteGoCalage() {
+  const invite = get().contentSyncInvite
+  if (!invite || invite.step !== 'goCalage') return
+  clearContentSyncInviteTimer()
+  patch({ contentSyncInvite: null })
+  setCalageMode(true)
+}
+
+export function contentSyncInviteMergeAsk(yes: boolean) {
+  const invite = get().contentSyncInvite
+  if (!invite || invite.step !== 'mergeAsk') return
+  clearContentSyncInviteTimer()
+
+  if (!yes) {
+    patchContentSyncInvite({ step: 'goCut' })
+    return
+  }
+
+  void runContentSyncSilenceMerge()
+}
+
+export function contentSyncInviteGoCut() {
+  const invite = get().contentSyncInvite
+  if (!invite || invite.step !== 'goCut') return
+  clearContentSyncInviteTimer()
+  patch({ contentSyncInvite: null })
+  setCutMode(true)
+}
+
+async function runContentSyncSilenceMerge(): Promise<void> {
+  const invite = get().contentSyncInvite
+  if (!invite || invite.step !== 'mergeAsk') return
+
+  const against = get().tracks.find((t) => t.id === invite.againstTrackId)
+  const from = get().tracks.find((t) => t.id === invite.fromTrackId)
+  if (!against || !from) {
+    dismissContentSyncInvite()
+    return
+  }
+
+  patchContentSyncInvite({ step: 'merging' })
+  setError(null)
+
+  try {
+    const [{ findQuietestOverlapCutMs }, bufAgainst, bufFrom] =
+      await Promise.all([
+        import('./audio/silenceCut.client'),
+        decodeTrack(against),
+        decodeTrack(from),
+      ])
+
+    // Fresh offsets after Sync.
+    const againstNow = get().tracks.find((t) => t.id === invite.againstTrackId)
+    const fromNow = get().tracks.find((t) => t.id === invite.fromTrackId)
+    if (!againstNow || !fromNow) {
+      dismissContentSyncInvite()
+      return
+    }
+
+    const cutPointMs = findQuietestOverlapCutMs(
+      {
+        buffer: bufAgainst,
+        offsetMs: againstNow.offsetMs,
+        durationMs: againstNow.durationMs,
+      },
+      {
+        buffer: bufFrom,
+        offsetMs: fromNow.offsetMs,
+        durationMs: fromNow.durationMs,
+      },
+    )
+
+    if (cutPointMs == null) {
+      setError(t('tracks.contentSync.invite.mergeNoSilence'))
+      patchContentSyncInvite({ step: 'goCut' })
+      return
+    }
+
+    const rangeAgainst = audibleMixRange(againstNow)
+    const rangeFrom = audibleMixRange(fromNow)
+    if (
+      !(cutPointMs > rangeAgainst.startMs + 20) ||
+      !(cutPointMs < rangeFrom.endMs - 20)
+    ) {
+      setError(t('tracks.contentSync.invite.mergeNoSilence'))
+      patchContentSyncInvite({ step: 'goCut' })
+      return
+    }
+
+    const pieces = [
+      {
+        track: againstNow,
+        startMs: rangeAgainst.startMs,
+        endMs: cutPointMs,
+      },
+      {
+        track: fromNow,
+        startMs: cutPointMs,
+        endMs: rangeFrom.endMs,
+      },
+    ]
+
+    const merged = await mergeTimelinePieces(pieces, {
+      name: t('cut.merge.trackName', {
+        names: `${againstNow.name} + ${fromNow.name}`,
+      }),
+      updateCutWork: false,
+    })
+
+    if (!merged) {
+      // mergeTimelinePieces already sets error / re-enables sources
+      patchContentSyncInvite({ step: 'goCut' })
+      return
+    }
+
+    patchContentSyncInvite({
+      step: 'listenMerge',
+      cutPointMs,
+      mergedTrackId: merged.id,
+    })
+  } catch (error) {
+    setError(
+      error instanceof Error
+        ? error.message
+        : t('tracks.contentSync.invite.mergeFailed'),
+    )
+    patchContentSyncInvite({ step: 'goCut' })
+  }
+}
+
+export async function contentSyncInviteListenMerge(): Promise<void> {
+  const invite = get().contentSyncInvite
+  if (!invite || invite.step !== 'listenMerge') return
+  if (invite.cutPointMs == null || invite.mergedTrackId == null) return
+
+  const startMs = Math.max(0, invite.cutPointMs - 2000)
+  clearContentSyncInviteTimer()
+  try {
+    setError(null)
+    void seekMixTo(startMs)
+  } catch {
+    // seekMixTo already sets error
+  }
+
+  contentSyncInviteTimer = setTimeout(() => {
+    contentSyncInviteTimer = null
+    if (get().contentSyncInvite?.step !== 'listenMerge') return
+    patchContentSyncInvite({ step: 'acceptMerge' })
+  }, 4000)
+}
+
+export function contentSyncInviteAcceptMerge(yes: boolean) {
+  const invite = get().contentSyncInvite
+  if (!invite || invite.step !== 'acceptMerge') return
+  clearContentSyncInviteTimer()
+
+  const { mergedTrackId, againstTrackId, fromTrackId, keepName } = invite
+  if (mergedTrackId == null) {
+    patch({ contentSyncInvite: null })
+    return
+  }
+
+  if (!yes) {
+    // Clear merge refs first so deleteTrack doesn’t wipe the whole invite.
+    patchContentSyncInvite({
+      step: 'goCut',
+      mergedTrackId: null,
+      cutPointMs: null,
+    })
+    deleteTrack(mergedTrackId)
+    setTrackEnabled(againstTrackId, true)
+    setTrackEnabled(fromTrackId, true)
+    return
+  }
+
+  // Keep merge: rename to first track, delete sources.
+  renameTrack(mergedTrackId, keepName)
+  patch({ contentSyncInvite: null })
+  if (againstTrackId !== mergedTrackId) deleteTrack(againstTrackId)
+  if (fromTrackId !== mergedTrackId) deleteTrack(fromTrackId)
+  setTrackEnabled(mergedTrackId, true)
+  scheduleGuestDraftSave()
 }
 
 export async function evaluateReferenceBeat(): Promise<void> {
@@ -2600,6 +2923,13 @@ export async function playTracks(
     asMix?: boolean
     applyOffsets?: boolean
     startAtMs?: number
+    /** Override metronome length (e.g. MAX_RECORDING_MS for punch-in). */
+    metroDurationMs?: number
+    /**
+     * When monitor buffers end, leave the graph running (metronome) instead of
+     * stopPlayback — needed while a punch-in take continues past mix end.
+     */
+    sustainAfterBuffersEnd?: boolean
   },
 ): Promise<void> {
   const asMix = Boolean(options?.asMix)
@@ -2687,10 +3017,13 @@ export async function playTracks(
     playing.add(track.id)
   }
 
-  // Cap at non-metronome content so clicks never outlive the takes
-  // (e.g. a take shorter than the initial 1-2-3-4).
+  // Default: cap clicks at non-metronome content. Punch-in can request a
+  // longer train so the click keeps going past existing takes.
   const mixEndMs = Math.max(getMixDurationMs(sourceTracks), startAtMs)
-  const metroPlayMs = Math.max(0, mixEndMs - startAtMs)
+  const metroPlayMs = Math.max(
+    0,
+    options?.metroDurationMs ?? mixEndMs - startAtMs,
+  )
 
   if (wantMetro && metroTrack && metroBpm != null && metroPlayMs > 0) {
     const metroGain = ctx.createGain()
@@ -2714,6 +3047,7 @@ export async function playTracks(
   tickClockDisplays()
 
   const awaitEnd = options?.awaitEnd ?? true
+  const sustainAfterBuffersEnd = Boolean(options?.sustainAfterBuffersEnd)
   const startDelayMs = Math.max(0, (timelineStart - ctx.currentTime) * 1000)
 
   return new Promise<void>((resolve) => {
@@ -2732,6 +3066,10 @@ export async function playTracks(
         stopPlayback({ resetSeek: true })
         resolve()
       })
+    }
+
+    const resolveKeepGraph = () => {
+      finish(() => resolve())
     }
 
     if (bufferSources.length === 0) {
@@ -2758,6 +3096,12 @@ export async function playTracks(
         if (getMixPaused()) return
         remaining -= 1
         if (remaining > 0) return
+
+        // Punch-in / overdub: keep metronome (and timeline) after monitors end.
+        if (sustainAfterBuffersEnd || get().state === 'recording') {
+          if (awaitEnd) resolveKeepGraph()
+          return
+        }
 
         if (awaitEnd) {
           resolveAsDone()
@@ -3466,11 +3810,14 @@ export async function beginPunchInRecording(): Promise<void> {
       return
     }
     // Fire monitoring from the paused/idle playhead, then arm the mic.
+    // Metronome must outlive existing takes (user may record past mix end).
     void playTracks(tracks, {
       awaitEnd: true,
       asMix: true,
       applyOffsets: true,
       startAtMs,
+      metroDurationMs: MAX_RECORDING_MS,
+      sustainAfterBuffersEnd: true,
     }).catch((error) => {
       setError(
         error instanceof Error ? error.message : t('error.playbackFailed'),
@@ -3479,6 +3826,9 @@ export async function beginPunchInRecording(): Promise<void> {
     await new Promise<void>((resolve) => {
       window.setTimeout(resolve, Math.round(MIX_LOOKAHEAD_S * 1000) + 30)
     })
+  } else {
+    // Already listening: extend the click train past the current mix end.
+    extendMetronomeForRecording()
   }
 
   const recording = createRecording(stream)
@@ -3492,9 +3842,55 @@ export async function beginPunchInRecording(): Promise<void> {
   pendingTakePunchIn = true
   pendingTakeRestartMs = Math.max(0, posAtStart)
 
-  await startMeter(stream, (level) => patch({ meterLevel: level }))
+  // Mark recording before awaiting meter setup so playTracks onended (mix end)
+  // keeps the metronome instead of tearing the graph down mid-punch-in.
   startTimer(performance.now())
   setTransportState('recording')
+  await startMeter(stream, (level) => patch({ meterLevel: level }))
+}
+
+/**
+ * Schedule extra metronome clicks from the end of current mix content so a
+ * punch-in take keeps hearing the click after existing tracks finish.
+ */
+function extendMetronomeForRecording(): void {
+  const metroTrack = get().tracks.find((track) => track.isMetronome)
+  const bpm = get().metronomeBpm
+  const ctx = getAudioContext()
+  const master = getPlaybackGain()
+  if (
+    !metroTrack ||
+    bpm == null ||
+    !ctx ||
+    !master ||
+    mixTimelineStartCtx == null
+  ) {
+    return
+  }
+
+  const playbackRate =
+    get().cutMode ? Math.max(0.05, get().cutPlaybackRate || 1) : 1
+  const fromMs = Math.max(getMixDurationMs(get().tracks), getMixPositionMs())
+  let metroGain = trackGains.get(metroTrack.id)
+  if (!metroGain) {
+    metroGain = ctx.createGain()
+    metroGain.gain.value = liveTrackGainValue(metroTrack.id)
+    metroGain.connect(master)
+    trackGains.set(metroTrack.id, metroGain)
+  }
+
+  const clicks = scheduleMetronomeClicks(ctx, metroGain, {
+    bpm,
+    timelineStart: mixTimelineStartCtx + fromMs / (1000 * playbackRate),
+    startAtMs: fromMs,
+    durationMs: MAX_RECORDING_MS,
+    playbackRate,
+  })
+  if (clicks.length === 0) return
+  setPlaybackSources([...getPlaybackSources(), ...clicks])
+  const playing = new Set(get().playingTrackIds)
+  playing.add(metroTrack.id)
+  syncPlayingIds(playing)
 }
 
 function shouldPunchInFromMixPosition(): boolean {
@@ -3562,12 +3958,13 @@ export async function stopSession() {
   const elapsedMs = startedAt > 0 ? performance.now() - startedAt : 0
   const keepTake = elapsedMs >= 1000
   const shouldAutoplay = get().autoplayAfterStop
+  let newTrack: Track | null = null
 
   try {
     const active = getActiveRecording()
     if (active && active.recorder.state !== 'inactive') {
       if (keepTake) {
-        await finalizeCurrentTake()
+        newTrack = await finalizeCurrentTake()
       } else {
         setActiveRecording(null)
         pendingTakeOffsetMs = 0
@@ -3600,9 +3997,15 @@ export async function stopSession() {
     await closeAudioContext()
     setStartedAt(0)
     setTransportState('idle')
+    // Punch-in: leave the playhead at the new take, not mix t=0.
+    const resumeMs =
+      newTrack &&
+      (newTrack.punchIn || newTrack.offsetMs > PUNCH_IN_POSITION_MS)
+        ? audibleMixRange(newTrack).startMs
+        : 0
     patch({
-      mixSeekMs: 0,
-      mixClockText: '00:00.000',
+      mixSeekMs: resumeMs,
+      mixClockText: formatCentis(resumeMs),
       sessionStopping: false,
       hint: '',
       ...(keepTake &&
@@ -3620,11 +4023,16 @@ export async function stopSession() {
     get().tracks.some((track) => !track.isMetronome)
   ) {
     setError(null)
+    const startAtMs =
+      newTrack &&
+      (newTrack.punchIn || newTrack.offsetMs > PUNCH_IN_POSITION_MS)
+        ? audibleMixRange(newTrack).startMs
+        : 0
     void playTracks(get().tracks, {
       awaitEnd: true,
       asMix: true,
       applyOffsets: true,
-      startAtMs: 0,
+      startAtMs,
     }).catch((error) => {
       setError(error instanceof Error ? error.message : t('error.playbackFailed'))
     })
@@ -3794,6 +4202,16 @@ export function deleteTrack(trackId: number) {
   if (get().contentSyncPickFromId === trackId) {
     cancelContentSyncPick()
   }
+  const invite = get().contentSyncInvite
+  if (
+    invite &&
+    (invite.fromTrackId === trackId ||
+      invite.againstTrackId === trackId ||
+      invite.mergedTrackId === trackId)
+  ) {
+    clearContentSyncInviteTimer()
+    patch({ contentSyncInvite: null })
+  }
   if (get().referencePickActive) {
     cancelReferencePick()
   }
@@ -3920,6 +4338,7 @@ export function deleteAllTracks() {
     mixSeekMs: 0,
     mixClockText: '00:00.000',
     contentSyncPickFromId: null,
+    contentSyncInvite: null,
     guestSignInPrompt: false,
   })
   clearRefPeaks()

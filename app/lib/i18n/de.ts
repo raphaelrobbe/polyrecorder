@@ -38,6 +38,9 @@ export const de: Record<MessageKey, string> = {
   'common.close': 'Schließen',
   'common.delete': 'Löschen',
   'common.validate': 'Bestätigen',
+  'common.yes': 'Ja',
+  'common.no': 'Nein',
+  'common.listen': 'Anhören',
 
   'error.title': 'Ups',
   'error.lead':
@@ -588,6 +591,26 @@ export const de: Record<MessageKey, string> = {
   'tracks.contentSync.weak':
     'Sync: zu wenig gemeinsamer Inhalt — vorläufiger Offset behalten',
   'tracks.contentSync.failed': 'Spur konnte nicht synchronisiert werden',
+  'tracks.contentSync.invite.listenSync':
+    'Sync fertig. Ergebnis anhören?',
+  'tracks.contentSync.invite.satisfied': 'Mit der Sync zufrieden?',
+  'tracks.contentSync.invite.goCalage':
+    'Du kannst die Ausrichtung manuell im Modus Ausrichten feinjustieren.',
+  'tracks.contentSync.invite.goCalage.action': 'Ausrichten',
+  'tracks.contentSync.invite.mergeAsk':
+    'Beide Spuren an einer Stille zusammenfügen?',
+  'tracks.contentSync.invite.goCut':
+    'Du kannst selbst im Modus Schneiden zusammenfügen.',
+  'tracks.contentSync.invite.goCut.action': 'Schneiden',
+  'tracks.contentSync.invite.merging': 'Zusammenfügen…',
+  'tracks.contentSync.invite.listenMerge':
+    'Fusion bereit. Übergang anhören?',
+  'tracks.contentSync.invite.acceptMerge':
+    'Fusion behalten und Quellspuren löschen?',
+  'tracks.contentSync.invite.mergeNoSilence':
+    'Keine klare Stille in der Überlappung — im Modus Schneiden zusammenfügen.',
+  'tracks.contentSync.invite.mergeFailed':
+    'Automatisches Zusammenfügen fehlgeschlagen',
   'tracks.span.aria': 'Position von {name} auf der Mix-Timeline',
   'tracks.span.seekAria':
     'Wiedergabemarkierung auf der Timeline setzen (Spur {name})',

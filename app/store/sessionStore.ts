@@ -23,6 +23,33 @@ export type SessionNotice = {
   action?: 'disableAutoAlign'
 }
 
+/** Post–content-Sync guided invite (listen → satisfy → merge…). */
+export type ContentSyncInviteStep =
+  | 'listenSync'
+  | 'satisfied'
+  | 'goCalage'
+  | 'mergeAsk'
+  | 'goCut'
+  | 'listenMerge'
+  | 'acceptMerge'
+  | 'merging'
+
+export type ContentSyncInvite = {
+  step: ContentSyncInviteStep
+  /** Punch-in / newer take that was synced. */
+  fromTrackId: number
+  /** Track synced against (usually the earlier take). */
+  againstTrackId: number
+  /** Offset before Sync, for undo if the user rejects. */
+  previousOffsetMs: number
+  /** Quiet cut on the mix timeline (set when merging). */
+  cutPointMs: number | null
+  /** Pending / finished merge track id. */
+  mergedTrackId: number | null
+  /** Display name of the first (against) track — used when accepting merge. */
+  keepName: string
+}
+
 export type SessionStoreState = {
   tracks: Track[]
   trackCounter: number
@@ -69,6 +96,8 @@ export type SessionStoreState = {
    * 0 = not offered (calage still shows Sync when relevant).
    */
   contentSyncSimpleOfferUntil: number
+  /** Guided invite after a successful content Sync. */
+  contentSyncInvite: ContentSyncInvite | null
   /** Calage: pick a new reference track (click REF. then a target). */
   referencePickActive: boolean
   meterVisible: boolean
@@ -266,6 +295,7 @@ export const useSessionStore = create<SessionStoreState>((set) => ({
   mixSeekRatio: 0,
   contentSyncPickFromId: null,
   contentSyncSimpleOfferUntil: 0,
+  contentSyncInvite: null,
   referencePickActive: false,
   meterVisible: false,
   timerVisible: false,

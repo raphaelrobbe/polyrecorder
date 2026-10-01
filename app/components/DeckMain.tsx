@@ -47,6 +47,7 @@ import { SongShareButton } from './library/SongOwnerToolbar'
 import { ModeTools, DeckModes } from './ModeTools'
 import { PianoKeyboard } from './PianoKeyboard'
 import { NoticeBanner } from './StatusMessage'
+import { ContentSyncInviteBanner } from './ContentSyncInviteBanner'
 import { TracksList } from './tracks/TracksList'
 
 type DeckMainProps = {
@@ -528,6 +529,8 @@ export function DeckMain({ className }: DeckMainProps) {
         </p>
       </div>
       <TracksList />
+
+      <ContentSyncInviteBanner />
 
       {notice ? (
         <NoticeBanner
