@@ -1,6 +1,6 @@
 import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { useLoaderData, useParams } from '@remix-run/react'
+import { Link, useLoaderData, useParams } from '@remix-run/react'
 import { useEffect, useState } from 'react'
 import { ClientOnly } from 'remix-utils/client-only'
 import { BrandWordmark } from '~/components/Brand'
@@ -12,7 +12,10 @@ import { useLocale } from '~/hooks/useLocale'
 import { t, tp } from '~/lib/i18n'
 import { libraryUserPath } from '~/lib/libraryPaths'
 import { brandLogoUrl, pageMeta } from '~/lib/seo'
-import { loadCloudSongIntoSession } from '~/lib/sessionActions.client'
+import {
+  clearLocalDeckSession,
+  loadCloudSongIntoSession,
+} from '~/lib/sessionActions.client'
 import { getSongShareMeta } from '~/service/cloud.server'
 import { getAppUrl } from '~/service/env.server'
 import { useSessionStore } from '~/store/sessionStore'
@@ -70,8 +73,9 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
 
 function SessionViewClient({ songPartId }: { songPartId: string }) {
   useLocale()
-  const alreadyReady =
-    useSessionStore.getState().deckSongPartId === songPartId
+  const deckSongPartId = useSessionStore((s) => s.deckSongPartId)
+  const storeError = useSessionStore((s) => s.error)
+  const alreadyReady = deckSongPartId === songPartId
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>(
     alreadyReady ? 'ready' : 'loading',
   )
@@ -84,19 +88,40 @@ function SessionViewClient({ songPartId }: { songPartId: string }) {
     if (useSessionStore.getState().deckSongPartId !== songPartId) {
       setStatus('loading')
     }
-    void loadCloudSongIntoSession(songPartId).then((ok) => {
-      if (cancelled) return
-      if (!ok) {
+    void loadCloudSongIntoSession(songPartId)
+      .then((ok) => {
+        if (cancelled) return
+        if (!ok) {
+          setStatus('error')
+          const offline =
+            typeof navigator !== 'undefined' && navigator.onLine === false
+          setError(
+            offline ? t('cloud.error.openOffline') : t('song.view.notFound'),
+          )
+          return
+        }
+        setStatus('ready')
+      })
+      .catch(() => {
+        if (cancelled) return
         setStatus('error')
-        setError(t('song.view.notFound'))
-        return
-      }
-      setStatus('ready')
-    })
+        const offline =
+          typeof navigator !== 'undefined' && navigator.onLine === false
+        setError(
+          offline ? t('cloud.error.openOffline') : t('cloud.error.openFailed'),
+        )
+      })
     return () => {
       cancelled = true
     }
   }, [songPartId, setError])
+
+  // Meta applied mid-flight → show the deck (tracks may still be downloading).
+  useEffect(() => {
+    if (deckSongPartId === songPartId && status === 'loading') {
+      setStatus('ready')
+    }
+  }, [deckSongPartId, songPartId, status])
 
   if (status === 'loading') {
     return (
@@ -110,9 +135,21 @@ function SessionViewClient({ songPartId }: { songPartId: string }) {
   if (status === 'error') {
     return (
       <Deck>
-        <p className="m-0 py-10 text-center text-[0.95rem] text-ink-soft">
-          {t('song.view.notFound')}
-        </p>
+        <div className="flex flex-col items-center gap-[0.85rem] py-10 text-center">
+          <p className="m-0 text-[0.95rem] text-ink-soft">
+            {storeError ?? t('song.view.notFound')}
+          </p>
+          <Link
+            to="/"
+            className="text-[0.9rem] font-semibold text-ink underline decoration-ink/30 underline-offset-2 hover:decoration-ink"
+            onClick={() => {
+              clearLocalDeckSession()
+              setError(null)
+            }}
+          >
+            {t('song.view.newSession')}
+          </Link>
+        </div>
       </Deck>
     )
   }

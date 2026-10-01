@@ -394,10 +394,20 @@ export function TrackRow({
   const isMergePending =
     Boolean(track.mergePending) ||
     (cutMerging && cutMergeTrackId === track.id)
+  const isDownloadPending = Boolean(track.downloadPending)
+  const isAudioPending = isMergePending || isDownloadPending
   const mergeProgressPct = Math.round(
-    Math.max(0, Math.min(1, cutMergeProgress)) * 100,
+    Math.max(
+      0,
+      Math.min(
+        1,
+        isDownloadPending
+          ? (track.downloadProgress ?? 0)
+          : cutMergeProgress,
+      ),
+    ) * 100,
   )
-  const deleteBusy = cutMerging || isMergePending
+  const deleteBusy = cutMerging || isAudioPending
   const onDeleteTrack = () => {
     if (deleteDisabled || deleteBusy) return
     const ok = window.confirm(
@@ -453,8 +463,9 @@ export function TrackRow({
   return (
     <li
       className={cn(
-        'relative grid grid-rows-[auto] items-center gap-x-[0.1rem] touch-manipulation animate-rise',
+        'relative grid grid-rows-[auto] items-center gap-x-[0.1rem] touch-manipulation',
         'pl-[0.35rem]',
+        !isDownloadPending && 'animate-rise',
         '[&:has([data-mute-menu-open])]:z-30',
         showDragHandle
           ? 'grid-cols-[1.35rem_1.55rem_minmax(0,1fr)] max-sm:grid-cols-[1.2rem_1.4rem_minmax(0,1fr)]'
@@ -473,17 +484,20 @@ export function TrackRow({
         pickActive && !isPickTarget && !isPickSource && 'pointer-events-none',
         isPickTarget && 'z-[1] cursor-pointer',
         isMergePending && 'opacity-90',
+        isDownloadPending && 'opacity-[0.32]',
         className,
       )}
       data-track-id={track.id}
       data-merge-pending={isMergePending || undefined}
-      aria-busy={isMergePending || undefined}
+      data-download-pending={isDownloadPending || undefined}
+      aria-busy={isAudioPending || undefined}
       data-track-pick-target={isPickTarget ? track.id : undefined}
-      style={
-        isPickTarget
+      style={{
+        ...(isPickTarget
           ? { ['--sync-track-tint' as string]: trackBrandVar }
-          : undefined
-      }
+          : null),
+        ...(isDownloadPending ? { opacity: 0.32 } : null),
+      }}
       role={isPickTarget ? 'button' : undefined}
       tabIndex={isPickTarget ? 0 : undefined}
       aria-label={
@@ -614,7 +628,7 @@ export function TrackRow({
               cutEditing ||
               showUploader ||
               Boolean(spanRange) ||
-              isMergePending) &&
+              isAudioPending) &&
               'flex-col items-stretch gap-[0.15rem]',
           )}
         >
@@ -626,7 +640,7 @@ export function TrackRow({
                 cutEditing ||
                 showUploader ||
                 Boolean(spanRange) ||
-                isMergePending) &&
+                isAudioPending) &&
                 !calageMode &&
                 'w-full',
             )}
@@ -783,19 +797,39 @@ export function TrackRow({
                   {uploaderLabel}
                 </span>
               ) : null}
-              {isMergePending ? (
+              {isAudioPending ? (
                 <div
                   className="relative mt-[0.12rem] h-[0.55rem] w-full min-w-0 overflow-hidden rounded-sm bg-ink/10"
                   role="progressbar"
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={mergeProgressPct}
-                  aria-label={t('cut.merge.progress')}
-                  title={t('cut.merge.progress')}
+                  aria-label={
+                    isDownloadPending
+                      ? t('tracks.download.progress')
+                      : t('cut.merge.progress')
+                  }
+                  title={
+                    isDownloadPending
+                      ? t('tracks.download.progress')
+                      : t('cut.merge.progress')
+                  }
                 >
                   <span
-                    className="absolute inset-y-0 left-0 rounded-sm bg-gradient-to-r from-mode-cut to-meter transition-[width] duration-150 ease-out"
-                    style={{ width: `${mergeProgressPct}%` }}
+                    className={cn(
+                      'absolute inset-y-0 left-0 rounded-sm transition-[width] duration-150 ease-out',
+                      isDownloadPending
+                        ? 'bg-gradient-to-r from-ink/35 to-ink/65'
+                        : 'bg-gradient-to-r from-mode-cut to-meter',
+                      isDownloadPending &&
+                        mergeProgressPct < 3 &&
+                        'w-[28%] animate-pulse',
+                    )}
+                    style={
+                      isDownloadPending && mergeProgressPct < 3
+                        ? undefined
+                        : { width: `${Math.max(mergeProgressPct, 4)}%` }
+                    }
                   />
                 </div>
               ) : spanRange ? (

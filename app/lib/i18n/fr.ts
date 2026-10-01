@@ -562,6 +562,7 @@ export const fr = {
   'tracks.filenameFallback': 'piste',
   'tracks.volume': 'Volume {name}',
   'tracks.highlight': 'Mettre en valeur {name}',
+  'tracks.download.progress': 'Chargement de la piste…',
   'tracks.delete': 'Supprimer {name}',
   'tracks.delete.confirm': 'Supprimer « {name} » ?',
   'tracks.delete.referenceLocked':
@@ -916,6 +917,8 @@ export const fr = {
   'pwa.install.ios.gotIt': 'Compris',
   'cloud.error.uploadFailed': 'Échec de l’envoi sur le cloud. Réessaie.',
   'cloud.error.openFailed': 'Impossible d’ouvrir cette chanson.',
+  'cloud.error.openOffline':
+    'Hors ligne : impossible d’ouvrir cette chanson. Vérifie ta connexion ou crée une nouvelle session.',
 
   'library.title': 'Bibliothèque',
   'library.close': 'Fermer la bibliothèque',
@@ -980,6 +983,7 @@ export const fr = {
   'library.share.title': 'Partager « {name} »',
 
   'song.view.notFound': 'Cette chanson est introuvable ou privée.',
+  'song.view.newSession': 'Nouvelle session',
   'song.view.shared': 'partagé',
   'song.view.collaborate': 'collaboration ouverte',
   'song.og.description': '{tracks} · Écoute sur polyrecorder',

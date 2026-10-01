@@ -33,6 +33,10 @@ export type Track = {
   fromCutMerge?: boolean
   /** Placeholder while découpage merge encodes (no audio yet). */
   mergePending?: boolean
+  /** Cloud open: audio blob still downloading. */
+  downloadPending?: boolean
+  /** 0–1 while `downloadPending` (best-effort from Content-Length). */
+  downloadProgress?: number
   /** Created via mid-mix punch-in — show content Sync control. */
   punchIn?: boolean
 }

@@ -280,6 +280,20 @@ export async function uploadAllLocalTracks(): Promise<{
   return { uploaded, failed }
 }
 
+export type OpenedCloudRemoteTrack = {
+  id: string
+  name: string
+  url: string
+  durationMs: number
+  offsetMs: number
+  volume: number
+  muted: boolean
+  muteRanges?: Array<{ startMs: number; endMs: number }>
+  contentType: string
+  uploadedByMe: boolean
+  uploadedByPseudo: string | null
+}
+
 export type OpenedCloudSong = {
   song: {
     id: string
@@ -304,66 +318,64 @@ export type OpenedCloudSong = {
   }
   /** Every session of the song, in library order (deck prev / next). */
   siblings: Array<{ id: string; name: string | null }>
-  tracks: Track[]
-  /** Local track id → mix volume (from cloud). */
-  trackVolumes: Record<number, number>
-  /** Local track ids that are audible (not muted in cloud). */
-  enabledTrackIds: number[]
+  /** Track metadata + download URLs (blobs fetched separately). */
+  remoteTracks: OpenedCloudRemoteTrack[]
   isOwner: boolean
   canCollaborate: boolean
 }
 
+/** Fetch song/session metadata + presigned URLs (no audio download yet). */
 export async function fetchAndHydrateSong(
   songPartId: string,
   options?: { quiet?: boolean },
 ): Promise<OpenedCloudSong | null> {
-  const res = await fetch('/api/cloud/library', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ intent: 'openSong', songPartId }),
-  })
-  const data = (await res.json()) as
+  let res: Response
+  try {
+    res = await fetch('/api/cloud/library', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ intent: 'openSong', songPartId }),
+    })
+  } catch {
+    if (!options?.quiet) {
+      useSessionStore.getState().setError(
+        typeof navigator !== 'undefined' && navigator.onLine === false
+          ? t('cloud.error.openOffline')
+          : t('cloud.error.openFailed'),
+      )
+    }
+    return null
+  }
+
+  let data:
     | {
         ok: true
         isOwner: boolean
         canCollaborate: boolean
-        song: {
-          id: string
-          name: string
-          repertoireId: string
-          isPublic: boolean
-          allowsCollaboration: boolean
-          groupId: string
-          groupName: string
-          repertoireName: string
-          ownerPseudo: string | null
-        }
+        song: OpenedCloudSong['song']
         part: {
           id: string
           name: string | null
           masterVolume: number
           autoAlignEnabled: boolean
           showCalageWarnings: boolean
-        skipCountInPlayback: boolean
-        skipCountInDownload: boolean
-        metronomeBpm?: number | null
+          skipCountInPlayback: boolean
+          skipCountInDownload: boolean
+          metronomeBpm?: number | null
+        }
+        siblings: Array<{ id: string; name: string | null }>
+        tracks: OpenedCloudRemoteTrack[]
       }
-      siblings: Array<{ id: string; name: string | null }>
-      tracks: Array<{
-        id: string
-        name: string
-        url: string
-        durationMs: number
-        offsetMs: number
-        volume: number
-        muted: boolean
-        muteRanges?: Array<{ startMs: number; endMs: number }>
-        contentType: string
-        uploadedByMe: boolean
-        uploadedByPseudo: string | null
-      }>
-    }
     | { ok: false; reason: string }
+
+  try {
+    data = (await res.json()) as typeof data
+  } catch {
+    if (!options?.quiet) {
+      useSessionStore.getState().setError(t('cloud.error.openFailed'))
+    }
+    return null
+  }
 
   if (!data.ok) {
     if (!options?.quiet) {
@@ -376,43 +388,6 @@ export async function fetchAndHydrateSong(
       )
     }
     return null
-  }
-
-  const tracks: Track[] = []
-  const trackVolumes: Record<number, number> = {}
-  const enabledTrackIds: number[] = []
-  let counter = 0
-  for (const remote of data.tracks) {
-    const response = await fetch(remote.url)
-    if (!response.ok) {
-      if (!options?.quiet) {
-        useSessionStore.getState().setError(t('cloud.error.openFailed'))
-      }
-      return null
-    }
-    const blob = await response.blob()
-    counter += 1
-    tracks.push({
-      id: counter,
-      name: remote.name,
-      blob,
-      url: URL.createObjectURL(blob),
-      durationMs: remote.durationMs,
-      offsetMs: remote.offsetMs,
-      muteRanges:
-        Array.isArray(remote.muteRanges) && remote.muteRanges.length > 0
-          ? remote.muteRanges
-          : undefined,
-      cloudStatus: 'synced',
-      cloudTrackId: remote.id,
-      cloudOwnedByMe: Boolean(remote.uploadedByMe),
-      uploadedByPseudo: remote.uploadedByPseudo,
-    })
-    const vol = Number(remote.volume)
-    trackVolumes[counter] = Number.isFinite(vol)
-      ? Math.min(1.5, Math.max(0, vol))
-      : 1
-    if (!remote.muted) enabledTrackIds.push(counter)
   }
 
   const masterRaw = Number(data.part.masterVolume)
@@ -436,10 +411,47 @@ export async function fetchAndHydrateSong(
           : null,
     },
     siblings: data.siblings,
-    tracks,
-    trackVolumes,
-    enabledTrackIds,
+    remoteTracks: data.tracks,
     isOwner: data.isOwner,
     canCollaborate: Boolean(data.canCollaborate),
   }
+}
+
+/** Download a remote track blob; optional 0–1 progress via Content-Length. */
+export async function fetchRemoteTrackBlob(
+  url: string,
+  onProgress?: (ratio: number) => void,
+): Promise<Blob> {
+  const response = await fetch(url)
+  if (!response.ok) {
+    throw new Error(`track download failed (${response.status})`)
+  }
+  const total = Number(response.headers.get('content-length')) || 0
+  const contentType = response.headers.get('content-type') || 'audio/webm'
+  if (!response.body || total <= 0) {
+    const blob = await response.blob()
+    onProgress?.(1)
+    return blob
+  }
+  const reader = response.body.getReader()
+  const chunks: Uint8Array[] = []
+  let received = 0
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    if (value) {
+      chunks.push(value)
+      received += value.byteLength
+      onProgress?.(Math.min(1, received / total))
+    }
+  }
+  onProgress?.(1)
+  // BlobPart accepts BufferSource; concatenate for a single Blob.
+  const merged = new Uint8Array(received)
+  let offset = 0
+  for (const chunk of chunks) {
+    merged.set(chunk, offset)
+    offset += chunk.byteLength
+  }
+  return new Blob([merged], { type: contentType })
 }

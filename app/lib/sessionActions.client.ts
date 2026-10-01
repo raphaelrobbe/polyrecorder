@@ -3948,6 +3948,7 @@ export function deleteAllTracks() {
 
 /** Wipe the local deck and cloud session context (blank recording screen). */
 export function clearLocalDeckSession(): void {
+  cloudOpenGeneration += 1
   if (get().state === 'recording') {
     discardPendingRecording()
     const recording = getActiveRecording()
@@ -4032,16 +4033,66 @@ export function resetDeckOnSignOut() {
 }
 
 /** Replace the deck with tracks loaded from a cloud song part (session). */
+let cloudOpenGeneration = 0
+
+function finalizeDownloadedTrack(
+  trackId: number,
+  blob: Blob,
+  generation: number,
+) {
+  if (generation !== cloudOpenGeneration) {
+    return
+  }
+  const prev = get().tracks.find((t) => t.id === trackId)
+  if (!prev?.downloadPending) return
+  URL.revokeObjectURL(prev.url)
+  clearBufferCache(trackId)
+  const url = URL.createObjectURL(blob)
+  patch({
+    tracks: get().tracks.map((t) =>
+      t.id === trackId
+        ? {
+            ...t,
+            blob,
+            url,
+            downloadPending: undefined,
+            downloadProgress: undefined,
+            cloudStatus: 'synced' as const,
+          }
+        : t,
+    ),
+  })
+  updateSessionTimerDisplay()
+  void refreshTrackClipFlags()
+  if (get().referenceTrackId === trackId) void evaluateReferenceBeat()
+}
+
+function patchTrackDownloadProgress(
+  trackId: number,
+  ratio: number,
+  generation: number,
+) {
+  if (generation !== cloudOpenGeneration) return
+  const clamped = Math.max(0, Math.min(1, ratio))
+  patch({
+    tracks: get().tracks.map((t) =>
+      t.id === trackId && t.downloadPending
+        ? { ...t, downloadProgress: clamped }
+        : t,
+    ),
+  })
+}
+
 export async function loadCloudSongIntoSession(
   songPartId: string,
   options?: { quiet?: boolean },
 ): Promise<boolean> {
   if (get().state === 'recording') return false
-  const { fetchAndHydrateSong, writeActiveSongPartId } = await import(
-    './cloudUpload.client'
-  )
+  const generation = ++cloudOpenGeneration
+  const { fetchAndHydrateSong, fetchRemoteTrackBlob, writeActiveSongPartId } =
+    await import('./cloudUpload.client')
   const opened = await fetchAndHydrateSong(songPartId, options)
-  if (!opened) return false
+  if (!opened || generation !== cloudOpenGeneration) return false
 
   stopPlayback({ resetSeek: true })
   for (const track of get().tracks) {
@@ -4052,8 +4103,41 @@ export async function loadCloudSongIntoSession(
   trackPlayheads.clear()
   clearTrackPeakCache()
 
-  const enabledTrackIds = opened.enabledTrackIds
-  const trackVolumes = { ...opened.trackVolumes }
+  const empty = new Blob([], { type: 'audio/webm' })
+  const tracks: Track[] = []
+  const trackVolumes: Record<number, number> = {}
+  const enabledTrackIds: number[] = []
+  const downloadJobs: Array<{ localId: number; url: string }> = []
+
+  let counter = 0
+  for (const remote of opened.remoteTracks) {
+    counter += 1
+    const stubUrl = URL.createObjectURL(empty)
+    tracks.push({
+      id: counter,
+      name: remote.name,
+      blob: empty,
+      url: stubUrl,
+      durationMs: remote.durationMs,
+      offsetMs: remote.offsetMs,
+      muteRanges:
+        Array.isArray(remote.muteRanges) && remote.muteRanges.length > 0
+          ? remote.muteRanges
+          : undefined,
+      cloudStatus: 'synced',
+      cloudTrackId: remote.id,
+      cloudOwnedByMe: Boolean(remote.uploadedByMe),
+      uploadedByPseudo: remote.uploadedByPseudo,
+      downloadPending: true,
+      downloadProgress: 0,
+    })
+    const vol = Number(remote.volume)
+    trackVolumes[counter] = Number.isFinite(vol)
+      ? Math.min(1.5, Math.max(0, vol))
+      : 1
+    if (!remote.muted) enabledTrackIds.push(counter)
+    downloadJobs.push({ localId: counter, url: remote.url })
+  }
 
   const readOnly = !opened.isOwner
   const canCloudContribute = opened.canCollaborate
@@ -4079,12 +4163,12 @@ export async function loadCloudSongIntoSession(
     : null
 
   patch({
-    tracks: opened.tracks,
-    trackCounter: opened.tracks.length,
+    tracks,
+    trackCounter: tracks.length,
     enabledTrackIds,
     playingTrackIds: [],
     highlightedTrackIds: [],
-    referenceTrackId: opened.tracks[0]?.id ?? null,
+    referenceTrackId: tracks[0]?.id ?? null,
     trackAlignDetails: {},
     alignAttentionByTrackId: {},
     trackClipById: {},
@@ -4134,9 +4218,38 @@ export async function loadCloudSongIntoSession(
   if (opened.part.metronomeBpm != null) {
     await hydrateMetronomeFromBpm(opened.part.metronomeBpm)
   }
-  if (get().tracks.length > 0) void evaluateReferenceBeat()
-  void refreshTrackClipFlags()
-  return true
+
+  // Download audio in parallel; deck UI is already showing stubs.
+  void Promise.all(
+    downloadJobs.map(async ({ localId, url }) => {
+      try {
+        const blob = await fetchRemoteTrackBlob(url, (ratio) => {
+          patchTrackDownloadProgress(localId, ratio, generation)
+        })
+        finalizeDownloadedTrack(localId, blob, generation)
+      } catch {
+        if (generation !== cloudOpenGeneration) return
+        // Keep the row but clear the busy bar so the user can retry / leave.
+        patch({
+          tracks: get().tracks.map((t) =>
+            t.id === localId && t.downloadPending
+              ? {
+                  ...t,
+                  downloadPending: undefined,
+                  downloadProgress: undefined,
+                  cloudStatus: 'error' as const,
+                }
+              : t,
+          ),
+        })
+        if (!options?.quiet) {
+          setError(t('cloud.error.openFailed'))
+        }
+      }
+    }),
+  )
+
+  return generation === cloudOpenGeneration
 }
 
 /**

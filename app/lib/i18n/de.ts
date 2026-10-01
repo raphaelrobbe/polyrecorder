@@ -562,6 +562,7 @@ export const de: Record<MessageKey, string> = {
   'tracks.filenameFallback': 'spur',
   'tracks.volume': 'Lautstärke {name}',
   'tracks.highlight': '{name} hervorheben',
+  'tracks.download.progress': 'Spur wird geladen…',
   'tracks.delete': '{name} löschen',
   'tracks.delete.confirm': '„{name}“ löschen?',
   'tracks.delete.referenceLocked':
@@ -916,6 +917,8 @@ export const de: Record<MessageKey, string> = {
   'pwa.install.ios.gotIt': 'Verstanden',
   'cloud.error.uploadFailed': 'Cloud-Upload fehlgeschlagen. Bitte erneut versuchen.',
   'cloud.error.openFailed': 'Dieses Lied konnte nicht geöffnet werden.',
+  'cloud.error.openOffline':
+    'Offline: dieses Lied lässt sich nicht öffnen. Prüfe die Verbindung oder starte eine neue Session.',
 
   'library.title': 'Bibliothek',
   'library.close': 'Bibliothek schließen',
@@ -980,6 +983,7 @@ export const de: Record<MessageKey, string> = {
   'library.share.title': '„{name}“ teilen',
 
   'song.view.notFound': 'Dieses Lied fehlt oder ist privat.',
+  'song.view.newSession': 'Neue Session',
   'song.view.shared': 'geteilt',
   'song.view.collaborate': 'offen für Zusammenarbeit',
   'song.og.description': '{tracks} · Anhören auf polyrecorder',

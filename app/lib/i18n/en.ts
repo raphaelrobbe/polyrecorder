@@ -558,6 +558,7 @@ export const en: Record<MessageKey, string> = {
   'tracks.filenameFallback': 'track',
   'tracks.volume': 'Volume {name}',
   'tracks.highlight': 'Highlight {name}',
+  'tracks.download.progress': 'Loading track…',
   'tracks.delete': 'Delete {name}',
   'tracks.delete.confirm': 'Delete “{name}”?',
   'tracks.delete.referenceLocked':
@@ -903,6 +904,8 @@ export const en: Record<MessageKey, string> = {
   'pwa.install.ios.gotIt': 'Got it',
   'cloud.error.uploadFailed': 'Cloud upload failed. Try again.',
   'cloud.error.openFailed': 'Could not open this song.',
+  'cloud.error.openOffline':
+    'You’re offline — this song can’t be opened. Check your connection or start a new session.',
 
   'library.title': 'Library',
   'library.close': 'Close library',
@@ -966,6 +969,7 @@ export const en: Record<MessageKey, string> = {
   'library.share.title': 'Share “{name}”',
 
   'song.view.notFound': 'This song is missing or private.',
+  'song.view.newSession': 'New session',
   'song.view.shared': 'shared',
   'song.view.collaborate': 'open to collaboration',
   'song.og.description': '{tracks} · Listen on polyrecorder',

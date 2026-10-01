@@ -561,6 +561,7 @@ export const no: Record<MessageKey, string> = {
   'tracks.filenameFallback': 'spor',
   'tracks.volume': 'Volum {name}',
   'tracks.highlight': 'Fremhev {name}',
+  'tracks.download.progress': 'Laster spor…',
   'tracks.delete': 'Slett {name}',
   'tracks.delete.confirm': 'Slette «{name}»?',
   'tracks.delete.referenceLocked':
@@ -909,6 +910,8 @@ export const no: Record<MessageKey, string> = {
   'pwa.install.ios.gotIt': 'Skjønner',
   'cloud.error.uploadFailed': 'Opplasting til skyen mislyktes. Prøv igjen.',
   'cloud.error.openFailed': 'Kunne ikke åpne denne sangen.',
+  'cloud.error.openOffline':
+    'Frakoblet: kan ikke åpne denne sangen. Sjekk tilkoblingen eller start en ny økt.',
 
   'library.title': 'Bibliotek',
   'library.close': 'Lukk bibliotek',
@@ -972,6 +975,7 @@ export const no: Record<MessageKey, string> = {
   'library.share.title': 'Del «{name}»',
 
   'song.view.notFound': 'Denne sangen mangler eller er privat.',
+  'song.view.newSession': 'Ny økt',
   'song.view.shared': 'delt',
   'song.view.collaborate': 'åpen for samarbeid',
   'song.og.description': '{tracks} · Lytt på polyrecorder',
