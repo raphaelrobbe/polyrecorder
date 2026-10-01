@@ -827,71 +827,71 @@ export const fr = {
   'help.faq.title': 'FAQ',
   'help.faq.accountNeeded.q': 'Faut-il un compte ?',
   'help.faq.accountNeeded.a':
-    'Non pour commencer : tu peux enregistrer en invité. Un compte (email uniquement) est nécessaire pour sauvegarder dans le cloud, partager et collaborer.',
+    'Non pour démarrer. Un compte (avec email) sert à sauvegarder en ligne, partager et collaborer.',
   'help.faq.guestKeepTakes.q':
     'Que deviennent mes prises si j’enregistre en invité puis je me connecte ?',
   'help.faq.guestKeepTakes.a':
-    'Elles sont restaurées depuis le brouillon local de ce navigateur, puis envoyées sur ton compte comme après un enregistrement normal — en général dans une nouvelle chanson.',
+    'Elles sont restaurées depuis le brouillon local de ce navigateur, puis envoyées sur ton compte comme après un enregistrement normal, dans une nouvelle chanson. Il faut toutefois que le lien envoyé par mail soit ouvert dans le même navigateur.',
   'help.faq.guestLost.q':
     'Mes prises invité sont-elles perdues si je change d’appareil ?',
   'help.faq.guestLost.a':
-    'Oui : le brouillon reste sur l’appareil et le navigateur où tu as enregistré. Connecte-toi depuis le même navigateur pour les récupérer.',
+    'Oui, si tu changes d’appareil ou de navigateur. Reconnecte-toi là où tu as enregistré pour les récupérer.',
   'help.faq.headphones.q': 'Pourquoi un casque ?',
   'help.faq.headphones.a':
-    'Sans casque, le micro peut reprendre les haut-parleurs : ça fausse le calage et la qualité. Le monitoring en casque évite ce retour.',
-  'help.faq.modes.q': 'À quoi servent Simple, Mixage, Calage et Découpage ?',
+    'Sans casque, le micro réenregistre souvent les enceintes : le son est moins bon et le rythme moins juste. Le casque évite ça.',
+  'help.faq.modes.q':
+    'À quoi servent les modes Simple, Mixage, Calage et Découpage ?',
   'help.faq.modes.a':
-    'Simple pour enregistrer et écouter, Mixage pour les volumes et l’export MP3, Calage pour synchroniser les pistes (offsets et calage auto), Découpage pour couper au playhead, muter des morceaux sans toucher au fichier, ou fusionner une sélection en une nouvelle piste.',
+    'Simple : enregistrer et écouter. Mixage : gestion des volumes. Calage : synchronisation des rythmes. Découpage : couper le son d’un passage, assembler des morceaux.',
   'help.faq.clipping.q': 'Pourquoi un avertissement de saturation en mixage ?',
   'help.faq.clipping.a':
-    'Un « ! » en bout de piste signifie que la prise a saturé à l’enregistrement : réenregistre en baissant le volume d’entrée. Un bandeau près du volume maître signale que la superposition des pistes sature le mix — baisse le master, ou active la baisse auto anti-saturation dans Préférences (cible ~0,85).',
+    'Un « ! » sur une piste : elle était trop forte à l’enregistrement — recommence en baissant le micro. Un message près du volume général : le mix est trop fort — baisse-le, ou active la baisse automatique dans Préférences.',
   'help.faq.metronome.q': 'À quoi sert le métronome ?',
   'help.faq.metronome.a':
-    'Il ajoute une piste virtuelle au tempo choisi, qui peut servir de référence de calage (3-4 sur les prises). Le BPM est mémorisé avec la session ; ce n’est pas un fichier audio uploadé.',
+    'Le métronome peut te servir à garder le tempo, mais il peut aussi servir pour le calage automatique. Dans ce cas, active le « Calage automatique par battue » et lors de l’enregistrement des pistes, en même temps que le 3ème et le 4ème temps, dis « 3-4 » (ou fais deux sons nets). Sans ça, des décalages peuvent apparaître en raison des latences matérielles ou logicielles.',
   'help.faq.piano.q': 'Le piano est-il enregistré avec ma voix ?',
   'help.faq.piano.a':
-    'Non. Le piano joue seulement dans le navigateur pour te donner le ton. Avec un casque, tu l’entends sans qu’il passe dans le micro ni dans la prise.',
-  'help.faq.skew.q': 'Les pistes ne sont pas calées — que faire ?',
-  'help.faq.skew.a':
-    'Vérifie les marquages 1-2-3-4 / 3-4, réessaie une prise propre, ou ouvre le mode Calage (le « ! » sur une piste y mène) pour ajuster manuellement, changer la référence (clic sur « réf. »), ou relancer le calage auto.',
-  'help.faq.countInVsAlign.q':
-    'Différence entre avance de lecture et calage automatique ?',
-  'help.faq.countInVsAlign.a':
-    'L’avance de lecture saute le décompte à l’écoute ou à l’export. Le calage auto aligne les pistes grâce aux marquages 1-2-3-4 / 3-4 pour compenser la latence.',
-  'help.faq.import.q': 'Puis-je importer un MP3 sans battue 1-2-3-4 ?',
-  'help.faq.import.a':
-    'Oui. Désactive alors le calage automatique ou cale à la main en mode Calage : sans marquages, l’auto-alignement ne peut pas fonctionner.',
+    'Non. Le piano te donne seulement le ton. Au casque, tu l’entends sans qu’il entre dans l’enregistrement.',
+  'help.faq.skew.q': 'Les pistes sont décalées — que faire ?',
+  'help.faq.skew.a1':
+    'Si tu souhaites utiliser le calage automatique par battue, et si tu n’utilises pas le métronome, vérifie bien que les 4 battements de départ sont bien audibles sans bruits parasites. Les pistes suivantes ne doivent contenir que des battements sur les 3ème et 4ème temps. Si tu n’utilises pas le calage automatique, tu peux caler manuellement dans le mode',
+  'help.faq.skew.a2':
+    'en ajustant le nombre de millisecondes à droite des pistes.',
   'help.faq.storage.q': 'Où sont stockées mes prises ?',
   'help.faq.storage.a':
-    'En invité : uniquement sur cet appareil (brouillon local). Connecté avec la sauvegarde cloud : dans ta bibliothèque (Personnel / Général par défaut pour une première session).',
+    'Sans compte, les pistes ne sont pas enregistrées sur internet. Avec compte, sur tes chansons, elles le sont et tu peux les retrouver dans ta bibliothèque (Personnel / Général au début). Si ce sont des pistes que tu as ajoutées sur la chanson d’un autre utilisateur, elles sont stockées sur son compte.',
   'help.faq.libraryWhere.q':
     'Où trouver une session fraîchement sauvegardée ?',
   'help.faq.libraryWhere.a':
-    'Ouvre Ma bibliothèque : en général Personnel → Général, puis la chanson créée. Le fil d’Ariane au-dessus du titre indique le chemin.',
-  'help.faq.share.q': 'Comment partager une chanson ?',
-  'help.faq.share.a':
-    'Rends la chanson publique depuis la bibliothèque ou la barre d’outils, puis copie le lien de la session.',
-  'help.faq.collab.q': 'Comment collaborer à plusieurs ?',
-  'help.faq.collab.a':
-    'Chanson publique + option de collaboration. Les autres se connectent et ajoutent leurs pistes. Un invité peut préparer une prise en local ; avec collab, elle monte après connexion.',
+    'Tu la retrouveras en cliquant sur le Fil d’Ariane en haut de l’enregistreur. Si tu ne sais pas, va voir dans la bibliothèque, par défaut, les sessions sont stockées dans Personnel / Général.',
+  'help.faq.share.q': 'Comment partager une chanson, collaborer ?',
+  'help.faq.share.a1': 'Rends la chanson publique en cliquant sur',
+  'help.faq.share.a2':
+    '(depuis la bibliothèque ou l’enregistreur), puis sur',
+  'help.faq.share.a3':
+    '. Si tu souhaites que les autres utilisateurs puissent ajouter des pistes et qu’elles soient visibles par tous, active la collaboration en cliquant sur',
+  'help.faq.share.a4': '(depuis la bibliothèque seulement).',
   'help.faq.browsers.q': 'Quels navigateurs et permissions ?',
   'help.faq.browsers.a':
-    'Un navigateur récent (Chrome, Firefox, Safari, Edge…) avec autorisation micro. Certaines options de périphériques dépendent du système.',
+    'Un navigateur à jour (Chrome, Firefox, Safari, Edge…) et l’accès au micro autorisé (autorisations du navigateur).',
   'help.faq.sizeLimit.q': 'Y a-t-il une limite de taille ?',
   'help.faq.sizeLimit.a':
-    'Oui : environ 100 Mo par fichier envoyé vers le cloud.',
+    'Oui : environ 100 Mo par fichier envoyé en ligne.',
   'help.faq.deleteAccount.q': 'Comment supprimer mon compte ?',
   'help.faq.deleteAccount.a':
-    'Paramètres du compte → Supprimer mon compte. C’est irréversible. Voir aussi la confidentialité et les CGU.',
+    'Paramètres du compte → Supprimer mon compte. C’est définitif. Voir aussi Confidentialité et CGU.',
   'help.faq.deleteAccount.privacy': 'Confidentialité',
   'help.faq.deleteAccount.terms': 'CGU',
   'help.faq.pwa.q': 'L’app fonctionne-t-elle hors ligne ?',
   'help.faq.pwa.a':
-    'polyrecorder est installable (PWA). L’enregistrement local peut marcher hors ligne ; le cloud, la connexion et le partage demandent Internet.',
+    'Enregistrer sur l’appareil peut marcher sans Internet ; sauvegarder, se connecter et partager demandent une connexion.',
+  'help.faq.installable.q': 'L’app est-elle installable ?',
+  'help.faq.installable.a':
+    'Oui, ouvre le menu de ton navigateur, puis choisis l’option « Installer l’application ». Tu ne trouveras pas polyrecorder sur les App Stores, mais cette manière de faire est encore meilleure : l’application est toujours à jour.',
   'help.faq.accountStats.q':
     'Que signifient les chiffres dans Mon compte ?',
   'help.faq.accountStats.a':
-    'Le temps d’enregistrement totalise la durée de tes pistes cloud. Les totaux comptent tes groupes, répertoires, chansons et sessions.',
+    'Le temps d’enregistrement additionne tes pistes sauvegardées en ligne. Les autres chiffres comptent tes groupes, répertoires, chansons et sessions.',
 
   'nav.library': 'Bibliothèque',
   'nav.myLibrary': 'Ma bibliothèque',

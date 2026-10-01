@@ -1281,25 +1281,25 @@ function syncLiveTrackGains() {
 }
 
 function applyHighlightVolumes(highlighted: number[]) {
+  // Empty highlight list leaves volumes alone: mise-en-avant writes real
+  // mix levels that must stay when leaving Mix mode or clearing the star.
+  if (highlighted.length === 0) return
   const volumes: Record<number, number> = { ...get().trackVolumes }
   for (const track of get().tracks) {
-    volumes[track.id] =
-      highlighted.length === 0
-        ? 1
-        : highlighted.includes(track.id)
-          ? 1
-          : HIGHLIGHT_DIM_VOLUME
+    volumes[track.id] = highlighted.includes(track.id)
+      ? 1
+      : HIGHLIGHT_DIM_VOLUME
   }
   patch({ trackVolumes: volumes })
   syncLiveTrackGains()
   persistCloudMixVolumes()
+  scheduleGuestDraftSave()
   scheduleMixPeakRefresh()
 }
 
 function clearTrackHighlights() {
   if (get().highlightedTrackIds.length === 0) return
   patch({ highlightedTrackIds: [] })
-  applyHighlightVolumes([])
 }
 
 export function toggleTrackHighlight(trackId: number) {

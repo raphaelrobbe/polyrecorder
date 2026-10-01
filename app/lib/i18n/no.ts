@@ -822,71 +822,70 @@ export const no: Record<MessageKey, string> = {
   'help.faq.title': 'FAQ',
   'help.faq.accountNeeded.q': 'Trenger jeg en konto?',
   'help.faq.accountNeeded.a':
-    'Ikke for å starte: du kan ta opp som gjest. Konto (bare e-post) trengs for sky, deling og samarbeid.',
+    'Ikke for å starte. En konto (med e-post) brukes til å lagre online, dele og samarbeide.',
   'help.faq.guestKeepTakes.q':
     'Hva skjer med opptakene hvis jeg tar opp som gjest og deretter logger inn?',
   'help.faq.guestKeepTakes.a':
-    'De gjenopprettes fra det lokale utkastet i denne nettleseren og lastes deretter opp til kontoen din som etter et vanlig ferdig opptak — vanligvis som en ny sang.',
+    'De gjenopprettes fra det lokale utkastet i denne nettleseren og lastes deretter opp til kontoen din som etter et vanlig ferdig opptak, som en ny sang. Lenken i e-posten må åpnes i samme nettleser.',
   'help.faq.guestLost.q':
     'Mister jeg gjesteopptak hvis jeg bytter enhet?',
   'help.faq.guestLost.a':
-    'Ja: utkastet blir på enheten og nettleseren der du tok opp. Logg inn derfra for å hente dem.',
+    'Ja, hvis du bytter enhet eller nettleser. Logg inn der du tok opp for å hente dem.',
   'help.faq.headphones.q': 'Hvorfor hodetelefoner?',
   'help.faq.headphones.a':
-    'Uten dem kan mikrofonen plukke opp høyttalerne — det ødelegger justering og kvalitet. Monitoring med hodetelefoner unngår tilbakekobling.',
-  'help.faq.modes.q': 'Hva er Simple, Mix, Justering og Klipp til?',
+    'Uten dem tar mikrofonen ofte opp høyttalerne på nytt: lyd og timing blir dårligere. Hodetelefoner forhindrer det.',
+  'help.faq.modes.q':
+    'Hva er modusene Simple, Mix, Justering og Klipp til?',
   'help.faq.modes.a':
-    'Simple for å ta opp og lytte, Mix for volum og MP3-eksport, Justering for å synke spor (forskyvninger og autojustering), Klipp for å dele ved spillehodet, dempe segmenter uten å endre filen, eller flette et utvalg til et nytt spor.',
+    'Simple: ta opp og lytt. Mix: styre volumene. Justering: synke rytmene. Klipp: dempe et parti, sette sammen biter.',
   'help.faq.clipping.q': 'Hvorfor advarsel om klipping i Mix?',
   'help.faq.clipping.a':
-    'Et «!» bakerst på sporet betyr klipping under opptak: ta opp på nytt med lavere mikrofonnivå. Et banner ved master betyr at stabling klipper mixen — senk master, eller slå på auto-senking mot klipping under Innstillinger (mål ~0,85).',
+    'Et «!» på et spor: det var for sterkt under opptak — ta opp på nytt med lavere mikronivå. En melding ved totalvolumet: mixen er for sterk — senk den, eller slå på auto-senking under Innstillinger.',
   'help.faq.metronome.q': 'Hva er metronomet til?',
   'help.faq.metronome.a':
-    'Det legger til et virtuelt spor i valgt tempo som kan være justeringsreferanse (marker 3-4 på opptakene). BPM lagres med økten; det er ikke en opplastet lydfil.',
+    'Metronomet kan hjelpe deg å holde tempo, og det kan også brukes til autojustering. Slå da på «Autojustering etter slag» og si «3-4» på 3. og 4. slag mens du tar opp (eller lag to tydelige lyder). Uten det kan forskyvninger oppstå på grunn av maskinvare- eller programvarelatens.',
   'help.faq.piano.q': 'Blir pianoet tatt opp sammen med stemmen?',
   'help.faq.piano.a':
-    'Nei. Pianoet spiller bare i nettleseren for å gi deg tonen. Med hodetelefoner hører du det uten at det går i mikrofonen eller opptaket.',
-  'help.faq.skew.q': 'Sporene er ikke justert — hva gjør jeg?',
-  'help.faq.skew.a':
-    'Sjekk markørene 1-2-3-4 / 3-4, ta et rent opptak på nytt, eller åpne Justering ( «!» på et spor åpner den) for manuell justering, bytte av referanse (klikk «ref.»), eller ny autojustering.',
-  'help.faq.countInVsAlign.q':
-    'Forskjell mellom hopp over opptakt og autojustering?',
-  'help.faq.countInVsAlign.a':
-    'Hopp over opptakt fjerner opptakten ved avspilling eller eksport. Autojustering retter spor med 1-2-3-4 / 3-4 for å kompensere latens.',
-  'help.faq.import.q': 'Kan jeg importere en MP3 uten 1-2-3-4?',
-  'help.faq.import.a':
-    'Ja. Slå da av autojustering eller juster for hånd i Justering — uten markører virker ikke autojustering.',
+    'Nei. Pianoet gir deg bare tonen. Med hodetelefoner hører du det uten at det kommer inn i opptaket.',
+  'help.faq.skew.q': 'Sporene er forskjøvet — hva gjør jeg?',
+  'help.faq.skew.a1':
+    'Hvis du vil bruke autojustering etter slag og ikke bruker metronom, må de fire startslagene være tydelig hørbare uten støy. Senere spor skal bare ha slag på 3. og 4. telling. Uten autojustering kan du justere manuelt i',
+  'help.faq.skew.a2':
+    'modus ved å justere millisekundene til høyre for sporene.',
   'help.faq.storage.q': 'Hvor lagres opptakene mine?',
   'help.faq.storage.a':
-    'Som gjest: bare på denne enheten (lokalt utkast). Innlogget med skylagring: i biblioteket ditt (Personlig / Generelt som standard for første økt).',
+    'Uten konto lagres ikke spor på internett. Med konto, på sangene dine, ja — og du finner dem i biblioteket (Personlig / Generelt først). Spor du har lagt til på en annen brukers sang lagres på kontoen deres.',
   'help.faq.libraryWhere.q':
     'Hvor finner jeg en nettopp lagret økt?',
   'help.faq.libraryWhere.a':
-    'Åpne Mitt bibliotek: vanligvis Personlig → Generelt, deretter sangen som ble laget. Brødsmulene over tittelen viser stien.',
-  'help.faq.share.q': 'Hvordan deler jeg en sang?',
-  'help.faq.share.a':
-    'Gjør sangen offentlig fra biblioteket eller verktøylinjen, og kopier øktlenken.',
-  'help.faq.collab.q': 'Hvordan samarbeider vi?',
-  'help.faq.collab.a':
-    'Offentlig sang + samarbeidsvalg. Andre logger inn og legger til spor. En gjest kan forberede lokalt; med samarbeid lastes opptaket opp etter innlogging.',
+    'Du finner den via brødsmulene øverst på opptakeren. Hvis du er usikker, sjekk biblioteket — som standard ligger økter i Personlig / Generelt.',
+  'help.faq.share.q': 'Hvordan deler jeg en sang og samarbeider?',
+  'help.faq.share.a1': 'Gjør sangen offentlig ved å klikke på',
+  'help.faq.share.a2': '(fra biblioteket eller opptakeren), deretter',
+  'help.faq.share.a3':
+    '. Hvis andre skal kunne legge til spor som alle ser, slå på samarbeid ved å klikke på',
+  'help.faq.share.a4': '(bare fra biblioteket).',
   'help.faq.browsers.q': 'Hvilke nettlesere og tillatelser?',
   'help.faq.browsers.a':
-    'En ny nettleser (Chrome, Firefox, Safari, Edge…) med mikrofontillatelse. Noen enhetsvalg avhenger av systemet.',
+    'En oppdatert nettleser (Chrome, Firefox, Safari, Edge…) og tillatt mikrofontilgang (nettlesertillatelser).',
   'help.faq.sizeLimit.q': 'Finnes det en størrelsesgrense?',
   'help.faq.sizeLimit.a':
-    'Ja: omtrent 100 MB per fil til skyen.',
+    'Ja: omtrent 100 MB per fil sendt online.',
   'help.faq.deleteAccount.q': 'Hvordan sletter jeg kontoen?',
   'help.faq.deleteAccount.a':
-    'Kontoinnstillinger → Slett kontoen min. Det er permanent. Se også personvern og vilkår.',
+    'Kontoinnstillinger → Slett kontoen min. Det er permanent. Se også Personvern og Vilkår.',
   'help.faq.deleteAccount.privacy': 'Personvern',
   'help.faq.deleteAccount.terms': 'Vilkår',
   'help.faq.pwa.q': 'Fungerer appen frakoblet?',
   'help.faq.pwa.a':
-    'polyrecorder kan installeres (PWA). Lokalt opptak kan fungere frakoblet; sky, innlogging og deling krever Internett.',
+    'Opptak på enheten kan fungere uten Internett; lagring, innlogging og deling krever tilkobling.',
+  'help.faq.installable.q': 'Kan appen installeres?',
+  'help.faq.installable.a':
+    'Ja — åpne nettlesermenyen og velg «Installer appen». Du finner ikke polyrecorder i App Stores, men slik er appen alltid oppdatert.',
   'help.faq.accountStats.q':
     'Hva betyr tallene under Min konto?',
   'help.faq.accountStats.a':
-    'Opptakstid summerer varigheten av sky-sporene dine. Tellere er grupper, repertoarer, sanger og økter.',
+    'Opptakstid summerer sporene dine lagret online. De andre tallene teller grupper, repertoarer, sanger og økter.',
 
   'nav.library': 'Bibliotek',
   'nav.myLibrary': 'Mitt bibliotek',

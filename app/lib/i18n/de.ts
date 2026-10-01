@@ -827,59 +827,55 @@ export const de: Record<MessageKey, string> = {
   'help.faq.title': 'FAQ',
   'help.faq.accountNeeded.q': 'Brauche ich ein Konto?',
   'help.faq.accountNeeded.a':
-    'Nicht zum Starten: du kannst als Gast aufnehmen. Ein Konto (nur E-Mail) braucht es für Cloud, Teilen und Kollaboration.',
+    'Nicht zum Starten. Ein Konto (mit E-Mail) dient zum Online-Speichern, Teilen und Kollaborieren.',
   'help.faq.guestKeepTakes.q':
     'Was passiert mit Takes, wenn ich als Gast aufnehme und mich dann anmelde?',
   'help.faq.guestKeepTakes.a':
-    'Sie werden aus dem lokalen Entwurf dieses Browsers wiederhergestellt und dann wie nach einer normalen Aufnahme auf dein Konto geladen — meist als neues Lied.',
+    'Sie werden aus dem lokalen Entwurf dieses Browsers wiederhergestellt und dann wie nach einer normalen Aufnahme auf dein Konto geladen, als neues Lied. Der Link aus der E-Mail muss im selben Browser geöffnet werden.',
   'help.faq.guestLost.q':
     'Gehen Gast-Takes verloren, wenn ich das Gerät wechsle?',
   'help.faq.guestLost.a':
-    'Ja: der Entwurf bleibt auf dem Gerät und Browser der Aufnahme. Melde dich dort wieder an, um sie zu retten.',
+    'Ja, wenn du Gerät oder Browser wechselst. Melde dich dort wieder an, wo du aufgenommen hast, um sie zu retten.',
   'help.faq.headphones.q': 'Warum Kopfhörer?',
   'help.faq.headphones.a':
-    'Ohne sie kann das Mikrofon die Lautsprecher aufnehmen — schlecht für Ausrichtung und Qualität. Monitoring mit Kopfhörer vermeidet das.',
-  'help.faq.modes.q': 'Wozu Simple, Mix, Ausrichtung und Schneiden?',
+    'Ohne sie nimmt das Mikrofon oft die Lautsprecher wieder auf: Klang und Timing leiden. Kopfhörer verhindern das.',
+  'help.faq.modes.q':
+    'Wozu dienen die Modi Simple, Mix, Ausrichtung und Schneiden?',
   'help.faq.modes.a':
-    'Simple zum Aufnehmen und Hören, Mix für Lautstärken und MP3-Export, Ausrichtung zum Synchronisieren (Offsets und Auto-Ausrichtung), Schneiden zum Teilen am Playhead, stummschalten ohne Dateiänderung, oder Zusammenführen einer Auswahl zu einer neuen Spur.',
+    'Simple: aufnehmen und hören. Mix: Lautstärken. Ausrichtung: Rhythmen synchronisieren. Schneiden: einen Abschnitt stummschalten, Teile zusammenfügen.',
   'help.faq.clipping.q': 'Warum eine Übersteuerungswarnung im Mix?',
   'help.faq.clipping.a':
-    'Ein „!“ am Spurende bedeutet Übersteuerung bei der Aufnahme: neu aufnehmen und den Mikrofonpegel senken. Ein Hinweis am Master bedeutet, dass das Stapeln den Mix übersteuert — Master senken oder Auto-Senken gegen Übersteuerung in den Einstellungen aktivieren (Ziel ~0,85).',
+    'Ein „!“ auf einer Spur: sie war bei der Aufnahme zu laut — neu aufnehmen und Mikrofonpegel senken. Ein Hinweis am Gesamtvolumen: der Mix ist zu laut — senken oder Auto-Senken in den Einstellungen aktivieren.',
   'help.faq.metronome.q': 'Wozu das Metronom?',
   'help.faq.metronome.a':
-    'Es fügt eine virtuelle Spur im gewählten Tempo hinzu, die als Ausrichtungs-Referenz dienen kann (auf den Takes 3-4 markieren). Das BPM wird mit der Session gespeichert; es ist keine hochgeladene Audiodatei.',
+    'Das Metronom hilft beim Tempo und auch bei der Auto-Ausrichtung. Aktiviere dafür „Auto-Ausrichtung nach Schlag“ und sage beim Aufnehmen auf dem 3. und 4. Schlag „3-4“ (oder mach zwei klare Geräusche). Sonst können durch Hardware- oder Software-Latenz Versätze entstehen.',
   'help.faq.piano.q': 'Wird das Klavier mit meiner Stimme aufgenommen?',
   'help.faq.piano.a':
-    'Nein. Das Klavier spielt nur im Browser zum Anstimmen. Mit Kopfhörern hörst du es, ohne dass es ins Mikrofon oder in den Take gelangt.',
-  'help.faq.skew.q': 'Spuren sind nicht ausgerichtet — was tun?',
-  'help.faq.skew.a':
-    'Prüfe die Markierungen 1-2-3-4 / 3-4, nimm sauber neu auf oder öffne den Ausrichtungsmodus (das „!“ an einer Spur führt dorthin) zum manuellen Nachziehen, Wechsel der Referenz (Tipp auf „Ref.“) oder erneuten Auto-Ausrichten.',
-  'help.faq.countInVsAlign.q':
-    'Unterschied zwischen Auftakt überspringen und Auto-Ausrichtung?',
-  'help.faq.countInVsAlign.a':
-    'Auftakt überspringen lässt den Count-in bei Wiedergabe oder Export weg. Auto-Ausrichtung richtet Spuren über 1-2-3-4 / 3-4 aus, um Latenz auszugleichen.',
-  'help.faq.import.q': 'Kann ich ein MP3 ohne 1-2-3-4 importieren?',
-  'help.faq.import.a':
-    'Ja. Schalte dann Auto-Ausrichtung aus oder richte manuell im Ausrichtungsmodus aus — ohne Markierungen funktioniert Auto-Align nicht.',
+    'Nein. Das Klavier gibt nur den Ton. Mit Kopfhörern hörst du es, ohne dass es in die Aufnahme gelangt.',
+  'help.faq.skew.q': 'Spuren sind verschoben — was tun?',
+  'help.faq.skew.a1':
+    'Wenn du die Auto-Ausrichtung nach Schlag nutzen willst und kein Metronom verwendest, müssen die vier Anfangsschläge klar und ohne Störgeräusche hörbar sein. Folgende Spuren dürfen nur Schläge auf dem 3. und 4. Zählzeit haben. Ohne Auto-Ausrichtung kannst du manuell im Modus',
+  'help.faq.skew.a2':
+    'kalibrieren, indem du die Millisekunden rechts an den Spuren anpasst.',
   'help.faq.storage.q': 'Wo werden meine Takes gespeichert?',
   'help.faq.storage.a':
-    'Als Gast: nur auf diesem Gerät (lokaler Entwurf). Angemeldet mit Cloud-Speicherung: in deiner Bibliothek (Personal / Allgemein als Standard für eine erste Session).',
+    'Ohne Konto werden Spuren nicht online gespeichert. Mit Konto auf deinen Liedern schon, und du findest sie in der Bibliothek (Personal / Allgemein am Anfang). Spuren, die du auf dem Lied eines anderen hinzugefügt hast, liegen auf dessen Konto.',
   'help.faq.libraryWhere.q':
     'Wo finde ich eine frisch gespeicherte Session?',
   'help.faq.libraryWhere.a':
-    'Öffne Meine Bibliothek: meist Personal → Allgemein, dann das erstellte Lied. Die Brotkrumenleiste über dem Titel zeigt den Pfad.',
-  'help.faq.share.q': 'Wie teile ich ein Lied?',
-  'help.faq.share.a':
-    'Mach das Lied in Bibliothek oder Toolbar öffentlich und kopiere den Session-Link.',
-  'help.faq.collab.q': 'Wie kollaborieren wir?',
-  'help.faq.collab.a':
-    'Öffentliches Lied + Kollaborationsoption. Andere melden sich an und fügen Spuren hinzu. Ein Gast kann lokal vorbereiten; mit Kollaboration lädt der Take nach der Anmeldung hoch.',
+    'Du findest sie über die Brotkrumenleiste oben am Rekorder. Wenn du unsicher bist, schau in die Bibliothek — Sessions liegen standardmäßig in Personal / Allgemein.',
+  'help.faq.share.q': 'Wie teile ich ein Lied und kollaboriere?',
+  'help.faq.share.a1': 'Mach das Lied öffentlich mit Klick auf',
+  'help.faq.share.a2': '(aus Bibliothek oder Rekorder), dann auf',
+  'help.faq.share.a3':
+    '. Wenn andere Spuren hinzufügen sollen, die alle sehen, aktiviere die Kollaboration mit Klick auf',
+  'help.faq.share.a4': '(nur aus der Bibliothek).',
   'help.faq.browsers.q': 'Welche Browser und Berechtigungen?',
   'help.faq.browsers.a':
-    'Ein aktueller Browser (Chrome, Firefox, Safari, Edge…) mit Mikrofon-Erlaubnis. Manche Geräteoptionen hängen vom System ab.',
+    'Ein aktueller Browser (Chrome, Firefox, Safari, Edge…) und erlaubter Mikrofonzugriff (Browser-Berechtigungen).',
   'help.faq.sizeLimit.q': 'Gibt es eine Größenbegrenzung?',
   'help.faq.sizeLimit.a':
-    'Ja: etwa 100 MB pro Datei in die Cloud.',
+    'Ja: etwa 100 MB pro online gesendete Datei.',
   'help.faq.deleteAccount.q': 'Wie lösche ich mein Konto?',
   'help.faq.deleteAccount.a':
     'Kontoeinstellungen → Konto löschen. Das ist endgültig. Siehe auch Datenschutz und AGB.',
@@ -887,11 +883,14 @@ export const de: Record<MessageKey, string> = {
   'help.faq.deleteAccount.terms': 'AGB',
   'help.faq.pwa.q': 'Funktioniert die App offline?',
   'help.faq.pwa.a':
-    'polyrecorder ist installierbar (PWA). Lokale Aufnahme kann offline gehen; Cloud, Anmeldung und Teilen brauchen Internet.',
+    'Aufnehmen auf dem Gerät kann ohne Internet gehen; Speichern, Anmelden und Teilen brauchen eine Verbindung.',
+  'help.faq.installable.q': 'Ist die App installierbar?',
+  'help.faq.installable.a':
+    'Ja — öffne das Browser-Menü und wähle „App installieren“. polyrecorder steht nicht in den App Stores, aber so bleibt die App immer aktuell.',
   'help.faq.accountStats.q':
     'Was bedeuten die Zahlen unter Mein Konto?',
   'help.faq.accountStats.a':
-    'Die Aufnahmezeit summiert die Dauer deiner Cloud-Spuren. Die Zähler sind Gruppen, Repertoires, Lieder und Sessions.',
+    'Die Aufnahmezeit summiert deine online gespeicherten Spuren. Die anderen Zahlen zählen Gruppen, Repertoires, Lieder und Sessions.',
 
   'nav.library': 'Bibliothek',
   'nav.myLibrary': 'Meine Bibliothek',

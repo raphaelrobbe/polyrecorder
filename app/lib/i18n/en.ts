@@ -816,71 +816,70 @@ export const en: Record<MessageKey, string> = {
   'help.faq.title': 'FAQ',
   'help.faq.accountNeeded.q': 'Do I need an account?',
   'help.faq.accountNeeded.a':
-    'Not to start: you can record as a guest. An account (email only) is required to save to the cloud, share, and collaborate.',
+    'Not to get started. An account (with email) is for saving online, sharing, and collaborating.',
   'help.faq.guestKeepTakes.q':
     'What happens to my takes if I record as a guest then sign in?',
   'help.faq.guestKeepTakes.a':
-    'They are restored from this browser’s local draft, then uploaded to your account like a normal finished take—usually as a new song.',
+    'They are restored from this browser’s local draft, then uploaded to your account like a normal finished take, as a new song. The email link must be opened in the same browser.',
   'help.faq.guestLost.q':
     'Are guest takes lost if I switch devices?',
   'help.faq.guestLost.a':
-    'Yes: the draft stays on the device and browser where you recorded. Sign in from that same browser to recover them.',
+    'Yes, if you change device or browser. Sign in again where you recorded to recover them.',
   'help.faq.headphones.q': 'Why headphones?',
   'help.faq.headphones.a':
-    'Without them, the mic can pick up the speakers—that hurts alignment and quality. Headphone monitoring avoids that feedback.',
-  'help.faq.modes.q': 'What are Simple, Mix, Align, and Cut for?',
+    'Without them, the mic often re-records the speakers: sound quality and timing suffer. Headphones prevent that.',
+  'help.faq.modes.q':
+    'What are the Simple, Mix, Align, and Cut modes for?',
   'help.faq.modes.a':
-    'Simple to record and listen, Mix for volumes and MP3 export, Align to sync tracks (offsets and auto-align), Cut to split at the playhead, mute ranges without changing the file, or merge a selection into a new track.',
+    'Simple: record and listen. Mix: manage volumes. Align: sync the rhythms. Cut: mute a passage, assemble pieces.',
   'help.faq.clipping.q': 'Why a clipping warning in Mix mode?',
   'help.faq.clipping.a':
-    'A “!” at the end of a track means the take clipped while recording: re-record with a lower mic input level. A banner by the master means stacking tracks clips the mix — lower the master, or turn on auto-lower to prevent clipping in Preferences (~0.85 target).',
+    'A “!” on a track: it was too loud when recording — try again with a lower mic level. A message near the master: the mix is too loud — turn it down, or enable auto-lower in Preferences.',
   'help.faq.metronome.q': 'What is the metronome for?',
   'help.faq.metronome.a':
-    'It adds a virtual track at the chosen tempo that can be the alignment reference (mark 3-4 on your takes). The BPM is saved with the session; it is not an uploaded audio file.',
+    'The metronome can help you keep tempo, and it can also help with auto-align. In that case, turn on “Auto-align by beat” and while recording, on the 3rd and 4th beats say “3-4” (or make two clear sounds). Without that, offsets can appear because of hardware or software latency.',
   'help.faq.piano.q': 'Is the piano recorded with my voice?',
   'help.faq.piano.a':
-    'No. The piano plays only in the browser to give you a pitch. With headphones you hear it without it reaching the mic or the take.',
-  'help.faq.skew.q': 'Tracks aren’t aligned—what should I do?',
-  'help.faq.skew.a':
-    'Check the 1-2-3-4 / 3-4 markers, try a clean take, or open Align mode (the “!” on a track opens it) to adjust manually, change the reference (click “ref.”), or re-run auto-align.',
-  'help.faq.countInVsAlign.q':
-    'What’s the difference between count-in skip and auto-align?',
-  'help.faq.countInVsAlign.a':
-    'Count-in skip removes the count-in on playback or export. Auto-align lines up tracks using 1-2-3-4 / 3-4 markers to compensate for latency.',
-  'help.faq.import.q': 'Can I import an MP3 without a 1-2-3-4 count-in?',
-  'help.faq.import.a':
-    'Yes. Then turn off auto-align or align by hand in Align mode—without markers, auto-align can’t work.',
+    'No. The piano only gives you the pitch. With headphones you hear it without it entering the recording.',
+  'help.faq.skew.q': 'Tracks are out of sync — what should I do?',
+  'help.faq.skew.a1':
+    'If you want auto-align by beat and you are not using the metronome, make sure the four opening beats are clearly audible without noise. Later tracks should only have beats on the 3rd and 4th counts. If you are not using auto-align, you can align by hand in',
+  'help.faq.skew.a2':
+    'mode by adjusting the milliseconds to the right of each track.',
   'help.faq.storage.q': 'Where are my takes stored?',
   'help.faq.storage.a':
-    'As a guest: only on this device (local draft). Signed in with cloud save: in your library (Personal / General by default for a first session).',
+    'Without an account, tracks are not saved online. With an account, on your songs they are, and you can find them in your library (Personal / General at first). Tracks you added on someone else’s song are stored on their account.',
   'help.faq.libraryWhere.q':
     'Where do I find a freshly saved session?',
   'help.faq.libraryWhere.a':
-    'Open My library: usually Personal → General, then the song that was created. The breadcrumb above the title shows the path.',
-  'help.faq.share.q': 'How do I share a song?',
-  'help.faq.share.a':
-    'Make the song public from the library or toolbar, then copy the session link.',
-  'help.faq.collab.q': 'How do we collaborate?',
-  'help.faq.collab.a':
-    'Public song + collaboration option. Others sign in and add tracks. A guest can prepare a take locally; with collab, it uploads after sign-in.',
+    'You’ll find it via the breadcrumb at the top of the recorder. If you’re unsure, check the library — by default sessions are stored in Personal / General.',
+  'help.faq.share.q': 'How do I share a song or collaborate?',
+  'help.faq.share.a1': 'Make the song public by clicking',
+  'help.faq.share.a2': '(from the library or the recorder), then',
+  'help.faq.share.a3':
+    '. If you want others to add tracks that everyone can see, turn on collaboration by clicking',
+  'help.faq.share.a4': '(from the library only).',
   'help.faq.browsers.q': 'Which browsers and permissions?',
   'help.faq.browsers.a':
-    'A recent browser (Chrome, Firefox, Safari, Edge…) with microphone permission. Some device options depend on the OS.',
+    'An up-to-date browser (Chrome, Firefox, Safari, Edge…) and microphone access allowed (browser permissions).',
   'help.faq.sizeLimit.q': 'Is there a size limit?',
   'help.faq.sizeLimit.a':
-    'Yes: about 100 MB per file uploaded to the cloud.',
+    'Yes: about 100 MB per file uploaded online.',
   'help.faq.deleteAccount.q': 'How do I delete my account?',
   'help.faq.deleteAccount.a':
-    'Account settings → Delete my account. It’s permanent. See also privacy and terms.',
+    'Account settings → Delete my account. It’s permanent. See also Privacy and Terms.',
   'help.faq.deleteAccount.privacy': 'Privacy',
   'help.faq.deleteAccount.terms': 'Terms',
   'help.faq.pwa.q': 'Does the app work offline?',
   'help.faq.pwa.a':
-    'polyrecorder is installable (PWA). Local recording can work offline; cloud, sign-in, and sharing need Internet.',
+    'Recording on the device can work without Internet; saving, signing in, and sharing need a connection.',
+  'help.faq.installable.q': 'Can I install the app?',
+  'help.faq.installable.a':
+    'Yes — open your browser menu and choose “Install app”. You won’t find polyrecorder on the App Stores, but this way is better: the app stays up to date.',
   'help.faq.accountStats.q':
     'What do the numbers in My account mean?',
   'help.faq.accountStats.a':
-    'Recording time totals the duration of your cloud tracks. The counts are your groups, repertoires, songs, and sessions.',
+    'Recording time adds up your tracks saved online. The other figures count your groups, repertoires, songs, and sessions.',
 
   'nav.library': 'Library',
   'nav.myLibrary': 'My library',

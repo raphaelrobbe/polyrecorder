@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link } from '@remix-run/react'
 import { useLocale } from '../hooks/useLocale'
 import { t, type MessageKey } from '../lib/i18n'
 import { cn } from '../lib/utils'
 import { HelpSection, HelpText } from './HelpSection'
-import { IconChevron } from './icons'
+import { DeckModePill } from './ModeTools'
+import { IconCollaborate, IconChevron, IconGlobe, IconShare } from './icons'
 
 export const HELP_FAQ_IDS = [
   'accountNeeded',
@@ -16,36 +17,79 @@ export const HELP_FAQ_IDS = [
   'metronome',
   'piano',
   'skew',
-  'countInVsAlign',
-  'import',
   'storage',
   'libraryWhere',
   'share',
-  'collab',
   'browsers',
   'sizeLimit',
   'deleteAccount',
   'pwa',
+  'installable',
   'accountStats',
 ] as const
 
 type FaqId = (typeof HELP_FAQ_IDS)[number]
 
-function faqKeys(id: FaqId): { q: MessageKey; a: MessageKey } {
-  return {
-    q: `help.faq.${id}.q` as MessageKey,
-    a: `help.faq.${id}.a` as MessageKey,
+function faqQuestionKey(id: FaqId): MessageKey {
+  return `help.faq.${id}.q` as MessageKey
+}
+
+function faqSearchText(id: FaqId): string {
+  const q = t(faqQuestionKey(id))
+  if (id === 'skew') {
+    return `${q}\n${t('help.faq.skew.a1')}\n${t('help.faq.skew.a2')}`
   }
+  if (id === 'share') {
+    return `${q}\n${t('help.faq.share.a1')}\n${t('help.faq.share.a2')}\n${t('help.faq.share.a3')}\n${t('help.faq.share.a4')}`
+  }
+  return `${q}\n${t(`help.faq.${id}.a` as MessageKey)}`
+}
+
+function FaqInlineIcon({ children }: { children: ReactNode }) {
+  return (
+    <span className="mx-[0.12rem] inline-flex translate-y-[0.18rem] items-center align-baseline text-ink [&_svg]:size-[1.05rem]">
+      {children}
+    </span>
+  )
+}
+
+function FaqAnswer({ id }: { id: FaqId }) {
+  if (id === 'skew') {
+    return (
+      <HelpText>
+        {t('help.faq.skew.a1')}{' '}
+        <DeckModePill mode="align" size="sm" className="mx-[0.15rem] align-middle" />{' '}
+        {t('help.faq.skew.a2')}
+      </HelpText>
+    )
+  }
+  if (id === 'share') {
+    return (
+      <HelpText>
+        {t('help.faq.share.a1')}
+        <FaqInlineIcon>
+          <IconGlobe />
+        </FaqInlineIcon>
+        {t('help.faq.share.a2')}
+        <FaqInlineIcon>
+          <IconShare />
+        </FaqInlineIcon>
+        {t('help.faq.share.a3')}
+        <FaqInlineIcon>
+          <IconCollaborate />
+        </FaqInlineIcon>
+        {t('help.faq.share.a4')}
+      </HelpText>
+    )
+  }
+  return <HelpText>{t(`help.faq.${id}.a` as MessageKey)}</HelpText>
 }
 
 /** Whether any FAQ entry matches the query (empty query → true). */
 export function helpFaqMatchesQuery(query: string): boolean {
   const qNorm = query.trim().toLowerCase()
   if (!qNorm) return true
-  return HELP_FAQ_IDS.some((id) => {
-    const { q, a } = faqKeys(id)
-    return `${t(q)}\n${t(a)}`.toLowerCase().includes(qNorm)
-  })
+  return HELP_FAQ_IDS.some((id) => faqSearchText(id).toLowerCase().includes(qNorm))
 }
 
 /** FAQ accordions at the bottom of /aide (several may stay open). */
@@ -72,9 +116,7 @@ export function HelpFaq({
 
   const visibleIds = HELP_FAQ_IDS.filter((id) => {
     if (!qNorm) return true
-    const { q, a } = faqKeys(id)
-    const hay = `${t(q)}\n${t(a)}`.toLowerCase()
-    return hay.includes(qNorm)
+    return faqSearchText(id).toLowerCase().includes(qNorm)
   })
 
   if (visibleIds.length === 0) return null
@@ -87,7 +129,6 @@ export function HelpFaq({
     >
       <ul className="m-0 flex list-none flex-col gap-[0.45rem] p-0">
         {visibleIds.map((id) => {
-          const { q, a } = faqKeys(id)
           const open = openIds.has(id) || Boolean(qNorm)
           const panelId = `help-faq-${id}`
           return (
@@ -112,10 +153,14 @@ export function HelpFaq({
                     open ? 'rotate-0' : '-rotate-90',
                   )}
                 />
-                <span className="min-w-0 flex-1">{t(q)}</span>
+                <span className="min-w-0 flex-1">{t(faqQuestionKey(id))}</span>
               </button>
-              <div id={panelId} hidden={!open} className="px-[0.85rem] pb-[0.75rem] pl-[2.35rem]">
-                <HelpText>{t(a)}</HelpText>
+              <div
+                id={panelId}
+                hidden={!open}
+                className="px-[0.85rem] pb-[0.75rem] pl-[2.35rem]"
+              >
+                <FaqAnswer id={id} />
                 {id === 'deleteAccount' ? (
                   <p className="mt-[0.55rem] mb-0 text-[0.84rem] leading-[1.45] text-ink-soft">
                     <Link
