@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useNavigate } from '@remix-run/react'
 import { formatCentis, getMixDurationMs } from '../../lib/format'
 import {
   alignableTracks,
@@ -21,6 +22,7 @@ import { t } from '../../lib/i18n'
 import { cn } from '../../lib/utils'
 import { useSessionStore } from '../../store/sessionStore'
 import { Button } from '../Button'
+import { contentSyncPunchHelpPath } from '../ContentSyncInviteBanner'
 import { IconAutoAlign, IconTrash } from '../icons'
 import { NoticeBanner } from '../StatusMessage'
 import { VolumeRibbon } from '../VolumeRibbon'
@@ -579,27 +581,13 @@ export function TracksList({ className }: TracksListProps) {
   )
 }
 
-/** Banner while picking a content-sync target (+ optional “?” tip). */
+/** Banner while picking a content-sync target (+ “?” → punch-in help). */
 function ContentSyncPickBanner() {
   useLocale()
-  const [tipOpen, setTipOpen] = useState(false)
-  const tipRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!tipOpen) return
-    const onPointerDown = (event: PointerEvent) => {
-      const target = event.target as Node | null
-      if (tipRef.current && target && !tipRef.current.contains(target)) {
-        setTipOpen(false)
-      }
-    }
-    window.addEventListener('pointerdown', onPointerDown)
-    return () => window.removeEventListener('pointerdown', onPointerDown)
-  }, [tipOpen])
+  const navigate = useNavigate()
 
   return (
     <div
-      ref={tipRef}
       className={cn(
         'mb-[0.35rem] flex flex-col gap-[0.45rem] rounded-[14px] border-[1.5px] border-mode-simple-border bg-mode-simple-bg',
         'px-[0.75rem] py-[0.55rem] text-mode-simple animate-rise',
@@ -614,13 +602,12 @@ function ContentSyncPickBanner() {
         <Button
           type="button"
           variant="round"
-          className="h-[1.25rem] w-[1.25rem] shrink-0 border-mode-simple-border text-[0.72rem] font-bold text-mode-simple hover:enabled:border-mode-simple hover:enabled:bg-mode-simple-hover aria-expanded:border-mode-simple aria-expanded:bg-mode-simple-hover max-sm:h-[1.15rem] max-sm:w-[1.15rem] max-sm:text-[0.68rem]"
-          aria-expanded={tipOpen}
-          aria-controls="content-sync-pick-tip"
-          title={t('tracks.contentSync.pickAbout')}
+          className="h-[1.25rem] w-[1.25rem] shrink-0 border-mode-simple-border text-[0.72rem] font-bold text-mode-simple hover:enabled:border-mode-simple hover:enabled:bg-mode-simple-hover max-sm:h-[1.15rem] max-sm:w-[1.15rem] max-sm:text-[0.68rem]"
+          title={t('tracks.contentSync.invite.help')}
+          aria-label={t('tracks.contentSync.invite.help')}
           onClick={(event) => {
             event.stopPropagation()
-            setTipOpen((open) => !open)
+            navigate(contentSyncPunchHelpPath())
           }}
         >
           ?
@@ -634,13 +621,6 @@ function ContentSyncPickBanner() {
           {t('tracks.contentSync.pickCancel')}
         </Button>
       </div>
-      <p
-        className="m-0 text-[0.78rem] font-medium leading-[1.4] text-mode-simple/90 max-sm:text-[0.72rem]"
-        id="content-sync-pick-tip"
-        hidden={!tipOpen}
-      >
-        {t('tracks.contentSync.pickTip')}
-      </p>
     </div>
   )
 }

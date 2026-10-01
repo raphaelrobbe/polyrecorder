@@ -611,6 +611,7 @@ export const fr = {
   'tracks.contentSync.invite.mergeNoSilence':
     'Pas de silence net dans le chevauchement — fusionne en mode Découpage.',
   'tracks.contentSync.invite.mergeFailed': 'La fusion automatique a échoué',
+  'tracks.contentSync.invite.help': 'À propos de l’enregistrement à la volée',
   'tracks.span.aria': 'Emplacement de {name} sur la timeline du mix',
   'tracks.span.seekAria':
     'Placer le curseur de lecture sur la timeline (piste {name})',
@@ -763,6 +764,8 @@ export const fr = {
     'Pendant la lecture (ou en pause au milieu),',
   'help.sync.punch.body1.after':
     'démarre une nouvelle piste à cet endroit. Un bouton « Sync » apparaît quelques instants en mode Simple (persistant en mode Calage). Il permet de la synchroniser à une autre piste (à sélectionner après clic sur le bouton « Sync »).',
+  'help.sync.punch.bodyInvite':
+    'Après une Sync réussie, des invites proposent d’écouter le résultat, de confirmer le calage, puis éventuellement de fusionner les deux pistes sur un silence (avec écoute du raccord). Si tu refuses la Sync, tu peux passer en mode Calage pour ajuster à la main ; si tu refuses la fusion automatique, le mode Découpage reste disponible pour le faire toi-même.',
   'help.sync.punch.body2':
     'Cette fonctionnalité a été pensée pour continuer une prise interrompue. Il faut reprendre l’enregistrement un peu avant la fin de la prise interrompue, refaire une partie réussie au début, puis continuer. La partie similaire permettra la synchronisation. Après synchronisation, une fusion des deux pistes pourra être faite en mode « Découpage ». Il suffira d’accoler le début de la première prise et la fin de la suivante.',
   'help.sync.punch.seeCut': 'Voir la rubrique Découpage',

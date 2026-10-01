@@ -1,3 +1,4 @@
+import { useNavigate } from '@remix-run/react'
 import { useLocale } from '../hooks/useLocale'
 import { t } from '../lib/i18n'
 import { cn } from '../lib/utils'
@@ -19,6 +20,12 @@ import { Button } from './Button'
 type Action = {
   label: string
   onClick: () => void
+}
+
+/** Deep-link to /aide filtered on the punch-in subsection title. */
+export function contentSyncPunchHelpPath(): string {
+  const q = encodeURIComponent(t('help.sync.punch.title'))
+  return `/aide?q=${q}#help-sync`
 }
 
 function actionsForStep(invite: ContentSyncInvite): {
@@ -119,6 +126,7 @@ function actionsForStep(invite: ContentSyncInvite): {
 /** Guided invite after a successful content Sync. */
 export function ContentSyncInviteBanner() {
   useLocale()
+  const navigate = useNavigate()
   const invite = useSessionStore((s) => s.contentSyncInvite)
   if (!invite) return null
 
@@ -147,8 +155,18 @@ export function ContentSyncInviteBanner() {
         </button>
       ) : null}
       <span className="min-w-0 flex-auto">{message}</span>
+      <Button
+        type="button"
+        variant="round"
+        className="h-[1.35rem] w-[1.35rem] shrink-0 border-mode-align-border text-[0.72rem] font-bold text-mode-align hover:enabled:border-mode-align hover:enabled:bg-mode-align-hover"
+        title={t('tracks.contentSync.invite.help')}
+        aria-label={t('tracks.contentSync.invite.help')}
+        onClick={() => navigate(contentSyncPunchHelpPath())}
+      >
+        ?
+      </Button>
       {actions.length > 0 ? (
-        <div className="ml-auto flex flex-wrap items-center gap-[0.4rem]">
+        <div className="flex flex-wrap items-center gap-[0.4rem]">
           {actions.map((action) => (
             <Button
               key={action.label}

@@ -606,6 +606,7 @@ export const en: Record<MessageKey, string> = {
   'tracks.contentSync.invite.mergeNoSilence':
     'No clear silence in the overlap — merge in Cut mode.',
   'tracks.contentSync.invite.mergeFailed': 'Automatic merge failed',
+  'tracks.contentSync.invite.help': 'About punch-in recording',
   'tracks.span.aria': 'Placement of {name} on the mix timeline',
   'tracks.span.seekAria': 'Set the playhead on the timeline (track {name})',
   'tracks.span.seekHint': 'Click or drag to set the playhead',
@@ -752,6 +753,8 @@ export const en: Record<MessageKey, string> = {
   'help.sync.punch.body1.before': 'While playing (or paused mid-mix),',
   'help.sync.punch.body1.after':
     'starts a new track at that position. A “Sync” button appears briefly in Simple mode (it stays in Align mode). It lets you sync the take to another track (pick one after clicking “Sync”).',
+  'help.sync.punch.bodyInvite':
+    'After a successful Sync, prompts offer to listen to the result, confirm the alignment, then optionally merge the two tracks on a silence (with a listen at the join). If you reject the Sync, you can switch to Align mode to adjust by hand; if you skip the auto-merge, Cut mode is still there to do it yourself.',
   'help.sync.punch.body2':
     'This is meant for continuing an interrupted take. Resume recording a little before the end of the interrupted take, redo a successful stretch at the start, then continue. The matching stretch enables sync. After syncing, you can merge the two tracks in Cut mode: keep the start of the first take and the end of the next.',
   'help.sync.punch.seeCut': 'See the Cut section',

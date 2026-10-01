@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { Link } from '@remix-run/react'
+import { useEffect, useRef, useState } from 'react'
+import { Link, useSearchParams } from '@remix-run/react'
 import { prefersHeadphonesHint } from '../lib/deviceHint'
 import { useLocale } from '../hooks/useLocale'
 import { t, type MessageKey } from '../lib/i18n'
@@ -104,13 +104,57 @@ function matchesHelpQuery(query: string, ...parts: string[]): boolean {
   return parts.some((part) => part.toLowerCase().includes(q))
 }
 
+/**
+ * When searching: if any subtitle block matches, show only those blocks
+ * (plus the section title). If only the section shell matches, show all.
+ */
+function resolveSubtitleVisibility<T extends Record<string, boolean>>(
+  query: string,
+  sectionMatch: boolean,
+  subs: T,
+): { showSection: boolean; show: T } {
+  const q = query.trim()
+  if (!q) {
+    const all = { ...subs }
+    for (const key of Object.keys(all) as Array<keyof T>) {
+      all[key] = true as T[keyof T]
+    }
+    return { showSection: sectionMatch, show: all }
+  }
+  const anySub = Object.values(subs).some(Boolean)
+  if (anySub) {
+    return { showSection: true, show: { ...subs } }
+  }
+  if (sectionMatch) {
+    const all = { ...subs }
+    for (const key of Object.keys(all) as Array<keyof T>) {
+      all[key] = true as T[keyof T]
+    }
+    return { showSection: true, show: all }
+  }
+  const none = { ...subs }
+  for (const key of Object.keys(none) as Array<keyof T>) {
+    none[key] = false as T[keyof T]
+  }
+  return { showSection: false, show: none }
+}
+
 export function HelpPanel({ className }: HelpPanelProps) {
   useLocale()
   const keyboardHintsEnabled = useSessionStore((s) => s.keyboardHintsEnabled)
   const showShortcuts = !prefersHeadphonesHint() || keyboardHintsEnabled
   const [whyNeededOpen, setWhyNeededOpen] = useState(false)
   const [howtoWithMetro, setHowtoWithMetro] = useState(false)
-  const [search, setSearch] = useState('')
+  const [searchParams] = useSearchParams()
+  const urlQ = searchParams.get('q') ?? ''
+  const [search, setSearch] = useState(urlQ)
+  const lastUrlQRef = useRef(urlQ)
+
+  useEffect(() => {
+    if (urlQ === lastUrlQRef.current) return
+    lastUrlQRef.current = urlQ
+    setSearch(urlQ)
+  }, [urlQ])
 
   useEffect(() => {
     const scrollToHash = () => {
@@ -183,70 +227,124 @@ export function HelpPanel({ className }: HelpPanelProps) {
       t('piano.toggle'),
       t('deck.metronome'),
     ),
-    sync: matchesHelpQuery(
-      search,
-      t('help.sync.title'),
-      t('help.toc.sync'),
-      t('mode.label'),
-      t('mode.align'),
-      t('mode.align.hint'),
-      t('help.sync.autoAlign.title'),
-      t('help.sync.autoAlign.body1'),
-      t('help.sync.autoAlign.body2'),
-      t('help.sync.autoAlign.body3'),
-      t('help.sync.autoAlign.body4'),
-      t('help.sync.autoAlign.rerun.before'),
-      t('help.sync.autoAlign.rerun.after'),
-      t('help.sync.noise.body'),
-      t('help.sync.ref.body'),
-      t('help.sync.punch.title'),
-      t('help.sync.punch.body1.before'),
-      t('help.sync.punch.body1.after'),
-      t('help.sync.punch.body2'),
-      t('help.sync.punch.seeCut'),
-      t('howto.title'),
-      t('howto.metro.on'),
-      t('howto.metro.off'),
-      t('howto.metro.add'),
-      t('howto.step1'),
-      t('howto.step2'),
-      t('howto.step2.metro'),
-      t('howto.step3'),
-      t('howto.step4'),
-      t('howto.step4.metro'),
-      t('howto.step5'),
-      t('howto.step6'),
-      t('howto.whyNeeded'),
-      t('howto.whyNeeded.about'),
-      t('howto.latency'),
-    ),
-    cut: matchesHelpQuery(
-      search,
-      t('help.cut.title'),
-      t('help.toc.cut'),
-      t('mode.label'),
-      t('mode.cut'),
-      t('mode.cut.hint'),
-      t('help.cut.body1'),
-      t('help.cut.split.title'),
-      t('help.cut.split.body1.before'),
-      t('help.cut.split.body1.after'),
-      t('help.cut.split.body2'),
-      t('help.cut.mute.title'),
-      t('help.cut.mute.body1'),
-      t('help.cut.merge.title'),
-      t('help.cut.merge.body1'),
-      t('help.cut.tips.body1'),
-      t('help.cut.tips.body2'),
-      'découpage',
-      'decoupage',
-      'cut',
-      'schneiden',
-      'klipp',
-      'fusion',
-      'merge',
-      'muteRanges',
-    ),
+    sync: (() => {
+      const shell = matchesHelpQuery(
+        search,
+        t('help.sync.title'),
+        t('help.toc.sync'),
+        t('mode.label'),
+        t('mode.align'),
+        t('mode.align.hint'),
+      )
+      const autoAlign = matchesHelpQuery(
+        search,
+        t('help.sync.autoAlign.title'),
+        t('help.sync.autoAlign.body1'),
+        t('help.sync.autoAlign.body2'),
+        t('help.sync.autoAlign.body3'),
+        t('help.sync.autoAlign.body4'),
+        t('help.sync.autoAlign.rerun.before'),
+        t('help.sync.autoAlign.rerun.after'),
+        t('help.sync.noise.body'),
+        t('help.sync.ref.body'),
+      )
+      const howto = matchesHelpQuery(
+        search,
+        t('howto.title'),
+        t('howto.metro.on'),
+        t('howto.metro.off'),
+        t('howto.metro.add'),
+        t('howto.step1'),
+        t('howto.step2'),
+        t('howto.step2.metro'),
+        t('howto.step3'),
+        t('howto.step4'),
+        t('howto.step4.metro'),
+        t('howto.step5'),
+        t('howto.step6'),
+        t('howto.whyNeeded'),
+        t('howto.whyNeeded.about'),
+        t('howto.latency'),
+      )
+      const punch = matchesHelpQuery(
+        search,
+        t('help.sync.punch.title'),
+        t('help.sync.punch.body1.before'),
+        t('help.sync.punch.body1.after'),
+        t('help.sync.punch.bodyInvite'),
+        t('help.sync.punch.body2'),
+        t('help.sync.punch.seeCut'),
+      )
+      const resolved = resolveSubtitleVisibility(search, shell, {
+        autoAlign,
+        howto,
+        punch,
+      })
+      return {
+        section: resolved.showSection,
+        autoAlign: resolved.show.autoAlign,
+        howto: resolved.show.howto,
+        punch: resolved.show.punch,
+      }
+    })(),
+    cut: (() => {
+      const shell = matchesHelpQuery(
+        search,
+        t('help.cut.title'),
+        t('help.toc.cut'),
+        t('mode.label'),
+        t('mode.cut'),
+        t('mode.cut.hint'),
+        t('help.cut.body1'),
+        'découpage',
+        'decoupage',
+        'cut',
+        'schneiden',
+        'klipp',
+      )
+      const split = matchesHelpQuery(
+        search,
+        t('help.cut.split.title'),
+        t('help.cut.split.body1.before'),
+        t('help.cut.split.body1.after'),
+        t('help.cut.split.body2'),
+      )
+      const mute = matchesHelpQuery(
+        search,
+        t('help.cut.mute.title'),
+        t('help.cut.mute.body1'),
+        'muteRanges',
+      )
+      const merge = matchesHelpQuery(
+        search,
+        t('help.cut.merge.title'),
+        t('help.cut.merge.body1'),
+        'fusion',
+        'merge',
+      )
+      const tips = matchesHelpQuery(
+        search,
+        t('help.cut.tips.body1'),
+        t('help.cut.tips.body2'),
+      )
+      const body1 = matchesHelpQuery(search, t('help.cut.body1'))
+      const anySub = split || mute || merge || tips
+      const resolved = resolveSubtitleVisibility(search, shell || body1, {
+        split,
+        mute,
+        merge,
+        tips,
+      })
+      return {
+        section: resolved.showSection,
+        // Intro only when not filtering down to a specific subtitle.
+        intro: !search.trim() || body1 || ((shell || body1) && !anySub),
+        split: resolved.show.split,
+        mute: resolved.show.mute,
+        merge: resolved.show.merge,
+        tips: resolved.show.tips,
+      }
+    })(),
     mix: matchesHelpQuery(
       search,
       t('help.mix.title'),
@@ -336,9 +434,9 @@ export function HelpPanel({ className }: HelpPanelProps) {
     'help-metronome': show.metronome,
     'help-piano': show.piano,
     'help-record': show.record,
-    [HOWTO_HASH]: show.sync,
-    'help-sync': show.sync,
-    'help-cut': show.cut,
+    [HOWTO_HASH]: show.sync.section && show.sync.howto,
+    'help-sync': show.sync.section,
+    'help-cut': show.cut.section,
     'help-mix': show.mix,
     'help-library': show.library,
     'help-share': show.share,
@@ -348,7 +446,9 @@ export function HelpPanel({ className }: HelpPanelProps) {
     'help-faq': show.faq,
   }
 
-  const anyVisible = Object.values(show).some(Boolean)
+  const anyVisible = Object.values(show).some((value) =>
+    typeof value === 'boolean' ? value : Boolean(value.section),
+  )
   const tocItems = TOC.filter(
     (item) =>
       (item.sectionId !== 'help-shortcuts' || showShortcuts) &&
@@ -547,109 +647,120 @@ export function HelpPanel({ className }: HelpPanelProps) {
             <DeckModePill mode="align" />
           </>
         }
-        hidden={!show.sync}
+        hidden={!show.sync.section}
       >
-        <HelpSubtitle>{t('help.sync.autoAlign.title')}</HelpSubtitle>
-        <HelpText>{t('help.sync.autoAlign.body1')}</HelpText>
-        <HelpText>{t('help.sync.autoAlign.body2')}</HelpText>
-        <HelpText>{t('help.sync.autoAlign.body3')}</HelpText>
-        <HelpText>{t('help.sync.autoAlign.body4')}</HelpText>
-        <HelpText>{t('help.sync.noise.body')}</HelpText>
-        <HelpText>{t('help.sync.ref.body')}</HelpText>
+        {show.sync.autoAlign ? (
+          <>
+            <HelpSubtitle>{t('help.sync.autoAlign.title')}</HelpSubtitle>
+            <HelpText>{t('help.sync.autoAlign.body1')}</HelpText>
+            <HelpText>{t('help.sync.autoAlign.body2')}</HelpText>
+            <HelpText>{t('help.sync.autoAlign.body3')}</HelpText>
+            <HelpText>{t('help.sync.autoAlign.body4')}</HelpText>
+            <HelpText>{t('help.sync.noise.body')}</HelpText>
+            <HelpText>{t('help.sync.ref.body')}</HelpText>
 
-        <div className="mt-[0.85rem]">
-          <div className="flex items-center gap-[0.4rem]">
-            <span className="text-[0.84rem] font-semibold text-ink-soft">
-              {t('howto.whyNeeded')}
-            </span>
-            <Button
-              variant="round"
-              className="h-[1.25rem] w-[1.25rem] shrink-0 border-ink/22 text-[0.72rem] font-bold text-ink-soft hover:enabled:border-ink/35 hover:enabled:bg-ink/6 hover:enabled:text-ink aria-expanded:border-ink/35 aria-expanded:bg-ink/6 aria-expanded:text-ink max-sm:h-[1.15rem] max-sm:w-[1.15rem] max-sm:text-[0.68rem]"
-              aria-expanded={whyNeededOpen}
-              aria-controls="howto-why-needed-tip"
-              title={t('howto.whyNeeded.about')}
-              onClick={() => setWhyNeededOpen((open) => !open)}
-            >
-              ?
-            </Button>
-          </div>
+            <div className="mt-[0.85rem]">
+              <div className="flex items-center gap-[0.4rem]">
+                <span className="text-[0.84rem] font-semibold text-ink-soft">
+                  {t('howto.whyNeeded')}
+                </span>
+                <Button
+                  variant="round"
+                  className="h-[1.25rem] w-[1.25rem] shrink-0 border-ink/22 text-[0.72rem] font-bold text-ink-soft hover:enabled:border-ink/35 hover:enabled:bg-ink/6 hover:enabled:text-ink aria-expanded:border-ink/35 aria-expanded:bg-ink/6 aria-expanded:text-ink max-sm:h-[1.15rem] max-sm:w-[1.15rem] max-sm:text-[0.68rem]"
+                  aria-expanded={whyNeededOpen}
+                  aria-controls="howto-why-needed-tip"
+                  title={t('howto.whyNeeded.about')}
+                  onClick={() => setWhyNeededOpen((open) => !open)}
+                >
+                  ?
+                </Button>
+              </div>
+              <div
+                className="mt-[0.55rem] mb-0 rounded-xl border border-ink/10 bg-ink/6 px-[0.8rem] py-[0.7rem] text-[0.8rem] leading-[1.4] text-ink-soft"
+                id="howto-why-needed-tip"
+                hidden={!whyNeededOpen}
+              >
+                <p className="m-0">{withBrand(t('howto.latency'))}</p>
+              </div>
+            </div>
+
+            <p className="mt-[0.85rem] mb-0 text-[0.84rem] leading-[1.45] text-ink-soft">
+              {t('help.sync.autoAlign.rerun.before')}{' '}
+              <IconAutoAlign className="mx-[0.12rem] inline-block size-[1.05rem] align-[-0.18rem] text-ink" />{' '}
+              {t('help.sync.autoAlign.rerun.after')}
+            </p>
+          </>
+        ) : null}
+
+        {show.sync.howto ? (
           <div
-            className="mt-[0.55rem] mb-0 rounded-xl border border-ink/10 bg-ink/6 px-[0.8rem] py-[0.7rem] text-[0.8rem] leading-[1.4] text-ink-soft"
-            id="howto-why-needed-tip"
-            hidden={!whyNeededOpen}
+            id={HOWTO_HASH}
+            className="mt-[0.85rem] rounded-xl border border-ink/10 bg-ink/6 px-[0.8rem] py-[0.75rem]"
           >
-            <p className="m-0">{withBrand(t('howto.latency'))}</p>
+            <HelpSubtitle className="mt-0">{t('howto.title')}</HelpSubtitle>
+            <button
+              type="button"
+              aria-pressed={howtoWithMetro}
+              title={howtoWithMetro ? t('howto.metro.on') : t('howto.metro.off')}
+              aria-label={
+                howtoWithMetro ? t('howto.metro.on') : t('howto.metro.off')
+              }
+              onClick={() => setHowtoWithMetro((on) => !on)}
+              className={cn(
+                'mb-[0.75rem] inline-flex items-center justify-center rounded-full px-[0.78rem] py-[0.42rem]',
+                'border-[1.5px] font-[inherit] text-[0.82rem] font-bold tracking-[0.01em]',
+                'transition-[background,color,border-color,box-shadow,transform] duration-160',
+                'cursor-pointer active:scale-[0.98]',
+                'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
+                howtoWithMetro
+                  ? 'border-ink bg-ink text-on-ink shadow-[0_4px_12px_color-mix(in_srgb,var(--ink)_22%,transparent)]'
+                  : 'border-line bg-surface text-ink-soft hover:text-ink',
+              )}
+            >
+              {howtoWithMetro ? t('howto.metro.on') : t('howto.metro.off')}
+            </button>
+            {howtoWithMetro ? (
+              <HelpText className="mb-[0.75rem]">{t('howto.metro.add')}</HelpText>
+            ) : null}
+            <ul className="m-0 list-disc list-outside pl-[1.15rem] text-[0.84rem] leading-[1.45] text-ink-soft [&_li+li]:mt-[0.35rem]">
+              <li>{withBrand(t('howto.step1'))}</li>
+              <li>
+                {withBrand(
+                  t(howtoWithMetro ? 'howto.step2.metro' : 'howto.step2'),
+                )}
+              </li>
+              <li>{withBrand(t('howto.step3'))}</li>
+              <li>
+                {withBrand(
+                  t(howtoWithMetro ? 'howto.step4.metro' : 'howto.step4'),
+                )}
+              </li>
+              <li>{withBrand(t('howto.step5'))}</li>
+              <li>{withBrand(t('howto.step6'))}</li>
+            </ul>
           </div>
-        </div>
+        ) : null}
 
-        <p className="mt-[0.85rem] mb-0 text-[0.84rem] leading-[1.45] text-ink-soft">
-          {t('help.sync.autoAlign.rerun.before')}{' '}
-          <IconAutoAlign className="mx-[0.12rem] inline-block size-[1.05rem] align-[-0.18rem] text-ink" />{' '}
-          {t('help.sync.autoAlign.rerun.after')}
-        </p>
-
-        <div
-          id={HOWTO_HASH}
-          className="mt-[0.85rem] rounded-xl border border-ink/10 bg-ink/6 px-[0.8rem] py-[0.75rem]"
-        >
-          <HelpSubtitle className="mt-0">{t('howto.title')}</HelpSubtitle>
-          <button
-            type="button"
-            aria-pressed={howtoWithMetro}
-            title={howtoWithMetro ? t('howto.metro.on') : t('howto.metro.off')}
-            aria-label={
-              howtoWithMetro ? t('howto.metro.on') : t('howto.metro.off')
-            }
-            onClick={() => setHowtoWithMetro((on) => !on)}
-            className={cn(
-              'mb-[0.75rem] inline-flex items-center justify-center rounded-full px-[0.78rem] py-[0.42rem]',
-              'border-[1.5px] font-[inherit] text-[0.82rem] font-bold tracking-[0.01em]',
-              'transition-[background,color,border-color,box-shadow,transform] duration-160',
-              'cursor-pointer active:scale-[0.98]',
-              'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
-              howtoWithMetro
-                ? 'border-ink bg-ink text-on-ink shadow-[0_4px_12px_color-mix(in_srgb,var(--ink)_22%,transparent)]'
-                : 'border-line bg-surface text-ink-soft hover:text-ink',
-            )}
-          >
-            {howtoWithMetro ? t('howto.metro.on') : t('howto.metro.off')}
-          </button>
-          {howtoWithMetro ? (
-            <HelpText className="mb-[0.75rem]">{t('howto.metro.add')}</HelpText>
-          ) : null}
-          <ul className="m-0 list-disc list-outside pl-[1.15rem] text-[0.84rem] leading-[1.45] text-ink-soft [&_li+li]:mt-[0.35rem]">
-            <li>{withBrand(t('howto.step1'))}</li>
-            <li>
-              {withBrand(
-                t(howtoWithMetro ? 'howto.step2.metro' : 'howto.step2'),
-              )}
-            </li>
-            <li>{withBrand(t('howto.step3'))}</li>
-            <li>
-              {withBrand(
-                t(howtoWithMetro ? 'howto.step4.metro' : 'howto.step4'),
-              )}
-            </li>
-            <li>{withBrand(t('howto.step5'))}</li>
-            <li>{withBrand(t('howto.step6'))}</li>
-          </ul>
-        </div>
-
-        <HelpSubtitle>{t('help.sync.punch.title')}</HelpSubtitle>
-        <p className="m-0 text-[0.84rem] leading-[1.45] text-ink-soft">
-          {t('help.sync.punch.body1.before')}{' '}
-          <IconRecord className="mx-[0.12rem] inline-block size-[1.15rem] align-[-0.22rem]" />{' '}
-          {withBrand(t('help.sync.punch.body1.after'))}
-        </p>
-        <HelpText>{t('help.sync.punch.body2')}</HelpText>
-        <p className="mt-[0.65rem] mb-0 text-[0.84rem] font-semibold leading-[1.45]">
-          <a
-            href="#help-cut"
-            className="text-ink underline decoration-ink/30 underline-offset-2 hover:decoration-ink"
-          >
-            {t('help.sync.punch.seeCut')}
-          </a>
-        </p>
+        {show.sync.punch ? (
+          <>
+            <HelpSubtitle>{t('help.sync.punch.title')}</HelpSubtitle>
+            <p className="m-0 text-[0.84rem] leading-[1.45] text-ink-soft">
+              {t('help.sync.punch.body1.before')}{' '}
+              <IconRecord className="mx-[0.12rem] inline-block size-[1.15rem] align-[-0.22rem]" />{' '}
+              {withBrand(t('help.sync.punch.body1.after'))}
+            </p>
+            <HelpText>{t('help.sync.punch.bodyInvite')}</HelpText>
+            <HelpText>{t('help.sync.punch.body2')}</HelpText>
+            <p className="mt-[0.65rem] mb-0 text-[0.84rem] font-semibold leading-[1.45]">
+              <a
+                href="#help-cut"
+                className="text-ink underline decoration-ink/30 underline-offset-2 hover:decoration-ink"
+              >
+                {t('help.sync.punch.seeCut')}
+              </a>
+            </p>
+          </>
+        ) : null}
       </HelpSection>
 
       <HelpSection
@@ -694,22 +805,38 @@ export function HelpPanel({ className }: HelpPanelProps) {
             <DeckModePill mode="cut" />
           </>
         }
-        hidden={!show.cut}
+        hidden={!show.cut.section}
       >
-        <HelpText>{t('help.cut.body1')}</HelpText>
-        <HelpSubtitle>{t('help.cut.split.title')}</HelpSubtitle>
-        <p className="m-0 text-[0.84rem] leading-[1.45] text-ink-soft">
-          {t('help.cut.split.body1.before')}{' '}
-          <IconScissors className="mx-[0.12rem] inline-block size-[1.05rem] align-[-0.18rem] text-ink" />{' '}
-          {t('help.cut.split.body1.after')}
-        </p>
-        <HelpText>{t('help.cut.split.body2')}</HelpText>
-        <HelpSubtitle>{t('help.cut.mute.title')}</HelpSubtitle>
-        <HelpText>{t('help.cut.mute.body1')}</HelpText>
-        <HelpSubtitle>{t('help.cut.merge.title')}</HelpSubtitle>
-        <HelpText>{t('help.cut.merge.body1')}</HelpText>
-        <HelpText>{t('help.cut.tips.body1')}</HelpText>
-        <HelpText>{t('help.cut.tips.body2')}</HelpText>
+        {show.cut.intro ? <HelpText>{t('help.cut.body1')}</HelpText> : null}
+        {show.cut.split ? (
+          <>
+            <HelpSubtitle>{t('help.cut.split.title')}</HelpSubtitle>
+            <p className="m-0 text-[0.84rem] leading-[1.45] text-ink-soft">
+              {t('help.cut.split.body1.before')}{' '}
+              <IconScissors className="mx-[0.12rem] inline-block size-[1.05rem] align-[-0.18rem] text-ink" />{' '}
+              {t('help.cut.split.body1.after')}
+            </p>
+            <HelpText>{t('help.cut.split.body2')}</HelpText>
+          </>
+        ) : null}
+        {show.cut.mute ? (
+          <>
+            <HelpSubtitle>{t('help.cut.mute.title')}</HelpSubtitle>
+            <HelpText>{t('help.cut.mute.body1')}</HelpText>
+          </>
+        ) : null}
+        {show.cut.merge ? (
+          <>
+            <HelpSubtitle>{t('help.cut.merge.title')}</HelpSubtitle>
+            <HelpText>{t('help.cut.merge.body1')}</HelpText>
+          </>
+        ) : null}
+        {show.cut.tips ? (
+          <>
+            <HelpText>{t('help.cut.tips.body1')}</HelpText>
+            <HelpText>{t('help.cut.tips.body2')}</HelpText>
+          </>
+        ) : null}
       </HelpSection>
 
       <HelpSection

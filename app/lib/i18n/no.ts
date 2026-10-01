@@ -609,6 +609,7 @@ export const no: Record<MessageKey, string> = {
   'tracks.contentSync.invite.mergeNoSilence':
     'Ingen tydelig stillhet i overlappingen — flett i Klipp-modus.',
   'tracks.contentSync.invite.mergeFailed': 'Automatisk fletting mislyktes',
+  'tracks.contentSync.invite.help': 'Om opptak underveis',
   'tracks.span.aria': 'Plassering av {name} på mix-tidslinjen',
   'tracks.span.seekAria':
     'Sett avspillingsmarkøren på tidslinjen (spor {name})',
@@ -757,6 +758,8 @@ export const no: Record<MessageKey, string> = {
   'help.sync.punch.body1.before': 'Under avspilling (eller pause midt i),',
   'help.sync.punch.body1.after':
     'starter et nytt spor der. En «Sync»-knapp vises kort i Simple-modus (den blir værende i Justering). Den lar deg synkronisere sporet mot et annet (velg etter klikk på «Sync»).',
+  'help.sync.punch.bodyInvite':
+    'Etter vellykket Sync foreslår invitasjoner å lytte til resultatet, bekrefte justeringen, og eventuelt flette de to sporene ved en stillhet (med lytting på skjøten). Avviser du synken, kan du gå til Justering for manuell finjustering; uten autofletting står Klipp-modus klar til å gjøre det selv.',
   'help.sync.punch.body2':
     'Funksjonen er tenkt for å fortsette et avbrutt opptak. Start opptaket litt før slutten av det avbrutte, gjør om en vellykket bit først, fortsett så. Den like biten gjør synkronisering mulig. Etter sync kan du flette de to sporene i «Klipp»: sett starten av første og slutten av neste inntil hverandre.',
   'help.sync.punch.seeCut': 'Se rubrikken Klipp',

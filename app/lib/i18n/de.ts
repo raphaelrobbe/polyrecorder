@@ -611,6 +611,7 @@ export const de: Record<MessageKey, string> = {
     'Keine klare Stille in der Überlappung — im Modus Schneiden zusammenfügen.',
   'tracks.contentSync.invite.mergeFailed':
     'Automatisches Zusammenfügen fehlgeschlagen',
+  'tracks.contentSync.invite.help': 'Über Aufnahme aus dem Stand',
   'tracks.span.aria': 'Position von {name} auf der Mix-Timeline',
   'tracks.span.seekAria':
     'Wiedergabemarkierung auf der Timeline setzen (Spur {name})',
@@ -763,6 +764,8 @@ export const de: Record<MessageKey, string> = {
     'Während der Wiedergabe (oder Pause mittendrin),',
   'help.sync.punch.body1.after':
     'startet eine neue Spur an dieser Position. Ein „Sync“-Button erscheint kurz im Simple-Modus (bleibt im Ausrichtungsmodus). Damit synchronisierst du die Spur mit einer anderen (nach Klick auf „Sync“ auswählen).',
+  'help.sync.punch.bodyInvite':
+    'Nach erfolgreicher Sync schlagen Einladungen vor, das Ergebnis anzuhören, die Ausrichtung zu bestätigen und optional beide Spuren an einer Stille zusammenzufügen (mit Anhören der Naht). Lehnst du die Sync ab, kannst du im Modus Ausrichten manuell nachziehen; ohne Auto-Fusion bleibt der Modus Schneiden für die manuelle Zusammenführung.',
   'help.sync.punch.body2':
     'Gedacht für unterbrochene Takes: nimm etwas vor dem Ende der unterbrochenen Aufnahme erneut auf, wiederhole einen gelungenen Anfang, dann weiter. Der ähnliche Abschnitt ermöglicht die Sync. Danach kannst du die beiden Spuren im Modus „Schneiden“ zusammenführen: Anfang der ersten und Ende der nächsten aneinander setzen.',
   'help.sync.punch.seeCut': 'Zur Rubrik Schneiden',
