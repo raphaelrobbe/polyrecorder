@@ -670,45 +670,47 @@ export function TrackRow({
               )}
             >
               {track.isMetronome ? (
-                <div className="inline-flex min-w-0 w-full items-baseline gap-[0.35rem] py-[0.1rem]">
-                  <span className="shrink-0 text-[0.82rem] font-bold text-ink">
-                    {t('track.metronome.label')}
-                  </span>
-                  {calageMode ? null : (
-                    <NudgeValueField
-                      unit={t('capture.metronome.unit')}
-                      labelClassName="min-w-0 justify-start"
-                      className="w-[2.85rem] text-[0.82rem]"
-                      value={bpmDraft}
-                      inputMode="numeric"
-                      aria-label={t('capture.metronome.bpm')}
-                      spellCheck={false}
-                      data-metro-bpm={track.id}
-                      onChange={(event) => setBpmDraft(event.target.value)}
-                      onKeyDown={(event) => {
-                        if (event.key === 'Enter') {
-                          event.preventDefault()
-                          event.currentTarget.blur()
-                        }
-                      }}
-                      onFocus={(event) => {
-                        event.currentTarget.select()
-                        event.currentTarget.addEventListener(
-                          'mouseup',
-                          (mouseupEvent) => {
-                            mouseupEvent.preventDefault()
-                            event.currentTarget.select()
-                          },
-                          { once: true },
-                        )
-                      }}
-                      onBlur={applyMetronomeBpm}
-                    />
-                  )}
+                <div className="flex min-w-0 w-full items-center gap-[0.35rem]">
+                  <div className="inline-flex min-w-0 flex-auto items-center gap-[0.35rem] py-[0.1rem]">
+                    <span className="shrink-0 text-[0.82rem] font-bold text-ink">
+                      {t('track.metronome.label')}
+                    </span>
+                    {calageMode ? null : (
+                      <NudgeValueField
+                        unit={t('capture.metronome.unit')}
+                        labelClassName="min-w-0 justify-start"
+                        className="w-[2.85rem] text-[0.82rem]"
+                        value={bpmDraft}
+                        inputMode="numeric"
+                        aria-label={t('capture.metronome.bpm')}
+                        spellCheck={false}
+                        data-metro-bpm={track.id}
+                        onChange={(event) => setBpmDraft(event.target.value)}
+                        onKeyDown={(event) => {
+                          if (event.key === 'Enter') {
+                            event.preventDefault()
+                            event.currentTarget.blur()
+                          }
+                        }}
+                        onFocus={(event) => {
+                          event.currentTarget.select()
+                          event.currentTarget.addEventListener(
+                            'mouseup',
+                            (mouseupEvent) => {
+                              mouseupEvent.preventDefault()
+                              event.currentTarget.select()
+                            },
+                            { once: true },
+                          )
+                        }}
+                        onBlur={applyMetronomeBpm}
+                      />
+                    )}
+                  </div>
                   {showTitleDelete ? (
                     <Button
                       variant="trash"
-                      className="ml-auto h-[1.3rem] w-[1.3rem] shrink-0 rounded-md border-ink/16 text-ink/45 [&_svg]:size-[0.68rem] max-sm:h-[1.2rem] max-sm:w-[1.2rem] max-sm:[&_svg]:size-[0.62rem]"
+                      className="h-[1.3rem] w-[1.3rem] shrink-0 rounded-md border-ink/16 text-ink/45 [&_svg]:size-[0.68rem] max-sm:h-[1.2rem] max-sm:w-[1.2rem] max-sm:[&_svg]:size-[0.62rem]"
                       icon={<IconTrash />}
                       disabled={deleteDisabled || deleteBusy}
                       aria-label={t('tracks.delete', { name: track.name })}
