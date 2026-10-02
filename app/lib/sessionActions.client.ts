@@ -1666,7 +1666,12 @@ function flushPersistTrackVolume(trackId: number) {
   }
   if (!canPersistCloudMix()) return
   const track = get().tracks.find((t) => t.id === trackId)
-  if (!track?.cloudTrackId || isForeignCloudTrack(track)) return
+  if (!track) return
+  if (track.isMetronome) {
+    flushPersistMetronomeVolume()
+    return
+  }
+  if (!track.cloudTrackId || isForeignCloudTrack(track)) return
   postLibraryIntent(
     {
       intent: 'updateTrackVolume',
@@ -1680,7 +1685,22 @@ function flushPersistTrackVolume(trackId: number) {
 function schedulePersistTrackVolume(trackId: number) {
   if (!canPersistCloudMix()) return
   const track = get().tracks.find((t) => t.id === trackId)
-  if (!track?.cloudTrackId || isForeignCloudTrack(track)) return
+  if (!track) return
+  if (track.isMetronome) {
+    if (get().readOnlySession) return
+    if (!(get().activeSongPartId || get().deckSongPartId)) return
+    const existing = trackVolumePersistTimers.get(trackId)
+    if (existing) clearTimeout(existing)
+    trackVolumePersistTimers.set(
+      trackId,
+      setTimeout(() => {
+        trackVolumePersistTimers.delete(trackId)
+        flushPersistMetronomeVolume()
+      }, VOLUME_PERSIST_MS),
+    )
+    return
+  }
+  if (!track.cloudTrackId || isForeignCloudTrack(track)) return
   const existing = trackVolumePersistTimers.get(trackId)
   if (existing) clearTimeout(existing)
   trackVolumePersistTimers.set(
@@ -1776,9 +1796,31 @@ function persistMetronomeBpm() {
   )
 }
 
+function currentMetronomeVolume(): number {
+  const metro = get().tracks.find((track) => track.isMetronome)
+  if (!metro) return 1
+  return getTrackVolume(metro.id)
+}
+
+function flushPersistMetronomeVolume() {
+  if (get().readOnlySession || !canPersistCloudMix()) return
+  const songPartId = get().activeSongPartId ?? get().deckSongPartId
+  if (!songPartId) return
+  if (!get().tracks.some((track) => track.isMetronome)) return
+  postLibraryIntent(
+    {
+      intent: 'updateMetronomeVolume',
+      songPartId,
+      metronomeVolume: currentMetronomeVolume(),
+    },
+    'update metronome volume',
+  )
+}
+
 /** Flush session metronome tempo to the cloud part (e.g. after first upload binds an id). */
 export function flushMetronomeBpmToCloud(): void {
   persistMetronomeBpm()
+  flushPersistMetronomeVolume()
 }
 
 /** Update a session align/count-in flag and persist to the cloud part. */
@@ -1838,6 +1880,7 @@ function persistCloudMixVolumes() {
       'sync track volumes',
     )
   }
+  flushPersistMetronomeVolume()
   flushPersistMasterVolume()
 }
 
@@ -3733,12 +3776,14 @@ export async function createOrUpdateMetronome(
     }
   }
   persistMetronomeBpm()
+  flushPersistMetronomeVolume()
   scheduleGuestDraftSave()
 }
 
 /** Rebuild metronome from a persisted BPM (cloud open / hydrate). No cloud write. */
 export async function hydrateMetronomeFromBpm(
   bpm: number | null,
+  volume?: number,
 ): Promise<void> {
   const existing = get().tracks.find((track) => track.isMetronome)
   if (bpm == null) {
@@ -3767,6 +3812,12 @@ export async function hydrateMetronomeFromBpm(
   }
 
   const safe = clampMetronomeBpm(bpm)
+  const safeVolume =
+    volume != null
+      ? clampTrackVolume(volume)
+      : existing
+        ? getTrackVolume(existing.id)
+        : 1
   const blob = buildMetronomeReferenceBlob(safe)
   const otherTracks = get().tracks.filter((track) => !track.isMetronome)
   const durationMs = Math.max(
@@ -3796,6 +3847,10 @@ export async function hydrateMetronomeFromBpm(
       ),
       metronomeBpm: safe,
       referenceTrackId: existing.id,
+      trackVolumes: {
+        ...get().trackVolumes,
+        [existing.id]: safeVolume,
+      },
     })
   } else {
     const trackCounter = get().trackCounter + 1
@@ -3814,7 +3869,7 @@ export async function hydrateMetronomeFromBpm(
       enabledTrackIds: [track.id, ...get().enabledTrackIds],
       referenceTrackId: track.id,
       metronomeBpm: safe,
-      trackVolumes: { ...get().trackVolumes, [track.id]: 1 },
+      trackVolumes: { ...get().trackVolumes, [track.id]: safeVolume },
     })
   }
 }
@@ -4737,7 +4792,7 @@ export async function loadCloudSongIntoSession(
     })
     const vol = Number(remote.volume)
     trackVolumes[counter] = Number.isFinite(vol)
-      ? Math.min(1.5, Math.max(0, vol))
+      ? Math.min(TRACK_VOLUME_MAX, Math.max(0, vol))
       : 1
     if (!remote.muted) enabledTrackIds.push(counter)
     downloadJobs.push({ localId: counter, url: remote.url })
@@ -4820,7 +4875,10 @@ export async function loadCloudSongIntoSession(
   updateSessionTimerDisplay()
   refreshSkewWarning()
   if (opened.part.metronomeBpm != null) {
-    await hydrateMetronomeFromBpm(opened.part.metronomeBpm)
+    await hydrateMetronomeFromBpm(
+      opened.part.metronomeBpm,
+      opened.part.metronomeVolume ?? 1,
+    )
   }
 
   // Download audio in parallel; deck UI is already showing stubs.
@@ -4912,6 +4970,15 @@ export async function refreshOpenDeckForSong(songId: string): Promise<void> {
       ? formatPseudoHandle(opened.song.ownerPseudo)
       : null,
   })
+  const metro = get().tracks.find((track) => track.isMetronome)
+  if (metro && opened.part.metronomeBpm != null) {
+    patch({
+      trackVolumes: {
+        ...get().trackVolumes,
+        [metro.id]: clampTrackVolume(opened.part.metronomeVolume ?? 1),
+      },
+    })
+  }
 }
 
 /** Home path for the current deck: `/session/:id` when a cloud session is loaded. */

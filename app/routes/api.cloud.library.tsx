@@ -5,6 +5,8 @@ import {
   createRepertoire,
   createSong,
   createSongPart,
+  duplicateSongPart,
+  moveSongPart,
   deleteLibraryNode,
   deleteTrackAsset,
   getDefaultUploadDestination,
@@ -18,6 +20,7 @@ import {
   updateSongPartMasterVolume,
   updateSongPartAlignPrefs,
   updateSongPartMetronomeBpm,
+  updateSongPartMetronomeVolume,
   updateTrackAssetOffset,
   updateTrackAssetOffsets,
   updateTrackAssetVolume,
@@ -62,6 +65,8 @@ export async function action({ request }: ActionFunctionArgs) {
       repertoireId?: string
       songId?: string
       songPartId?: string
+      targetSongId?: string
+      createDefaultPart?: boolean
       isPublic?: boolean
       allowsCollaboration?: boolean
       offsetMs?: number
@@ -76,6 +81,7 @@ export async function action({ request }: ActionFunctionArgs) {
         skipCountInDownload?: boolean
       }
       metronomeBpm?: number | string | null
+      metronomeVolume?: number
       orderedIds?: string[]
       updates?: Array<{
         id: string
@@ -107,6 +113,9 @@ export async function action({ request }: ActionFunctionArgs) {
         String(body.name ?? ''),
         body.partName == null ? null : String(body.partName),
         body.alignPrefs,
+        {
+          createDefaultPart: body.createDefaultPart !== false,
+        },
       )
       return json(result, { status: result.ok ? 200 : 400 })
     }
@@ -116,6 +125,22 @@ export async function action({ request }: ActionFunctionArgs) {
         String(body.songId ?? ''),
         String(body.name ?? ''),
         body.alignPrefs,
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'duplicateSongPart') {
+      const result = await duplicateSongPart(
+        request,
+        String(body.id ?? body.songPartId ?? ''),
+        String(body.name ?? ''),
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'moveSongPart') {
+      const result = await moveSongPart(
+        request,
+        String(body.id ?? body.songPartId ?? ''),
+        String(body.targetSongId ?? body.songId ?? ''),
       )
       return json(result, { status: result.ok ? 200 : 400 })
     }
@@ -269,6 +294,14 @@ export async function action({ request }: ActionFunctionArgs) {
         request,
         songPartId || String(body.id ?? ''),
         bpm,
+      )
+      return json(result, { status: result.ok ? 200 : 400 })
+    }
+    if (intent === 'updateMetronomeVolume') {
+      const result = await updateSongPartMetronomeVolume(
+        request,
+        songPartId || String(body.id ?? ''),
+        Number(body.metronomeVolume),
       )
       return json(result, { status: result.ok ? 200 : 400 })
     }

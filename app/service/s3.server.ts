@@ -1,4 +1,5 @@
 import {
+  CopyObjectCommand,
   DeleteObjectsCommand,
   HeadObjectCommand,
   ListObjectsV2Command,
@@ -146,4 +147,24 @@ export async function deleteObjectsByKeys(keys: string[]): Promise<void> {
       }),
     )
   }
+}
+
+/** Server-side copy within the configured bucket (session duplication). */
+export async function copyObject(
+  sourceKey: string,
+  destKey: string,
+): Promise<void> {
+  const config = getS3Config()
+  if (!config) throw new Error('S3 is not configured')
+  if (!sourceKey || !destKey || sourceKey === destKey) {
+    throw new Error('Invalid S3 copy keys')
+  }
+  await getClient().send(
+    new CopyObjectCommand({
+      Bucket: config.bucket,
+      // Path-style CopySource: bucket/key (keys should not need encoding for our cuid paths).
+      CopySource: `${config.bucket}/${sourceKey}`,
+      Key: destKey,
+    }),
+  )
 }

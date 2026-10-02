@@ -992,6 +992,9 @@ export const de: Record<MessageKey, string> = {
   'library.deleteSongPart': 'Session löschen',
   'library.deleteSongPartConfirm':
     'Session „{name}“ und ihre Spuren löschen?',
+  'library.duplicateSongPart': 'Session duplizieren',
+  'library.duplicateSongPartPrompt': 'Name der neuen Session',
+  'library.moveSongPart': 'Session verschieben',
   'library.open': 'Öffnen',
   'library.namePrompt': 'Name',
   'library.deleteConfirm': '„{name}“ und Inhalt löschen?',

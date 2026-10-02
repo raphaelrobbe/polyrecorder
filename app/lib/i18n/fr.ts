@@ -991,6 +991,9 @@ export const fr = {
   'library.deleteSongPart': 'Supprimer la session',
   'library.deleteSongPartConfirm':
     'Supprimer la session « {name} » et ses pistes ?',
+  'library.duplicateSongPart': 'Dupliquer la session',
+  'library.duplicateSongPartPrompt': 'Nom de la nouvelle session',
+  'library.moveSongPart': 'Déplacer la session',
   'library.open': 'Ouvrir',
   'library.namePrompt': 'Nom',
   'library.deleteConfirm': 'Supprimer « {name} » et son contenu ?',

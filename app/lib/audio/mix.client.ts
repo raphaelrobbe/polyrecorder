@@ -4,7 +4,7 @@ import { unmutedBufferIntervals } from './segments.client'
 import { ensureAudioContext, getBufferCache, getAudioContext } from './runtime.client'
 
 export const SKIP_COUNT_IN_PAD_S = 0.1
-export const TRACK_VOLUME_MAX = 1.5
+export const TRACK_VOLUME_MAX = 2
 export const MASTER_VOLUME_MAX = 2
 
 export async function decodeTrack(track: Track): Promise<AudioBuffer> {

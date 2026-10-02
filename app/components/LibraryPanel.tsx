@@ -20,11 +20,13 @@ import {
   IconChevron,
   IconCollaborate,
   IconDragDots,
+  IconDuplicate,
   IconGlobe,
   IconShare,
   IconTrash,
 } from './icons'
 import { ErrorBanner } from './StatusMessage'
+import { MoveSongPartMenu } from './library/MoveSongPartMenu'
 
 type LibrarySongPart = {
   id: string
@@ -103,6 +105,24 @@ function findActivePath(
             repertoireId: rep.id,
             songId: song.id,
           }
+        }
+      }
+    }
+  }
+  return null
+}
+
+function findSongPath(
+  tree: LibraryTree,
+  songId: string,
+): { groupId: string; repertoireId: string; songId: string } | null {
+  for (const group of tree.groups) {
+    for (const rep of group.repertoires) {
+      if (rep.songs.some((song) => song.id === songId)) {
+        return {
+          groupId: group.id,
+          repertoireId: rep.id,
+          songId,
         }
       }
     }
@@ -308,6 +328,35 @@ function DeleteIconButton({
         className,
       )}
       icon={<IconTrash />}
+      aria-label={label}
+      title={label}
+      onClick={(event) => {
+        event.stopPropagation()
+        onClick()
+      }}
+    />
+  )
+}
+
+function DuplicateIconButton({
+  label,
+  onClick,
+  className,
+}: {
+  label: string
+  onClick: () => void
+  className?: string
+}) {
+  return (
+    <Button
+      variant="trash"
+      className={cn(
+        'relative z-[1] h-[1.65rem] w-[1.65rem] shrink-0 rounded-lg border-ink/18 p-0 text-ink/55',
+        'max-sm:h-[1.65rem] max-sm:w-[1.65rem] max-sm:rounded-lg max-sm:text-[0.95rem]',
+        '[&_svg]:size-[0.95rem]',
+        className,
+      )}
+      icon={<IconDuplicate />}
       aria-label={label}
       title={label}
       onClick={(event) => {
@@ -603,6 +652,9 @@ function SongPartRow({
   showDragHandle,
   onOpen,
   onRename,
+  onDuplicate,
+  onMoved,
+  onMoveError,
   onDelete,
 }: {
   part: LibrarySongPart
@@ -613,10 +665,14 @@ function SongPartRow({
   showDragHandle: boolean
   onOpen: () => void
   onRename: (name: string) => void
+  onDuplicate: () => void
+  onMoved: (targetSongId: string) => void
+  onMoveError: () => void
   onDelete: () => void
 }) {
   useLocale()
   const displayName = songPartLabel(part.name)
+  const [moveOpen, setMoveOpen] = useState(false)
 
   return (
     <li
@@ -627,6 +683,7 @@ function SongPartRow({
         'relative rounded-[10px] bg-ink/[0.06] px-1.5 py-1',
         isActive && 'bg-ink/[0.1]',
         isBusy && 'opacity-60',
+        moveOpen && 'z-30',
         dragRowClass(
           drag.draggingId === part.id,
           drag.dragOver?.id === part.id ? drag.dragOver.edge : null,
@@ -664,6 +721,19 @@ function SongPartRow({
             onCommit={onRename}
           />
         </div>
+        <MoveSongPartMenu
+          className="pointer-events-auto"
+          songPartId={part.id}
+          sourceSongId={songId}
+          onOpenChange={setMoveOpen}
+          onMoved={({ songId: targetSongId }) => onMoved(targetSongId)}
+          onError={onMoveError}
+        />
+        <DuplicateIconButton
+          className="pointer-events-auto"
+          label={t('library.duplicateSongPart')}
+          onClick={onDuplicate}
+        />
         <DeleteIconButton
           className="pointer-events-auto"
           label={t('library.deleteSongPart')}
@@ -719,6 +789,8 @@ function SongCard({
   onRenameSong,
   onRenamePart,
   onDeleteSong,
+  onDuplicatePart,
+  onMovedPart,
   onDeletePart,
   onCreatePart,
   onVisibilityError,
@@ -737,6 +809,8 @@ function SongCard({
   onRenameSong: (name: string) => void
   onRenamePart: (partId: string, name: string) => void
   onDeleteSong: () => void
+  onDuplicatePart: (part: LibrarySongPart) => void
+  onMovedPart: (part: LibrarySongPart, targetSongId: string) => void
   onDeletePart: (part: LibrarySongPart) => void
   onCreatePart: () => void
   onVisibilityError: () => void
@@ -857,6 +931,9 @@ function SongCard({
               showDragHandle={showPartDragHandle}
               onOpen={() => onOpenPart(part.id)}
               onRename={(name) => onRenamePart(part.id, name)}
+              onDuplicate={() => onDuplicatePart(part)}
+              onMoved={(targetSongId) => onMovedPart(part, targetSongId)}
+              onMoveError={onError}
               onDelete={() => onDeletePart(part)}
             />
           ))}
@@ -1875,6 +1952,50 @@ export function LibraryPanel({ className }: LibraryPanelProps) {
                                       }
                                       forgetActivePartIfIn(song.parts)
                                       void reload()
+                                    })
+                                  }}
+                                  onDuplicatePart={(part) => {
+                                    const suggested =
+                                      part.name?.trim() ||
+                                      t('library.songPart.unnamed')
+                                    const name = window.prompt(
+                                      t('library.duplicateSongPartPrompt'),
+                                      suggested,
+                                    )
+                                    if (name == null) return
+                                    void postLibrary({
+                                      intent: 'duplicateSongPart',
+                                      id: part.id,
+                                      name: name.trim(),
+                                    }).then((r) => {
+                                      if (!r.ok) {
+                                        setError(t('library.error'))
+                                        return
+                                      }
+                                      setOpenSongIds((prev) =>
+                                        new Set(prev).add(song.id),
+                                      )
+                                      void reload()
+                                    })
+                                  }}
+                                  onMovedPart={(_part, targetSongId) => {
+                                    void reload().then(() => {
+                                      const path = treeRef.current
+                                        ? findSongPath(
+                                            treeRef.current,
+                                            targetSongId,
+                                          )
+                                        : null
+                                      if (!path) return
+                                      setOpenGroupIds((prev) =>
+                                        new Set(prev).add(path.groupId),
+                                      )
+                                      setOpenRepIds((prev) =>
+                                        new Set(prev).add(path.repertoireId),
+                                      )
+                                      setOpenSongIds((prev) =>
+                                        new Set(prev).add(path.songId),
+                                      )
                                     })
                                   }}
                                   onDeletePart={(part) => {

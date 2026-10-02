@@ -5,7 +5,9 @@ import { CLOUD_UPLOAD_MAX_BYTES, getS3KeyPrefix } from './env.server'
 import {
   createPresignedGetUrl,
   createPresignedPutUrl,
+  copyObject,
   deleteAllObjectsForUser,
+  deleteObjectsByKeys,
   headObject,
   isS3Configured,
 } from './s3.server'
@@ -35,7 +37,7 @@ function extensionForContentType(contentType: string): string {
   return 'webm'
 }
 
-const TRACK_VOLUME_MAX = 1.5
+const TRACK_VOLUME_MAX = 2
 const MASTER_VOLUME_MAX = 2
 
 function clampStoredTrackVolume(value: number): number | null {
@@ -80,6 +82,27 @@ export async function updateSongPartMetronomeBpm(
   await prisma.songPart.update({
     where: { id: part.id },
     data: { metronomeBpm: next },
+  })
+  return { ok: true }
+}
+
+export async function updateSongPartMetronomeVolume(
+  request: Request,
+  songPartId: string,
+  metronomeVolume: number,
+): Promise<{ ok: true } | { ok: false; reason: CloudFailureReason }> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  const next = clampStoredTrackVolume(metronomeVolume)
+  if (!songPartId || next == null) return { ok: false, reason: 'invalid' }
+
+  const part = await assertOwnedSongPart(user.id, songPartId)
+  if (!part) return { ok: false, reason: 'not_found' }
+
+  await prisma.songPart.update({
+    where: { id: part.id },
+    data: { metronomeVolume: next },
   })
   return { ok: true }
 }
@@ -345,22 +368,29 @@ async function resolveSongPartForUpload(
   songPartId: string | null | undefined,
   sessionTitle: string | null | undefined,
   metronomeBpm?: number | null,
+  metronomeVolume?: number | null,
 ) {
   if (songPartId) {
     const owned = await assertOwnedSongPart(userId, songPartId)
     if (owned) {
+      const data: { metronomeBpm?: number; metronomeVolume?: number } = {}
       if (
         metronomeBpm != null &&
         Number.isFinite(metronomeBpm) &&
         owned.metronomeBpm !== Math.round(metronomeBpm)
       ) {
         const n = Math.round(Number(metronomeBpm))
-        if (n >= 30 && n <= 240) {
-          await prisma.songPart.update({
-            where: { id: owned.id },
-            data: { metronomeBpm: n },
-          })
-        }
+        if (n >= 30 && n <= 240) data.metronomeBpm = n
+      }
+      const vol = clampStoredTrackVolume(metronomeVolume ?? NaN)
+      if (vol != null && owned.metronomeVolume !== vol) {
+        data.metronomeVolume = vol
+      }
+      if (Object.keys(data).length > 0) {
+        await prisma.songPart.update({
+          where: { id: owned.id },
+          data,
+        })
       }
       return touchSongPart(owned)
     }
@@ -387,12 +417,14 @@ async function resolveSongPartForUpload(
     const n = Math.round(Number(metronomeBpm))
     if (n >= 30 && n <= 240) initialMetro = n
   }
+  const initialMetroVolume = clampStoredTrackVolume(metronomeVolume ?? 1) ?? 1
   const part = await prisma.songPart.create({
     data: {
       songId: song.id,
       name: null,
       lastOpenedAt: new Date(),
       metronomeBpm: initialMetro,
+      metronomeVolume: initialMetroVolume,
     },
   })
   await touchRepertoire(repertoire.id)
@@ -478,6 +510,7 @@ export async function presignTrackUpload(
     clientTrackId?: number | null
     sessionTitle?: string | null
     metronomeBpm?: number | null
+    metronomeVolume?: number | null
   },
 ): Promise<PresignResult> {
   try {
@@ -504,6 +537,7 @@ export async function presignTrackUpload(
       input.songPartId,
       input.sessionTitle,
       input.metronomeBpm,
+      input.metronomeVolume,
     )
     if (!part) return { ok: false, reason: 'not_found' }
 
@@ -1277,13 +1311,14 @@ export async function createSong(
   name: string,
   partName?: string | null,
   alignPrefs?: unknown,
+  options?: { createDefaultPart?: boolean },
 ): Promise<
   | {
       ok: true
       id: string
       name: string
       repertoireId: string
-      defaultPartId: string
+      defaultPartId?: string
     }
   | { ok: false; reason: CloudFailureReason }
 > {
@@ -1302,22 +1337,27 @@ export async function createSong(
       sortOrder: await nextSongSortOrder(repertoire.id),
     },
   })
-  const prefs = parseAlignPrefs(alignPrefs)
-  const part = await prisma.songPart.create({
-    data: {
-      songId: song.id,
-      name: clampLibraryTitle(partName ?? '') || null,
-      lastOpenedAt: new Date(),
-      ...prefs,
-    },
-  })
+  const createDefaultPart = options?.createDefaultPart !== false
+  let defaultPartId: string | undefined
+  if (createDefaultPart) {
+    const prefs = parseAlignPrefs(alignPrefs)
+    const part = await prisma.songPart.create({
+      data: {
+        songId: song.id,
+        name: clampLibraryTitle(partName ?? '') || null,
+        lastOpenedAt: new Date(),
+        ...prefs,
+      },
+    })
+    defaultPartId = part.id
+  }
   await touchRepertoire(repertoire.id)
   return {
     ok: true,
     id: song.id,
     name: song.name,
     repertoireId: song.repertoireId,
-    defaultPartId: part.id,
+    defaultPartId,
   }
 }
 
@@ -1349,6 +1389,172 @@ export async function createSongPart(
   })
   await touchRepertoire(song.repertoireId)
   return { ok: true, id: part.id, name: part.name, songId: song.id }
+}
+
+/**
+ * Duplicate a session (SongPart): same mix settings + copied track audio objects.
+ * Asks the client only for the new session name.
+ */
+export async function duplicateSongPart(
+  request: Request,
+  sourcePartId: string,
+  name: string,
+): Promise<
+  | { ok: true; id: string; name: string | null; songId: string }
+  | { ok: false; reason: CloudFailureReason }
+> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  if (!sourcePartId) return { ok: false, reason: 'invalid' }
+
+  const source = await prisma.songPart.findFirst({
+    where: {
+      id: sourcePartId,
+      song: { repertoire: { group: { userId: user.id } } },
+    },
+    include: {
+      song: { select: { id: true, repertoireId: true } },
+      tracks: {
+        where: {
+          uploadedAt: { not: null },
+          NOT: { objectKey: 'pending' },
+        },
+        orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
+      },
+    },
+  })
+  if (!source) return { ok: false, reason: 'not_found' }
+
+  if (source.tracks.length > 0 && !isS3Configured()) {
+    return { ok: false, reason: 's3_not_configured' }
+  }
+
+  const trimmed = clampLibraryTitle(name) || null
+  const createdKeys: string[] = []
+
+  try {
+    const part = await prisma.songPart.create({
+      data: {
+        songId: source.songId,
+        name: trimmed,
+        lastOpenedAt: new Date(),
+        sortOrder: await nextSongPartSortOrder(source.songId),
+        masterVolume: source.masterVolume,
+        autoAlignEnabled: source.autoAlignEnabled,
+        showCalageWarnings: source.showCalageWarnings,
+        skipCountInPlayback: source.skipCountInPlayback,
+        skipCountInDownload: source.skipCountInDownload,
+        metronomeBpm: source.metronomeBpm,
+        metronomeVolume: source.metronomeVolume,
+      },
+    })
+
+    for (const track of source.tracks) {
+      const ext =
+        track.objectKey.includes('.')
+          ? track.objectKey.slice(track.objectKey.lastIndexOf('.') + 1)
+          : extensionForContentType(track.contentType)
+      const asset = await prisma.trackAsset.create({
+        data: {
+          songPartId: part.id,
+          name: track.name,
+          objectKey: 'pending',
+          contentType: track.contentType,
+          byteSize: track.byteSize,
+          durationMs: track.durationMs,
+          offsetMs: track.offsetMs,
+          volume: track.volume,
+          muted: track.muted,
+          muteRanges: track.muteRanges ?? [],
+          sortOrder: track.sortOrder,
+          clientTrackId: track.clientTrackId,
+          uploadedByUserId: track.uploadedByUserId ?? user.id,
+          uploadedAt: null,
+        },
+      })
+      const objectKey = `${getS3KeyPrefix()}/${user.id}/${asset.id}.${ext}`
+      await copyObject(track.objectKey, objectKey)
+      createdKeys.push(objectKey)
+      await prisma.trackAsset.update({
+        where: { id: asset.id },
+        data: {
+          objectKey,
+          uploadedAt: track.uploadedAt ?? new Date(),
+        },
+      })
+    }
+
+    await touchRepertoire(source.song.repertoireId)
+    return { ok: true, id: part.id, name: part.name, songId: source.songId }
+  } catch (error) {
+    console.error('[cloud] duplicateSongPart failed', error)
+    if (createdKeys.length > 0) {
+      try {
+        await deleteObjectsByKeys(createdKeys)
+      } catch {
+        // best-effort cleanup
+      }
+    }
+    return { ok: false, reason: 'failed' }
+  }
+}
+
+/**
+ * Move a session (SongPart) to another song owned by the same user.
+ * Audio objects stay put; only the part’s parent song changes.
+ */
+export async function moveSongPart(
+  request: Request,
+  songPartId: string,
+  targetSongId: string,
+): Promise<
+  | { ok: true; id: string; name: string | null; songId: string }
+  | { ok: false; reason: CloudFailureReason }
+> {
+  const userOrErr = await requireUser(request)
+  if (!isUser(userOrErr)) return userOrErr
+  const user = userOrErr
+  if (!songPartId || !targetSongId) return { ok: false, reason: 'invalid' }
+
+  const part = await prisma.songPart.findFirst({
+    where: {
+      id: songPartId,
+      song: { repertoire: { group: { userId: user.id } } },
+    },
+    include: {
+      song: { select: { id: true, repertoireId: true } },
+    },
+  })
+  if (!part) return { ok: false, reason: 'not_found' }
+
+  if (part.songId === targetSongId) {
+    return { ok: true, id: part.id, name: part.name, songId: part.songId }
+  }
+
+  const target = await assertOwnedSong(user.id, targetSongId)
+  if (!target) return { ok: false, reason: 'not_found' }
+
+  const updated = await prisma.songPart.update({
+    where: { id: part.id },
+    data: {
+      songId: target.id,
+      sortOrder: await nextSongPartSortOrder(target.id),
+      lastOpenedAt: new Date(),
+    },
+  })
+
+  await touchRepertoire(part.song.repertoireId)
+  if (target.repertoireId !== part.song.repertoireId) {
+    await touchRepertoire(target.repertoireId)
+  }
+
+  return {
+    ok: true,
+    id: updated.id,
+    name: updated.name,
+    songId: updated.songId,
+  }
 }
 
 export async function renameLibraryNode(
@@ -2062,6 +2268,7 @@ export type OpenSongResult =
         skipCountInPlayback: boolean
         skipCountInDownload: boolean
         metronomeBpm: number | null
+        metronomeVolume: number
       }
       /** Every session of the song, in library order (deck prev / next). */
       siblings: Array<{ id: string; name: string | null }>
@@ -2207,6 +2414,7 @@ export async function openSong(
         skipCountInPlayback: part.skipCountInPlayback,
         skipCountInDownload: part.skipCountInDownload,
         metronomeBpm: part.metronomeBpm ?? null,
+        metronomeVolume: part.metronomeVolume,
       },
       siblings,
       tracks,

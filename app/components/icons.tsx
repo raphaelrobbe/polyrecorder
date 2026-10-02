@@ -55,6 +55,32 @@ export function IconTrash(props: Omit<IconProps, 'children'>) {
   )
 }
 
+/** Two overlapping pages — duplicate / copy. */
+export function IconDuplicate(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="currentColor"
+        fillRule="evenodd"
+        d="M8 3h9c.6 0 1 .4 1 1v11h-2V5H8V3zm-3 4h9c.6 0 1 .4 1 1v12c0 .6-.4 1-1 1H5c-.6 0-1-.4-1-1V8c0-.6.4-1 1-1zm1 2v10h7V9H6z"
+      />
+    </Icon>
+  )
+}
+
+/** Folder with outbound arrow — move to another place. */
+export function IconMove(props: Omit<IconProps, 'children'>) {
+  return (
+    <Icon {...props}>
+      <path
+        fill="currentColor"
+        fillRule="evenodd"
+        d="M10 4h4l1.5 2H20c.6 0 1 .4 1 1v3.5h-2V8h-5.2l-1.5-2H10v10h4.5v2H9c-.6 0-1-.4-1-1V5c0-.6.4-1 1-1zm5.3 9.3 3.2-3.2 1.4 1.4-1.3 1.3H22v2h-3.4l1.3 1.3-1.4 1.4-3.2-3.2c-.4-.4-.4-1 0-1.4z"
+      />
+    </Icon>
+  )
+}
+
 export function IconRecord({
   className,
   ...props

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "SongPart" ADD COLUMN "metronomeVolume" DOUBLE PRECISION NOT NULL DEFAULT 1;

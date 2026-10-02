@@ -8,6 +8,7 @@ import {
   clearLocalDeckSession,
   syncDeckLabelsAfterLibraryRename,
 } from '../../lib/sessionActions.client'
+import { librarySongPath } from '../../lib/libraryPaths'
 import { withShortcut } from '../../lib/withShortcut'
 import { cn } from '../../lib/utils'
 import { useSessionStore } from '../../store/sessionStore'
@@ -173,6 +174,27 @@ export function LibraryBrowseView({
       .finally(() => setBusy(false))
   }
 
+  const handleDuplicate = (item: LibraryLevelItem) => {
+    if (itemKind !== 'songPart' || busy) return
+    const suggested =
+      item.title.trim() || item.titlePlaceholder || t('library.songPart.default')
+    const name = window.prompt(t('library.duplicateSongPartPrompt'), suggested)
+    if (name == null) return
+    setBusy(true)
+    setError(null)
+    void postLibrary({
+      intent: 'duplicateSongPart',
+      id: item.id,
+      name: name.trim(),
+    })
+      .then((result) => {
+        if (!result.ok || !result.id) throw new Error('duplicate failed')
+        refresh()
+      })
+      .catch(() => setError(t('library.error')))
+      .finally(() => setBusy(false))
+  }
+
   const handleReorder = (id: string, beforeId: string | null) => {
     if (!itemKind) return
     if (
@@ -256,6 +278,24 @@ export function LibraryBrowseView({
         onAdd={canEdit && onCreate ? handleAdd : undefined}
         onRename={canEdit && itemKind ? handleRename : undefined}
         onDelete={canEdit && itemKind ? handleDelete : undefined}
+        onDuplicate={
+          canEdit && itemKind === 'songPart' ? handleDuplicate : undefined
+        }
+        moveSourceSongId={
+          canEdit && itemKind === 'songPart' ? reorderParentId : undefined
+        }
+        onMoved={
+          canEdit && itemKind === 'songPart'
+            ? (_item, targetSongId) => {
+                navigate(librarySongPath(targetSongId))
+              }
+            : undefined
+        }
+        onMoveError={
+          canEdit && itemKind === 'songPart'
+            ? () => setError(t('library.error'))
+            : undefined
+        }
         onReorder={canEdit && itemKind ? handleReorder : undefined}
         trailing={trailing}
       />

@@ -228,21 +228,31 @@ export function DeckMain({ className }: DeckMainProps) {
             ownLibrary
               ? {
                   label: t('nav.myLibrary'),
-                  to: libraryUserPath(deckLibraryPath.ownerPseudo),
-                  asButton: true,
+                  ...(readOnlySession
+                    ? {}
+                    : {
+                        to: libraryUserPath(deckLibraryPath.ownerPseudo),
+                        asButton: true,
+                      }),
                 }
               : {
                   label: deckLibraryPath.ownerPseudo,
-                  to: libraryUserPath(deckLibraryPath.ownerPseudo),
                   isPseudo: true,
+                  ...(readOnlySession
+                    ? {}
+                    : { to: libraryUserPath(deckLibraryPath.ownerPseudo) }),
                 },
             {
               label: deckLibraryPath.groupName,
-              to: libraryGroupPath(deckLibraryPath.groupId),
+              ...(readOnlySession
+                ? {}
+                : { to: libraryGroupPath(deckLibraryPath.groupId) }),
             },
             {
               label: deckLibraryPath.repertoireName,
-              to: libraryRepertoirePath(deckLibraryPath.repertoireId),
+              ...(readOnlySession
+                ? {}
+                : { to: libraryRepertoirePath(deckLibraryPath.repertoireId) }),
             },
           ]}
         />

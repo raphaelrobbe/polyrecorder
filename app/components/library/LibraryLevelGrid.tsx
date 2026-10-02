@@ -11,7 +11,8 @@ import { formatTime, LIBRARY_TITLE_MAX_LEN } from '../../lib/format'
 import { t, tp } from '../../lib/i18n'
 import { cn } from '../../lib/utils'
 import { Button } from '../Button'
-import { IconDragDots, IconTrash } from '../icons'
+import { IconDragDots, IconDuplicate, IconTrash } from '../icons'
+import { MoveSongPartMenu } from './MoveSongPartMenu'
 import { SongShareButton } from './SongOwnerToolbar'
 
 export type LibraryLevelItem = {
@@ -42,6 +43,11 @@ type LibraryLevelGridProps = {
   onAdd?: () => void
   onRename?: (item: LibraryLevelItem, name: string) => void
   onDelete?: (item: LibraryLevelItem) => void
+  onDuplicate?: (item: LibraryLevelItem) => void
+  /** When set (session level), show move-to-song destination menu. */
+  moveSourceSongId?: string
+  onMoved?: (item: LibraryLevelItem, targetSongId: string) => void
+  onMoveError?: () => void
   /** Persist reorder: move `id` before `beforeId` (null = end). */
   onReorder?: (id: string, beforeId: string | null) => void
   canEdit?: boolean
@@ -220,6 +226,10 @@ export function LibraryLevelGrid({
   onAdd,
   onRename,
   onDelete,
+  onDuplicate,
+  moveSourceSongId,
+  onMoved,
+  onMoveError,
   onReorder,
   canEdit = false,
   parentId = LEVEL_PARENT,
@@ -237,6 +247,7 @@ export function LibraryLevelGrid({
     startY: number
     active: boolean
   } | null>(null)
+  const [moveOpenId, setMoveOpenId] = useState<string | null>(null)
   const [orderedItems, setOrderedItems] = useState(items)
   const [dragInfo, setDragInfo] = useState<DragInfo | null>(null)
   const [dragOver, setDragOver] = useState<DragOver>(null)
@@ -394,6 +405,7 @@ export function LibraryLevelGrid({
                 className={cn(
                   'relative rounded-[16px] border-[1.5px] bg-surface py-[0.95rem] pr-[1.05rem] transition-[background,opacity] duration-160 hover:bg-ink/5',
                   canReorder ? 'pl-[0.35rem]' : 'pl-[1.05rem]',
+                  moveOpenId === item.id && 'z-30',
                   dragRowClass(
                     dragInfo?.id === item.id,
                     dragOver?.id === item.id ? dragOver.edge : null,
@@ -474,6 +486,33 @@ export function LibraryLevelGrid({
                         isPublic={item.share.isPublic}
                       />
                     </div>
+                  ) : null}
+                  {canEdit && moveSourceSongId ? (
+                    <div className="pointer-events-auto relative z-[1] shrink-0">
+                      <MoveSongPartMenu
+                        songPartId={item.id}
+                        sourceSongId={moveSourceSongId}
+                        onOpenChange={(open) =>
+                          setMoveOpenId(open ? item.id : null)
+                        }
+                        onMoved={({ songId }) => onMoved?.(item, songId)}
+                        onError={onMoveError}
+                      />
+                    </div>
+                  ) : null}
+                  {canEdit && onDuplicate ? (
+                    <Button
+                      type="button"
+                      variant="trash"
+                      className="pointer-events-auto relative z-[1] h-[1.65rem] w-[1.65rem] shrink-0 rounded-lg border-ink/18 p-0 text-ink/55 max-sm:h-[1.65rem] max-sm:w-[1.65rem] max-sm:rounded-lg max-sm:text-[0.95rem] [&_svg]:size-[0.95rem]"
+                      icon={<IconDuplicate />}
+                      aria-label={t('library.duplicateSongPart')}
+                      title={t('library.duplicateSongPart')}
+                      onClick={(event) => {
+                        event.stopPropagation()
+                        onDuplicate(item)
+                      }}
+                    />
                   ) : null}
                   {canEdit && onDelete ? (
                     <Button

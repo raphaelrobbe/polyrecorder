@@ -69,6 +69,7 @@ function ChansonClient() {
   if (!data.ok) return null
 
   const shareSongPartId = data.parts[0]?.id ?? null
+  const breadcrumbLinked = data.isOwner
 
   return (
     <>
@@ -81,16 +82,22 @@ function ChansonClient() {
       breadcrumb={[
         {
           label: data.ownerPseudo,
-          to: libraryUserPath(data.ownerPseudo),
           isPseudo: true,
+          ...(breadcrumbLinked
+            ? { to: libraryUserPath(data.ownerPseudo) }
+            : {}),
         },
         {
           label: data.group.name,
-          to: libraryGroupPath(data.group.id),
+          ...(breadcrumbLinked
+            ? { to: libraryGroupPath(data.group.id) }
+            : {}),
         },
         {
           label: data.repertoire.name,
-          to: libraryRepertoirePath(data.repertoire.id),
+          ...(breadcrumbLinked
+            ? { to: libraryRepertoirePath(data.repertoire.id) }
+            : {}),
         },
         {
           label: data.song.name,

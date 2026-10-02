@@ -140,6 +140,8 @@ model SongPart {
   skipCountInDownload Boolean @default(true)
   /// Optional metronome tempo (BPM). Null = no metronome on this session.
   metronomeBpm Int?
+  /// Metronome track fader (1 = 100%). Owner-editable; virtual track has no TrackAsset.
+  metronomeVolume Float @default(1)
   /// Manual order among the song's parts (also drives deck prev/next).
   sortOrder Int      @default(0)
 

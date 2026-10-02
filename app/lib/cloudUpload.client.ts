@@ -59,6 +59,12 @@ export async function uploadTrackToCloud(
     const songPartId = useSessionStore.getState().activeSongPartId
     const sessionTitle = useSessionStore.getState().sessionTitle
     const metronomeBpm = useSessionStore.getState().metronomeBpm
+    const metroTrack = useSessionStore
+      .getState()
+      .tracks.find((row) => row.isMetronome)
+    const metronomeVolume = metroTrack
+      ? (useSessionStore.getState().trackVolumes[metroTrack.id] ?? 1)
+      : 1
     const contentType = track.blob.type || 'audio/webm'
 
     const presignRes = await fetch('/api/cloud/presign', {
@@ -76,6 +82,7 @@ export async function uploadTrackToCloud(
         clientTrackId: track.id,
         sessionTitle,
         metronomeBpm,
+        metronomeVolume,
       }),
     })
     const presign = (await presignRes.json()) as
@@ -315,6 +322,7 @@ export type OpenedCloudSong = {
     skipCountInPlayback: boolean
     skipCountInDownload: boolean
     metronomeBpm: number | null
+    metronomeVolume: number
   }
   /** Every session of the song, in library order (deck prev / next). */
   siblings: Array<{ id: string; name: string | null }>
@@ -362,6 +370,7 @@ export async function fetchAndHydrateSong(
           skipCountInPlayback: boolean
           skipCountInDownload: boolean
           metronomeBpm?: number | null
+          metronomeVolume?: number
         }
         siblings: Array<{ id: string; name: string | null }>
         tracks: OpenedCloudRemoteTrack[]
@@ -409,6 +418,10 @@ export async function fetchAndHydrateSong(
         Number.isFinite(data.part.metronomeBpm)
           ? Math.round(data.part.metronomeBpm)
           : null,
+      metronomeVolume: (() => {
+        const raw = Number(data.part.metronomeVolume)
+        return Number.isFinite(raw) ? Math.min(2, Math.max(0, raw)) : 1
+      })(),
     },
     siblings: data.siblings,
     remoteTracks: data.tracks,
