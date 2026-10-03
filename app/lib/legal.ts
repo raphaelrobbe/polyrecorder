@@ -37,6 +37,7 @@ const DATE_LOCALES: Record<Locale, string> = {
   en: 'en-GB',
   de: 'de-DE',
   no: 'nb-NO',
+  uk: 'uk-UA',
 }
 
 /** Format LEGAL.termsEffectiveDate for the current (or given) UI locale. */

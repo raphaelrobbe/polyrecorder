@@ -2,6 +2,7 @@ import { de } from './de'
 import { en } from './en'
 import { fr, type MessageKey } from './fr'
 import { no } from './no'
+import { uk } from './uk'
 import { getLocale, type Locale, type LocaleInfo } from './locale'
 
 export type { Locale, LocaleInfo, MessageKey }
@@ -20,6 +21,7 @@ const catalogs: Record<Locale, Record<MessageKey, string>> = {
   en,
   de,
   no,
+  uk,
 }
 
 export type TVars = Record<string, string | number>

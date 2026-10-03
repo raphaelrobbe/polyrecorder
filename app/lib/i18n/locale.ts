@@ -1,4 +1,4 @@
-export type Locale = 'fr' | 'en' | 'de' | 'no'
+export type Locale = 'fr' | 'en' | 'de' | 'no' | 'uk'
 
 export type LocaleInfo = {
   code: Locale
@@ -14,6 +14,7 @@ export const LOCALES: readonly LocaleInfo[] = [
   { code: 'en', flag: '🇬🇧', nativeName: 'English' },
   { code: 'de', flag: '🇩🇪', nativeName: 'Deutsch' },
   { code: 'no', flag: '🇳🇴', nativeName: 'Norsk' },
+  { code: 'uk', flag: '🇺🇦', nativeName: 'Українська' },
 ] as const
 
 /** Browser tags that map to a supported Locale (e.g. nb/nn → no). */

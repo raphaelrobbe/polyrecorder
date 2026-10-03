@@ -19,6 +19,7 @@ const DATE_LOCALES = {
   en: 'en-GB',
   de: 'de-DE',
   no: 'nb-NO',
+  uk: 'uk-UA',
 } as const
 
 type TreatmentKeys = {
