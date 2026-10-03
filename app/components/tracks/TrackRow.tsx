@@ -1,48 +1,27 @@
-import { useEffect, useLayoutEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { formatPseudoHandle } from '../../common/user'
 import type { Track } from '../../common/types'
 import {
-  defaultTrackName,
   formatAlignDetail,
   formatCentis,
   formatTime,
   getMixDurationMs,
-  isDefaultTrackName,
 } from '../../lib/format'
 import { TRACK_VOLUME_MAX } from '../../lib/audio/mix.client'
 import {
-  isAutoAlignOffsetExcluded,
-  isOffsetSkewWarning,
-} from '../../lib/audio/runtime.client'
-import {
-  applyManualTrackOffset,
-  beginContentSyncPick,
-  beginReferencePick,
   completeContentSyncAgainst,
-  consumeMetronomeBpmFocusRequest,
-  createOrUpdateMetronome,
   deleteTrack,
+  flushVolumeCloudPersist,
   getTrackPositionMs,
   getTrackVolume,
-  realignTrack,
-  renameTrack,
-  setError,
+  seekMixTo,
   setReferenceTrack,
   setTrackEnabled,
   setTrackVolume,
-  setCalageMode,
-  setMixMode,
-  seekMixTo,
-  showNotice,
-  flushVolumeCloudPersist,
   toggleCutSegmentSelected,
   toggleTrackHighlight,
   trackOffersContentSync,
 } from '../../lib/sessionActions.client'
-import {
-  clampMetronomeBpm,
-  DEFAULT_METRONOME_BPM,
-} from '../../lib/audio/metronome.client'
 import { audibleMixRange } from '../../lib/audio/segments.client'
 import { uploadTrackToCloud } from '../../lib/cloudUpload.client'
 import { useLocale } from '../../hooks/useLocale'
@@ -52,14 +31,15 @@ import type { loader as rootLoader } from '../../root'
 import { useSessionStore } from '../../store/sessionStore'
 import { useRouteLoaderData } from '@remix-run/react'
 import { Button } from '../Button'
-import { IconAutoAlign, IconCloudSave, IconHighlight, IconTrash } from '../icons'
-import { MsOffsetEditor } from '../MsOffsetEditor'
-import { NudgeValueField } from '../NudgeValueField'
+import { IconCloudSave, IconHighlight } from '../icons'
 import { VolumeRibbon } from '../VolumeRibbon'
 import { TrackDragHandle } from './TrackDragHandle'
 import { CutMuteBars } from './CutMuteBars'
 import { TrackMute } from './TrackMute'
-import { TrackNameInput } from './TrackNameInput'
+import { TrackRowCalageControls } from './TrackRowCalageControls'
+import { TrackRowChips } from './TrackRowChips'
+import { TrackRowTitle } from './TrackRowTitle'
+import { useTrackRowAttention } from './useTrackRowAttention'
 
 type TrackRowProps = {
   track: Track
@@ -96,15 +76,6 @@ export function TrackRow({
   const trackVolumes = useSessionStore((s) => s.trackVolumes)
   const highlightedTrackIds = useSessionStore((s) => s.highlightedTrackIds)
   const tracks = useSessionStore((s) => s.tracks)
-  const skewWarningDismissedKey = useSessionStore(
-    (s) => s.skewWarningDismissedKey,
-  )
-  const referenceBeatWarning = useSessionStore((s) => s.referenceBeatWarning)
-  const alignAttentionByTrackId = useSessionStore(
-    (s) => s.alignAttentionByTrackId,
-  )
-  const trackClipById = useSessionStore((s) => s.trackClipById)
-  const showCalageWarnings = useSessionStore((s) => s.showCalageWarnings)
   const autoAlignEnabled = useSessionStore((s) => s.autoAlignEnabled)
   const metronomeBpm = useSessionStore((s) => s.metronomeBpm)
   const contentSyncPickFromId = useSessionStore((s) => s.contentSyncPickFromId)
@@ -118,6 +89,8 @@ export function TrackRow({
   const patch = useSessionStore((s) => s.patch)
   // Re-render on playhead ticks so clocks + span seek caret stay live.
   useSessionStore((s) => s.mixClockText)
+
+  const attention = useTrackRowAttention(track)
 
   const isEnabled = enabledTrackIds.includes(track.id)
   const isReference = track.id === referenceTrackId
@@ -151,189 +124,7 @@ export function TrackRow({
       tracks.some(
         (t) => Boolean(t.uploadedByPseudo) && t.cloudOwnedByMe === false,
       ))
-  const skewFingerprint = tracks
-    .filter(
-      (t) => t.id !== referenceTrackId && isOffsetSkewWarning(t.offsetMs),
-    )
-    .map((t) => `${t.id}:${Math.round(t.offsetMs)}`)
-    .join('|')
-  const skewActive =
-    skewFingerprint.length > 0 &&
-    skewFingerprint !== skewWarningDismissedKey
-  const alignAttentionMessage = alignAttentionByTrackId[track.id]
   const isSimpleMode = !mixMode && !calageMode && !cutMode
-  const beatWarningActive = referenceBeatWarning != null
-  const showBeatAttention =
-    beatWarningActive &&
-    isReference &&
-    showCalageWarnings &&
-    autoAlignEnabled &&
-    !mixMode &&
-    !cutMode
-  const showAlignAttention =
-    Boolean(alignAttentionMessage) &&
-    showCalageWarnings &&
-    autoAlignEnabled &&
-    (isSimpleMode || calageMode)
-  const showSkewAttention =
-    autoAlignEnabled &&
-    showCalageWarnings &&
-    skewActive &&
-    !isReference &&
-    (isSimpleMode || calageMode) &&
-    isOffsetSkewWarning(track.offsetMs)
-  const showAttentionChip =
-    showSkewAttention || showAlignAttention || showBeatAttention
-  const attentionTitle = showBeatAttention
-    ? referenceBeatWarning!.message
-    : (alignAttentionMessage ??
-      t('warn.skew.long', { names: track.name }))
-  const attentionAria = showBeatAttention
-    ? t('warn.beat.chip.aria')
-    : alignAttentionMessage
-      ? t('warn.attention')
-      : t('warn.skew.chip.aria', { name: track.name })
-  const nameKey = track.name.trim().toLowerCase()
-  const showDuplicateNameChip =
-    isSimpleMode &&
-    nameKey.length > 0 &&
-    tracks.filter((t) => t.name.trim().toLowerCase() === nameKey).length > 1
-  const showRecordClipChip =
-    (isSimpleMode || mixMode) &&
-    !track.isMetronome &&
-    Boolean(trackClipById[track.id])
-  /** Reserve chip columns so "!" line up across tracks. */
-  const simpleDupChipColumn =
-    isSimpleMode &&
-    tracks.some((t) => {
-      const key = t.name.trim().toLowerCase()
-      if (!key) return false
-      return tracks.filter((o) => o.name.trim().toLowerCase() === key).length > 1
-    })
-  const simpleMixChipColumn =
-    isSimpleMode &&
-    tracks.some((t) => !t.isMetronome && Boolean(trackClipById[t.id]))
-  const simpleCalageChipColumn =
-    isSimpleMode &&
-    showCalageWarnings &&
-    autoAlignEnabled &&
-    (beatWarningActive ||
-      Object.keys(alignAttentionByTrackId).length > 0 ||
-      (skewActive &&
-        tracks.some(
-          (t) =>
-            t.id !== referenceTrackId && isOffsetSkewWarning(t.offsetMs),
-        )))
-  const mixChipColumn =
-    mixMode &&
-    tracks.some((t) => !t.isMetronome && Boolean(trackClipById[t.id]))
-  const calageChipColumn =
-    calageMode &&
-    showCalageWarnings &&
-    autoAlignEnabled &&
-    (beatWarningActive ||
-      Object.keys(alignAttentionByTrackId).length > 0 ||
-      (skewActive &&
-        tracks.some(
-          (t) =>
-            t.id !== referenceTrackId && isOffsetSkewWarning(t.offsetMs),
-        )))
-  const chipRail =
-    simpleDupChipColumn ||
-    simpleMixChipColumn ||
-    simpleCalageChipColumn ||
-    mixChipColumn ||
-    calageChipColumn
-  const chipSlotClass =
-    'grid h-[1.65rem] w-[1.65rem] shrink-0 place-items-center max-sm:h-[1.45rem] max-sm:w-[1.45rem]'
-  /** Match trash control size/radius; beat Button `trash` max-sm defaults. */
-  const chipBtnClass =
-    'h-full w-full max-sm:!h-full max-sm:!w-full rounded-lg max-sm:rounded-lg p-0 text-[0.78rem] font-extrabold leading-none max-sm:text-[0.7rem]'
-  const dupChipButton = showDuplicateNameChip ? (
-    <Button
-      variant="trash"
-      className={cn(
-        chipBtnClass,
-        'border-ink/28 bg-ink/8 text-ink',
-        'hover:enabled:border-ink/35 hover:enabled:bg-ink/12 hover:enabled:text-ink',
-      )}
-      title={t('warn.duplicateName.hint')}
-      aria-label={t('warn.duplicateName.aria', { name: track.name })}
-      onClick={() => {
-        showNotice({
-          id: `dup:${nameKey}`,
-          message: t('warn.duplicateName.hint'),
-          tone: 'simple',
-        })
-        const input = document.querySelector<HTMLInputElement>(
-          `input[data-rename-track="${track.id}"]`,
-        )
-        input?.focus()
-        input?.select()
-      }}
-    >
-      !
-    </Button>
-  ) : null
-  const mixChipButton = showRecordClipChip ? (
-    <Button
-      variant="trash"
-      className={cn(
-        chipBtnClass,
-        'border-mode-mix-border bg-mode-mix-bg text-mode-mix',
-        'hover:enabled:border-mode-mix-border hover:enabled:bg-mode-mix-hover hover:enabled:text-mode-mix',
-      )}
-      title={t('mix.clip.record.hint')}
-      aria-label={t('mix.clip.record.aria')}
-      onClick={() => {
-        if (!mixMode) setMixMode(true)
-        showNotice({
-          id: `mix-clip:${track.id}`,
-          message: t('mix.clip.record.hint'),
-          tone: 'mix',
-        })
-      }}
-    >
-      !
-    </Button>
-  ) : null
-  const calageChipButton = showAttentionChip ? (
-    <Button
-      variant="trash"
-      className={cn(
-        chipBtnClass,
-        'border-mode-align-border bg-mode-align-bg text-mode-align',
-        'hover:enabled:border-mode-align-border hover:enabled:bg-mode-align-hover hover:enabled:text-mode-align',
-      )}
-      title={attentionTitle}
-      aria-label={attentionAria}
-      onClick={() => {
-        if (showBeatAttention && referenceBeatWarning) {
-          showNotice({
-            id: referenceBeatWarning.key,
-            message: referenceBeatWarning.message,
-            tone: 'align',
-            action: 'disableAutoAlign',
-          })
-        } else if (alignAttentionMessage) {
-          showNotice({
-            id: `align:${track.id}`,
-            message: alignAttentionMessage,
-            tone: 'align',
-          })
-        } else {
-          showNotice({
-            id: `skew:${track.id}`,
-            message: t('warn.skew.long', { names: track.name }),
-            tone: 'align',
-          })
-        }
-        if (!calageMode) setCalageMode(true)
-      }}
-    >
-      !
-    </Button>
-  ) : null
   const showCloudSave =
     (!readOnlySession || canCloudContribute) &&
     user != null &&
@@ -435,15 +226,6 @@ export function TrackRow({
     deleteTrack(track.id)
   }
 
-  const [nameDraft, setNameDraft] = useState(track.name)
-  const [bpmDraft, setBpmDraft] = useState(
-    String(metronomeBpm ?? DEFAULT_METRONOME_BPM),
-  )
-
-  useEffect(() => {
-    setNameDraft(track.name)
-  }, [track.name])
-
   useEffect(() => {
     if (!isMergePending) return
     const el = document.querySelector<HTMLElement>(
@@ -451,32 +233,6 @@ export function TrackRow({
     )
     el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
   }, [isMergePending, track.id])
-
-  useEffect(() => {
-    if (!track.isMetronome) return
-    setBpmDraft(String(metronomeBpm ?? DEFAULT_METRONOME_BPM))
-  }, [track.isMetronome, metronomeBpm])
-
-  useLayoutEffect(() => {
-    if (!track.isMetronome) return
-    if (!consumeMetronomeBpmFocusRequest()) return
-    const input = document.querySelector<HTMLInputElement>(
-      `input[data-metro-bpm="${track.id}"]`,
-    )
-    if (!input) return
-    input.focus()
-    input.select()
-  }, [track.isMetronome, track.id])
-
-  const applyMetronomeBpm = () => {
-    const parsed = Number(bpmDraft)
-    const next = clampMetronomeBpm(
-      Number.isFinite(parsed) ? parsed : DEFAULT_METRONOME_BPM,
-    )
-    setBpmDraft(String(next))
-    if (next === (metronomeBpm ?? DEFAULT_METRONOME_BPM)) return
-    void createOrUpdateMetronome(next)
-  }
 
   return (
     <li
@@ -669,144 +425,23 @@ export function TrackRow({
                 calageMode ? 'w-full' : 'flex-auto',
               )}
             >
-              {track.isMetronome ? (
-                <div className="flex min-w-0 w-full items-center gap-[0.35rem]">
-                  <div className="inline-flex min-w-0 flex-auto items-center gap-[0.35rem] py-[0.1rem]">
-                    <span className="shrink-0 text-[0.82rem] font-bold text-ink">
-                      {t('track.metronome.label')}
-                    </span>
-                    {calageMode ? null : (
-                      <NudgeValueField
-                        unit={t('capture.metronome.unit')}
-                        labelClassName="min-w-0 justify-start"
-                        className="w-[2.85rem] text-[0.82rem]"
-                        value={bpmDraft}
-                        inputMode="numeric"
-                        aria-label={t('capture.metronome.bpm')}
-                        spellCheck={false}
-                        data-metro-bpm={track.id}
-                        onChange={(event) => setBpmDraft(event.target.value)}
-                        onKeyDown={(event) => {
-                          if (event.key === 'Enter') {
-                            event.preventDefault()
-                            event.currentTarget.blur()
-                          }
-                        }}
-                        onFocus={(event) => {
-                          event.currentTarget.select()
-                          event.currentTarget.addEventListener(
-                            'mouseup',
-                            (mouseupEvent) => {
-                              mouseupEvent.preventDefault()
-                              event.currentTarget.select()
-                            },
-                            { once: true },
-                          )
-                        }}
-                        onBlur={applyMetronomeBpm}
-                      />
-                    )}
-                  </div>
-                  {showTitleDelete ? (
-                    <Button
-                      variant="trash"
-                      className="h-[1.3rem] w-[1.3rem] shrink-0 rounded-md border-ink/16 text-ink/45 [&_svg]:size-[0.68rem] max-sm:h-[1.2rem] max-sm:w-[1.2rem] max-sm:[&_svg]:size-[0.62rem]"
-                      icon={<IconTrash />}
-                      disabled={deleteDisabled || deleteBusy}
-                      aria-label={t('tracks.delete', { name: track.name })}
-                      title={deleteTitle}
-                      data-delete-track={track.id}
-                      onClick={onDeleteTrack}
-                    />
-                  ) : null}
-                </div>
-              ) : (
-                <div className="flex min-w-0 w-full items-center gap-[0.35rem]">
-                  <TrackNameInput
-                    isDefault={isDefaultTrackName(nameDraft)}
-                    data-rename-track={track.id}
-                    value={nameDraft}
-                    aria-label={t('tracks.name.aria')}
-                    maxLength={40}
-                    readOnly={cutEditing || pickActive}
-                    className={cn(
-                      'min-w-0 flex-auto',
-                      showUploader && !calageMode && 'py-0',
-                      (cutEditing || pickActive) &&
-                        'pointer-events-none hover:bg-transparent',
-                      isPickSource && 'text-ink-soft',
-                    )}
-                    onChange={(event) => {
-                      setNameDraft(event.target.value)
-                    }}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        event.preventDefault()
-                        event.currentTarget.blur()
-                      }
-                    }}
-                    onFocus={(event) => {
-                      if (cutEditing || pickActive) {
-                        event.currentTarget.blur()
-                        return
-                      }
-                      if (!isDefaultTrackName(event.currentTarget.value)) return
-                      event.currentTarget.select()
-                      event.currentTarget.addEventListener(
-                        'mouseup',
-                        (mouseupEvent) => {
-                          mouseupEvent.preventDefault()
-                          event.currentTarget.select()
-                        },
-                        { once: true },
-                      )
-                    }}
-                    onBlur={() => {
-                      if (cutEditing) return
-                      const next =
-                        nameDraft.trim().slice(0, 40) ||
-                        defaultTrackName(index + 1)
-                      setNameDraft(next)
-                      renameTrack(track.id, next)
-                    }}
-                  />
-                  {showContentSyncButton ? (
-                    <Button
-                      type="button"
-                      variant="trim"
-                      data-content-sync={track.id}
-                      className={cn(
-                        'shrink-0 px-[0.32rem] py-[0.12rem] text-[0.62rem] font-semibold tracking-[0.01em] normal-case',
-                        isContentSyncSource &&
-                          'border-ink/25 bg-ink/10 text-ink-soft hover:enabled:bg-ink/14',
-                      )}
-                      aria-pressed={isContentSyncSource}
-                      aria-label={t('tracks.contentSync.aria', {
-                        name: track.name,
-                      })}
-                      title={t('tracks.contentSync.hint')}
-                      onClick={(event) => {
-                        event.stopPropagation()
-                        beginContentSyncPick(track.id)
-                      }}
-                    >
-                      {t('tracks.contentSync')}
-                    </Button>
-                  ) : null}
-                  {showTitleDelete ? (
-                    <Button
-                      variant="trash"
-                      className="h-[1.3rem] w-[1.3rem] shrink-0 rounded-md border-ink/16 text-ink/45 [&_svg]:size-[0.68rem] max-sm:h-[1.2rem] max-sm:w-[1.2rem] max-sm:[&_svg]:size-[0.62rem]"
-                      icon={<IconTrash />}
-                      disabled={deleteDisabled || deleteBusy}
-                      aria-label={t('tracks.delete', { name: track.name })}
-                      title={deleteTitle}
-                      data-delete-track={track.id}
-                      onClick={onDeleteTrack}
-                    />
-                  ) : null}
-                </div>
-              )}
+              <TrackRowTitle
+                track={track}
+                index={index}
+                calageMode={calageMode}
+                cutEditing={cutEditing}
+                pickActive={pickActive}
+                showUploader={showUploader}
+                showTitleDelete={showTitleDelete}
+                showContentSyncButton={showContentSyncButton}
+                isContentSyncSource={isContentSyncSource}
+                isPickSource={isPickSource}
+                deleteDisabled={deleteDisabled}
+                deleteBusy={deleteBusy}
+                deleteTitle={deleteTitle}
+                metronomeBpm={metronomeBpm}
+                onDeleteTrack={onDeleteTrack}
+              />
               {!calageMode && showUploader ? (
                 <span
                   className="truncate px-[0.15rem] text-[0.62rem] font-medium leading-[1.1] text-ink-soft/80"
@@ -1078,111 +713,37 @@ export function TrackRow({
             }}
           />
         ) : null}
-        {chipRail && !pickActive ? (
-          <div className="ml-[0.12rem] flex shrink-0 items-center gap-[0.2rem] self-start max-sm:ml-[0.06rem]">
-            {simpleDupChipColumn ? (
-              <div className={chipSlotClass}>{dupChipButton}</div>
-            ) : null}
-            {simpleMixChipColumn || mixChipColumn ? (
-              <div className={chipSlotClass}>{mixChipButton}</div>
-            ) : null}
-            {simpleCalageChipColumn || calageChipColumn ? (
-              <div className={chipSlotClass}>{calageChipButton}</div>
-            ) : null}
-          </div>
-        ) : null}
+        <TrackRowChips
+          trackId={track.id}
+          trackName={track.name}
+          nameKey={attention.nameKey}
+          pickActive={pickActive}
+          calageMode={calageMode}
+          mixMode={mixMode}
+          chipRail={attention.chipRail}
+          simpleDupChipColumn={attention.simpleDupChipColumn}
+          simpleMixChipColumn={attention.simpleMixChipColumn}
+          simpleCalageChipColumn={attention.simpleCalageChipColumn}
+          mixChipColumn={attention.mixChipColumn}
+          calageChipColumn={attention.calageChipColumn}
+          showDuplicateNameChip={attention.showDuplicateNameChip}
+          showRecordClipChip={attention.showRecordClipChip}
+          showAttentionChip={attention.showAttentionChip}
+          showBeatAttention={attention.showBeatAttention}
+          attentionTitle={attention.attentionTitle}
+          attentionAria={attention.attentionAria}
+          alignAttentionMessage={attention.alignAttentionMessage}
+          referenceBeatWarning={attention.referenceBeatWarning}
+        />
       </div>
-      {showOffsetCol ? (
-        <>
-          {showRefAlignCol ? (
-            isReference ? (
-              <button
-                type="button"
-                className={cn(
-                  'col-start-3 row-start-1 inline-flex h-[1.35rem] w-full shrink-0 items-center justify-center justify-self-center',
-                  'rounded-md border-0 bg-transparent p-0',
-                  'text-[0.62rem] font-extrabold tracking-[0.04em] uppercase text-ink-soft',
-                  'cursor-pointer transition-[color,background] duration-160',
-                  'hover:bg-ink/8 hover:text-ink',
-                  'focus-visible:outline focus-visible:outline-2 focus-visible:outline-ink/35 focus-visible:outline-offset-2',
-                )}
-                title={t('tracks.ref.hint')}
-                aria-label={t('tracks.ref.aria')}
-                data-reference-pick
-                onClick={(event) => {
-                  event.stopPropagation()
-                  beginReferencePick()
-                }}
-              >
-                {t('tracks.ref.badge')}
-              </button>
-            ) : (
-              <Button
-                variant="nudge"
-                className="col-start-3 row-start-1 justify-self-center [&_svg]:size-[1.28rem]"
-                icon={<IconAutoAlign />}
-                disabled={isAutoAlignOffsetExcluded(track.offsetMs)}
-                title={
-                  isAutoAlignOffsetExcluded(track.offsetMs)
-                    ? t('tracks.autoAlign.excluded.hint')
-                    : t('tracks.autoAlign')
-                }
-                aria-label={
-                  isAutoAlignOffsetExcluded(track.offsetMs)
-                    ? t('tracks.autoAlign.excluded.hint')
-                    : t('tracks.autoAlign.named', { name: track.name })
-                }
-                data-auto-align-track={track.id}
-                onClick={() => {
-                  void (async () => {
-                    try {
-                      await realignTrack(track.id)
-                    } catch (error) {
-                      setError(
-                        error instanceof Error
-                          ? error.message
-                          : t('error.autoAlignFailed'),
-                      )
-                    }
-                  })()
-                }}
-              />
-            )
-          ) : null}
-          {showOffsetEditor ? (
-            <MsOffsetEditor
-              className={cn(
-                'row-start-1 justify-self-center',
-                showRefAlignCol ? 'col-start-4' : 'col-start-3',
-              )}
-              title={t('tracks.offset.hint')}
-              value={Math.round(track.offsetMs)}
-              onChange={(next) => applyManualTrackOffset(track.id, next)}
-              minusAriaLabel={t('tracks.offset.minus', { name: track.name })}
-              plusAriaLabel={t('tracks.offset.plus', { name: track.name })}
-              inputAriaLabel={t('tracks.offset.input', { name: track.name })}
-              inputProps={{ 'data-offset-track': track.id }}
-            />
-          ) : showOffsetCol ? (
-            <span
-              className={cn(
-                'row-start-1 justify-self-center',
-                showRefAlignCol ? 'col-start-4' : 'col-start-3',
-              )}
-              aria-hidden="true"
-            />
-          ) : null}
-          <small
-            className={cn(
-              'row-start-2 block max-w-[8.5rem] min-h-[1.55em] justify-self-center text-center text-[0.62rem] font-semibold leading-[1.25] tabular-nums text-ink-soft',
-              showRefAlignCol ? 'col-start-4' : 'col-start-3',
-              (!alignDetailText || !showOffsetEditor) && 'invisible',
-            )}
-          >
-            {alignDetailText || '\u00a0'}
-          </small>
-        </>
-      ) : null}
+      <TrackRowCalageControls
+        track={track}
+        isReference={isReference}
+        showOffsetCol={showOffsetCol}
+        showRefAlignCol={showRefAlignCol}
+        showOffsetEditor={showOffsetEditor}
+        alignDetailText={alignDetailText}
+      />
     </li>
   )
 }

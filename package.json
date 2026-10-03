@@ -9,11 +9,15 @@
     "build": "prisma generate && remix vite:build",
     "start": "remix-serve ./build/server/index.js",
     "ts": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:auth": "vitest run app/service/cloud/__tests__",
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
+    "db:test:prepare": "PGPASSWORD=polyrecorder psql -h 127.0.0.1 -p 5434 -U polyrecorder -d postgres -tc \"SELECT 1 FROM pg_database WHERE datname='polyrecorder_test'\" | grep -q 1 || PGPASSWORD=polyrecorder psql -h 127.0.0.1 -p 5434 -U polyrecorder -d postgres -c 'CREATE DATABASE polyrecorder_test'; DATABASE_URL='${DATABASE_URL_TEST:-postgresql://polyrecorder:polyrecorder@127.0.0.1:5434/polyrecorder_test}' prisma migrate deploy",
     "runSql": "bun ./scripts/runSql.ts",
     "favicon": "bun ./scripts/build-favicon.ts"
   },
@@ -43,6 +47,7 @@
   },
   "devDependencies": {
     "@remix-run/dev": "^2.15.0",
+    "@resvg/resvg-js": "^2.6.2",
     "@tailwindcss/vite": "^4.3.3",
     "@types/nodemailer": "^8.0.2",
     "@types/pg": "^8.23.1",
@@ -54,6 +59,6 @@
     "typescript": "^7.0.2",
     "vite": "^8.3.0",
     "vite-tsconfig-paths": "^5.1.0",
-    "@resvg/resvg-js": "^2.6.2"
+    "vitest": "^5.0.3"
   }
 }
